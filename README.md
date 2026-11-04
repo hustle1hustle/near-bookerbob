@@ -18,9 +18,12 @@ the agent is real and valuable without handing over their data, so merchants kee
 ads to find customers. BookerBob turns that ad budget into a discount paid to a proven
 customer, and keeps the customer private.
 
-## Try it in 2 minutes
+## Try it
 
-Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No network, no keys.
+Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
+Measured on 2026-11-04 on an 11-core Apple M3 Pro: `make verify` takes 40 s from a cold
+build (crates already downloaded; a first run also fetches them from crates.io) and 2 s
+warm. After the first build it needs no network.
 
 1. Run `make verify`.
    See one line per link of the chain, each `PASS` or `FAIL`, ending in `nullifier spent`
