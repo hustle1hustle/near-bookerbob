@@ -501,6 +501,11 @@ impl Bazaar {
             serde_json::from_slice::<String>(&bytes).ok().and_then(|s| serde_json::from_str(&s).ok())
         });
         match parsed {
+            // Report instead of panicking, so a hello-world run shows the output arrived.
+            Some(r) if !self.verdicts.contains_key(&r.body.nullifier) => {
+                emit("referee_failed", serde_json::json!({ "reason": "unknown nullifier", "output_sha256": hex::encode(env::sha256_array(&bytes)), "outcome": r.body.outcome }));
+                false
+            }
             Some(r) => self.apply_referee_result(r),
             None => {
                 emit("referee_failed", serde_json::json!({ "reason": "unparseable worker output" }));

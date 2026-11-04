@@ -5,6 +5,8 @@
 //!   bookerbob swarm <merchants.json> <verdict.json> <board.json> [--check]
 //!   bookerbob referee <proofs.json> <verdict.json> <merchants.json> <merchant> <claims.json>
 //!   bookerbob evals <evals.json> <proofs.json> <verdict.json> <merchants.json>
+//!   bookerbob keys <dir> [--pub]            testnet trust-anchor keys (seeds stay in <dir>)
+//!   bookerbob worker-input <fixtures-dir>   referee input for an OutLayer call
 //!
 //! `verify` runs the real `bazaar` contract code natively against near-sdk's
 //! MockedBlockchain, which executes host functions (ed25519_verify, p256_verify, sha256)
@@ -12,6 +14,7 @@
 
 mod evals;
 mod fixtures;
+mod keys;
 mod swarm;
 mod verify;
 
@@ -68,6 +71,28 @@ fn referee_cmd(a: &[String]) -> ExitCode {
     if out.is_receipt() { ExitCode::SUCCESS } else { ExitCode::FAILURE }
 }
 
+/// Print the referee worker input for the fixture purchase (honest claims, winner m01).
+fn worker_input(dir: &Path) -> ExitCode {
+    fn load<T: serde::de::DeserializeOwned>(p: std::path::PathBuf) -> T {
+        serde_json::from_str(&std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()))).expect("parse")
+    }
+    let v: bookerbob_core::SignedVerdict = load(dir.join("verdict-ed25519.json"));
+    let ms: Vec<fixtures::MerchantFixture> = load(dir.join("merchants.json"));
+    let input = bookerbob_referee_worker::WorkerInput {
+        v: 0,
+        verdict_digest: hex::encode(v.envelope.digest()),
+        nullifier: v.envelope.nullifier.clone(),
+        merchant: ms[0].account.clone(),
+        schedule: ms[0].schedule.clone(),
+        revealed: v.envelope.predicates.clone(),
+        claims: load(dir.join("claims-honest.json")),
+        proofs: load(dir.join("proofs.json")),
+        cohort_k: 0,
+    };
+    println!("{}", serde_json::to_string(&input).unwrap());
+    ExitCode::SUCCESS
+}
+
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
@@ -83,6 +108,8 @@ fn main() -> ExitCode {
             None => usage(),
         },
         Some("referee") if args.len() >= 6 => referee_cmd(&args[1..6]),
+        Some("keys") if args.len() >= 2 => keys::run(Path::new(&args[1]), args.iter().any(|a| a == "--pub")),
+        Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1])),
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
         Some("swarm") if args.len() >= 4 => {
             swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check"))

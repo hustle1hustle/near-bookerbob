@@ -218,6 +218,25 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 
 None yet. Testnet first; mainnet only on an explicit go.
 
+### Deploy to testnet (one command)
+
+```sh
+DRY_RUN=1 scripts/deploy-testnet.sh   # prints every command, sends nothing
+scripts/deploy-testnet.sh             # needs near-cli-rs and cargo-near
+```
+
+Idempotent: each step reads chain state first and skips what is done. It refuses any
+network but testnet. Steps: the `bookerbob.testnet` account (faucet), build and deploy
+with `new`, register the issuer, referee, arbiter and World verifier keys (seeds created
+by `bookerbob keys` in `~/.rep-secrets/bookerbob-testnet`, outside the repo), USDC storage
+for the bazaar, 30 merchant sub-accounts (`m01..m22`, `h01..h08`) with their schedules
+from `agents/merchants.json` and USDC storage, the first Chain Signatures `sign` with
+`domain_id: 1` (raw output to `fixtures/live/mpc-sign.txt`), and, once the worker is
+uploaded to OutLayer, one `request_referee` (`OUTLAYER_PROJECT=<owner>/<project>`). Every
+transaction hash goes to `docs/testnet.md`. Knobs: `BAZAAR_ACCOUNT_ID`, `MERCHANTS`,
+`MERCHANT_FUND` (default 0.1 NEAR each). The near-cli-rs syntax was written before
+near-cli-rs was installed here: dry-run first, check the first live step by hand.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
