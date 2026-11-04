@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 bookerbob-core = { path = "../core" }
 bookerbob-bazaar = { path = "../contract", features = ["unit-testing"] }
+bookerbob-referee-worker = { path = "../worker" }
 near-sdk = { workspace = true, features = ["unit-testing"] }
 serde = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, features = ["std"] }

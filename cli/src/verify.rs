@@ -12,7 +12,9 @@ use near_sdk::test_utils::{get_logs, VMContextBuilder};
 use near_sdk::{testing_env, AccountId};
 use serde::de::DeserializeOwned;
 
-use crate::fixtures::{Expected, MerchantFixture, Opening, ESCROW_USDC, NOW_MS, OWNER, USDC};
+use bookerbob_referee_worker::{key_from_seed_hex, run as run_worker, WorkerInput};
+
+use crate::fixtures::{referee_seed_hex, Expected, MerchantFixture, Opening, ESCROW_USDC, NOW_MS, OWNER, USDC};
 
 struct Report {
     n: usize,
@@ -127,6 +129,8 @@ pub fn run(dir: &Path) -> ExitCode {
     let mut c = Bazaar::new(acc(OWNER), acc(USDC));
     c.register_issuer(v_ed.key_id(), "fixture ed25519 issuer".into());
     c.register_issuer(v_p256.key_id(), "fixture p256 issuer".into());
+    let worker_key = key_from_seed_hex(&referee_seed_hex()).expect("seed");
+    c.register_referee(hex::encode(worker_key.verifying_key().to_bytes()), "fixture referee worker".into());
     for m in &merchants {
         as_caller(&m.account, Some(RECORD_DEPOSIT));
         c.register_merchant(m.schedule.clone(), m.category.clone(), None);
@@ -137,7 +141,7 @@ pub fn run(dir: &Path) -> ExitCode {
     let _ = c.ft_on_transfer(acc(&e.cnf), U128(ESCROW_USDC), String::new());
     r.check(
         c.escrow_of(acc(&e.cnf)) == Some(U128(ESCROW_USDC)) && c.merchants(None, None).len() == merchants.len(),
-        "contract set up: 2 enclave keys, merchants, escrow",
+        "contract set up: 2 enclave keys, 1 referee key, merchants, escrow",
         format!("{} merchants, escrow {} USDC base units", merchants.len(), ESCROW_USDC),
     );
 
@@ -162,17 +166,54 @@ pub fn run(dir: &Path) -> ExitCode {
         format!("{} at {} after {} bps", best.merchant, best.quote.price, best.quote.discount_bps),
     );
 
-    // --- referee ---
+    // --- referee, as the OutLayer worker would run it ---
+    let winner = merchants.iter().find(|m| m.account == best.merchant.as_str()).expect("winner in fixtures");
+    let worker = |claims: &[Claim]| -> Result<bookerbob_core::WorkerResult, String> {
+        let input = WorkerInput {
+            v: 0,
+            verdict_digest: hex::encode(e.digest()),
+            nullifier: e.nullifier.clone(),
+            merchant: winner.account.clone(),
+            schedule: winner.schedule.clone(),
+            revealed: e.predicates.clone(),
+            claims: claims.to_vec(),
+            proofs: proofs.clone(),
+        };
+        let stdout = run_worker(&input, &worker_key)?;
+        serde_json::from_str(&stdout).map_err(|x| x.to_string())
+    };
     let honest_out = referee(&proofs, &e.predicates, &best.quote, &honest);
-    r.check(honest_out.is_receipt(), "referee: honest cited claims get a receipt", "");
+    r.check(honest_out.is_receipt(), "referee (core): honest cited claims get a receipt", "");
     let cheat_out = referee(&proofs, &e.predicates, &best.quote, &cheat);
     r.check(
         cheat_out == RefereeOutcome::Refused { reason: exp.cheat_refusal.clone() },
-        "referee: injected claim refuses the receipt",
+        "referee (core): injected claim refuses the receipt",
         match &cheat_out {
             RefereeOutcome::Refused { reason } => reason.clone(),
             RefereeOutcome::Receipt { .. } => "receipt issued".into(),
         },
+    );
+    let cheat_res = worker(&cheat).expect("worker runs");
+    let cheat_len = serde_json::to_string(&cheat_res).unwrap().len();
+    as_caller(&e.cnf, None);
+    let stored = call(|| c.submit_referee_result(cheat_res.clone()));
+    r.check(
+        stored == Ok(false) && c.verdict(e.nullifier.clone()).is_some_and(|v| v.receipt.is_none()) && cheat_len <= 900,
+        "worker result for the cheat: signed refusal, contract stores no receipt",
+        format!("{}, {cheat_len} bytes", cheat_res.body.detail),
+    );
+    let blocked = call(|| drop(c.settle(e.nullifier.clone(), best.merchant.clone(), "fixture-order-1".into(), U128(best.quote.price))));
+    r.check(
+        blocked.as_ref().err().is_some_and(|m| m.contains("no referee receipt")),
+        "settle without a referee receipt is rejected",
+        "no proof, no receipt, no payment",
+    );
+    let honest_res = worker(&honest).expect("worker runs");
+    let stored = call(|| c.submit_referee_result(honest_res.clone()));
+    r.check(
+        stored == Ok(true) && c.verdict(e.nullifier.clone()).and_then(|v| v.receipt).is_some(),
+        "worker result for honest claims: contract checks its ed25519 signature and stores the receipt",
+        &honest_res.body.detail[..16],
     );
 
     // --- settle ---

@@ -1,5 +1,6 @@
 use super::*;
-use bookerbob_core::{Attestation, Envelope, Rule};
+use bookerbob_core::{Attestation, Claim, Envelope, ProofSet, Fact, Rule};
+use bookerbob_referee_worker::{run as run_referee, WorkerInput};
 use ed25519_dalek::{Signer, SigningKey};
 use near_sdk::test_utils::{get_logs, VMContextBuilder};
 use near_sdk::testing_env;
@@ -91,6 +92,45 @@ fn schedule() -> Schedule {
     }
 }
 
+fn referee_key() -> SigningKey {
+    SigningKey::from_bytes(&[5u8; 32])
+}
+
+fn proofs() -> ProofSet {
+    let f = |id: &str, platform: &str, field: &str, value: u64| Fact { id: id.into(), platform: platform.into(), field: field.into(), value, proof_ref: "cc".repeat(32) };
+    ProofSet { facts: vec![f("F1", "airbnb", "trips_12m", 7), f("F5", "world_id", "verified", 1)] }
+}
+
+fn honest_claims() -> Vec<Claim> {
+    vec![
+        Claim { line: "airbnb_frequent".into(), text: "frequent".into(), citations: vec!["F1".into()] },
+        Claim { line: "world_id_human".into(), text: "human".into(), citations: vec!["F5".into()] },
+    ]
+}
+
+/// Run the real referee worker over `claims` for verdict `e` and merchant m01.
+fn referee_result(e: &Envelope, claims: Vec<Claim>, key: &SigningKey) -> WorkerResult {
+    let input = WorkerInput {
+        v: 0,
+        verdict_digest: hex::encode(e.digest()),
+        nullifier: e.nullifier.clone(),
+        merchant: "m01.bazaar.testnet".into(),
+        schedule: schedule(),
+        revealed: e.predicates.clone(),
+        claims,
+        proofs: proofs(),
+    };
+    serde_json::from_str(&run_referee(&input, key).unwrap()).unwrap()
+}
+
+/// Submit verdict 1 for agent.testnet and store an honest referee receipt for m01.
+fn submit_with_receipt(c: &mut Bazaar, e: Envelope) {
+    set(e.cnf.as_str());
+    c.submit_verdict(sign_ed(e.clone()));
+    assert!(c.submit_referee_result(referee_result(&e, honest_claims(), &referee_key())));
+    set(e.cnf.as_str());
+}
+
 /// Owner deploys, registers both issuer keys, one merchant registers, agent opens escrow
 /// and deposits 200 USDC.
 fn setup() -> Bazaar {
@@ -100,6 +140,7 @@ fn setup() -> Bazaar {
     let p = sign_p256(envelope(1, "agent.testnet"));
     c.register_issuer(ed.key_id(), "fixture ed25519 issuer".into());
     c.register_issuer(p.key_id(), "fixture p256 issuer".into());
+    c.register_referee(hex::encode(referee_key().verifying_key().to_bytes()), "fixture referee".into());
     set("m01.bazaar.testnet");
     c.register_merchant(schedule(), "hoodie".into(), None);
     let mut b = ctx("agent.testnet");
@@ -216,8 +257,7 @@ fn quote_is_code_computed() {
 fn settle_burns_nullifier_and_pays_merchant() {
     let mut c = setup();
     let n = hex::encode([1u8; 32]);
-    set("agent.testnet");
-    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
     let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
     assert_eq!(c.nullifier_status(n.clone()), NullifierStatus::Spent);
     assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(48_800_000)));
@@ -235,8 +275,7 @@ fn replayed_nullifier_is_rejected() {
     // Same proof (same per-context nullifier), new envelope, another wallet.
     let mut c = setup();
     let n = hex::encode([1u8; 32]);
-    set("agent.testnet");
-    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
     let _ = c.settle(n, acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
     set("wallet2.testnet");
     c.submit_verdict(sign_ed(envelope(1, "wallet2.testnet")));
@@ -247,8 +286,7 @@ fn replayed_nullifier_is_rejected() {
 fn double_settle_is_rejected() {
     let mut c = setup();
     let n = hex::encode([1u8; 32]);
-    set("agent.testnet");
-    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
     let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
     let _ = c.settle(n, acc("m01.bazaar.testnet"), "order-2".into(), U128(151_200_000));
 }
@@ -259,8 +297,7 @@ fn settle_over_cap_is_rejected() {
     let mut c = setup();
     let mut e = envelope(1, "agent.testnet");
     e.max_spend = 100_000_000; // below the 151.2 USDC price
-    set("agent.testnet");
-    c.submit_verdict(sign_ed(e));
+    submit_with_receipt(&mut c, e);
     let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
 }
 
@@ -280,14 +317,14 @@ fn settle_without_enough_escrow_is_rejected() {
     let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
     let v = sign_ed(envelope(1, "agent.testnet"));
     c.register_issuer(v.key_id(), "x".into());
+    c.register_referee(hex::encode(referee_key().verifying_key().to_bytes()), "x".into());
     set("m01.bazaar.testnet");
     c.register_merchant(schedule(), "hoodie".into(), None);
     let mut b = ctx("agent.testnet");
     b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
     testing_env!(b.build());
     c.storage_deposit(None);
-    set("agent.testnet");
-    c.submit_verdict(v);
+    submit_with_receipt(&mut c, v.envelope);
     let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
 }
 
@@ -314,8 +351,7 @@ fn other_tokens_are_rejected() {
 fn failed_payout_restores_escrow_and_nullifier() {
     let mut c = setup();
     let n = hex::encode([1u8; 32]);
-    set("agent.testnet");
-    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
     let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
     testing_env!(
         ctx("bazaar.testnet").build(),
@@ -392,4 +428,79 @@ fn unused_storage_deposit_is_refunded() {
     });
     let amount = amount.expect("transfer action");
     assert!(amount > NearToken::from_yoctonear(0) && amount < RECORD_DEPOSIT);
+}
+
+#[test]
+#[should_panic(expected = "no referee receipt for this quote")]
+fn settle_without_referee_receipt_is_rejected() {
+    let mut c = setup();
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+}
+
+#[test]
+fn uncited_fact_refuses_receipt() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(e.clone()));
+    let mut cheat = honest_claims();
+    cheat.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec!["F9".into()] });
+    assert!(!c.submit_referee_result(referee_result(&e, cheat, &referee_key())));
+    assert!(get_logs().iter().any(|l| l.contains("receipt_refused") && l.contains("F9 not in proof set")));
+    assert_eq!(c.verdict(e.nullifier).unwrap().receipt, None);
+}
+
+#[test]
+#[should_panic(expected = "unknown referee key")]
+fn unknown_referee_key_is_rejected() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(e.clone()));
+    c.submit_referee_result(referee_result(&e, honest_claims(), &SigningKey::from_bytes(&[6u8; 32])));
+}
+
+#[test]
+#[should_panic(expected = "bad referee signature")]
+fn tampered_referee_result_is_rejected() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(e.clone()));
+    let mut r = referee_result(&e, honest_claims(), &referee_key());
+    r.body.outcome = "receipt".into();
+    r.body.detail = "forged".into();
+    c.submit_referee_result(r);
+}
+
+#[test]
+#[should_panic(expected = "referee result is for another verdict")]
+fn referee_result_for_another_verdict_is_rejected() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(e.clone()));
+    let mut other = e.clone();
+    other.max_spend += 1;
+    c.submit_referee_result(referee_result(&other, honest_claims(), &referee_key()));
+}
+
+#[test]
+fn outlayer_callback_accepts_worker_stdout() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(e.clone()));
+    let stdout = serde_json::to_vec(&referee_result(&e, honest_claims(), &referee_key())).unwrap();
+    testing_env!(
+        ctx("bazaar.testnet").build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![PromiseResult::Successful(stdout)],
+    );
+    assert!(c.on_referee_result());
+    assert!(c.verdict(e.nullifier).unwrap().receipt.is_some());
 }

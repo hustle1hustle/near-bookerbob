@@ -20,6 +20,7 @@ serde_json = { workspace = true }
 near-sdk = { workspace = true, features = ["unit-testing"] }
 ed25519-dalek = "2.2"
 p256 = { version = "0.13", features = ["ecdsa"] }
+bookerbob-referee-worker = { path = "../worker" }
 
 [features]
 # Lets native tools (the CLI) run this contract against near-sdk's MockedBlockchain.

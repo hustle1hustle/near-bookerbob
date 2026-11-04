@@ -49,7 +49,8 @@ sequenceDiagram
     U->>C: submit_verdict(envelope, signature): ed25519_verify / p256_verify, nullifier check
     M->>C: discount schedules (base, per-predicate bps, cap)
     C-->>U: quote = code-computed price per merchant
-    OL->>OL: referee: every cited fact must be in the proof set
+    OL->>C: signed referee result (receipt, or refusal like F9 not in proof set)
+    C->>C: ed25519_verify worker key, store receipt
     U->>C: settle(nullifier, merchant, checkout_ref)
     C->>C: cap check, burn nullifier, NEP-297 event
     C->>S: ft_transfer USDC to merchant payout; UCP order stores near_tx
@@ -72,7 +73,7 @@ interface exists with a test double; `planned` means not built yet.
 | SUB-ACCOUNTS: 30 merchant agents, one sub-account each, blind commit then reveal | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | built as config and offline board; accounts not created on testnet yet |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
 | NEAR AI E2EE v2: the TEE signature covers the ciphertext, so it verifies without decrypting | privacy | `scripts/spikes/e2ee-signature.mjs`, `docs/near-ai.md` | checked live; TDX quote verification planned |
-| OutLayer TDX worker as referee and verification node | security, privacy | `fixtures/live/views.json` | planned; live `estimate_execution_cost` on `outlayer.testnet` = 0.0070001 NEAR |
+| OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, writes `near_tx` to the order | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
 | Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `scripts/spikes/views.mjs`, `fixtures/live/views.json` | partial: live `derived_public_key` on `v1.signer-prod.testnet` and its Stellar G-address (checked with `stellar strkey decode`); first `sign` not done |
@@ -84,7 +85,8 @@ interface exists with a test double; `planned` means not built yet.
 |---|---|
 | `contract/` | `bazaar` contract, near-sdk 5.29.1 |
 | `core/` | `bookerbob-core`: verdict envelope v0, tier, price and discount stack, referee. Shared by contract and CLI |
-| `cli/` | `bookerbob` CLI: offline end-to-end on fixtures, fixture generator |
+| `cli/` | `bookerbob` CLI: offline end-to-end on fixtures, fixture generator, swarm, referee, evals |
+| `worker/` | referee as an OutLayer worker (stdin in, signed result out) |
 | `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
 | `ucp/` | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
 | `fixtures/` | synthetic, deterministic inputs and expected outputs |
@@ -92,14 +94,15 @@ interface exists with a test double; `planned` means not built yet.
 
 ## What `make verify` checks, and what is mocked
 
-`cli/src/verify.rs` runs 17 checks in order: proof set hash, tier from proven fields,
+`cli/src/verify.rs` runs 20 checks in order: proof set hash, tier from proven fields,
 revealed subset, commitment opening, envelope shape, ed25519 and p256 signatures
 off-chain, then the real `bazaar` contract code against near-sdk's MockedBlockchain
-(host functions run through nearcore's VM logic): enclave keys, merchants, escrow, verdict
-submission with both signature schemes, code-computed quotes, the referee (honest receipt,
-injected claim refused with `F9 not in proof set`), settle (escrow debit, nullifier burn,
-`settled` event, `ft_transfer` receipt to USDC), and the replay from another wallet
-(`nullifier spent`).
+(host functions run through nearcore's VM logic): enclave and referee keys, merchants,
+escrow, verdict submission with both signature schemes, code-computed quotes, the
+referee worker (a signed refusal for the injected claim `F9 not in proof set`, settle
+blocked without a receipt, a signed receipt for honest claims), settle (escrow debit,
+nullifier burn, `settled` event, `ft_transfer` receipt to USDC), and the replay from
+another wallet (`nullifier spent`). Then the 30-agent board check and 20 referee evals.
 
 Mocked or synthetic today: the proof set and attestation report (synthetic fixtures), the
 issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, no live

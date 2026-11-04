@@ -5,7 +5,7 @@
 //! The chain's job: a global spent-set for nullifiers, signature checks with host
 //! functions, a code-computed price, and payout atomic with the nullifier burn.
 
-use bookerbob_core::{quote as price_quote, Quote, Schedule, SigAlg, SignedVerdict};
+use bookerbob_core::{quote as price_quote, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult};
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
 use near_sdk::{
@@ -20,6 +20,8 @@ pub const ESCROW_STORAGE_DEPOSIT: NearToken = NearToken::from_millinear(10);
 pub const RECORD_DEPOSIT: NearToken = NearToken::from_millinear(50);
 const GAS_FT_TRANSFER: Gas = Gas::from_tgas(10);
 const GAS_SETTLE_CALLBACK: Gas = Gas::from_tgas(10);
+const GAS_OUTLAYER: Gas = Gas::from_tgas(100);
+const GAS_REFEREE_CALLBACK: Gas = Gas::from_tgas(30);
 
 #[near(serializers = [borsh, json])]
 #[derive(Clone, Debug, PartialEq)]
@@ -44,6 +46,19 @@ pub struct VerdictRecord {
     pub expires_at_ms: u64,
     pub spent: bool,
     pub checkout_ref: Option<String>,
+    /// sha256 of the envelope signing message, hex. Referee results must name it.
+    pub digest: String,
+    /// The referee receipt for one merchant's quote; `settle` requires it.
+    pub receipt: Option<RefereeReceipt>,
+}
+
+#[near(serializers = [borsh, json])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct RefereeReceipt {
+    pub merchant: AccountId,
+    pub price: U128,
+    pub receipt_hash: String,
+    pub referee: String,
 }
 
 #[near(serializers = [borsh, json])]
@@ -59,6 +74,18 @@ pub struct Merchant {
 pub struct MerchantQuote {
     pub merchant: AccountId,
     pub quote: Quote,
+}
+
+#[ext_contract(ext_outlayer)]
+#[allow(dead_code)]
+trait OutLayer {
+    fn request_execution(
+        &mut self,
+        source: serde_json::Value,
+        resource_limits: serde_json::Value,
+        input_data: String,
+        response_format: String,
+    );
 }
 
 #[ext_contract(ext_ft)]
@@ -77,6 +104,9 @@ pub struct Bazaar {
     verdicts: LookupMap<String, VerdictRecord>,
     escrow: LookupMap<AccountId, u128>,
     spent_count: u64,
+    /// Registered referee worker keys (hex ed25519) to labels.
+    referees: IterableMap<String, String>,
+    outlayer: Option<AccountId>,
 }
 
 fn emit(event: &str, data: serde_json::Value) {
@@ -134,6 +164,8 @@ impl Bazaar {
             verdicts: LookupMap::new(b"v"),
             escrow: LookupMap::new(b"e"),
             spent_count: 0,
+            referees: IterableMap::new(b"r"),
+            outlayer: None,
         }
     }
 
@@ -231,6 +263,8 @@ impl Bazaar {
             expires_at_ms: e.expires_at_ms,
             spent: false,
             checkout_ref: None,
+            digest: hex::encode(env::sha256_array(e.signing_message())),
+            receipt: None,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
         emit(
@@ -321,11 +355,109 @@ impl Bazaar {
         }
     }
 
+    // ---------- referee ----------
+
+    /// Register a referee worker key (hex ed25519), e.g. the key an OutLayer TDX worker
+    /// registered. This is the trust anchor: the contract checks every result signature.
+    pub fn register_referee(&mut self, key_hex: String, label: String) {
+        self.assert_owner();
+        require!(key_hex.len() == 64 && hex::decode(&key_hex).is_ok(), "bad referee key");
+        self.referees.insert(key_hex.clone(), label.clone());
+        emit("referee_registered", serde_json::json!({ "key": key_hex, "label": label }));
+    }
+
+    pub fn referees(&self) -> Vec<(String, String)> {
+        self.referees.iter().map(|(k, v)| (k.clone(), v.clone())).collect()
+    }
+
+    pub fn set_outlayer(&mut self, outlayer: AccountId) {
+        self.assert_owner();
+        self.outlayer = Some(outlayer);
+    }
+
+    /// Accept a signed referee result. Anyone may relay it; the signature is what counts.
+    /// A receipt is stored on the verdict; a refusal is logged (`receipt_refused`) and
+    /// leaves the verdict without a receipt. Returns true for a stored receipt.
+    pub fn submit_referee_result(&mut self, result: WorkerResult) -> bool {
+        self.apply_referee_result(result)
+    }
+
+    /// Ask OutLayer to run the referee worker (`project_id`, e.g. `you.testnet/bookerbob-referee`).
+    /// `input_data` is public on chain: synthetic fixtures only; real proofs use the HTTPS path.
+    #[payable]
+    pub fn request_referee(&mut self, project_id: String, input_data: String) -> Promise {
+        let outlayer = self.outlayer.clone().unwrap_or_else(|| env::panic_str("outlayer not set"));
+        ext_outlayer::ext(outlayer)
+            .with_attached_deposit(env::attached_deposit())
+            .with_static_gas(GAS_OUTLAYER)
+            .request_execution(
+                serde_json::json!({ "Project": { "project_id": project_id, "version_key": null } }),
+                serde_json::json!({}),
+                input_data,
+                "Text".into(),
+            )
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_REFEREE_CALLBACK).on_referee_result())
+    }
+
+    /// OutLayer yield/resume callback: `promise_result(0)` is the worker's stdout.
+    /// UNVERIFIED until the testnet hello-world: whether stdout arrives raw or as a JSON string.
+    #[private]
+    pub fn on_referee_result(&mut self) -> bool {
+        let Ok(bytes) = env::promise_result_checked(0, 2048) else {
+            emit("referee_failed", serde_json::json!({}));
+            return false;
+        };
+        let parsed: Option<WorkerResult> = serde_json::from_slice(&bytes).ok().or_else(|| {
+            serde_json::from_slice::<String>(&bytes).ok().and_then(|s| serde_json::from_str(&s).ok())
+        });
+        match parsed {
+            Some(r) => self.apply_referee_result(r),
+            None => {
+                emit("referee_failed", serde_json::json!({ "reason": "unparseable worker output" }));
+                false
+            }
+        }
+    }
+
+    fn apply_referee_result(&mut self, result: WorkerResult) -> bool {
+        let b = &result.body;
+        require!(b.v == 0, "unsupported referee result");
+        require!(self.referees.contains_key(&result.worker_key), "unknown referee key");
+        let sig: [u8; 64] = decode(&result.signature, "referee signature");
+        let pk: [u8; 32] = decode(&result.worker_key, "referee key");
+        require!(env::ed25519_verify(&sig, b.signing_message(), &pk), "bad referee signature");
+        let merchant: AccountId = b.merchant.parse().unwrap_or_else(|_| env::panic_str("bad merchant"));
+        let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
+        let record = self.verdicts.get_mut(&b.nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        require!(!record.spent, "nullifier spent");
+        require!(record.digest == b.verdict_digest, "referee result is for another verdict");
+        let q = price_quote(&m.schedule, &record.predicates);
+        require!(q.price == b.price, "referee price differs from quote");
+        match b.outcome.as_str() {
+            "receipt" => {
+                record.receipt = Some(RefereeReceipt {
+                    merchant: merchant.clone(),
+                    price: U128(q.price),
+                    receipt_hash: b.detail.clone(),
+                    referee: result.worker_key.clone(),
+                });
+                emit("referee_receipt", serde_json::json!({ "nullifier": b.nullifier, "merchant": merchant, "receipt_hash": b.detail }));
+                true
+            }
+            "refused" => {
+                emit("receipt_refused", serde_json::json!({ "nullifier": b.nullifier, "merchant": merchant, "reason": b.detail }));
+                false
+            }
+            _ => env::panic_str("bad referee outcome"),
+        }
+    }
+
     // ---------- settle ----------
 
     /// Pay `merchant` for the verdict under `nullifier`. Called by the verdict's agent (a
     /// function-call key limited to this method is enough). `amount` must equal the
-    /// code-computed price and stay within the verdict's `max_spend`. In one call: escrow
+    /// code-computed price, stay within the verdict's `max_spend`, and carry a referee
+    /// receipt for this merchant and price (no proof, no receipt, no payment). In one call: escrow
     /// is debited, the nullifier is burned, a `settled` event is emitted and USDC
     /// `ft_transfer` to the merchant payout is scheduled. If the transfer fails, the
     /// callback restores escrow and the nullifier.
@@ -339,6 +471,10 @@ impl Bazaar {
         require!(env::block_timestamp_ms() < record.expires_at_ms, "verdict expired");
         let q = price_quote(&m.schedule, &record.predicates);
         require!(amount.0 == q.price, "amount differs from quote");
+        require!(
+            record.receipt.as_ref().is_some_and(|r| r.merchant == merchant && r.price.0 == q.price),
+            "no referee receipt for this quote"
+        );
         require!(q.price <= record.max_spend.0, "over verdict cap");
         let bal = self.escrow.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
         require!(*bal >= q.price, "insufficient escrow");

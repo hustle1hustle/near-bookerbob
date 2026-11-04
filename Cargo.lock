@@ -165,6 +165,7 @@ name = "bookerbob-bazaar"
 version = "0.1.0"
 dependencies = [
  "bookerbob-core",
+ "bookerbob-referee-worker",
  "ed25519-dalek",
  "hex",
  "near-sdk",
@@ -179,6 +180,7 @@ version = "0.1.0"
 dependencies = [
  "bookerbob-bazaar",
  "bookerbob-core",
+ "bookerbob-referee-worker",
  "ed25519-dalek",
  "hex",
  "near-sdk",
@@ -196,6 +198,17 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
+]
+
+[[package]]
+name = "bookerbob-referee-worker"
+version = "0.1.0"
+dependencies = [
+ "bookerbob-core",
+ "ed25519-dalek",
+ "hex",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -52,6 +52,11 @@ pub fn ed_issuer() -> SigningKey {
     SigningKey::from_bytes(&label_hash("bookerbob fixture issuer ed25519 v0"))
 }
 
+/// The referee worker key (an OutLayer secret in production).
+pub fn referee_seed_hex() -> String {
+    hex::encode(label_hash("bookerbob fixture referee worker v0"))
+}
+
 pub fn p256_issuer() -> p256::ecdsa::SigningKey {
     p256::ecdsa::SigningKey::from_slice(&label_hash("bookerbob fixture issuer p256 v0")).expect("valid scalar")
 }
