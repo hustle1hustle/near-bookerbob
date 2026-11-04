@@ -140,6 +140,38 @@ fn main() -> ExitCode {
             }
         }
         Some("evidence") => evidence::run(),
+        // graph-input <onchain-root-hex> <out.json> <agent>:<sub> ...: the standing guest's input
+        // for a live graph, refused unless the events hash to the root read from chain.
+        // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
+        Some("graph-sign") if args.len() >= 5 => match keys::graph_sign(Path::new(&args[1]), &args[2], Path::new(&args[3]), Path::new(&args[4])) {
+            Ok(root) => {
+                println!("signed score update for root {}.. with the referee key; wrote {}", &root[..16], args[4]);
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                ExitCode::FAILURE
+            }
+        },
+        Some("graph-input") if args.len() >= 4 => {
+            let ev: Vec<bookerbob_graph::Event> = args[3..]
+                .iter()
+                .map(|p| {
+                    let (a, b) = p.split_once(':').expect("agent:sub");
+                    bookerbob_graph::Event::Hire { agent: a.into(), sub: b.into() }
+                })
+                .collect();
+            let s = bookerbob_graph::compute(&ev);
+            if hex::encode(s.root) != args[1] {
+                eprintln!("events hash to {}, chain says {}", hex::encode(s.root), args[1]);
+                return ExitCode::FAILURE;
+            }
+            let bytes: Vec<Vec<u8>> = ev.iter().map(|e| e.bytes()).collect();
+            let body = serde_json::json!({ "events": bytes, "expected": { "root": hex::encode(s.root), "scores_hash": hex::encode(s.hash()) } });
+            std::fs::write(&args[2], serde_json::to_string_pretty(&body).unwrap() + "\n").expect("write");
+            println!("{} events match the chain's graph_root {}..; wrote {}", ev.len(), &args[1][..16], args[2]);
+            ExitCode::SUCCESS
+        }
         Some("zk-results") if args.len() >= 3 => zk_results::run(Path::new(&args[1]), Path::new(&args[2])),
         Some("zk-inputs") if args.len() >= 2 => zk_inputs::run(Path::new(&args[1]), args.iter().any(|a| a == "--check")),
         Some("scenario") if args.len() >= 2 => scenario::run(Path::new(&args[1])),

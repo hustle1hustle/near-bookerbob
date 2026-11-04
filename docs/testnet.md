@@ -159,3 +159,21 @@ Stops at escrow: the agent holds no testnet USDC yet (faucet.circle.com, a web f
 | bazaar storage_deposit (escrow entry) | agent.bookerbob.testnet | [F3LiQmuVZP9Jkna9JU8LiajHZ2BMs8E3RzQ1UUaMNqNC](https://testnet.nearblocks.io/txns/F3LiQmuVZP9Jkna9JU8LiajHZ2BMs8E3RzQ1UUaMNqNC) |
 | usdc storage_deposit bazaar (repeat, refunded) | agent.bookerbob.testnet | [8G3peQpWjNRASsjvYARE9TyYqpgyaRRQDcN7KsEEZaa5](https://testnet.nearblocks.io/txns/8G3peQpWjNRASsjvYARE9TyYqpgyaRRQDcN7KsEEZaa5) |
 | usdc storage_deposit agent | agent.bookerbob.testnet | [AFfAVeJVchBMpN3NkLiE6PGCK3sS5GKHnv4UxdYdJdG](https://testnet.nearblocks.io/txns/AFfAVeJVchBMpN3NkLiE6PGCK3sS5GKHnv4UxdYdJdG) |
+
+## Redeploy with the EVM payout code, and a live hire graph (2026-11-04)
+
+| step | account | tx |
+|---|---|---|
+| redeploy bookerbob.testnet (EVM payout, own Poseidon, 600 KB wasm) | bookerbob.testnet | [2L63k3jZYSXT3AUhukjQyxsbkhqefs7f12Njspte3JfF](https://testnet.nearblocks.io/txns/2L63k3jZYSXT3AUhukjQyxsbkhqefs7f12Njspte3JfF) |
+| return 0.45 NEAR for storage | wallet2.bookerbob.testnet | [79Jn1Nq3Vs24XK75x5hb3uN9rQr9BcbduaPN64JGyfQA](https://testnet.nearblocks.io/txns/79Jn1Nq3Vs24XK75x5hb3uN9rQr9BcbduaPN64JGyfQA) |
+| return 0.3 NEAR for storage | agent.bookerbob.testnet | [HSWoaHAcg6vSMzjqNAzveJRRWurwikwZfVo3peiTK5TB](https://testnet.nearblocks.io/txns/HSWoaHAcg6vSMzjqNAzveJRRWurwikwZfVo3peiTK5TB) |
+| hire m01 -> m02 | m01.bookerbob.testnet | hash not captured; the `hired` view for m01 returns m02 |
+| hire m02 -> m03 | m02.bookerbob.testnet | [5zPzDrqifn3B4prfzWY8tG2tjSR7RA2TQ3pnNSRUjjei](https://testnet.nearblocks.io/txns/5zPzDrqifn3B4prfzWY8tG2tjSR7RA2TQ3pnNSRUjjei) |
+| hire m03 -> m02 | m03.bookerbob.testnet | [DTdVUoFe5x6aJagZSwWvCXa5W7sM7sRKuWXnvikVfDhb](https://testnet.nearblocks.io/txns/DTdVUoFe5x6aJagZSwWvCXa5W7sM7sRKuWXnvikVfDhb) |
+
+After the three hires, `graph_root` on chain is `782a6b09457d692214c2cee8523619275d670579a83fdf6a9e5468d96e803b2f`.
+`bookerbob graph-input <root> fixtures/zk/standing-testnet-input.json <agent>:<sub> ...` writes
+the standing guest's input only if the events hash to that root. Next: prove it with Jolt, register
+the program hash (`set_graph_program`), sign the update with the referee key
+(`bookerbob graph-sign ~/.rep-secrets/bookerbob-testnet <program-hash> <input> <args.json>`) and
+call `submit_graph_scores`.

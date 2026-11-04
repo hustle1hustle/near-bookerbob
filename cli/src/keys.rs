@@ -48,6 +48,43 @@ fn load_seed(dir: &Path, role: &str) -> Result<SigningKey, String> {
     Ok(SigningKey::from_bytes(&seed))
 }
 
+/// A standing score update for `submit_graph_scores`, signed by the referee (worker) seed:
+/// recomputes the scores from the guest input's events (the same code the Jolt guest runs),
+/// signs `sha256(TAG || program_hash || root || scores_hash)` and writes the call args.
+/// The seed never leaves `dir`; only the public key and the signature are written.
+pub fn graph_sign(dir: &Path, program_hash: &str, input: &Path, out: &Path) -> Result<String, String> {
+    use ed25519_dalek::Signer;
+    use sha2::{Digest, Sha256};
+    let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(input).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    let ev: Vec<bookerbob_graph::Event> = v["events"]
+        .as_array()
+        .ok_or("no events")?
+        .iter()
+        .map(|e| {
+            let b: Vec<u8> = e.as_array().into_iter().flatten().filter_map(|x| x.as_u64().map(|n| n as u8)).collect();
+            bookerbob_graph::Event::from_bytes(&b).ok_or_else(|| "bad event".to_string())
+        })
+        .collect::<Result<_, _>>()?;
+    let s = bookerbob_graph::compute(&ev);
+    let ph: [u8; 32] = hex::decode(program_hash).ok().and_then(|b| b.try_into().ok()).ok_or("bad program hash")?;
+    let mut msg = bookerbob_bazaar::GRAPH_UPDATE_TAG.to_vec();
+    msg.extend(ph);
+    msg.extend(s.root);
+    msg.extend(s.hash());
+    let worker = load_seed(dir, "referee")?;
+    let sig = worker.sign(&Sha256::digest(&msg));
+    let args = serde_json::json!({
+        "program_hash": program_hash,
+        "root": hex::encode(s.root),
+        "merchants": s.merchants,
+        "standing": s.standing.iter().map(|(a, x)| (a.clone(), x.to_string())).collect::<Vec<_>>(),
+        "worker_key": hex::encode(worker.verifying_key().to_bytes()),
+        "signature": hex::encode(sig.to_bytes()),
+    });
+    std::fs::write(out, serde_json::to_string_pretty(&args).unwrap() + "\n").map_err(|e| e.to_string())?;
+    Ok(hex::encode(s.root))
+}
+
 /// The fixture purchase, re-signed with the live testnet keys for `make demo-live`.
 /// Writes `verdict.json` (cnf = agent), `verdict-replay.json` (same nullifier, cnf = wallet2)
 /// and `world.json` (World attestation for agent and action) into `out`. Only signed public
@@ -86,6 +123,34 @@ pub fn sign_live(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn graph_sign_signs_the_contract_message() {
+        use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+        use sha2::{Digest, Sha256};
+        let dir = std::env::temp_dir().join(format!("bookerbob-graph-sign-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(super::run(&dir, false), std::process::ExitCode::SUCCESS);
+        let ev = vec![bookerbob_graph::Event::Hire { agent: "a.testnet".into(), sub: "b.testnet".into() }];
+        let input = dir.join("in.json");
+        let bytes: Vec<Vec<u8>> = ev.iter().map(|e| e.bytes()).collect();
+        std::fs::write(&input, serde_json::json!({ "events": bytes }).to_string()).unwrap();
+        let ph = "11".repeat(32);
+        let out = dir.join("args.json");
+        let root = super::graph_sign(&dir, &ph, &input, &out).unwrap();
+        let s = bookerbob_graph::compute(&ev);
+        assert_eq!(root, hex::encode(s.root));
+        let a: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
+        let mut msg = bookerbob_bazaar::GRAPH_UPDATE_TAG.to_vec();
+        msg.extend(hex::decode(&ph).unwrap());
+        msg.extend(s.root);
+        msg.extend(s.hash());
+        let pk = VerifyingKey::from_bytes(&hex::decode(a["worker_key"].as_str().unwrap()).unwrap().try_into().unwrap()).unwrap();
+        let sig = Signature::from_bytes(&hex::decode(a["signature"].as_str().unwrap()).unwrap().try_into().unwrap());
+        assert!(pk.verify(&Sha256::digest(&msg), &sig).is_ok());
+        assert!(super::graph_sign(&dir, "zz", &input, &out).is_err());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn sign_live_verifies_with_the_seed_keys() {
         let dir = std::env::temp_dir().join(format!("bookerbob-keys-test-{}", std::process::id()));
