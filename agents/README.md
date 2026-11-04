@@ -14,11 +14,20 @@
 - Merchants see only revealed predicate names. Facts go only to the buyer's agent.
 - Round 1 is blind: `sha256("bookerbob/bid/v0\0" || account || 0 || json(schedule) || salt)`. Round 2 reveals and the contract rejects a schedule that does not validate.
 
-## JMPR (`h01`)
+## JMPR (`h01`) and real hotel rates
 
-A stub. When live, it bids only from rates returned by JMPR's `hotel_search` and
-`hotel_room_rate`. It never calls `prebook_hotel` or `book_hotel`. Today its schedule is
-config, labelled `jmpr-stub`.
+Today the hotel base prices are config, labelled `jmpr-stub`. To use real rates: in a
+session that has the JMPR MCP, call `hotel_search` for one city and dates and
+`hotel_room_rate` for up to 8 hotels (read-only; never `prebook_hotel` or `book_hotel`),
+save `fixtures/live/jmpr-rates.json` in the shape documented in
+`scripts/jmpr-rates-to-merchants.mjs` (hotel name and USD total only), then:
+
+```sh
+node scripts/jmpr-rates-to-merchants.mjs fixtures/live/jmpr-rates.json && make swarm
+```
+
+That sets `h01..h08` base prices from the rates, keeps each discount rule, and the
+board's quotes and the disclosure savings follow from the real numbers.
 
 ## Live run (2026-11-04)
 
