@@ -276,6 +276,32 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
             Err("not released".into())
         },
     ));
+    // Conserved delegation: m01 hires a sub-agent, which spawns a ring of 8 that hire each
+    // other and back; an unseeded ring sits next to it.
+    let hire = |c: &mut Bazaar, who: &str, sub: &str| {
+        at(who, NOW_MS + 2 * REVIEW_ROUND_MS);
+        let _ = call(|| c.hire(acc(sub)));
+    };
+    hire(&mut c, &m01.account, "sub1.bookerbob.testnet");
+    for i in 1..=8 {
+        hire(&mut c, &format!("sub{i}.bookerbob.testnet"), &format!("sub{}.bookerbob.testnet", i % 8 + 1));
+        hire(&mut c, &format!("sub{i}.bookerbob.testnet"), &format!("sub{}.bookerbob.testnet", (i + 2) % 8 + 1));
+    }
+    hire(&mut c, "sub8.bookerbob.testnet", &m01.account);
+    hire(&mut c, "x1.bookerbob.testnet", "x2.bookerbob.testnet");
+    hire(&mut c, "x2.bookerbob.testnet", "x1.bookerbob.testnet");
+    let (seed, got) = c.standing_from(acc(&m01.account));
+    let total: u128 = got.iter().map(|(_, v)| v.0).sum();
+    let bound = bookerbob_core::delegation::bound(seed.0, bookerbob_core::delegation::W_HALF);
+    out.push((
+        "conserved delegation (w = 1/2): a spawned ring of 8 sub-agents gains at most w/(1-w) of m01's seed; an unseeded ring gets nothing".into(),
+        if seed.0 > 0 && total <= bound && got.iter().all(|(a, _)| !a.as_str().starts_with('x')) {
+            Ok(format!("seed {:.2}, conferred {:.4} on {} accounts, bound {:.2}", seed.0 as f64 / 1e6, total as f64 / 1e6, got.len(), bound as f64 / 1e6))
+        } else {
+            Err(format!("seed {}, conferred {total}, bound {bound}", seed.0))
+        },
+    ));
+    let delegation = serde_json::json!({ "root": m01.account, "seed_units": seed.0 as f64 / 1e6, "conferred_units": total as f64 / 1e6, "bound_units": bound as f64 / 1e6, "accounts": got.len() });
     // Agents choose agents: on the tie, the reviewed merchant wins; a floor filters.
     let n0 = issuer.envelope.nullifier.clone();
     let pick = |c: &Bazaar, min: Option<u64>| c.best_quote(n0.clone(), Some(m01.category.clone()), None, None, min).map(|q| q.merchant.to_string());
@@ -313,6 +339,7 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
         "note": "synthetic fixtures; Semaphore v4 proofs verified by the bazaar contract (MockedBlockchain). A rating names no member; ratings are released per round, only with k >= 5 members.",
         "k_min": bookerbob_core::K_MIN,
         "merchants": [page(&c, &m01.account), page(&c, &m02.account)],
+        "delegation": delegation,
         "refused": out.iter().filter_map(|(n, r)| r.as_ref().ok().filter(|d| d.starts_with("refused")).map(|d| serde_json::json!({ "case": n, "result": d }))).collect::<Vec<_>>(),
     });
     let body = serde_json::to_string_pretty(&data).unwrap() + "\n";

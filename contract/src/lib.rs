@@ -92,6 +92,10 @@ pub const REVIEW_ROUND_MS: u64 = 24 * 3600 * 1000;
 pub const REVIEW_ROOT_HISTORY: usize = 32;
 /// Neutral prior for the merchant score: `(n * mean + C * 3) / (n + C)`.
 pub const REVIEW_PRIOR_WEIGHT: u64 = 5;
+/// Accounts one agent may hire.
+pub const MAX_HIRES: usize = 16;
+/// Seed mass per released rating (micro-units).
+pub const SEED_PER_RATING: u128 = 1_000_000;
 
 /// One merchant's review group: the LeanIMT and its recent roots.
 #[near(serializers = [json, borsh])]
@@ -213,6 +217,8 @@ pub struct Bazaar {
     review_rounds: LookupMap<String, ReviewRound>,
     /// Merchant to (released ratings, rating sum, delivered count).
     review_totals: LookupMap<AccountId, (u64, u64, u64)>,
+    /// Hire edges: who an agent hired (at most MAX_HIRES).
+    hires: LookupMap<AccountId, Vec<AccountId>>,
 }
 
 /// A NEAR AI model key whose attestation the owner checked off chain (TDX quote to Intel's
@@ -301,6 +307,7 @@ impl Bazaar {
             review_nullifiers: LookupMap::new(b"q"),
             review_rounds: LookupMap::new(b"o"),
             review_totals: LookupMap::new(b"t"),
+            hires: LookupMap::new(b"x"),
         }
     }
 
@@ -447,6 +454,7 @@ impl Bazaar {
         self.review_nullifiers.flush();
         self.review_rounds.flush();
         self.review_totals.flush();
+        self.hires.flush();
         env::state_write(self);
     }
 
@@ -583,6 +591,40 @@ impl Bazaar {
             score_x100: (sum * 100 + c * 300) / (n + c),
             members,
         }
+    }
+
+    // ---------- conserved delegation along hire edges ----------
+
+    /// The caller hires `sub_agent`: part of the caller's standing flows to it (damped,
+    /// conserved). Anyone may hire; standing only starts at merchants with released ratings.
+    #[payable]
+    pub fn hire(&mut self, sub_agent: AccountId) {
+        let before = env::storage_usage();
+        let me = env::predecessor_account_id();
+        let mut v = self.hires.get(&me).cloned().unwrap_or_default();
+        require!(!v.contains(&sub_agent), "already hired");
+        require!(v.len() < MAX_HIRES, "hire limit reached");
+        v.push(sub_agent.clone());
+        self.hires.insert(me.clone(), v);
+        emit("hired", serde_json::json!({ "agent": me, "sub_agent": sub_agent }));
+        self.hires.flush();
+        charge_storage(before);
+    }
+
+    pub fn hired(&self, agent: AccountId) -> Vec<AccountId> {
+        self.hires.get(&agent).cloned().unwrap_or_default()
+    }
+
+    /// Standing conferred by `merchant`'s seed (released ratings x 10^6 micro-units) on the
+    /// agents it hired and theirs, with conserved transport w = 1/2: in total at most one
+    /// seed's worth, following Design rule 3.6 (see core::delegation).
+    pub fn standing_from(&self, merchant: AccountId) -> (U128, Vec<(AccountId, U128)>) {
+        let (n, _, _) = self.review_totals.get(&merchant).copied().unwrap_or((0, 0, 0));
+        let seed = n as u128 * SEED_PER_RATING;
+        let got = bookerbob_core::delegation::conferred(merchant.as_str(), seed, bookerbob_core::delegation::W_HALF, |a: &str| {
+            a.parse::<AccountId>().ok().and_then(|id| self.hires.get(&id).cloned()).unwrap_or_default().into_iter().map(|x| x.to_string())
+        });
+        (U128(seed), got.into_iter().map(|(k, v)| (k.parse().expect("account"), U128(v))).collect())
     }
 
     // ---------- blind bid rounds ----------

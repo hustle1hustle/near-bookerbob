@@ -54,6 +54,13 @@
       "score_x100": 300
     }
   ],
+  "delegation": {
+    "root": "m01.bookerbob.testnet",
+    "seed_units": 6.0,
+    "conferred_units": 5.999845,
+    "bound_units": 6.0,
+    "accounts": 9
+  },
   "refused": [
     {
       "case": "a sealed rating swapped under a real proof is refused",

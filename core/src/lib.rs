@@ -2,6 +2,7 @@
 //! the off-chain tools. No randomness, no clock, no network, no floating point.
 
 pub mod bid;
+pub mod delegation;
 pub mod disclosure;
 pub mod envelope;
 pub mod near_ai;

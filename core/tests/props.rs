@@ -65,6 +65,19 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(512))]
 
     #[test]
+    fn conserved_delegation_never_confers_more_than_w_over_1_minus_w(
+        edges in prop::collection::vec((0u8..12, 0u8..12), 0..60),
+        seed in 1u128..10_000_000_000,
+        w in prop::sample::select(vec![(1u128, 2u128), (1, 3), (2, 3), (9, 10)]),
+    ) {
+        // Any graph on 12 accounts, rings and self-hires included; root is account 0.
+        let hires = |n: &str| -> Vec<String> { edges.iter().filter(|(a, _)| format!("a{a}") == n).map(|(_, b)| format!("a{b}")).collect() };
+        let w = bookerbob_core::delegation::Damping { num: w.0, den: w.1 };
+        let total: u128 = bookerbob_core::delegation::conferred("a0", seed, w, hires).values().sum();
+        prop_assert!(total <= bookerbob_core::delegation::bound(seed, w), "{} > bound", total);
+    }
+
+    #[test]
     fn price_never_exceeds_base_and_matches_the_formula(s in schedule(), r in revealed(), k in 0u32..30) {
         let q = quote_in_cohort(&s, &r, |_| k);
         prop_assert!(q.price <= s.base_price);

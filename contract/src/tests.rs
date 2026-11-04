@@ -1491,3 +1491,53 @@ fn a_merchant_without_released_ratings_scores_neutral() {
     let s = c.merchant_score(acc("m01.bazaar.testnet"));
     assert_eq!((s.ratings, s.score_x100), (0, 300));
 }
+
+// ---------- conserved delegation along hire edges ----------
+
+#[test]
+fn a_spawned_sub_agent_ring_gains_at_most_one_seed_and_outsiders_nothing() {
+    let mut c = setup();
+    // m01 has 6 released ratings: seed 6 units.
+    c.review_totals.insert(acc("m01.bazaar.testnet"), (6, 24, 6));
+    let hire = |c: &mut Bazaar, who: &str, sub: &str| {
+        set(who);
+        c.hire(acc(sub));
+    };
+    hire(&mut c, "m01.bazaar.testnet", "sub1.testnet");
+    // The sub-agent spawns a ring of 8 accounts that all hire each other and back.
+    for i in 1..=8 {
+        for j in 1..=8 {
+            if i != j && (j == i % 8 + 1 || j == (i + 2) % 8 + 1) {
+                hire(&mut c, &format!("sub{i}.testnet"), &format!("sub{j}.testnet"));
+            }
+        }
+    }
+    hire(&mut c, "sub8.testnet", "m01.bazaar.testnet");
+    // An unseeded ring next to it.
+    hire(&mut c, "x1.testnet", "x2.testnet");
+    hire(&mut c, "x2.testnet", "x1.testnet");
+    let (seed, got) = c.standing_from(acc("m01.bazaar.testnet"));
+    let total: u128 = got.iter().map(|(_, v)| v.0).sum();
+    assert_eq!(seed.0, 6 * SEED_PER_RATING);
+    assert!(total <= seed.0, "w/(1-w) = 1 seed for w = 1/2: {total} > {}", seed.0);
+    assert!(got.iter().all(|(a, _)| !a.as_str().starts_with('x')), "no standing for accounts no seed reaches");
+}
+
+#[test]
+fn a_merchant_without_released_ratings_confers_nothing() {
+    let mut c = setup();
+    set("m01.bazaar.testnet");
+    c.hire(acc("sub1.testnet"));
+    let (seed, got) = c.standing_from(acc("m01.bazaar.testnet"));
+    assert_eq!((seed.0, got.len()), (0, 0));
+}
+
+#[test]
+#[should_panic(expected = "hire limit reached")]
+fn hiring_is_capped_per_agent() {
+    let mut c = setup();
+    set("m01.bazaar.testnet");
+    for i in 0..=MAX_HIRES {
+        c.hire(acc(&format!("s{i}.testnet")));
+    }
+}

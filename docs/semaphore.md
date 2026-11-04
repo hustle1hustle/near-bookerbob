@@ -68,14 +68,19 @@ own ceremony. We commit the verification keys we use and their source.
    membership, one vote (weighting by amount would reveal the amount). A merchant's score
    is shrunk toward a neutral prior by how many released ratings back it, and every
    rating is backed by one settled purchase, so ratings cannot be minted:
-   `score = (n * mean + 5 * 3) / (n + 5)` (built: `merchant_score`, `REVIEW_PRIOR_WEIGHT`). The weight a merchant can carry into the board is bounded by its settled
-   volume `V`: transported, not minted. If weight is passed on with a damping factor `w`
-   per hop, a ring of colluding accounts can reach at most `w + w^2 + ... = w / (1 - w)`
-   of the weight it started with. This is the standard geometric damping bound, stated
-   by us; we have not checked it against the exact theorem in REP's working paper
-   "On (an unpublished REP draft)" (2026-09), which we cite as the motivation, not as the source
-   of this formula. Built: the score is one hop (buyer to merchant), so no weight is
-   passed on and the damping bound is not exercised yet. `best_quote` uses the score only
+   `score = (n * mean + 5 * 3) / (n + 5)` (built: `merchant_score`, `REVIEW_PRIOR_WEIGHT`). Built, multi-hop: standing flows from a merchant along hire edges
+   (`hire`, at most 16 per agent) to the sub-agents it hires and theirs, with conserved
+   transport, w = 1/2: each hop passes on half of what arrived, split evenly, never more.
+   Seed: one unit per released rating (each backed by one settled purchase). Following
+   a design rule in REP's unpublished draft "(title withheld) for a World of Agents: Costly
+   Signals, Conserved Delegation, and the Cost of Attack" (2026, arXiv preprint in
+   preparation), one attested fact confers at most w/(1-w) units of seed mass on the
+   whole delegation chain, whatever its fanout or depth; for w = 1/2, at most one unit.
+   `standing_from(merchant)` computes it (`core::delegation`, at most 24 hops and 4096
+   visits; stopping early only drops mass). Checked: a property test over random graphs
+   with rings and several w; contract tests; `make verify` R10, where a spawned ring of 8
+   sub-agents collects 5.9998 of m01's 6 seed units and an unseeded ring gets nothing.
+   `best_quote` uses the score only
    as a tiebreak among equal prices, and a filter (`min_score`) the buyer may set.
 5. **Checks.** A `make verify` step: 5+ buyers settle, join, and rate; a second rating by
    one member in a round is refused by the nullifier; a proof from a non-member (another
