@@ -47,7 +47,8 @@ async function tx(hash, sender) {
     }
   };
   walk(res.transaction.actions);
-  return { ok: !fail, error: fail ? JSON.stringify(fail) : null, logs: all.flatMap((o) => o.outcome.logs), methods };
+  const delegated = (res.transaction.actions ?? []).some((a) => a.Delegate) && res.transaction.signer_id !== res.transaction.receiver_id;
+  return { ok: !fail, error: fail ? JSON.stringify(fail) : null, logs: all.flatMap((o) => o.outcome.logs), methods, delegated, signer: res.transaction.signer_id, receiver: res.transaction.receiver_id };
 }
 const events = (logs) => logs.filter((l) => l.startsWith("EVENT_JSON:")).map((l) => JSON.parse(l.slice(11)));
 
@@ -94,14 +95,15 @@ for (const t of m.testers) {
     return [!r.ok && /nullifier spent/.test(r.error), "nullifier spent"];
   });
   await attempt(`${short}: every purchase call was a NEP-366 delegate the relayer paid for`, async () => {
-    const r = await tx(t.txs.escrow, m.treasury);
-    return [r.ok && r.methods.includes("ft_transfer_call"), "gas paid by the relayer"];
+    const rs = await Promise.all(["mint", "verdict", "receipt", "escrow", "settle"].map((k) => tx(t.txs[k], m.treasury)));
+    return [rs.every((r) => r.ok && r.delegated && r.signer === m.treasury && r.receiver === t.tester), "mint, verdict, receipt, escrow, settle: Delegate actions signed by the tester, sent and paid by the relayer"];
   });
 }
-if (m.fc_key_withdraw) {
-  await attempt("the settle-only function-call key cannot withdraw escrow", async () => {
-    const r = await tx(m.fc_key_withdraw.tx, m.fc_key_withdraw.sender);
-    return [!r.ok, (r.error ?? "").slice(0, 90)];
+if (m.fc_key_check) {
+  await attempt("a settle-only function-call key was added; withdraws under it were refused before execution", async () => {
+    const r = await tx(m.fc_key_check.add_key_tx, m.fc_key_check.tester);
+    const why = m.fc_key_check.refusals.map((x) => `${x.method}: ${x.error}`).join("; ");
+    return [r.ok && m.fc_key_check.refusals.length >= 2 && m.fc_key_check.refusals.every((x) => /DepositWithFunctionCall|MethodNameMismatch/.test(x.error)), `AddKey on chain; refusals are RPC errors, no tx: ${why.slice(0, 160)}`];
   });
 }
 if (m.reviews) {

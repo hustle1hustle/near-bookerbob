@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -30,6 +30,10 @@ demo-offline:
 # Testnet demo mode: a fresh, funded, gasless tester purchase in dUSDC (docs/demo-mode.md).
 demo-tester:
 	node scripts/demo-tester.mjs run
+
+# Re-derive every testnet claim over public RPC (no keys, no build).
+verify-live:
+	node scripts/verify-live.mjs
 
 demo-live:
 	@node scripts/demo-live.mjs

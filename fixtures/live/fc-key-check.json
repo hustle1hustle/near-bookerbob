@@ -1,0 +1,31 @@
+{
+  "tester": "t-4fdc17.bookerbob-demo.testnet",
+  "add_key_tx": "46GQSpiNW6Lzq8q2hDbNrVoqpKGchVx9MnGaPeZt7vXD",
+  "key": "ed25519:CMyuozMUXMqTHW4MnVGbGbRAjfiu9U89ZtzHHKoB1nL1",
+  "method_names": [
+    "settle_demo"
+  ],
+  "results": [
+    {
+      "method": "withdraw_demo",
+      "deposit": "1",
+      "refused": true,
+      "error": "{\"name\":\"HANDLER_ERROR\",\"cause\":{\"info\":{},\"name\":\"INVALID_TRANSACTION\"},\"code\":-32000,\"message\":\"Server error\",\"data\":{\"TxExecutionError\":{\"InvalidTxError\":{\"InvalidAccessKeyError\":\"DepositWithFunctionCall\"}}}}",
+      "hash": null
+    },
+    {
+      "method": "withdraw_demo",
+      "deposit": "0",
+      "refused": true,
+      "error": "{\"name\":\"HANDLER_ERROR\",\"cause\":{\"info\":{},\"name\":\"INVALID_TRANSACTION\"},\"code\":-32000,\"message\":\"Server error\",\"data\":{\"TxExecutionError\":{\"InvalidTxError\":{\"InvalidAccessKeyError\":{\"MethodNameMismatch\":{\"method_name\":\"withdraw_demo\"}}}}}}",
+      "hash": null
+    },
+    {
+      "method": "withdraw",
+      "deposit": "1",
+      "refused": true,
+      "error": "{\"name\":\"HANDLER_ERROR\",\"cause\":{\"info\":{},\"name\":\"INVALID_TRANSACTION\"},\"code\":-32000,\"message\":\"Server error\",\"data\":{\"TxExecutionError\":{\"InvalidTxError\":{\"InvalidAccessKeyError\":\"DepositWithFunctionCall\"}}}}",
+      "hash": null
+    }
+  ]
+}

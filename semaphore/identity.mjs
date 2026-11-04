@@ -17,6 +17,8 @@ if (cmd === "commitment") {
   const p = await generateProof(id, group, BigInt(`0x${q.message_hex}`), BigInt(`0x${q.scope_hex}`));
   if (!(await verifyProof(p))) throw new Error("proof does not verify");
   console.log(JSON.stringify({ depth: p.merkleTreeDepth, merkle_root: String(p.merkleTreeRoot), nullifier: String(p.nullifier), points: p.points.map(String), root_js: group.root.toString() }));
+  // snarkjs keeps its curve worker threads alive; without this the process never exits.
+  process.exit(0);
 } else {
   console.error("usage: identity.mjs commitment|prove");
   process.exit(2);
