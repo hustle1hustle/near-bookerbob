@@ -88,3 +88,15 @@ registers.
   not used. Every BookerBob guest is new code written in the window.
 - Measurements (prove time, peak RAM, proof size) will be recorded per guest in
   `docs/evidence.md`, on AC power, once the prover builds.
+
+## What these proofs are, and are not
+
+- This build is upstream a16z/jolt at `997c1543e`, compiled without Jolt's optional `zk`
+  feature (we enable `host` only). The proofs are **succinct, not zero-knowledge**: they show
+  the computation was done right, they do not hide its inputs. Every input we prove is public
+  or committed anyway (graph events are public chain logs; price, referee and cohort inputs
+  are committed by hash).
+- Upstream says Jolt "is in alpha and is not suitable for production use" and "has not been
+  audited". Treat a Jolt proof here as strong engineering evidence, not an audited guarantee.
+- The contract does not verify the proof itself: a bonded worker key signs the update, anyone
+  can challenge it, and an arbiter key reruns the verifier (see above).

@@ -85,3 +85,17 @@ off chain, not inside the contract.
 
 - The NVIDIA payload of the attestation report (NRAS).
 - Whether all instances of a model share one key (docs say so).
+
+## What a valid TDX quote does not prove here
+
+- **No measurement is pinned yet.** `make verify` checks that the quote verifies to Intel's
+  root (dcap-qvl, committed PCS collateral) and that its report_data holds the signing key and
+  our nonce. It does not yet compare MRTD, RTMR0 to RTMR3 or the compose digest against
+  NEAR AI's published values, so it proves "some TDX guest with this key", not "this model
+  server image".
+- **The GPU is not attested.** The NVIDIA evidence in the report is not checked.
+- **`tcb_status` on chain is written by the owner** when it registers the model attestation
+  (`register_model_attestation`), after the off-chain check. The contract enforces the floor
+  (`min_tcb`) on what the owner wrote; it does not parse the quote.
+- When a TEE output and a Jolt output disagree on the same value, the contract refuses; today
+  they cover different outputs (NEAR AI: predicates; Jolt: standing, price, referee, cohort).

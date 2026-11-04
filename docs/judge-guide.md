@@ -20,7 +20,8 @@ verdict and the merchant pitches are real live captures.
 ## Minutes 2 and 3: run
 
 ```sh
-make verify          # Rust stable; about 40 s from a cold build, 4 s warm; no keys
+make judge           # Node 22 only, 15 to 30 s: testnet re-derived, committed proofs, JS suites
+make verify          # Rust stable; about 53 s from a fresh clone, 4 s warm; no keys
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
 
@@ -50,8 +51,8 @@ python3 -m http.server -d agents     # then open /board.html and /receipts.html
 - `/receipts.html`: every verdict and purchase from the contract's own NEP-297 events, and
   the released sealed reviews.
 
-Also tested offline (`make test`): the NEP-366 relayer policy for gasless ratings
-(`relayer/`), with synthetic SignedDelegate actions; sending waits on testnet.
+The NEP-366 relayer (`relayer/`) runs on testnet: it paid for every demo purchase call and
+every sealed rating (delegate actions; `make verify-live` checks them).
 
 ## Minute 5: check what is not claimed
 

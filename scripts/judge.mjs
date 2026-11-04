@@ -34,6 +34,11 @@ const fails = (live.stdout.match(/^FAIL /gm) ?? []).length;
 line(live.status === 0, "testnet: every claim re-derived over public RPC", `${passes} checks passed, ${fails} failed; make verify-live for the list`);
 if (live.status !== 0) console.log(live.stdout.split("\n").filter((l) => l.startsWith("FAIL")).join("\n"));
 
+// 1b. the README's status table is generated from docs/status.json and every live row has
+// testnet evidence; a stale phrase anywhere in the docs fails here.
+const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
+line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
+
 // 2. committed Jolt artifacts
 const hex = (a) => Buffer.from(a).toString("hex");
 const zk = (g, input) => {
