@@ -297,6 +297,45 @@ pub fn verify_signature(v: &SignedVerdict) -> bool {
     }
 }
 
+/// NEAR Chain Signatures MPC signer (fixed, so no admin can repoint it).
+pub const MPC_SIGNER: &str = "v1.signer-prod.testnet";
+/// Derivation path of the bazaar's EVM payout key (domain 0, secp256k1).
+pub const EVM_PATH: &str = "evm-1";
+const GAS_MPC_SIGN: Gas = Gas::from_tgas(100);
+const GAS_EVM_CALLBACK: Gas = Gas::from_tgas(30);
+
+#[ext_contract(ext_mpc)]
+pub trait MpcSigner {
+    fn sign(&mut self, request: serde_json::Value);
+}
+
+/// A merchant's payout on an EVM chain, authorised by this contract through Chain
+/// Signatures: the EIP-1559 USDC transfer and, once the MPC answered, its signature.
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct EvmPayout {
+    pub merchant: AccountId,
+    pub to: String,
+    pub amount: U128,
+    pub nonce: u64,
+    pub tx_hash: String,
+    /// (big_r affine point hex, s scalar hex, recovery id) from the MPC signer.
+    pub signature: Option<(String, String, u8)>,
+}
+
+/// New collections live outside the root struct, so the deployed state stays readable.
+fn evm_addresses() -> LookupMap<AccountId, String> {
+    LookupMap::new(b"y")
+}
+
+fn evm_payouts() -> LookupMap<String, EvmPayout> {
+    LookupMap::new(b"p")
+}
+
+fn evm_nonce() -> u64 {
+    env::storage_read(b"evm_nonce").map(|b| u64::from_le_bytes(b.try_into().expect("u64"))).unwrap_or(0)
+}
+
 #[near]
 impl Bazaar {
     #[init]
@@ -1267,17 +1306,29 @@ impl Bazaar {
     /// `ft_transfer` to the merchant payout is scheduled. If the transfer fails, the
     /// callback restores escrow and the nullifier.
     pub fn settle(&mut self, nullifier: String, merchant: AccountId, checkout_ref: String, amount: U128) -> Promise {
+        let (m, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "near");
+        ext_ft::ext(self.usdc.clone())
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price)))
+    }
+
+    /// Every check a payout needs, then the escrow debit and the nullifier burn, in one
+    /// place for both paths. One payout per receipt: a spent record cannot pay again,
+    /// whichever path paid it.
+    fn take_payment(&mut self, nullifier: &str, merchant: &AccountId, checkout_ref: &str, amount: U128, path: &str) -> (Merchant, u128, AccountId) {
         require!(!checkout_ref.is_empty() && checkout_ref.len() <= 128, "bad checkout_ref");
         let agent = env::predecessor_account_id();
-        let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
+        let m = self.merchants.get(merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
         require!(m.approved, "merchant not approved");
-        let record = self.verdicts.get_mut(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        let record = self.verdicts.get_mut(nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(!record.spent, "nullifier spent");
         require!(record.agent == agent, "agent mismatch");
         require!(env::block_timestamp_ms() < record.expires_at_ms, "verdict expired");
         // The receipt fixes the price: a cohort that grows after the receipt cannot change it.
         let price = match &record.receipt {
-            Some(r) if r.merchant == merchant => r.price.0,
+            Some(r) if &r.merchant == merchant => r.price.0,
             _ => env::panic_str("no referee receipt for this quote"),
         };
         require!(amount.0 == price, "amount differs from quote");
@@ -1287,10 +1338,10 @@ impl Bazaar {
         *bal -= price;
         self.verdicts.flush();
         let before = env::storage_usage();
-        let record = self.verdicts.get_mut(&nullifier).expect("checked above");
+        let record = self.verdicts.get_mut(nullifier).expect("checked above");
         record.spent = true;
-        record.checkout_ref = Some(checkout_ref.clone());
-        self.draw_reserve(&nullifier, before);
+        record.checkout_ref = Some(checkout_ref.to_string());
+        self.draw_reserve(nullifier, before);
         self.spent_count += 1;
         emit(
             "settled",
@@ -1300,13 +1351,88 @@ impl Bazaar {
                 "payout": m.payout,
                 "amount": U128(price),
                 "checkout_ref": checkout_ref,
+                "path": path,
             }),
         );
-        ext_ft::ext(self.usdc.clone())
+        (m, price, agent)
+    }
+
+    // ---------- EVM payout through Chain Signatures (domain 0) ----------
+
+    /// A merchant opts in to be paid on Base Sepolia. Setting or changing the address drops
+    /// the owner's approval, like a schedule change: no switching the payee after approval.
+    pub fn set_evm_payout(&mut self, address: String) {
+        require!(bookerbob_core::evm::parse_address(&address).is_some(), "bad EVM address");
+        let merchant = env::predecessor_account_id();
+        let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
+        m.approved = false;
+        let mut map = evm_addresses();
+        map.insert(merchant.clone(), address.to_lowercase());
+        map.flush();
+        emit("evm_payout_set", serde_json::json!({ "merchant": merchant, "address": address.to_lowercase() }));
+    }
+
+    pub fn evm_payout_address(&self, merchant: AccountId) -> Option<String> {
+        evm_addresses().get(&merchant).cloned()
+    }
+
+    pub fn evm_payout(&self, nullifier: String) -> Option<EvmPayout> {
+        evm_payouts().get(&nullifier).cloned()
+    }
+
+    /// Pay the merchant on Base Sepolia instead of NEAR. The escrow is debited and the
+    /// nullifier burned exactly as in `settle` (so the other path can never pay it again);
+    /// the bazaar then asks the MPC signer to sign the USDC transfer from its derived EVM
+    /// key (path `evm-1`). Anyone may broadcast the signed tx; its nonce makes it unique.
+    pub fn settle_evm(&mut self, nullifier: String, merchant: AccountId, checkout_ref: String, amount: U128) -> Promise {
+        let to_hex = evm_addresses().get(&merchant).cloned().unwrap_or_else(|| env::panic_str("merchant has no EVM payout address"));
+        let to = bookerbob_core::evm::parse_address(&to_hex).expect("stored address is valid");
+        let (_, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "evm");
+        let nonce = evm_nonce();
+        env::storage_write(b"evm_nonce", &(nonce + 1).to_le_bytes());
+        let hash = bookerbob_core::evm::payout_hash(&to, price, nonce);
+        let mut payouts = evm_payouts();
+        payouts.insert(
+            nullifier.clone(),
+            EvmPayout { merchant: merchant.clone(), to: to_hex, amount: U128(price), nonce, tx_hash: hex::encode(hash), signature: None },
+        );
+        payouts.flush();
+        emit("evm_payout_requested", serde_json::json!({ "nullifier": nullifier, "merchant": merchant, "nonce": nonce, "tx_hash": hex::encode(hash) }));
+        ext_mpc::ext(MPC_SIGNER.parse().expect("signer id"))
             .with_attached_deposit(NearToken::from_yoctonear(1))
-            .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
-            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price)))
+            .with_static_gas(GAS_MPC_SIGN)
+            .sign(serde_json::json!({ "request": { "payload_v2": { "Ecdsa": hex::encode(hash) }, "path": EVM_PATH, "domain_id": 0 } }))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_EVM_CALLBACK).on_evm_signed(nullifier, agent, U128(price)))
+    }
+
+    /// The MPC answer: store the signature (the payout is authorised; `paid` lets the buyer
+    /// join the review group), or roll back exactly like a failed NEAR transfer.
+    #[private]
+    pub fn on_evm_signed(&mut self, nullifier: String, agent: AccountId, amount: U128) -> bool {
+        let parsed = env::promise_result_checked(0, 1024)
+            .ok()
+            .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+            .and_then(|v| Some((v["big_r"]["affine_point"].as_str()?.to_string(), v["s"]["scalar"].as_str()?.to_string(), v["recovery_id"].as_u64()? as u8)));
+        let mut payouts = evm_payouts();
+        match parsed {
+            Some(sig) => {
+                if let Some(p) = payouts.get_mut(&nullifier) {
+                    p.signature = Some(sig.clone());
+                }
+                payouts.flush();
+                if let Some(r) = self.verdicts.get_mut(&nullifier) {
+                    r.paid = true;
+                }
+                emit("evm_payout_signed", serde_json::json!({ "nullifier": nullifier, "big_r": sig.0, "s": sig.1, "recovery_id": sig.2 }));
+                true
+            }
+            None => {
+                payouts.remove(&nullifier);
+                payouts.flush();
+                self.on_settle_rollback(&nullifier, &agent, amount);
+                false
+            }
+        }
     }
 
     #[private]
@@ -1317,16 +1443,20 @@ impl Bazaar {
             }
             return true;
         }
-        if let Some(bal) = self.escrow.get_mut(&agent) {
+        self.on_settle_rollback(&nullifier, &agent, amount);
+        false
+    }
+
+    fn on_settle_rollback(&mut self, nullifier: &str, agent: &AccountId, amount: U128) {
+        if let Some(bal) = self.escrow.get_mut(agent) {
             *bal += amount.0;
         }
-        if let Some(r) = self.verdicts.get_mut(&nullifier) {
+        if let Some(r) = self.verdicts.get_mut(nullifier) {
             r.spent = false;
             r.checkout_ref = None;
         }
         self.spent_count = self.spent_count.saturating_sub(1);
         emit("settle_reverted", serde_json::json!({ "nullifier": nullifier, "agent": agent, "amount": amount }));
-        false
     }
 }
 

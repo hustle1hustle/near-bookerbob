@@ -1711,3 +1711,109 @@ fn the_cohort_root_commits_to_the_counted_nullifiers_in_order() {
     assert_eq!(root, hex::encode(bookerbob_zkcore::cohort::root("bookerbob:v0:test", "world_id_human", &refs)));
     assert!(bookerbob_zkcore::cohort::check("bookerbob:v0:test", "world_id_human", &refs).is_ok());
 }
+
+// ---------- EVM payout through Chain Signatures ----------
+
+mod evm {
+    use super::*;
+
+    const MERCHANT_EVM: &str = "0x1111111111111111111111111111111111111111";
+
+    /// setup(), m01 opts in to Base Sepolia and is re-approved, a refereed verdict on chain.
+    fn ready() -> (Bazaar, String) {
+        let mut c = setup();
+        set_no_deposit("m01.bazaar.testnet");
+        c.set_evm_payout(MERCHANT_EVM.into());
+        assert!(!c.merchant(acc("m01.bazaar.testnet")).unwrap().approved, "a new payee drops the approval");
+        approve(&mut c, "m01.bazaar.testnet");
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        (c, hex::encode([1u8; 32]))
+    }
+
+    fn mpc_answer(c: &mut Bazaar, n: &str, ok: bool) -> bool {
+        let result = if ok {
+            PromiseResult::Successful(
+                serde_json::to_vec(&serde_json::json!({ "scheme": "Secp256k1", "big_r": { "affine_point": format!("02{}", "ab".repeat(32)) }, "s": { "scalar": "cd".repeat(32) }, "recovery_id": 1 })).unwrap(),
+            )
+        } else {
+            PromiseResult::Failed
+        };
+        testing_env!(ctx("bazaar.testnet").build(), near_sdk::test_vm_config(), near_sdk::RuntimeFeesConfig::test(), Default::default(), vec![result]);
+        c.on_evm_signed(n.into(), acc("agent.testnet"), U128(151_200_000))
+    }
+
+    #[test]
+    fn settle_evm_asks_the_mpc_signer_to_sign_the_exact_usdc_transfer() {
+        let (mut c, n) = ready();
+        set_no_deposit("agent.testnet");
+        let _ = c.settle_evm(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+        let p = c.evm_payout(n.clone()).unwrap();
+        let to = bookerbob_core::evm::parse_address(MERCHANT_EVM).unwrap();
+        assert_eq!(p.tx_hash, hex::encode(bookerbob_core::evm::payout_hash(&to, 151_200_000, 0)));
+        let receipts = near_sdk::test_utils::get_created_receipts();
+        let to_mpc = receipts.iter().find(|r| r.receiver_id.as_str() == MPC_SIGNER).expect("a call to the MPC signer");
+        let args = to_mpc.actions.iter().find_map(|a| match a {
+            near_sdk::mock::MockAction::FunctionCallWeight { method_name, args, .. } if method_name == b"sign" => {
+                Some(String::from_utf8(args.clone()).unwrap())
+            }
+            _ => None,
+        });
+        let args = args.expect("sign call");
+        assert!(args.contains(&p.tx_hash) && args.contains("\"domain_id\":0") && args.contains(EVM_PATH));
+        assert_eq!(c.nullifier_status(n.clone()), NullifierStatus::Spent);
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000 - 151_200_000)));
+        assert!(mpc_answer(&mut c, &n, true));
+        let p = c.evm_payout(n.clone()).unwrap();
+        assert_eq!(p.signature.as_ref().map(|s| s.2), Some(1));
+        assert!(c.verdict(n).unwrap().paid);
+    }
+
+    #[test]
+    fn a_failed_signature_rolls_everything_back() {
+        let (mut c, n) = ready();
+        set_no_deposit("agent.testnet");
+        let _ = c.settle_evm(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+        assert!(!mpc_answer(&mut c, &n, false));
+        assert_eq!(c.nullifier_status(n.clone()), NullifierStatus::Pending);
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert!(c.evm_payout(n).is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "nullifier spent")]
+    fn a_receipt_paid_on_evm_cannot_be_paid_again_on_near() {
+        let (mut c, n) = ready();
+        set_no_deposit("agent.testnet");
+        let _ = c.settle_evm(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+        set_no_deposit("agent.testnet");
+        let _ = c.settle(n, acc("m01.bazaar.testnet"), "order-2".into(), U128(151_200_000));
+    }
+
+    #[test]
+    #[should_panic(expected = "nullifier spent")]
+    fn a_receipt_paid_on_near_cannot_be_paid_again_on_evm() {
+        let (mut c, n) = ready();
+        set_no_deposit("agent.testnet");
+        let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+        set_no_deposit("agent.testnet");
+        let _ = c.settle_evm(n, acc("m01.bazaar.testnet"), "order-2".into(), U128(151_200_000));
+    }
+
+    #[test]
+    #[should_panic(expected = "merchant has no EVM payout address")]
+    fn a_merchant_that_did_not_opt_in_cannot_be_paid_on_evm() {
+        let mut c = setup();
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        set_no_deposit("agent.testnet");
+        let _ = c.settle_evm(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+    }
+
+    #[test]
+    fn each_evm_payout_takes_the_next_nonce() {
+        let (mut c, n) = ready();
+        set_no_deposit("agent.testnet");
+        let _ = c.settle_evm(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+        assert_eq!(c.evm_payout(n).unwrap().nonce, 0);
+        assert_eq!(super::super::evm_nonce(), 1);
+    }
+}
