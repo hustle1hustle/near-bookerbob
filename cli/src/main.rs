@@ -22,7 +22,7 @@ use std::path::Path;
 use std::process::ExitCode;
 
 fn usage() -> ExitCode {
-    eprintln!("usage: bookerbob verify <fixtures-dir> | gen-fixtures <dir> [--check] | swarm <merchants.json> <verdict.json> <board.json> [--check]");
+    eprintln!("usage: bookerbob verify <fixtures-dir> | gen-fixtures <dir> [--check] | swarm <merchants.json> <verdict.json> <board.json> [--check] | keys <dir> [--pub] | sign-live <keys-dir> <agent> <wallet2> <world-action> <out-dir>");
     ExitCode::from(2)
 }
 
@@ -72,11 +72,12 @@ fn referee_cmd(a: &[String]) -> ExitCode {
 }
 
 /// Print the referee worker input for the fixture purchase (honest claims, winner m01).
-fn worker_input(dir: &Path) -> ExitCode {
+/// An optional second argument swaps in another signed verdict (the live one in demo-live).
+fn worker_input(dir: &Path, verdict: Option<&Path>) -> ExitCode {
     fn load<T: serde::de::DeserializeOwned>(p: std::path::PathBuf) -> T {
         serde_json::from_str(&std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()))).expect("parse")
     }
-    let v: bookerbob_core::SignedVerdict = load(dir.join("verdict-ed25519.json"));
+    let v: bookerbob_core::SignedVerdict = load(verdict.map(Path::to_path_buf).unwrap_or_else(|| dir.join("verdict-ed25519.json")));
     let ms: Vec<fixtures::MerchantFixture> = load(dir.join("merchants.json"));
     let input = bookerbob_referee_worker::WorkerInput {
         v: 0,
@@ -109,7 +110,20 @@ fn main() -> ExitCode {
         },
         Some("referee") if args.len() >= 6 => referee_cmd(&args[1..6]),
         Some("keys") if args.len() >= 2 => keys::run(Path::new(&args[1]), args.iter().any(|a| a == "--pub")),
-        Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1])),
+        Some("sign-live") if args.len() >= 6 => {
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64;
+            match keys::sign_live(Path::new(&args[1]), &args[2], &args[3], &args[4], now, Path::new(&args[5])) {
+                Ok(()) => {
+                    println!("wrote verdict.json, verdict-replay.json, world.json to {}", args[5]);
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1]), args.get(2).map(Path::new)),
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
         Some("swarm") if args.len() >= 4 => {
             swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check"))

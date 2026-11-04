@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: receipts verify demo-offline test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
+.PHONY: receipts verify demo-offline demo-live test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -20,6 +20,11 @@ demo-offline:
 	@echo
 	@$(BOOKERBOB) verify fixtures 2>/dev/null | sed -n '1p;6p;13p;17,$$p'
 
+# The same story against a deployed testnet bazaar, driven by env (.env.example).
+# Refuses mainnet. DRY_RUN=1 prints every step and which ones need tools.
+demo-live:
+	@node scripts/demo-live.mjs
+
 receipts:
 	$(BOOKERBOB) verify fixtures --receipts agents/receipts.json 2>/dev/null | tail -1
 
@@ -34,7 +39,7 @@ test-stellar:
 	cd stellar && $(CARGO) test $(CARGO_FLAGS)
 
 test-ucp:
-	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs
+	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/demo-live.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures
