@@ -1,0 +1,27 @@
+{
+  "note": "live E2EE v2 run, one completion. Hashes compared against the bytes actually sent and received, and against plaintext reconstructions.",
+  "at": "2026-11-04T08:47:02.312Z",
+  "model": "z-ai/glm-5.3-flash",
+  "model_pub_key": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+  "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+  "signature_kind": "provider_tee",
+  "signature_valid": true,
+  "signing_key_equals_e2ee_key": true,
+  "model_in_text": true,
+  "answer_decrypted": "sealed",
+  "answer_was_sealed": true,
+  "request": {
+    "signed": "c2cc757b905108d56acd834c49deed919d27781519af462b036eb9300f6f0df1",
+    "sha256_wire_ciphertext": "c2cc757b905108d56acd834c49deed919d27781519af462b036eb9300f6f0df1",
+    "sha256_plaintext_json": "141a524bb362840f7f6c1e65ac3f7f426a2cdee00fcfeb66cc27f80dafe5cdc4"
+  },
+  "response": {
+    "signed": "5fef496600e82f33b3eb257100ece944d4b02aab99173fd315c953134a8144ea",
+    "sha256_wire_ciphertext": "5fef496600e82f33b3eb257100ece944d4b02aab99173fd315c953134a8144ea",
+    "sha256_plaintext_json": "b300a719e7f5aa5bcba238358a2c25fc760d7383f01bf9e3b37651698fa105d6"
+  },
+  "verdict": {
+    "request_covers": "ciphertext",
+    "response_covers": "ciphertext"
+  }
+}

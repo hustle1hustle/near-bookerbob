@@ -70,7 +70,8 @@ interface exists with a test double; `planned` means not built yet.
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | built |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built (19 tests) |
 | SUB-ACCOUNTS: 30 merchant agents, one sub-account each, blind commit then reveal | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | built as config and offline board; accounts not created on testnet yet |
-| NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS); E2EE v2 and attestation check planned |
+| NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
+| NEAR AI E2EE v2: the TEE signature covers the ciphertext, so it verifies without decrypting | privacy | `scripts/spikes/e2ee-signature.mjs`, `docs/near-ai.md` | checked live; TDX quote verification planned |
 | OutLayer TDX worker as referee and verification node | security, privacy | `fixtures/live/views.json` | planned; live `estimate_execution_cost` on `outlayer.testnet` = 0.0070001 NEAR |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, writes `near_tx` to the order | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
