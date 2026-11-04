@@ -90,7 +90,41 @@ if (cmd === "keys") {
   console.log(`   after 2 of 3 votes: proposal ${pr.status}; issuers = ${JSON.stringify(after2)}`);
   st.after_two_votes = after2;
   save();
+} else if (cmd === "redeploy") {
+  const code = readFileSync("target/near/bookerbob_bazaar.wasm");
+  st.txs.redeploy = (await tx(`redeploy ${BAZAAR} (state kept)`, "bazaar", BAZAAR, [{ type: "DeployContract", code }])).hash;
+  save();
+} else if (cmd === "timelock") {
+  // A DAO proposal that executes one bazaar call after c1 and c2 vote.
+  const viaDao = async (label, method, args) => {
+    const inner = Buffer.from(JSON.stringify(args)).toString("base64");
+    const kind = { FunctionCall: { receiver_id: BAZAAR, actions: [{ method_name: method, args: inner, deposit: "0", gas: String(50n * TGAS) }] } };
+    const p = await tx(`c1 proposes ${label}`, "c1", DAO, [fc("add_proposal", { proposal: { description: label, kind } }, near(1), 50n * TGAS)]);
+    await tx(`c1 votes on ${p.value}`, "c1", DAO, [fc("act_proposal", { id: p.value, action: "VoteApprove", proposal: kind }, 0n, 200n * TGAS)]);
+    const v = await tx(`c2 votes on ${p.value}: executes`, "c2", DAO, [fc("act_proposal", { id: p.value, action: "VoteApprove", proposal: kind }, 0n, 250n * TGAS)]);
+    return { propose: p.hash, vote2: v.hash, logs: v.logs };
+  };
+  const phase = process.argv[3] ?? "queue";
+  st.timelock ??= {};
+  if (phase === "queue") {
+    const d = await viaDao("set_anchor_delay 5 min", "set_anchor_delay", { ms: 300000 });
+    st.timelock.delay = d;
+    console.log(`   anchor_delay = ${await view(BAZAAR, "anchor_delay", {})} ms`);
+    const r = await viaDao("register_referee (a test key)", "register_referee", { key_hex: "ef".repeat(32), label: "council-approved test referee" });
+    const q = r.logs.map((l) => (l.startsWith("EVENT_JSON:") ? JSON.parse(l.slice(11)) : null)).find((e) => e?.event === "anchor_queued")?.data?.[0];
+    st.timelock.referee = { ...r, id: q?.id, ready_ms: q?.ready_ms };
+    console.log(`   queued as ${q?.id}, ready at ${new Date(q?.ready_ms).toISOString()}; referees now: ${JSON.stringify((await view(BAZAAR, "referees", {})).map((x) => x[0].slice(0, 8)))}`);
+    st.timelock.early = (await tx("execute_anchor before the delay", "c1", BAZAAR, [fc("execute_anchor", { id: q.id }, 0n, 30n * TGAS)], "timelock: not ready yet")).hash;
+    save();
+  } else {
+    const id = st.timelock.referee.id;
+    const wait = st.timelock.referee.ready_ms - Date.now() + 5000;
+    if (wait > 0) { console.log(`   waiting ${Math.ceil(wait / 1000)} s`); await new Promise((ok) => setTimeout(ok, wait)); }
+    st.timelock.execute = (await tx(`anyone (c2) executes ${id} after the delay`, "c2", BAZAAR, [fc("execute_anchor", { id }, 0n, 30n * TGAS)])).hash;
+    console.log(`   referees now: ${JSON.stringify((await view(BAZAAR, "referees", {})).map((x) => x[0].slice(0, 8)))}`);
+    save();
+  }
 } else {
-  console.error("usage: dao-bazaar.mjs keys|setup|attack|propose");
+  console.error("usage: dao-bazaar.mjs keys|setup|attack|propose|redeploy|timelock [queue|execute]");
   process.exit(2);
 }

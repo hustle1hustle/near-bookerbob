@@ -404,6 +404,35 @@ fn bonded(merchant: &AccountId) -> u128 {
     b.get(&format!("{merchant}|usdc")).copied().unwrap_or(0) + b.get(&format!("{merchant}|demo")).copied().unwrap_or(0)
 }
 
+// ---------- timelock on trust anchors ----------
+
+/// A trust-anchor change waiting out the owner's delay: anyone can watch it and object
+/// before it takes effect.
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct PendingAnchor {
+    /// `issuer`, `referee`, `arbiter`, `world_verifier` or `delay`.
+    pub kind: String,
+    /// The call's arguments, as JSON.
+    pub args: String,
+    pub ready_ms: u64,
+}
+
+fn pending_anchors() -> LookupMap<u64, PendingAnchor> {
+    LookupMap::new(b"A")
+}
+
+fn read_u64(key: &[u8]) -> u64 {
+    env::storage_read(key).map(|b| u64::from_le_bytes(b.try_into().expect("u64"))).unwrap_or(0)
+}
+
+/// 0 (no delay) unless the owner set one with `set_anchor_delay`.
+fn anchor_delay_ms() -> u64 {
+    read_u64(b"anchor_delay_ms")
+}
+
+pub const MAX_ANCHOR_DELAY_MS: u64 = 30 * 24 * 3600 * 1000;
+
 /// The lowest TDX TCB status a verdict may carry to be quoted or paid. Default UpToDate.
 fn tcb_floor() -> String {
     env::storage_read(b"min_tcb").and_then(|b| String::from_utf8(b).ok()).unwrap_or_else(|| "UpToDate".into())
@@ -486,9 +515,92 @@ impl Bazaar {
     // ---------- issuer / enclave keys ----------
 
     /// Register an enclave or issuer key. `key_id` is `ed25519:<hex>` or `p256:<hex>`.
+    /// Owner: delay every later trust-anchor change by `ms` (at most 30 days). Raising the
+    /// delay applies at once; lowering it is itself queued under the current delay.
+    pub fn set_anchor_delay(&mut self, ms: u64) {
+        self.assert_owner();
+        require!(ms <= MAX_ANCHOR_DELAY_MS, "delay over 30 days");
+        if ms < anchor_delay_ms() && self.queue_anchor("delay", serde_json::json!({ "ms": ms })) {
+            return;
+        }
+        env::storage_write(b"anchor_delay_ms", &ms.to_le_bytes());
+        emit("anchor_delay_set", serde_json::json!({ "ms": ms }));
+    }
+
+    pub fn anchor_delay(&self) -> u64 {
+        anchor_delay_ms()
+    }
+
+    pub fn pending_anchor(&self, id: u64) -> Option<PendingAnchor> {
+        pending_anchors().get(&id).cloned()
+    }
+
+    /// Queue `kind` when a delay is set; false (apply now) when there is none.
+    fn queue_anchor(&mut self, kind: &str, args: serde_json::Value) -> bool {
+        let delay = anchor_delay_ms();
+        if delay == 0 {
+            return false;
+        }
+        let id = read_u64(b"anchor_seq") + 1;
+        env::storage_write(b"anchor_seq", &id.to_le_bytes());
+        let p = PendingAnchor { kind: kind.into(), args: args.to_string(), ready_ms: env::block_timestamp_ms() + delay };
+        emit("anchor_queued", serde_json::json!({ "id": id, "kind": kind, "args": args, "ready_ms": p.ready_ms }));
+        let mut q = pending_anchors();
+        q.insert(id, p);
+        q.flush();
+        true
+    }
+
+    /// Anyone, after the delay: apply a queued trust-anchor change.
+    pub fn execute_anchor(&mut self, id: u64) {
+        let mut q = pending_anchors();
+        let p = q.remove(&id).unwrap_or_else(|| env::panic_str("no such pending change"));
+        require!(env::block_timestamp_ms() >= p.ready_ms, "timelock: not ready yet");
+        q.flush();
+        let a: serde_json::Value = serde_json::from_str(&p.args).expect("stored json");
+        let s = |k: &str| a[k].as_str().unwrap_or_default().to_string();
+        match p.kind.as_str() {
+            "issuer" => {
+                self.issuers.insert(s("key_id"), s("label"));
+                emit("issuer_registered", serde_json::json!({ "key_id": s("key_id"), "label": s("label"), "timelock": id }));
+            }
+            "referee" => {
+                self.referees.insert(s("key_hex"), s("label"));
+                emit("referee_registered", serde_json::json!({ "key": s("key_hex"), "label": s("label"), "timelock": id }));
+            }
+            "arbiter" => {
+                self.arbiters.insert(s("key_hex"), s("label"));
+                emit("arbiter_registered", serde_json::json!({ "key": s("key_hex"), "label": s("label"), "timelock": id }));
+            }
+            "world_verifier" => {
+                self.world_verifiers.insert(s("key_hex"), s("label"));
+                self.world_action = Some(s("action"));
+                emit("world_verifier_registered", serde_json::json!({ "key": s("key_hex"), "action": s("action"), "label": s("label"), "timelock": id }));
+            }
+            "delay" => {
+                let ms = a["ms"].as_u64().expect("ms");
+                env::storage_write(b"anchor_delay_ms", &ms.to_le_bytes());
+                emit("anchor_delay_set", serde_json::json!({ "ms": ms, "timelock": id }));
+            }
+            _ => env::panic_str("unknown pending kind"),
+        }
+    }
+
+    /// Owner: drop a queued change before it executes.
+    pub fn cancel_anchor(&mut self, id: u64) {
+        self.assert_owner();
+        let mut q = pending_anchors();
+        require!(q.remove(&id).is_some(), "no such pending change");
+        q.flush();
+        emit("anchor_cancelled", serde_json::json!({ "id": id }));
+    }
+
     pub fn register_issuer(&mut self, key_id: String, label: String) {
         self.assert_owner();
         require!(key_id.starts_with("ed25519:") || key_id.starts_with("p256:"), "bad key id");
+        if self.queue_anchor("issuer", serde_json::json!({ "key_id": key_id, "label": label })) {
+            return;
+        }
         self.issuers.insert(key_id.clone(), label.clone());
         emit("issuer_registered", serde_json::json!({ "key_id": key_id, "label": label }));
     }
@@ -509,6 +621,9 @@ impl Bazaar {
     pub fn register_world_verifier(&mut self, key_hex: String, action: String, label: String) {
         self.assert_owner();
         require!(key_hex.len() == 64 && hex::decode(&key_hex).is_ok(), "bad verifier key");
+        if self.queue_anchor("world_verifier", serde_json::json!({ "key_hex": key_hex, "action": action, "label": label })) {
+            return;
+        }
         self.world_verifiers.insert(key_hex.clone(), label.clone());
         self.world_action = Some(action.clone());
         emit("world_verifier_registered", serde_json::json!({ "key": key_hex, "action": action, "label": label }));
@@ -1456,6 +1571,9 @@ impl Bazaar {
     pub fn register_referee(&mut self, key_hex: String, label: String) {
         self.assert_owner();
         require!(key_hex.len() == 64 && hex::decode(&key_hex).is_ok(), "bad referee key");
+        if self.queue_anchor("referee", serde_json::json!({ "key_hex": key_hex, "label": label })) {
+            return;
+        }
         self.referees.insert(key_hex.clone(), label.clone());
         emit("referee_registered", serde_json::json!({ "key": key_hex, "label": label }));
     }
@@ -1570,6 +1688,9 @@ impl Bazaar {
     pub fn register_arbiter(&mut self, key_hex: String, label: String) {
         self.assert_owner();
         require!(key_hex.len() == 64 && hex::decode(&key_hex).is_ok(), "bad arbiter key");
+        if self.queue_anchor("arbiter", serde_json::json!({ "key_hex": key_hex, "label": label })) {
+            return;
+        }
         self.arbiters.insert(key_hex.clone(), label.clone());
         emit("arbiter_registered", serde_json::json!({ "key": key_hex, "label": label }));
     }

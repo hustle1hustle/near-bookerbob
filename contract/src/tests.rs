@@ -2331,3 +2331,88 @@ mod open_market {
         reveal(&mut c, "b.testnet", 2, COMMIT_UNTIL + 1);
     }
 }
+
+/// Trust-anchor timelock: with a delay set, register_* queues, anyone executes after it.
+mod anchor_timelock {
+    use super::*;
+    const KEY: &str = "ed25519:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd";
+
+    fn at_ms(who: &str, ms: u64) {
+        let mut b = ctx(who);
+        b.block_timestamp(ms * 1_000_000);
+        testing_env!(b.build());
+    }
+
+    fn delayed() -> Bazaar {
+        let mut c = setup();
+        at_ms("owner.testnet", NOW_MS);
+        c.set_anchor_delay(600_000);
+        c.register_issuer(KEY.into(), "new issuer".into());
+        c
+    }
+
+    #[test]
+    fn without_a_delay_registration_applies_at_once() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.register_issuer(KEY.into(), "x".into());
+        assert!(c.issuers().iter().any(|(k, _)| k == KEY));
+    }
+
+    #[test]
+    fn with_a_delay_a_registration_is_queued_and_public() {
+        let c = delayed();
+        assert!(!c.issuers().iter().any(|(k, _)| k == KEY), "not trusted yet");
+        let p = c.pending_anchor(1).unwrap();
+        assert_eq!((p.kind.as_str(), p.ready_ms), ("issuer", NOW_MS + 600_000));
+        assert!(get_logs().iter().any(|l| l.contains("anchor_queued")));
+    }
+
+    #[test]
+    #[should_panic(expected = "timelock: not ready yet")]
+    fn executing_before_the_delay_is_refused() {
+        let mut c = delayed();
+        at_ms("anyone.testnet", NOW_MS + 599_999);
+        c.execute_anchor(1);
+    }
+
+    #[test]
+    fn anyone_executes_after_the_delay() {
+        let mut c = delayed();
+        at_ms("anyone.testnet", NOW_MS + 600_000);
+        c.execute_anchor(1);
+        assert!(c.issuers().iter().any(|(k, _)| k == KEY));
+        assert!(c.pending_anchor(1).is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "no such pending change")]
+    fn the_owner_can_cancel_inside_the_delay() {
+        let mut c = delayed();
+        at_ms("owner.testnet", NOW_MS + 1);
+        c.cancel_anchor(1);
+        at_ms("anyone.testnet", NOW_MS + 600_000);
+        c.execute_anchor(1);
+    }
+
+    #[test]
+    fn lowering_the_delay_is_itself_delayed_raising_is_not() {
+        let mut c = delayed();
+        at_ms("owner.testnet", NOW_MS);
+        c.set_anchor_delay(0);
+        assert_eq!(c.anchor_delay(), 600_000, "lowering waits");
+        c.set_anchor_delay(900_000);
+        assert_eq!(c.anchor_delay(), 900_000, "raising applies");
+        at_ms("anyone.testnet", NOW_MS + 600_000);
+        c.execute_anchor(2);
+        assert_eq!(c.anchor_delay(), 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "owner only")]
+    fn only_the_owner_cancels() {
+        let mut c = delayed();
+        at_ms("anyone.testnet", NOW_MS + 1);
+        c.cancel_anchor(1);
+    }
+}
