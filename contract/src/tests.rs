@@ -2519,3 +2519,117 @@ mod sealed_referee_input {
         assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == "outlayer.testnet"));
     }
 }
+
+/// Buying groups: World-bound buyers with the same revealed set pool for a fixed-tier discount.
+mod buying_groups {
+    use super::*;
+    const DUSDC: &str = "dusdc.bazaar.testnet";
+
+    /// `n` buyers, each its own World person, each with a verdict and an m01 receipt, dUSDC in escrow.
+    fn buyers(n: u8) -> (Bazaar, Vec<(String, String)>) {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(DUSDC));
+        let mut out = vec![];
+        for i in 0..n {
+            let agent = format!("buyer{i}.testnet");
+            attest(&mut c, &agent, 100 + i);
+            let mut b = ctx(&agent);
+            b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
+            testing_env!(b.build());
+            c.storage_deposit(None);
+            set(DUSDC);
+            let _ = c.ft_on_transfer(acc(&agent), U128(200_000_000), String::new());
+            submit_with_receipt(&mut c, envelope(50 + i, &agent));
+            out.push((agent, hex::encode([50 + i; 32])));
+        }
+        (c, out)
+    }
+
+    fn join(c: &mut Bazaar, b: &[(String, String)]) -> String {
+        let mut key = String::new();
+        for (agent, n) in b {
+            set(agent);
+            key = c.post_intent(n.clone(), "hoodie".into(), "77".repeat(32));
+        }
+        key
+    }
+
+    #[test]
+    fn five_persons_unlock_the_first_tier_and_each_pays_ten_percent_less() {
+        let (mut c, b) = buyers(5);
+        let key = join(&mut c, &b);
+        let g = c.buying_group(key.clone()).unwrap();
+        assert_eq!((g.members.len(), g.persons), (5, 5));
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key.clone(), 1000);
+        let (_, bps, price) = c.buying_group(key).unwrap().offer.unwrap();
+        assert_eq!(bps, 1000);
+        let receipt = c.verdict(b[0].1.clone()).unwrap().receipt.unwrap().price.0;
+        assert_eq!(price.0, receipt - receipt / 10);
+        set(&b[0].0);
+        let _ = c.settle_group_demo(b[0].1.clone(), "g-1".into(), price);
+        assert_eq!(c.nullifier_status(b[0].1.clone()), NullifierStatus::Spent);
+        assert_eq!(c.demo_escrow_of(acc(&b[0].0)), Some(U128(200_000_000 - price.0)));
+    }
+
+    #[test]
+    #[should_panic(expected = "the group has not reached that tier")]
+    fn four_persons_cannot_get_an_offer() {
+        let (mut c, b) = buyers(4);
+        let key = join(&mut c, &b);
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key, 1000);
+    }
+
+    #[test]
+    #[should_panic(expected = "the group has not reached that tier")]
+    fn the_second_tier_needs_ten_persons() {
+        let (mut c, b) = buyers(5);
+        let key = join(&mut c, &b);
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key, 2000);
+    }
+
+    #[test]
+    #[should_panic(expected = "offer one of the fixed tiers")]
+    fn only_fixed_tiers_are_offered() {
+        let (mut c, b) = buyers(5);
+        let key = join(&mut c, &b);
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key, 1234);
+    }
+
+    #[test]
+    #[should_panic(expected = "amount differs from quote")]
+    fn a_member_cannot_pay_the_undiscounted_or_another_amount() {
+        let (mut c, b) = buyers(5);
+        let key = join(&mut c, &b);
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key, 1000);
+        set(&b[1].0);
+        let receipt = c.verdict(b[1].1.clone()).unwrap().receipt.unwrap().price;
+        let _ = c.settle_group_demo(b[1].1.clone(), "g-2".into(), receipt);
+    }
+
+    #[test]
+    #[should_panic(expected = "only a World-bound buyer joins a buying group")]
+    fn an_unbound_buyer_cannot_post_an_intent() {
+        let mut c = setup();
+        let mut e = envelope(60, "unbound.testnet");
+        e.predicates = vec!["airbnb_frequent".into()];
+        set("unbound.testnet");
+        c.submit_verdict(sign_ed(e.clone()));
+        c.post_intent(e.nullifier, "hoodie".into(), "77".repeat(32));
+    }
+
+    #[test]
+    fn another_revealed_set_is_another_group() {
+        let (mut c, b) = buyers(2);
+        set(&b[0].0);
+        let k1 = c.post_intent(b[0].1.clone(), "hoodie".into(), "77".repeat(32));
+        set(&b[1].0);
+        let k2 = c.post_intent(b[1].1.clone(), "hotel".into(), "77".repeat(32));
+        assert_ne!(k1, k2, "category is part of the key");
+    }
+}

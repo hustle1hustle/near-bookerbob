@@ -438,6 +438,46 @@ fn arbiter_quorum() -> u64 {
     read_u64(b"arbiter_threshold").max(1)
 }
 
+// ---------- buying groups on sealed intents ----------
+
+/// A buying group: verdicts that revealed the same predicate set for the same category and
+/// context. Members are indistinguishable by what they revealed; the discount is one of a few
+/// fixed tiers, so the amount paid says only which tier the group reached.
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Default)]
+pub struct BuyingGroup {
+    pub category: String,
+    pub context: String,
+    pub predicates: Vec<String>,
+    /// Member nullifiers, in arrival order.
+    pub members: Vec<String>,
+    /// sha256(budget || salt) per member: a buyer's budget stays sealed.
+    pub budgets: Vec<String>,
+    /// Distinct World-bound persons among the members.
+    pub persons: u64,
+    /// The best merchant offer: (merchant, tier bps, the member price it gives).
+    pub offer: Option<(AccountId, u16, U128)>,
+}
+
+/// Quantized group tiers: (persons needed, the most a merchant may offer, bps).
+pub const GROUP_TIERS: [(u64, u16); 2] = [(5, 1000), (10, 2000)];
+
+fn groups() -> LookupMap<String, BuyingGroup> {
+    LookupMap::new(b"G")
+}
+
+fn intents() -> LookupMap<String, String> {
+    LookupMap::new(b"I")
+}
+
+fn group_persons_seen() -> LookupMap<String, bool> {
+    LookupMap::new(b"H")
+}
+
+fn group_tier(persons: u64) -> u16 {
+    GROUP_TIERS.iter().filter(|(k, _)| persons >= *k).map(|(_, b)| *b).max().unwrap_or(0)
+}
+
 /// The lowest TDX TCB status a verdict may carry to be quoted or paid. Default UpToDate.
 fn tcb_floor() -> String {
     env::storage_read(b"min_tcb").and_then(|b| String::from_utf8(b).ok()).unwrap_or_else(|| "UpToDate".into())
@@ -1087,6 +1127,95 @@ impl Bazaar {
 
     pub fn merchant_bond(&self, merchant: AccountId, token: String) -> U128 {
         U128(merchant_bonds().get(&format!("{merchant}|{token}")).copied().unwrap_or(0))
+    }
+
+    /// A World-bound buyer posts a sealed intent for its unspent verdict: it joins the group of
+    /// verdicts that revealed the same predicates in the same category and context. Only the
+    /// budget's commitment is stored. Returns the group key.
+    #[payable]
+    pub fn post_intent(&mut self, nullifier: String, category: String, budget_commitment: String) -> String {
+        let before = env::storage_usage();
+        require!(bookerbob_core::is_hex32(&budget_commitment), "bad budget commitment");
+        let r = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        require!(r.agent == env::predecessor_account_id(), "agent mismatch");
+        require!(!r.spent, "nullifier spent");
+        let person = self.humans.get(&r.agent).cloned().unwrap_or_else(|| env::panic_str("only a World-bound buyer joins a buying group"));
+        let mut preds = r.predicates.clone();
+        preds.sort();
+        let key = hex::encode(env::sha256_array(serde_json::to_vec(&(&category, &r.context, &preds)).expect("json").as_slice()));
+        let mut ints = intents();
+        require!(!ints.contains_key(&nullifier), "this verdict already posted an intent");
+        let mut gs = groups();
+        let mut g = gs.get(&key).cloned().unwrap_or_else(|| BuyingGroup {
+            category: category.clone(),
+            context: r.context.clone(),
+            predicates: preds,
+            ..Default::default()
+        });
+        let mut seen = group_persons_seen();
+        let pk = format!("{key}|{person}");
+        if !seen.contains_key(&pk) {
+            seen.insert(pk, true);
+            g.persons += 1;
+        }
+        g.members.push(nullifier.clone());
+        g.budgets.push(budget_commitment);
+        let (size, persons) = (g.members.len(), g.persons);
+        gs.insert(key.clone(), g);
+        ints.insert(nullifier, key.clone());
+        gs.flush();
+        ints.flush();
+        seen.flush();
+        emit("intent_posted", serde_json::json!({ "group": key, "members": size, "persons": persons, "tier_bps": group_tier(persons) }));
+        charge_storage(before);
+        key
+    }
+
+    pub fn buying_group(&self, group: String) -> Option<BuyingGroup> {
+        groups().get(&group).cloned()
+    }
+
+    pub fn group_of(&self, nullifier: String) -> Option<String> {
+        intents().get(&nullifier).cloned()
+    }
+
+    /// An approved merchant in the group's category offers one of the unlocked tiers. The
+    /// offer giving the lowest member price stands.
+    pub fn offer_group(&mut self, group: String, bps: u16) {
+        let merchant = env::predecessor_account_id();
+        let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
+        require!(m.approved, "merchant not approved");
+        let mut gs = groups();
+        let mut g = gs.get(&group).cloned().unwrap_or_else(|| env::panic_str("unknown group"));
+        require!(m.category == g.category, "another category");
+        require!(GROUP_TIERS.iter().any(|(_, b)| *b == bps), "offer one of the fixed tiers (10% or 20%)");
+        require!(bps <= group_tier(g.persons), "the group has not reached that tier");
+        let first = g.members.first().expect("a group has members");
+        let v = self.verdicts.get(first).expect("member verdict");
+        let base = self.quote_for(&m.schedule, v).price;
+        let price = base - base * bps as u128 / 10_000;
+        if g.offer.as_ref().is_none_or(|(_, _, p)| price < p.0) {
+            g.offer = Some((merchant.clone(), bps, U128(price)));
+            gs.insert(group.clone(), g);
+            gs.flush();
+            emit("group_offer", serde_json::json!({ "group": group, "merchant": merchant, "bps": bps, "price": U128(price) }));
+        }
+    }
+
+    /// A member pays the group's offer in the demo token: its own referee receipt for the
+    /// offering merchant, minus the tier, debited from its own escrow, nullifier burned.
+    pub fn settle_group_demo(&mut self, nullifier: String, checkout_ref: String, amount: U128) -> Promise {
+        let token = demo_token_id().unwrap_or_else(|| env::panic_str("no demo token"));
+        let key = intents().get(&nullifier).cloned().unwrap_or_else(|| env::panic_str("no intent for this verdict"));
+        let g = groups().get(&key).cloned().expect("group");
+        let (merchant, bps, _) = g.offer.clone().unwrap_or_else(|| env::panic_str("no group offer yet"));
+        require!(bps <= group_tier(g.persons), "the group has not reached that tier");
+        let (m, price, agent) = self.take_payment_at(&nullifier, &merchant, &checkout_ref, amount, "group", true, bps);
+        ext_ft::ext(token)
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), Some(true)))
     }
 
     /// The liability record of a settled purchase (see `liabilities`).
@@ -1906,6 +2035,21 @@ impl Bazaar {
     /// place for both paths. One payout per receipt: a spent record cannot pay again,
     /// whichever path paid it.
     fn take_payment(&mut self, nullifier: &str, merchant: &AccountId, checkout_ref: &str, amount: U128, path: &str, demo: bool) -> (Merchant, u128, AccountId) {
+        self.take_payment_at(nullifier, merchant, checkout_ref, amount, path, demo, 0)
+    }
+
+    /// `take_payment` at the receipt price minus a group tier (`group_bps`, 0 for a single buyer).
+    #[allow(clippy::too_many_arguments)]
+    fn take_payment_at(
+        &mut self,
+        nullifier: &str,
+        merchant: &AccountId,
+        checkout_ref: &str,
+        amount: U128,
+        path: &str,
+        demo: bool,
+        group_bps: u16,
+    ) -> (Merchant, u128, AccountId) {
         require!(!checkout_ref.is_empty() && checkout_ref.len() <= 128, "bad checkout_ref");
         let agent = env::predecessor_account_id();
         let m = self.merchants.get(merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
@@ -1917,7 +2061,7 @@ impl Bazaar {
         require!(env::block_timestamp_ms() < record.expires_at_ms, "verdict expired");
         // The receipt fixes the price: a cohort that grows after the receipt cannot change it.
         let price = match &record.receipt {
-            Some(r) if &r.merchant == merchant => r.price.0,
+            Some(r) if &r.merchant == merchant => r.price.0 - r.price.0 * group_bps as u128 / 10_000,
             _ => env::panic_str("no referee receipt for this quote"),
         };
         require!(amount.0 == price, "amount differs from quote");

@@ -168,7 +168,7 @@ export class Demo {
     console.log(`   ok: demo token set, treasury ${(Number(BigInt(t.amount) / MILLI) / 1000).toFixed(3)} NEAR, ${n} testers today`);
   }
 
-  async run() {
+  async run(opts = {}) {
     const c = this.c;
     const step = (i, t) => console.log(`${i}. ${t}`);
     step(1, "preflight");
@@ -214,6 +214,20 @@ export class Demo {
     rec.txs.escrow = (await this.relay("ft_transfer_call", tester, c.dusdc, fc("ft_transfer_call", { receiver_id: c.bazaar, amount: String(rec.price), msg: "" }, 1n, 100n * TGAS))).hash;
     const bal = await this.client.view(c.bazaar, "demo_escrow_of", { account_id: id });
     if (BigInt(bal ?? 0) < BigInt(rec.price)) throw new Error(`demo escrow ${bal} below the price`);
+    if (opts.group) {
+      // Buying group: post a sealed intent instead of settling alone (budget sealed).
+      step(10, "post a sealed intent: join the buying group for this revealed set");
+      const salt = randomBytes(32).toString("hex");
+      const budget = String(BigInt(rec.price) + 5_000_000n);
+      writeFileSync(join(dir, "budget.secret"), `${budget} ${salt}\n`, { mode: 0o600 });
+      const commitment = createHash("sha256").update(`${budget}|${salt}`).digest("hex");
+      const r = await this.relay("post_intent", tester, c.bazaar, fc("post_intent", { nullifier: rec.nullifier, category: "hoodie", budget_commitment: commitment }, 20n * MILLI));
+      rec.txs.intent = r.hash;
+      rec.group = r.value ?? (await this.client.view(c.bazaar, "group_of", { nullifier: rec.nullifier }));
+      save();
+      console.log(`   in group ${String(rec.group).slice(0, 12)}..`);
+      return rec;
+    }
     step(10, "settle_demo");
     rec.checkout_ref = `demo-${hex6}`;
     const s = await this.relay("settle_demo", tester, c.bazaar, fc("settle_demo", { nullifier: rec.nullifier, merchant: c.merchant, checkout_ref: rec.checkout_ref, amount: String(rec.price) }, 0n, 150n * TGAS));
@@ -265,6 +279,38 @@ export class Demo {
     return rec;
   }
 
+  /** n new testers post intents into one group; the merchant offers the first tier; each
+   *  member pays the group price. */
+  async group(n = 5) {
+    const c = this.c;
+    const members = [];
+    for (let i = 0; i < n; i++) {
+      console.log(`\n=== member ${i + 1} of ${n}`);
+      members.push(await this.run({ group: true }));
+    }
+    const key = members[0].group;
+    const g = await this.client.view(c.bazaar, "buying_group", { group: key });
+    console.log(`\ngroup ${key.slice(0, 12)}..: ${g.members.length} members, ${g.persons} persons`);
+    const o = spawnSync("near", ["contract", "call-function", "as-transaction", c.bazaar, "offer_group", "json-args", JSON.stringify({ group: key, bps: 1000 }), "prepaid-gas", "50.0 Tgas", "attached-deposit", "0 NEAR", "sign-as", c.merchant, "network-config", "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
+    const offerTx = `${o.stdout}${o.stderr}`.match(/Transaction ID: ([1-9A-HJ-NP-Za-km-z]{43,44})/)?.[1];
+    if (o.status !== 0) throw new Error(`offer_group: ${(o.stdout + o.stderr).slice(-300)}`);
+    console.log(`   ok ${c.merchant} offers the 10% tier  ${link(offerTx)}`);
+    const offer = (await this.client.view(c.bazaar, "buying_group", { group: key })).offer;
+    const out = { group: key, offer_tx: offerTx, offer: { merchant: offer[0], bps: offer[1], price: offer[2] }, members: [] };
+    for (const rec of members) {
+      const dir = join(c.testersDir, rec.tester);
+      const tester = { id: rec.tester, key: keyFromSeed(readFileSync(join(dir, "account.seed"), "utf8")) };
+      const s = await this.relay("settle_group_demo", tester, c.bazaar, fc("settle_group_demo", { nullifier: rec.nullifier, checkout_ref: `group-${rec.tester.slice(2, 8)}`, amount: offer[2] }, 0n, 150n * TGAS));
+      if (s.logs.some((l) => l.includes("settle_reverted"))) throw new Error("group payout reverted");
+      rec.txs.settle_group = s.hash;
+      writeFileSync(join(c.testersDir, `${rec.tester}.json`), JSON.stringify(rec, null, 2) + "\n");
+      out.members.push({ tester: rec.tester, nullifier: rec.nullifier, receipt_price: rec.price, paid: offer[2], txs: rec.txs });
+    }
+    writeFileSync(join(c.testersDir, "group-state.json"), JSON.stringify(out, null, 2) + "\n", { mode: 0o600 });
+    console.log(`\ndemo-tester group: PASS  ${n} members paid ${Number(offer[2]) / 1e6} dUSDC each (receipt ${Number(members[0].price) / 1e6}, 10% tier)`);
+    return out;
+  }
+
   async resume(id) {
     await this.preflight();
     const dir = join(this.c.testersDir, id);
@@ -307,7 +353,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   const d = new Demo(c);
-  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
+  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
   go.then(
     () => {},
     (e) => {
