@@ -103,6 +103,7 @@ interface exists with a test double; `planned` means not built yet.
 | MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | built (2 tests on a fake RPC); points at testnet once deployed |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
 | Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `scripts/spikes/views.mjs`, `fixtures/live/views.json`, `stellar/`, `docs/stellar.md` | partial: live `derived_public_key` and its Stellar G-address; Soroban contract that only the Chain Signatures key can drive (4 tests); first `sign` and the NEAR signing method not done |
+| merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | SDK built (cross-checked against the Rust board); not listed, Agent Market is mainnet only |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | planned (mainnet only) |
 
 ## Repository layout
@@ -117,6 +118,7 @@ interface exists with a test double; `planned` means not built yet.
 | `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
 | `ucp/` | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
 | `stellar/` | Soroban contract for the Stellar leg (own workspace, `make test-stellar`) |
+| `sdk/` | merchant SDK stub (JS, no dependencies) |
 | `x402/` | x402 v2 resource server for paid verdict reads |
 | `mcp/` | MCP server wrapping the contract views (`nullifier_status`, `verdict`, `quote`, `best_quote`, `merchants`) |
 | `fixtures/` | synthetic, deterministic inputs and expected outputs |
