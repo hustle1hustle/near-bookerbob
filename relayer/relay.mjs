@@ -57,3 +57,40 @@ export function check(signed, ctx) {
   const ok = verify(null, signableHash(d), edKey(d.public_key_hex), Buffer.from(signed.signature_hex, "hex"));
   return ok ? { ok: true } : { ok: false, reason: "bad signature" };
 }
+
+// ---------- demo policy (testnet demo mode, docs/demo-mode.md) ----------
+//
+// A tester account `t-<6 hex>.<treasury>` signs delegate actions for the demo purchase;
+// the relayer pays the gas. Allowed: the bazaar and the dUSDC token only, a fixed method
+// list per receiver, one action per delegate, deposits within a per-method cap (paid from
+// the tester's own balance, not the relayer's), `ft_transfer_call` only to the bazaar,
+// and a per-sender daily budget.
+
+const TGAS = 10n ** 12n;
+export const DEMO_DAILY_ACTIONS = 20;
+export const DEMO_MAX_GAS = 300n * TGAS;
+const MILLI = 10n ** 21n;
+export const DEMO_METHODS = {
+  bazaar: { attest_human: 10n * MILLI, submit_verdict: 50n * MILLI, submit_referee_result: 0n, settle_demo: 0n, join_review_group: 20n * MILLI },
+  dusdc: { mint: 0n, ft_transfer_call: 1n },
+};
+
+export function checkDemo(signed, ctx, used = 0) {
+  const d = signed.delegate_action;
+  const tester = new RegExp(`^t-[0-9a-f]{6}\\.${ctx.treasury.replace(/\./g, "\\.")}$`);
+  if (!tester.test(d.sender_id)) return { ok: false, reason: `sender ${d.sender_id} is not a demo tester account` };
+  const role = d.receiver_id === ctx.bazaar ? "bazaar" : d.receiver_id === ctx.dusdc ? "dusdc" : null;
+  if (!role) return { ok: false, reason: `receiver ${d.receiver_id} is not the bazaar or dUSDC` };
+  if (!Array.isArray(d.actions) || d.actions.length !== 1) return { ok: false, reason: "exactly one action" };
+  const a = d.actions[0];
+  const cap = a.type === "FunctionCall" ? DEMO_METHODS[role][a.method_name] : undefined;
+  if (cap === undefined) return { ok: false, reason: `method ${a.method_name} is not relayed in demo mode` };
+  if (BigInt(a.deposit) > cap) return { ok: false, reason: "deposit over the demo cap" };
+  if (a.method_name === "ft_transfer_call" && (a.args?.receiver_id !== ctx.bazaar || BigInt(a.deposit) !== 1n)) return { ok: false, reason: "ft_transfer_call only to the bazaar, with 1 yocto" };
+  if (BigInt(a.gas) > DEMO_MAX_GAS) return { ok: false, reason: "gas over the demo cap" };
+  if (used >= DEMO_DAILY_ACTIONS) return { ok: false, reason: "tester over the daily budget" };
+  if (BigInt(d.max_block_height) < BigInt(ctx.block_height)) return { ok: false, reason: "delegate action expired" };
+  if (!/^[0-9a-f]{64}$/.test(d.public_key_hex)) return { ok: false, reason: "bad public key" };
+  const ok = verify(null, signableHash(d), edKey(d.public_key_hex), Buffer.from(signed.signature_hex, "hex"));
+  return ok ? { ok: true } : { ok: false, reason: "bad signature" };
+}

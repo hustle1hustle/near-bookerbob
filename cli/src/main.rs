@@ -143,6 +143,23 @@ fn main() -> ExitCode {
         // graph-input <onchain-root-hex> <out.json> <agent>:<sub> ...: the standing guest's input
         // for a live graph, refused unless the events hash to the root read from chain.
         // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
+        // sign-tester <keys-dir> <tester> <replay-account> <world-action> <out-dir>: prints the nullifier
+        Some("sign-tester") if args.len() >= 6 => {
+            let now = std::env::var("BOOKERBOB_NOW_MS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or_else(|| std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0));
+            match keys::sign_tester(Path::new(&args[1]), &args[2], &args[3], &args[4], now, Path::new(&args[5])) {
+                Ok(n) => {
+                    println!("{n}");
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         Some("graph-sign") if args.len() >= 5 => match keys::graph_sign(Path::new(&args[1]), &args[2], Path::new(&args[3]), Path::new(&args[4])) {
             Ok(root) => {
                 println!("signed score update for root {}.. with the referee key; wrote {}", &root[..16], args[4]);

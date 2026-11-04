@@ -74,3 +74,50 @@ test("a tampered action or a foreign signature is refused", () => {
   const mixed = { delegate_action: delegate().delegate_action, signature_hex: other.signature_hex };
   assert.equal(check(mixed, ctx).reason, "bad signature");
 });
+
+// ---------- demo policy ----------
+import { checkDemo, DEMO_DAILY_ACTIONS } from "./relay.mjs";
+
+const demoCtx = { bazaar: BAZAAR, dusdc: "bookerbob-dusdc.testnet", treasury: "bookerbob-demo.testnet", block_height: 1000 };
+const TESTER = "t-a1b2c3.bookerbob-demo.testnet";
+
+function demoDelegate(over = {}, action = {}, k = oneTimeKey(9)) {
+  const d = {
+    sender_id: TESTER,
+    receiver_id: "bookerbob-dusdc.testnet",
+    actions: [{ type: "FunctionCall", method_name: "ft_transfer_call", args: { receiver_id: BAZAAR, amount: "38400000", msg: "" }, gas: 100_000_000_000_000, deposit: "1", ...action }],
+    nonce: 1,
+    max_block_height: 2000,
+    public_key_hex: k.pub,
+    ...over,
+  };
+  return { delegate_action: d, signature_hex: sign(null, signableHash(d), k.priv).toString("hex") };
+}
+
+test("demo: a tester's escrow deposit and settle_demo are accepted", () => {
+  assert.deepEqual(checkDemo(demoDelegate(), demoCtx), { ok: true });
+  const settle = demoDelegate({ receiver_id: BAZAAR }, { method_name: "settle_demo", args: { nullifier: "aa", merchant: "m01.bookerbob.testnet", checkout_ref: "x", amount: "1" }, deposit: "0" });
+  assert.deepEqual(checkDemo(settle, demoCtx), { ok: true });
+});
+
+test("demo: another receiver, method, sender, deposit or budget is refused", () => {
+  const refused = (r, why) => assert.match(r.reason ?? "", why);
+  refused(checkDemo(demoDelegate({ receiver_id: "usdc.testnet" }), demoCtx), /not the bazaar or dUSDC/);
+  refused(checkDemo(demoDelegate({ receiver_id: BAZAAR }, { method_name: "withdraw_demo", deposit: "1" }), demoCtx), /not relayed/);
+  refused(checkDemo(demoDelegate({ receiver_id: BAZAAR }, { method_name: "settle", deposit: "0" }), demoCtx), /not relayed/);
+  refused(checkDemo(demoDelegate({ sender_id: "agent.bookerbob.testnet" }), demoCtx), /not a demo tester/);
+  refused(checkDemo(demoDelegate({ sender_id: "t-a1b2c3.evil.testnet" }), demoCtx), /not a demo tester/);
+  refused(checkDemo(demoDelegate({}, { deposit: "2" }), demoCtx), /demo cap/);
+  refused(checkDemo(demoDelegate({}, { args: { receiver_id: "evil.testnet", amount: "1", msg: "" } }), demoCtx), /only to the bazaar/);
+  refused(checkDemo(demoDelegate({ receiver_id: BAZAAR }, { method_name: "submit_verdict", deposit: "60000000000000000000000" }), demoCtx), /demo cap/);
+  refused(checkDemo(demoDelegate({}, { gas: 400_000_000_000_000 }), demoCtx), /gas over/);
+  refused(checkDemo(demoDelegate(), demoCtx, DEMO_DAILY_ACTIONS), /daily budget/);
+  refused(checkDemo(demoDelegate({ max_block_height: 10 }), demoCtx), /expired/);
+  const s = demoDelegate();
+  s.delegate_action.actions[0].args.amount = "1";
+  refused(checkDemo(s, demoCtx), /bad signature/);
+});
+
+test("demo: the review policy is unchanged (a tester cannot use it)", () => {
+  assert.match(check(demoDelegate({ receiver_id: BAZAAR }, { method_name: "submit_review", deposit: "0" }), ctx).reason, /one-time account/);
+});

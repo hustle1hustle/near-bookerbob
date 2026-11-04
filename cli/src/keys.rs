@@ -90,11 +90,28 @@ pub fn graph_sign(dir: &Path, program_hash: &str, input: &Path, out: &Path) -> R
 /// and `world.json` (World attestation for agent and action) into `out`. Only signed public
 /// artifacts are written; seeds never leave `dir`.
 pub fn sign_live(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u64, out: &Path) -> Result<(), String> {
+    sign_purchase(dir, agent, wallet2, action, now_ms, out, None, "fixture-person-1")
+}
+
+/// A demo tester's purchase (`make demo-tester`): the same fixture facts, but a nullifier and
+/// a World person of its own (derived from the tester account), so each tester is a new buyer.
+/// `replay` gets the same nullifier, for the "nullifier spent" check.
+pub fn sign_tester(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path) -> Result<String, String> {
+    let n = crate::fixtures::nullifier(&format!("demo-tester|{agent}"));
+    sign_purchase(dir, agent, replay, action, now_ms, out, Some(n.clone()), &format!("demo-tester|{agent}"))?;
+    Ok(n)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn sign_purchase(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u64, out: &Path, nullifier: Option<String>, person: &str) -> Result<(), String> {
     use ed25519_dalek::Signer;
     let issuer = load_seed(dir, "issuer")?;
     let world = load_seed(dir, "world")?;
     let sign = |agent: &str| {
         let mut e = crate::fixtures::envelope(agent);
+        if let Some(n) = &nullifier {
+            e.nullifier = n.clone();
+        }
         e.issued_at_ms = now_ms;
         e.expires_at_ms = now_ms + 7 * 24 * 3600 * 1000;
         let digest = e.digest();
@@ -105,7 +122,7 @@ pub fn sign_live(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u
             signature: hex::encode(issuer.sign(&digest).to_bytes()),
         }
     };
-    let mut body = crate::fixtures::world_attestation(agent, "fixture-person-1").body;
+    let mut body = crate::fixtures::world_attestation(agent, person).body;
     body.action = action.into();
     body.issued_at_ms = now_ms;
     let att = bookerbob_core::WorldAttestation {
@@ -148,6 +165,23 @@ mod tests {
         let sig = Signature::from_bytes(&hex::decode(a["signature"].as_str().unwrap()).unwrap().try_into().unwrap());
         assert!(pk.verify(&Sha256::digest(&msg), &sig).is_ok());
         assert!(super::graph_sign(&dir, "zz", &input, &out).is_err());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sign_tester_gives_each_tester_its_own_nullifier_and_person() {
+        let dir = std::env::temp_dir().join(format!("bookerbob-tester-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(super::run(&dir, false), std::process::ExitCode::SUCCESS);
+        let (a, b) = (dir.join("a"), dir.join("b"));
+        let na = super::sign_tester(&dir, "t-000001.demo.testnet", "demo.testnet", "act", 1_000, &a).unwrap();
+        let nb = super::sign_tester(&dir, "t-000002.demo.testnet", "demo.testnet", "act", 1_000, &b).unwrap();
+        assert_ne!(na, nb);
+        let load = |p: &std::path::Path, f: &str| -> serde_json::Value { serde_json::from_str(&std::fs::read_to_string(p.join(f)).unwrap()).unwrap() };
+        assert_eq!(load(&a, "verdict.json")["envelope"]["nullifier"], na.as_str());
+        assert_eq!(load(&a, "verdict-replay.json")["envelope"]["nullifier"], na.as_str());
+        assert_eq!(load(&a, "verdict-replay.json")["envelope"]["cnf"], "demo.testnet");
+        assert_ne!(load(&a, "world.json")["body"]["world_nullifier"], load(&b, "world.json")["body"]["world_nullifier"]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 

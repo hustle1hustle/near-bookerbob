@@ -306,7 +306,7 @@ fn is_testnet() -> bool {
 }
 
 /// The free-mint demo token (dUSDC), if the owner set one. None off testnet.
-fn demo_token() -> Option<AccountId> {
+fn demo_token_id() -> Option<AccountId> {
     if !is_testnet() {
         return None;
     }
@@ -324,7 +324,7 @@ fn demo_paid() -> LookupMap<String, bool> {
 }
 
 /// Review round length: 24 h, or a shorter testnet-only value for the demo.
-fn review_round_ms() -> u64 {
+fn round_ms() -> u64 {
     if !is_testnet() {
         return REVIEW_ROUND_MS;
     }
@@ -558,11 +558,11 @@ impl Bazaar {
     }
 
     pub fn review_round_now(&self) -> u64 {
-        env::block_timestamp_ms() / review_round_ms()
+        env::block_timestamp_ms() / round_ms()
     }
 
     pub fn review_round_ms(&self) -> u64 {
-        review_round_ms()
+        round_ms()
     }
 
     /// Owner, testnet only: shorter review rounds so a demo can seal, reveal and release in
@@ -586,7 +586,7 @@ impl Bazaar {
     }
 
     pub fn demo_token(&self) -> Option<AccountId> {
-        demo_token()
+        demo_token_id()
     }
 
     pub fn demo_escrow_of(&self, account_id: AccountId) -> Option<U128> {
@@ -1109,7 +1109,7 @@ impl Bazaar {
     pub fn storage_deposit(&mut self, account_id: Option<AccountId>) {
         let account = account_id.unwrap_or_else(env::predecessor_account_id);
         let mut demo = demo_escrow();
-        let open_demo = demo_token().is_some() && !demo.contains_key(&account);
+        let open_demo = demo_token_id().is_some() && !demo.contains_key(&account);
         if self.escrow.contains_key(&account) && !open_demo {
             // Already open: refund the whole deposit instead of keeping it (audit A8).
             let d = env::attached_deposit();
@@ -1139,8 +1139,8 @@ impl Bazaar {
         let _ = msg;
         let token = env::predecessor_account_id();
         if token != self.usdc {
-            // The demo token, on a testnet bazaar only (demo_token() is None elsewhere).
-            if demo_token().as_ref() != Some(&token) {
+            // The demo token, on a testnet bazaar only (demo_token_id() is None elsewhere).
+            if demo_token_id().as_ref() != Some(&token) {
                 env::panic_str("only USDC is accepted");
             }
             let mut demo = demo_escrow();
@@ -1342,7 +1342,7 @@ impl Bazaar {
     #[payable]
     pub fn withdraw_demo(&mut self, amount: U128) -> Promise {
         near_sdk::assert_one_yocto();
-        let token = demo_token().unwrap_or_else(|| env::panic_str("no demo token"));
+        let token = demo_token_id().unwrap_or_else(|| env::panic_str("no demo token"));
         let account = env::predecessor_account_id();
         let mut demo = demo_escrow();
         let bal = demo.get_mut(&account).unwrap_or_else(|| env::panic_str("no escrow"));
@@ -1388,7 +1388,7 @@ impl Bazaar {
     /// `settle` paid from the demo-token escrow, in the demo token (testnet only). Same
     /// checks, same receipt, same nullifier burn: a record pays once, in one token.
     pub fn settle_demo(&mut self, nullifier: String, merchant: AccountId, checkout_ref: String, amount: U128) -> Promise {
-        let token = demo_token().unwrap_or_else(|| env::panic_str("no demo token"));
+        let token = demo_token_id().unwrap_or_else(|| env::panic_str("no demo token"));
         let (m, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "near", true);
         ext_ft::ext(token)
             .with_attached_deposit(NearToken::from_yoctonear(1))
