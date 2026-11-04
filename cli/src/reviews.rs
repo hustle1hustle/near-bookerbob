@@ -78,20 +78,29 @@ fn proof(p: &Value) -> ReviewProof {
     }
 }
 
+/// During the round: post the sealed rating with its Semaphore proof, from a relayer.
 fn rate(c: &mut Bazaar, merchant: &str, review: &Value, p: &Value, relayer: &str) -> Result<(), String> {
     at(relayer, NOW_MS);
+    call(|| c.submit_review(acc(merchant), review["sealed"].as_str().unwrap().into(), proof(p)))
+}
+
+/// After the round: open it, in the reveal window.
+fn reveal(c: &mut Bazaar, merchant: &str, round: u64, r: &Value, relayer: &str) -> Result<(), String> {
+    at(relayer, NOW_MS + REVIEW_ROUND_MS);
     call(|| {
-        c.submit_review(
+        c.reveal_review(
             acc(merchant),
-            review["rating"].as_u64().unwrap() as u8,
-            review["delivered"].as_bool().unwrap(),
-            review["reason_hash"].as_str().unwrap().into(),
-            proof(p),
+            round,
+            r["rating"].as_u64().unwrap() as u8,
+            r["delivered"].as_bool().unwrap(),
+            r["reason_hash"].as_str().unwrap().into(),
+            r["salt"].as_str().unwrap().into(),
         )
     })
 }
 
-pub fn run(dir: &Path) -> ExitCode {
+/// `out`: write or (with `check`) compare the public reviews page data.
+pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
     std::panic::set_hook(Box::new(|_| {}));
     let load = |n: &str| -> Value { serde_json::from_str(&std::fs::read_to_string(dir.join("semaphore").join(n)).expect("read")).expect("parse") };
     let (group, reviews, small) = (load("group.json"), load("reviews.json"), load("reviews-small-group.json"));
@@ -166,11 +175,11 @@ pub fn run(dir: &Path) -> ExitCode {
         Err(m) => Err(format!("refused for another reason: {m}")),
         Ok(()) => Err("accepted".into()),
     };
-    // Before the real ratings: reviewer 3's proof with a different rating.
+    // Before the real ratings: reviewer 3's proof with another sealed rating.
     let mut changed = proofs[3]["review"].clone();
-    changed["rating"] = 5.into();
+    changed["sealed"] = bookerbob_core::sha256_hex(b"another rating").into();
     out.push((
-        "a rating changed under a real proof is refused".into(),
+        "a sealed rating swapped under a real proof is refused".into(),
         refused(rate(&mut c, &m01.account, &changed, &proofs[3]["proof"], "relayer7.testnet"), "invalid Semaphore proof"),
     ));
     let mut rated = 0;
@@ -180,13 +189,15 @@ pub fn run(dir: &Path) -> ExitCode {
         }
     }
     out.push((
-        "6 buyers rate m01 with Semaphore proofs (Groth16 on alt_bn128), sent from relayer accounts".into(),
-        if rated == 6 { Ok("6 sealed".into()) } else { Err(format!("{rated} of 6 accepted")) },
+        "6 buyers post sealed ratings for m01 with Semaphore proofs (Groth16 on alt_bn128), from relayer accounts".into(),
+        if rated == 6 { Ok("6 sealed hashes, no rating on chain yet".into()) } else { Err(format!("{rated} of 6 accepted")) },
     ));
-    let double_review = serde_json::json!({ "rating": 1, "delivered": false, "reason_hash": bookerbob_core::sha256_hex(b"changed my mind") });
     out.push((
         "a second rating by the same member in the round is refused".into(),
-        refused(rate(&mut c, &m01.account, &double_review, &reviews["double_rating"], "relayer9.testnet"), "already rated this round"),
+        refused(
+            rate(&mut c, &m01.account, &reviews["double_rating"]["review"], &reviews["double_rating"]["proof"], "relayer9.testnet"),
+            "already rated this round",
+        ),
     ));
     out.push((
         "a valid proof from outside the group is refused".into(),
@@ -200,11 +211,27 @@ pub fn run(dir: &Path) -> ExitCode {
     for (i, e) in small["proofs"].as_array().unwrap().iter().enumerate() {
         let _ = rate(&mut c, &m02.account, &e["review"], &e["proof"], &format!("relayer{}.testnet", 20 + i));
     }
-    at("anyone.testnet", NOW_MS + REVIEW_ROUND_MS);
+    // After the round: reveals. A reveal that differs from the sealed rating is refused.
+    let mut lie = proofs[1]["review"].clone();
+    lie["rating"] = 5.into();
+    out.push((
+        "a reveal that does not open the sealed rating is refused".into(),
+        refused(reveal(&mut c, &m01.account, round, &lie, "relayer6.testnet"), "no sealed rating opens to this"),
+    ));
+    let revealed = proofs.iter().enumerate().filter(|(i, e)| reveal(&mut c, &m01.account, round, &e["review"], &format!("relayer{i}.testnet")).is_ok()).count();
+    let small_reveal = reveal(&mut c, &m02.account, round, &small["proofs"][0]["review"], "relayer20.testnet");
+    out.push((
+        "after the round, m01's members reveal; m02 (4 members) cannot reveal".into(),
+        match (revealed, &small_reveal) {
+            (6, Err(m)) if m.contains("group below k") => Ok("6 revealed; m02 refused: group below k".into()),
+            _ => Err(format!("{revealed} revealed, m02 {small_reveal:?}")),
+        },
+    ));
+    at("anyone.testnet", NOW_MS + 2 * REVIEW_ROUND_MS);
     let released = call(|| c.publish_reviews(acc(&m01.account), round)).unwrap_or(false);
     let s = c.merchant_score(acc(&m01.account));
     out.push((
-        "after the round closes, m01's 6 ratings are released together (k >= 5)".into(),
+        "after the reveal window, m01's 6 ratings are released together, sorted by hash (k >= 5)".into(),
         if released && s.ratings == 6 {
             Ok(format!("mean {:.2}, delivered {}%, score {:.2}", s.mean_x100 as f64 / 100.0, s.delivered_pct, s.score_x100 as f64 / 100.0))
         } else {
@@ -229,6 +256,39 @@ pub fn run(dir: &Path) -> ExitCode {
         if !held && c.reviews(acc(&m02.account), round).is_none() { Ok("held, 4 < 5".into()) } else { Err("released".into()) },
     ));
 
+    // Public page data: what anyone can read from the contract after the round.
+    let page = |c: &Bazaar, m: &str| {
+        let s = c.merchant_score(acc(m));
+        let released = c.reviews(acc(m), round);
+        serde_json::json!({
+            "merchant": m,
+            "members": s.members,
+            "round": round,
+            "status": if released.is_some() { "released" } else { "sealed (k < 5)" },
+            "ratings": released.map(|v| v.iter().map(|r| serde_json::json!({ "rating": r.rating, "delivered": r.delivered, "reason_hash": r.reason_hash })).collect::<Vec<_>>()),
+            "mean_x100": s.mean_x100,
+            "delivered_pct": s.delivered_pct,
+            "score_x100": s.score_x100,
+        })
+    };
+    let data = serde_json::json!({
+        "note": "synthetic fixtures; Semaphore v4 proofs verified by the bazaar contract (MockedBlockchain). A rating names no member; ratings are released per round, only with k >= 5 members.",
+        "k_min": bookerbob_core::K_MIN,
+        "merchants": [page(&c, &m01.account), page(&c, &m02.account)],
+        "refused": out.iter().filter_map(|(n, r)| r.as_ref().ok().filter(|d| d.starts_with("refused")).map(|d| serde_json::json!({ "case": n, "result": d }))).collect::<Vec<_>>(),
+    });
+    let body = serde_json::to_string_pretty(&data).unwrap() + "\n";
+    if let Some(p) = out_path {
+        if check {
+            let same = std::fs::read_to_string(p).ok().as_deref() == Some(body.as_str());
+            out.push((
+                format!("public reviews page data matches {}", p.display()),
+                if same { Ok("ok".into()) } else { Err("stale (run make reviews)".into()) },
+            ));
+        } else {
+            std::fs::write(p, &body).expect("write reviews page data");
+        }
+    }
     println!("bookerbob reviews {}", dir.display());
     let mut failed = 0;
     for (i, (name, r)) in out.iter().enumerate() {

@@ -16,10 +16,12 @@ const MERCHANT = "m01.bookerbob.testnet";
 // cli/src/fixtures.rs NOW_MS = 2026-11-04T12:00:00Z.
 const ROUND = Math.floor(1_793_793_600_000 / 86_400_000);
 
-// message preimage: sha256(json([rating, delivered, reason_hash])); scope preimage:
+// message preimage: the sealed rating, sha256(json([rating, delivered, reason_hash, salt])),
+// revealed only after the round closes; scope preimage:
 // sha256("bookerbob/review/v0|" + merchant + "|" + round). The contract recomputes both;
 // Semaphore then hashes each with keccak256(x as 32 bytes) >> 8.
-const messageOf = (r) => big(sha(JSON.stringify([r.rating, r.delivered, r.reason_hash])));
+const sealedOf = (r) => sha(JSON.stringify([r.rating, r.delivered, r.reason_hash, r.salt]));
+const messageOf = (r) => big(sealedOf(r));
 const scopeOf = (merchant, round) => big(sha(`bookerbob/review/v0|${merchant}|${round}`));
 
 const ids = Array.from({ length: 6 }, (_, i) => new Identity(`bookerbob fixture reviewer ${i}`));
@@ -38,7 +40,8 @@ const reviews = [
   { rating: 2, delivered: false, reason: "not delivered yet" },
   { rating: 4, delivered: true, reason: "fine" },
   { rating: 3, delivered: true, reason: "ok" },
-].map((r) => ({ rating: r.rating, delivered: r.delivered, reason_hash: sha(r.reason) }));
+].map((r, i) => ({ rating: r.rating, delivered: r.delivered, reason_hash: sha(r.reason), salt: sha(`bookerbob fixture review salt ${i}`) }));
+for (const r of reviews) r.sealed = sealedOf(r);
 
 const scope = scopeOf(MERCHANT, ROUND);
 const proofs = [];
@@ -48,7 +51,9 @@ for (const [i, id] of ids.entries()) {
   proofs.push({ reviewer: i, review: reviews[i], proof: p });
 }
 // A second rating by reviewer 0 in the same round: same nullifier, must be refused.
-const double = await generateProof(ids[0], group, messageOf({ rating: 1, delivered: false, reason_hash: sha("changed my mind") }), scope);
+const doubleReview = { rating: 1, delivered: false, reason_hash: sha("changed my mind"), salt: sha("bookerbob fixture review salt double") };
+doubleReview.sealed = sealedOf(doubleReview);
+const double = await generateProof(ids[0], group, messageOf(doubleReview), scope);
 // A non-member: a valid proof, but for a group that is not the merchant's.
 const other = new Group([outsider.commitment, ids[1].commitment]);
 const nonMember = await generateProof(outsider, other, messageOf(reviews[0]), scope);
@@ -85,7 +90,7 @@ const poseidon = [
 mkdirSync(OUT, { recursive: true });
 const j = (v) => JSON.stringify(v, (_, x) => (typeof x === "bigint" ? x.toString() : x), 2) + "\n";
 writeFileSync(`${OUT}/group.json`, j({ merchant: MERCHANT, members: ids.map((i) => i.commitment), roots_after_each_insert: roots }));
-writeFileSync(`${OUT}/reviews.json`, j({ merchant: MERCHANT, round: ROUND, scope_preimage: scope, proofs, double_rating: double, non_member: nonMember }));
+writeFileSync(`${OUT}/reviews.json`, j({ merchant: MERCHANT, round: ROUND, scope_preimage: scope, proofs, double_rating: { review: doubleReview, proof: double }, non_member: nonMember }));
 writeFileSync(`${OUT}/verification-key.json`, j(vk));
 writeFileSync(`${OUT}/reviews-small-group.json`, j({ merchant: SMALL, round: ROUND, members: ids.slice(0, 4).map((i) => i.commitment), proofs: smallProofs }));
 writeFileSync(`${OUT}/poseidon-vectors.json`, j(poseidon));

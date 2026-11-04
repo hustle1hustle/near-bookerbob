@@ -1,0 +1,75 @@
+{
+  "note": "synthetic fixtures; Semaphore v4 proofs verified by the bazaar contract (MockedBlockchain). A rating names no member; ratings are released per round, only with k >= 5 members.",
+  "k_min": 5,
+  "merchants": [
+    {
+      "merchant": "m01.bookerbob.testnet",
+      "members": 6,
+      "round": 20761,
+      "status": "released",
+      "ratings": [
+        {
+          "rating": 5,
+          "delivered": true,
+          "reason_hash": "80e2225746403aee9af72069e408a27127338244ec86edf066c3c1ef359fdb11"
+        },
+        {
+          "rating": 4,
+          "delivered": true,
+          "reason_hash": "d14a58bae804a2b80b5b76a010239c88ffca1fc7951a90f8e9131beda1e23c1b"
+        },
+        {
+          "rating": 4,
+          "delivered": true,
+          "reason_hash": "2b000c25f8c88abd13e20a7948218fec60b331993587b11ed5db4b2f7ae8d9ef"
+        },
+        {
+          "rating": 3,
+          "delivered": true,
+          "reason_hash": "2689367b205c16ce32ed4200942b8b8b1e262dfc70d9bc9fbc77c49699a4f1df"
+        },
+        {
+          "rating": 5,
+          "delivered": true,
+          "reason_hash": "65e2cd63f8b2cfd631a2a6c47e6eb50aa22e3ebdc8e507088acf95844b16597b"
+        },
+        {
+          "rating": 2,
+          "delivered": false,
+          "reason_hash": "26544f6e12573985e0d4ee4361c965cc117022e28e73a61087b6124f18c1dbce"
+        }
+      ],
+      "mean_x100": 383,
+      "delivered_pct": 83,
+      "score_x100": 345
+    },
+    {
+      "merchant": "m02.bookerbob.testnet",
+      "members": 4,
+      "round": 20761,
+      "status": "sealed (k < 5)",
+      "ratings": null,
+      "mean_x100": 0,
+      "delivered_pct": 0,
+      "score_x100": 300
+    }
+  ],
+  "refused": [
+    {
+      "case": "a sealed rating swapped under a real proof is refused",
+      "result": "refused: invalid Semaphore proof"
+    },
+    {
+      "case": "a second rating by the same member in the round is refused",
+      "result": "refused: already rated this round"
+    },
+    {
+      "case": "a valid proof from outside the group is refused",
+      "result": "refused: proof is not for this merchant's group"
+    },
+    {
+      "case": "a reveal that does not open the sealed rating is refused",
+      "result": "refused: no sealed rating opens to this"
+    }
+  ]
+}

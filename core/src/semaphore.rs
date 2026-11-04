@@ -62,10 +62,16 @@ pub fn semaphore_hash(x32_be: &[u8; 32]) -> String {
     Fr::from_le_bytes_mod_order(&h).into_bigint().to_string()
 }
 
-/// The review message: sha256(json([rating, delivered, reason_hash])), then Semaphore's hash.
-pub fn review_message(rating: u8, delivered: bool, reason_hash: &str) -> String {
-    let pre = crate::sha256(&serde_json::to_vec(&(rating, delivered, reason_hash)).expect("serializes"));
-    semaphore_hash(&pre)
+/// The sealed rating, hex: sha256(json([rating, delivered, reason_hash, salt])). Posted
+/// during the round; the rating itself is revealed only after the round closes.
+pub fn review_seal(rating: u8, delivered: bool, reason_hash: &str, salt: &str) -> String {
+    crate::sha256_hex(&serde_json::to_vec(&(rating, delivered, reason_hash, salt)).expect("serializes"))
+}
+
+/// The Semaphore message for a sealed rating (hex, 32 bytes): Semaphore's hash of it.
+pub fn review_message(sealed_hex: &str) -> Option<String> {
+    let b: [u8; 32] = hex::decode(sealed_hex).ok()?.try_into().ok()?;
+    Some(semaphore_hash(&b))
 }
 
 /// The review scope: one rating per member per merchant per round.
@@ -139,26 +145,24 @@ mod tests {
     }
 
     #[test]
-    fn message_and_scope_hashing_match_the_proofs() {
+    fn sealed_message_and_scope_hashing_match_the_proofs() {
         let r: serde_json::Value = serde_json::from_str(REVIEWS).unwrap();
         let scope = review_scope(r["merchant"].as_str().unwrap(), r["round"].as_u64().unwrap());
         for p in r["proofs"].as_array().unwrap() {
             let (rv, pf) = (&p["review"], &p["proof"]);
             // The JS proof carries the preimages; the circuit saw their Semaphore hashes.
-            let msg_pre = crate::sha256(
-                &serde_json::to_vec(&(rv["rating"].as_u64().unwrap() as u8, rv["delivered"].as_bool().unwrap(), rv["reason_hash"].as_str().unwrap())).unwrap(),
+            let sealed = review_seal(
+                rv["rating"].as_u64().unwrap() as u8,
+                rv["delivered"].as_bool().unwrap(),
+                rv["reason_hash"].as_str().unwrap(),
+                rv["salt"].as_str().unwrap(),
             );
-            assert_eq!(
-                dec_to_le32(pf["message"].as_str().unwrap()).map(|mut b| {
-                    b.reverse();
-                    b
-                }),
-                Some(msg_pre)
-            );
-            assert_eq!(
-                review_message(rv["rating"].as_u64().unwrap() as u8, rv["delivered"].as_bool().unwrap(), rv["reason_hash"].as_str().unwrap()),
-                semaphore_hash(&msg_pre)
-            );
+            assert_eq!(sealed, rv["sealed"].as_str().unwrap());
+            let pre: [u8; 32] = hex::decode(&sealed).unwrap().try_into().unwrap();
+            let mut m = dec_to_le32(pf["message"].as_str().unwrap()).unwrap();
+            m.reverse();
+            assert_eq!(m, pre);
+            assert_eq!(review_message(&sealed).unwrap(), semaphore_hash(&pre));
             let mut sc = dec_to_le32(pf["scope"].as_str().unwrap()).unwrap();
             sc.reverse();
             assert_eq!(semaphore_hash(&sc), scope);

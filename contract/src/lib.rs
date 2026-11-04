@@ -109,12 +109,17 @@ pub struct Review {
     pub reason_hash: String,
 }
 
-/// Ratings for one merchant and round. Sealed until `publish_reviews`, after the round
-/// closes and only if the group had at least `K_MIN` members by then.
+/// Ratings for one merchant and round. During the round only sealed hashes are posted
+/// (chain state and tx arguments are public, so a plain rating would be visible the moment
+/// it is sent). After the round closes, members reveal in a one-round window, only if the
+/// group has at least `K_MIN` members; then `publish_reviews` releases them sorted by hash.
 #[near(serializers = [json, borsh])]
 #[derive(Clone, Default)]
 pub struct ReviewRound {
-    pub sealed: Vec<Review>,
+    /// (Semaphore nullifier, sealed hash), posted during the round.
+    pub sealed: Vec<(String, String)>,
+    /// (sealed hash, rating), revealed after the round.
+    pub revealed: Vec<(String, Review)>,
     pub published: bool,
 }
 
@@ -482,20 +487,20 @@ impl Bazaar {
     }
 
     /// A sealed rating with a Semaphore proof of membership in the merchant's group. The
-    /// scope is (merchant, round): one rating per member per round. Send it from an account
-    /// that is not the buyer's agent (a fresh account or a relayer); the sender is public.
+    /// scope is (merchant, current round): one rating per member per round. `sealed` =
+    /// `review_seal(rating, delivered, reason_hash, salt)`; the rating is revealed after the
+    /// round. Send it from an account that is not the buyer's agent (a fresh account or a
+    /// relayer); the sender is public.
     #[payable]
-    pub fn submit_review(&mut self, merchant: AccountId, rating: u8, delivered: bool, reason_hash: String, proof: ReviewProof) {
+    pub fn submit_review(&mut self, merchant: AccountId, sealed: String, proof: ReviewProof) {
         let before = env::storage_usage();
-        require!((1..=5).contains(&rating), "rating must be 1 to 5");
-        require!(bookerbob_core::is_hex32(&reason_hash), "bad reason hash");
+        let message = bookerbob_core::semaphore::review_message(&sealed).unwrap_or_else(|| env::panic_str("bad sealed rating"));
         let round = self.review_round_now();
         let g = self.review_groups.get(&merchant).unwrap_or_else(|| env::panic_str("merchant has no review group"));
         require!(g.recent_roots.contains(&proof.merkle_root), "proof is not for this merchant's group");
         let scope = bookerbob_core::semaphore::review_scope(merchant.as_str(), round);
         let key = format!("{scope}|{}", proof.nullifier);
         require!(!self.review_nullifiers.contains_key(&key), "already rated this round");
-        let message = bookerbob_core::semaphore::review_message(rating, delivered, &reason_hash);
         let ok =
             groth16::verify(&groth16::SemaphoreProof { depth: proof.depth, points: &proof.points }, [&proof.merkle_root, &proof.nullifier, &message, &scope])
                 .unwrap_or_else(|e| env::panic_str(e));
@@ -503,19 +508,41 @@ impl Bazaar {
         self.review_nullifiers.insert(key, true);
         let rk = format!("{merchant}|{round}");
         let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_default();
-        rr.sealed.push(Review { rating, delivered, reason_hash });
+        rr.sealed.push((proof.nullifier.clone(), sealed));
         self.review_rounds.insert(rk, rr);
-        // No rating in the event: only that one arrived, sealed until the round is released.
         emit("review_sealed", serde_json::json!({ "merchant": merchant, "round": round }));
         self.review_nullifiers.flush();
         self.review_rounds.flush();
         charge_storage(before);
     }
 
-    /// After a round closes, release its ratings together, if the merchant's group has at
-    /// least K_MIN members. Returns false (and keeps them sealed) otherwise. Anyone may call.
+    /// After the round closes (within the next round): open a sealed rating. Refused while
+    /// the group has fewer than K_MIN members, so a small group's ratings never appear.
+    #[payable]
+    pub fn reveal_review(&mut self, merchant: AccountId, round: u64, rating: u8, delivered: bool, reason_hash: String, salt: String) {
+        let before = env::storage_usage();
+        let now = self.review_round_now();
+        require!(round < now, "round still open");
+        require!(now <= round + 1, "reveal window is over");
+        require!((1..=5).contains(&rating), "rating must be 1 to 5");
+        require!(bookerbob_core::is_hex32(&reason_hash) && bookerbob_core::is_hex32(&salt), "bad reason hash or salt");
+        let members = self.review_groups.get(&merchant).map_or(0, |g| g.tree.size);
+        require!(members >= bookerbob_core::K_MIN as u64, "group below k: keep it sealed");
+        let sealed = bookerbob_core::semaphore::review_seal(rating, delivered, &reason_hash, &salt);
+        let rk = format!("{merchant}|{round}");
+        let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_else(|| env::panic_str("no ratings for this round"));
+        require!(rr.sealed.iter().any(|(_, h)| h == &sealed), "no sealed rating opens to this");
+        require!(!rr.revealed.iter().any(|(h, _)| h == &sealed), "already revealed");
+        rr.revealed.push((sealed, Review { rating, delivered, reason_hash }));
+        self.review_rounds.insert(rk, rr);
+        self.review_rounds.flush();
+        charge_storage(before);
+    }
+
+    /// After the reveal window, release the round's revealed ratings together, sorted by
+    /// sealed hash (not by arrival). False, and nothing released, below K_MIN members.
     pub fn publish_reviews(&mut self, merchant: AccountId, round: u64) -> bool {
-        require!(round < self.review_round_now(), "round still open");
+        require!(self.review_round_now() > round + 1, "reveal window still open");
         let rk = format!("{merchant}|{round}");
         let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_else(|| env::panic_str("no ratings for this round"));
         require!(!rr.published, "already published");
@@ -524,23 +551,24 @@ impl Bazaar {
             emit("reviews_held", serde_json::json!({ "merchant": merchant, "round": round, "members": members, "k_min": bookerbob_core::K_MIN }));
             return false;
         }
+        rr.revealed.sort_by(|a, b| a.0.cmp(&b.0));
         rr.published = true;
         let (mut n, mut sum, mut del) = self.review_totals.get(&merchant).copied().unwrap_or((0, 0, 0));
-        for r in &rr.sealed {
+        for (_, r) in &rr.revealed {
             n += 1;
             sum += r.rating as u64;
             del += r.delivered as u64;
         }
-        let count = rr.sealed.len();
+        let (count, sealed) = (rr.revealed.len(), rr.sealed.len());
         self.review_rounds.insert(rk, rr);
         self.review_totals.insert(merchant.clone(), (n, sum, del));
-        emit("reviews_published", serde_json::json!({ "merchant": merchant, "round": round, "ratings": count, "members": members }));
+        emit("reviews_published", serde_json::json!({ "merchant": merchant, "round": round, "ratings": count, "sealed": sealed, "members": members }));
         true
     }
 
     /// Released ratings only; a sealed round returns None.
     pub fn reviews(&self, merchant: AccountId, round: u64) -> Option<Vec<Review>> {
-        self.review_rounds.get(&format!("{merchant}|{round}")).filter(|r| r.published).map(|r| r.sealed.clone())
+        self.review_rounds.get(&format!("{merchant}|{round}")).filter(|r| r.published).map(|r| r.revealed.iter().map(|(_, x)| x.clone()).collect())
     }
 
     pub fn merchant_score(&self, merchant: AccountId) -> MerchantScore {

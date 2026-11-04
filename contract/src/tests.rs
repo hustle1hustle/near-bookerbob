@@ -1290,14 +1290,19 @@ mod reviews {
     }
 
     fn rate(c: &mut Bazaar, merchant: &str, entry: &serde_json::Value, relayer: &str) {
-        let r = &entry["review"];
         at(relayer, T);
-        c.submit_review(
+        c.submit_review(acc(merchant), entry["review"]["sealed"].as_str().unwrap().into(), proof(&entry["proof"]));
+    }
+
+    fn reveal(c: &mut Bazaar, merchant: &str, round: u64, r: &serde_json::Value, relayer: &str) {
+        at(relayer, T + REVIEW_ROUND_MS);
+        c.reveal_review(
             acc(merchant),
+            round,
             r["rating"].as_u64().unwrap() as u8,
             r["delivered"].as_bool().unwrap(),
             r["reason_hash"].as_str().unwrap().into(),
-            proof(&entry["proof"]),
+            r["salt"].as_str().unwrap().into(),
         );
     }
 
@@ -1323,7 +1328,10 @@ mod reviews {
         }
         let round = r["round"].as_u64().unwrap();
         assert!(c.reviews(acc("m01.bookerbob.testnet"), round).is_none(), "sealed while the round is open");
-        at("anyone.testnet", T + REVIEW_ROUND_MS);
+        for (i, e) in r["proofs"].as_array().unwrap().iter().enumerate() {
+            reveal(&mut c, "m01.bookerbob.testnet", round, &e["review"], &format!("relayer{i}.testnet"));
+        }
+        at("anyone.testnet", T + 2 * REVIEW_ROUND_MS);
         assert!(c.publish_reviews(acc("m01.bookerbob.testnet"), round));
         let out = c.reviews(acc("m01.bookerbob.testnet"), round).unwrap();
         assert_eq!(out.iter().map(|x| x.rating as u64).sum::<u64>(), 23);
@@ -1331,6 +1339,15 @@ mod reviews {
         assert_eq!((s.ratings, s.mean_x100, s.delivered_pct, s.members), (6, 383, 83, 6));
         assert_eq!(s.score_x100, (2300 + 1500) / 11);
         assert!(!get_logs().iter().any(|l| l.contains("review_sealed") && l.contains("rating")), "the sealed event carries no rating");
+        // Released in sealed-hash order, not in the order the buyers settled and rated.
+        let mut by_hash: Vec<(String, u8)> = r["proofs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| (e["review"]["sealed"].as_str().unwrap().to_string(), e["review"]["rating"].as_u64().unwrap() as u8))
+            .collect();
+        by_hash.sort();
+        assert_eq!(out.iter().map(|x| x.rating).collect::<Vec<_>>(), by_hash.iter().map(|x| x.1).collect::<Vec<_>>());
     }
 
     #[test]
@@ -1338,8 +1355,7 @@ mod reviews {
     fn a_second_rating_by_the_same_member_is_refused_by_the_nullifier() {
         let (mut c, r) = six();
         rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][0], "relayer0.testnet");
-        let double = serde_json::json!({ "review": { "rating": 1, "delivered": false, "reason_hash": bookerbob_core::sha256_hex(b"changed my mind") }, "proof": r["double_rating"] });
-        rate(&mut c, "m01.bookerbob.testnet", &double, "relayer9.testnet");
+        rate(&mut c, "m01.bookerbob.testnet", &r["double_rating"], "relayer9.testnet");
     }
 
     #[test]
@@ -1352,11 +1368,38 @@ mod reviews {
 
     #[test]
     #[should_panic(expected = "invalid Semaphore proof")]
-    fn changing_the_rating_under_a_real_proof_is_refused() {
+    fn changing_the_sealed_rating_under_a_real_proof_is_refused() {
         let (mut c, r) = six();
         let mut e = r["proofs"][3].clone();
-        e["review"]["rating"] = 5.into();
+        e["review"]["sealed"] = bookerbob_core::sha256_hex(b"another rating").into();
         rate(&mut c, "m01.bookerbob.testnet", &e, "relayer0.testnet");
+    }
+
+    #[test]
+    #[should_panic(expected = "no sealed rating opens to this")]
+    fn a_reveal_with_another_rating_than_sealed_is_refused() {
+        let (mut c, r) = six();
+        rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][3], "relayer0.testnet");
+        let mut rv = r["proofs"][3]["review"].clone();
+        rv["rating"] = 5.into();
+        reveal(&mut c, "m01.bookerbob.testnet", r["round"].as_u64().unwrap(), &rv, "relayer0.testnet");
+    }
+
+    #[test]
+    #[should_panic(expected = "round still open")]
+    fn a_rating_cannot_be_revealed_while_its_round_is_open() {
+        let (mut c, r) = six();
+        rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][0], "relayer0.testnet");
+        let rv = &r["proofs"][0]["review"];
+        at("relayer0.testnet", T);
+        c.reveal_review(
+            acc("m01.bookerbob.testnet"),
+            r["round"].as_u64().unwrap(),
+            5,
+            true,
+            rv["reason_hash"].as_str().unwrap().into(),
+            rv["salt"].as_str().unwrap().into(),
+        );
     }
 
     #[test]
@@ -1366,18 +1409,33 @@ mod reviews {
         for (i, e) in s["proofs"].as_array().unwrap().iter().enumerate() {
             rate(&mut c, "m02.bookerbob.testnet", e, &format!("relayer{i}.testnet"));
         }
-        at("anyone.testnet", T + REVIEW_ROUND_MS);
-        assert!(!c.publish_reviews(acc("m02.bookerbob.testnet"), s["round"].as_u64().unwrap()));
+        let round = s["round"].as_u64().unwrap();
+        // Reveals are refused below k, so the ratings never appear on chain.
+        let rv = &s["proofs"][0]["review"];
+        at("relayer0.testnet", T + REVIEW_ROUND_MS);
+        let refused = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            c.reveal_review(
+                acc("m02.bookerbob.testnet"),
+                round,
+                rv["rating"].as_u64().unwrap() as u8,
+                true,
+                rv["reason_hash"].as_str().unwrap().into(),
+                rv["salt"].as_str().unwrap().into(),
+            )
+        }));
+        assert!(refused.is_err());
+        at("anyone.testnet", T + 2 * REVIEW_ROUND_MS);
+        assert!(!c.publish_reviews(acc("m02.bookerbob.testnet"), round));
         assert!(c.reviews(acc("m02.bookerbob.testnet"), s["round"].as_u64().unwrap()).is_none());
         assert_eq!(c.merchant_score(acc("m02.bookerbob.testnet")).ratings, 0);
     }
 
     #[test]
-    #[should_panic(expected = "round still open")]
-    fn a_round_cannot_be_released_while_open() {
+    #[should_panic(expected = "reveal window still open")]
+    fn a_round_cannot_be_released_before_the_reveal_window_closes() {
         let (mut c, r) = six();
         rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][0], "relayer0.testnet");
-        at("anyone.testnet", T);
+        at("anyone.testnet", T + REVIEW_ROUND_MS);
         c.publish_reviews(acc("m01.bookerbob.testnet"), r["round"].as_u64().unwrap());
     }
 
