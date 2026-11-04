@@ -24,7 +24,8 @@ as a service or pinned as a versioned dependency, and named here.
 
 | prior work | what it is | how BookerBob uses it | status in this repo |
 |---|---|---|---|
-| REP zkTLS prover and MPC notary (TLSNotary lineage) | proves facts over a user's own accounts; notary sees ciphertext only | external service that produces the proof a verdict is issued over | not used by `make verify`; fixtures are synthetic |
+| REP zkTLS prover and MPC notary (TLSNotary lineage, tlsn 0.1.0-alpha.15; `rep-notary.fly.dev`, signing key `02114d7e…ab25ef`) | proves facts over a user's own accounts with MPC-TLS; the notary sees ciphertext only and signs the presentation | the device run (docs/device-run.md): the REP app proves one real fact (Claude spend) on the founder's phone and the REP notary signs it | not used by `make verify`; the device run uses it as a service |
+| REP iOS app (TestFlight) and `rep-verify` (REP's presentation verifier, built 2026-07-02) | the phone prover and the Mac-side check of a notary-signed presentation against the pinned key | the device run: `scripts/device-capture.mjs` receives the presentation the app POSTs, `scripts/device-run.mjs` verifies it with `rep-verify` | called as a tool, no code copied |
 | rep-attest | verdict and SD-JWT-VC issuance, tier-issuer | the envelope v0 format here is written fresh and is compatible in spirit; the service is not called today | spec only |
 | rep-concierge (NEAR AI attestation, E2EE v2) | private inference pipeline | reference for request shapes; the NEAR AI client in this repo is written in the window | planned |
 | rep-world-verify | World ID 4.0 off-chain verify | service that will sign the `WorldBody` (`core/src/world.rs`) the contract checks in `attest_human` | contract side built on fixtures; service not called yet |

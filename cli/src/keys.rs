@@ -116,6 +116,15 @@ pub fn graph_resolve(dir: &Path, root: &str, scores_hash: &str, proof_sha256: &s
 /// A demo tester's purchase (`make demo-tester`): the same fixture facts, but a nullifier and
 /// a World person of its own (derived from the tester account), so each tester is a new buyer.
 /// `replay` gets the same nullifier, for the "nullifier spent" check.
+/// The device run's purchase: as `sign_tester`, over a proof set read from `proofs` (the
+/// fixture set with the real fact from a notary-signed presentation in it).
+pub fn sign_real(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path, proofs: &Path) -> Result<String, String> {
+    let set: bookerbob_core::ProofSet = serde_json::from_str(&std::fs::read_to_string(proofs).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    let n = crate::fixtures::nullifier(&format!("device-run|{agent}"));
+    sign_purchase_over(dir, agent, replay, action, now_ms, out, Some(n.clone()), &format!("device-run|{agent}"), Some(&set))?;
+    Ok(n)
+}
+
 pub fn sign_tester(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path) -> Result<String, String> {
     let n = crate::fixtures::nullifier(&format!("demo-tester|{agent}"));
     sign_purchase(dir, agent, replay, action, now_ms, out, Some(n.clone()), &format!("demo-tester|{agent}"))?;
@@ -124,11 +133,29 @@ pub fn sign_tester(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: 
 
 #[allow(clippy::too_many_arguments)]
 fn sign_purchase(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u64, out: &Path, nullifier: Option<String>, person: &str) -> Result<(), String> {
+    sign_purchase_over(dir, agent, wallet2, action, now_ms, out, nullifier, person, None)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn sign_purchase_over(
+    dir: &Path,
+    agent: &str,
+    wallet2: &str,
+    action: &str,
+    now_ms: u64,
+    out: &Path,
+    nullifier: Option<String>,
+    person: &str,
+    set: Option<&bookerbob_core::ProofSet>,
+) -> Result<(), String> {
     use ed25519_dalek::Signer;
     let issuer = load_seed(dir, "issuer")?;
     let world = load_seed(dir, "world")?;
     let sign = |agent: &str| {
-        let mut e = crate::fixtures::envelope(agent);
+        let mut e = match set {
+            Some(p) => crate::fixtures::envelope_over(agent, p),
+            None => crate::fixtures::envelope(agent),
+        };
         if let Some(n) = &nullifier {
             e.nullifier = n.clone();
         }

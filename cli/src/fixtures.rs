@@ -150,7 +150,12 @@ pub fn cheat_claims() -> Vec<Claim> {
 }
 
 pub fn envelope(agent: &str) -> Envelope {
-    let p = proofs();
+    envelope_over(agent, &proofs())
+}
+
+/// The fixture envelope over another proof set (the device run: one real fact in it).
+pub fn envelope_over(agent: &str, p: &ProofSet) -> Envelope {
+    let p = p.clone();
     let t = derive(&p);
     Envelope {
         v: 0,

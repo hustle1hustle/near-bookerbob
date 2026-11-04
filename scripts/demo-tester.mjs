@@ -190,7 +190,11 @@ export class Demo {
     rec.txs.mint = (await this.relay("mint", tester, c.dusdc, fc("mint", {}, 0n, 30n * TGAS))).hash;
     step(5, "sign the verdict and World attestation");
     const live = join(dir, "live");
-    rec.nullifier = run([...BOOKERBOB, "sign-tester", c.keysDir, id, c.treasury, c.worldAction, live]).trim();
+    // opts.proofs: the device run's proof set (one real, notary-verified fact in it).
+    rec.nullifier = (opts.proofs
+      ? run([...BOOKERBOB, "sign-real", c.keysDir, id, c.treasury, c.worldAction, live, opts.proofs])
+      : run([...BOOKERBOB, "sign-tester", c.keysDir, id, c.treasury, c.worldAction, live])).trim();
+    if (opts.proofs) rec.device_run = true;
     const file = (n) => JSON.parse(readFileSync(join(live, n), "utf8"));
     step(6, "attest_human");
     rec.txs.world = (await this.relay("attest_human", tester, c.bazaar, fc("attest_human", { attestation: file("world.json") }, 10n * MILLI))).hash;
@@ -201,7 +205,7 @@ export class Demo {
     // group price unlocks on chain, and the referee must price with the same k.
     const q = await this.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
     const k = q.cohort?.k ?? 0;
-    const input = run([...BOOKERBOB, "worker-input", "fixtures", join(live, "verdict.json"), String(k)]);
+    const input = run([...BOOKERBOB, "worker-input", opts.fixturesDir ?? "fixtures", join(live, "verdict.json"), String(k)]);
     const seed = readFileSync(join(c.keysDir, "referee.seed"), "utf8").trim();
     const result = JSON.parse(run(["cargo", "run", "-q", "-p", "bookerbob-referee-worker"], { input, env: { ...process.env, REFEREE_SIGNING_SEED: seed } }));
     if (result.body.merchant !== c.merchant) throw new Error(`the referee's winner is ${result.body.merchant}, expected ${c.merchant}`);

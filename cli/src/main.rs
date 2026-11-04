@@ -188,6 +188,20 @@ fn main() -> ExitCode {
             }
         },
         // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
+        // sign-real <keys-dir> <agent> <replay-account> <world-action> <out-dir> <proofs.json>: the device run
+        Some("sign-real") if args.len() >= 7 => {
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+            match keys::sign_real(Path::new(&args[1]), &args[2], &args[3], &args[4], now, Path::new(&args[5]), Path::new(&args[6])) {
+                Ok(n) => {
+                    println!("{n}");
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         // sign-tester <keys-dir> <tester> <replay-account> <world-action> <out-dir>: prints the nullifier
         Some("sign-tester") if args.len() >= 6 => {
             let now = std::env::var("BOOKERBOB_NOW_MS")
