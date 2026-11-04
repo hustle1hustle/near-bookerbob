@@ -10,6 +10,7 @@ trap 'kill $SRV 2>/dev/null || true; rm -rf "$TMP"' EXIT
 
 make swarm >/dev/null 2>&1
 make receipts >/dev/null 2>&1
+make reviews >/dev/null 2>&1
 make demo-offline 2>/dev/null > "$TMP/demo.txt"
 
 # Terminal beats from the real demo output.
@@ -48,7 +49,7 @@ shot docs/img/beat-winner.png "$B/agents/board.html#winner" 1280 560
 shot docs/img/beat-cheat.png "$B/agents/board.html#cheat" 1280 330
 shot docs/img/beat-hotel.png "$B/agents/board.html#tab-hotel-lisbon" 1280 1100
 shot docs/img/beat-asks.png "$B/agents/board.html#asks" 1280 520
-shot docs/img/receipts.png "$B/agents/receipts.html" 1280 640
+shot docs/img/receipts.png "$B/agents/receipts.html" 1280 900
 shot docs/img/beat-replay.png "$B/agents/replay.html" 1280 260
 shot docs/img/beat-dispute.png "$B/agents/dispute.html" 1280 300
 rm -f agents/replay.html agents/dispute.html

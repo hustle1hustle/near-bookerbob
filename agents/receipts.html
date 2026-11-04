@@ -36,6 +36,9 @@
   <div class="sub">every verdict and purchase the bazaar contract logged. hashes and public payment fields only: no buyer, no predicates, no history.</div>
   <div class="filter"><label><input type="checkbox" id="only"> settled only</label></div>
   <div class="panel"><table id="t"></table></div>
+  <h1 style="margin-top:28px;font-size:16px">sealed reviews</h1>
+  <div class="sub">ratings from buyers who paid, proven with Semaphore v4; no rating names a buyer. released per round, only with k&gt;=5 members.</div>
+  <div class="panel"><table id="rv"></table></div>
   <footer id="foot"></footer>
 </main>
 <script>
@@ -43,6 +46,17 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const short = (h) => (h ? `${h.slice(0, 10)}..${h.slice(-6)}` : "");
 const usd = (s) => (s ? "$" + (Number(BigInt(s) / 10000n) / 100).toFixed(2) : "");
 let data = null;
+async function renderReviews() {
+  let rv = null;
+  try { rv = await (await fetch("reviews.json")).json(); } catch {}
+  document.getElementById("rv").innerHTML = rv
+    ? `<tr><th>merchant</th><th>members</th><th>round</th><th>status</th><th class="num">score</th><th>ratings (sorted by sealed hash)</th></tr>` +
+      rv.merchants.map((m) => `<tr><td>${esc(m.merchant.split(".")[0])}</td><td>${m.members}</td><td>${m.round}</td><td><span class="st">${esc(m.status)}</span></td>
+        <td class="num">${m.ratings ? (m.score_x100 / 100).toFixed(2) : ""}</td>
+        <td>${m.ratings ? m.ratings.map((r) => `<span class="chip">${r.rating}${r.delivered ? "" : " not delivered"}</span>`).join("") : "sealed"}</td></tr>`).join("")
+    : `<tr><td>reviews.json not found. run make reviews</td></tr>`;
+}
+renderReviews();
 function render() {
   const only = document.getElementById("only").checked;
   const rows = data.receipts.filter((r) => !only || r.status === "settled").sort((a, b) => (a.status === "settled" ? -1 : 0) - (b.status === "settled" ? -1 : 0));

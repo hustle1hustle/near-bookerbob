@@ -96,6 +96,10 @@
         <h2><span>merchant asks</span><span>answered by rule</span></h2>
         <div class="asks" id="asks"></div>
       </div>
+      <div class="panel" style="margin-top:16px">
+        <h2><span>sealed reviews</span><span>semaphore, k&gt;=5</span></h2>
+        <div class="asks" id="reviews">loading reviews.json ...</div>
+      </div>
     </aside>
   </div>
   <div class="receipts" id="receipts"></div>
@@ -167,6 +171,12 @@ function bids(cat, pitches) {
     </div>`;
   }).join("");
 
+  const rv = await load("reviews.json");
+  document.getElementById("reviews").innerHTML = rv
+    ? rv.merchants.map((m) => `<div class="ask"><div class="q">${esc(m.merchant.split(".")[0])}: ${m.members} buyers in the group, ${esc(m.status)}</div>` +
+        (m.ratings ? `<div class="a" style="color:var(--fg)">score ${(m.score_x100 / 100).toFixed(2)} (mean ${(m.mean_x100 / 100).toFixed(2)}, ${m.delivered_pct}% delivered, ${m.ratings.length} ratings, no rater named)</div>` : `<div class="a">ratings stay sealed below k=${rv.k_min}</div>`) + `</div>`).join("") +
+      `<div class="ask"><div class="q">refused</div><div class="a">${rv.refused.map((r) => esc(r.result.replace("refused: ", ""))).join("; ")}</div></div>`
+    : "reviews.json not found. run make reviews";
   const sigs = live ? live.calls.filter((c) => c.signature_valid && c.request_hash_matches && c.response_hash_matches).length : 0;
   document.getElementById("foot").textContent =
     `${board.merchants} merchant agents. bids committed blind, then revealed. prices computed by code in the bazaar contract. ` +
