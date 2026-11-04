@@ -1,0 +1,36 @@
+# Jolt zkVM provers for BookerBob (own workspace; not in `make test`, builds are large).
+# Jolt is upstream a16z/jolt pinned to 997c1543e (2026-03-24), the commit the installed
+# `jolt` CLI was built from; the arkworks patches are the revisions upstream's own
+# Cargo.lock uses at that commit.
+[package]
+name = "bookerbob-zk"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace]
+members = ["guests/standing"]
+
+[profile.release]
+debug = 1
+codegen-units = 1
+lto = "fat"
+
+[dependencies]
+jolt-sdk = { git = "https://github.com/a16z/jolt", rev = "997c1543efd49eb193ca403bb7722fc4b2f8e65b", features = ["host"] }
+standing-guest = { path = "./guests/standing" }
+bookerbob-graph = { path = "../graph" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+sha2 = "0.10"
+ed25519-dalek = "2.2"
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
+ark-ec = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
+ark-serialize = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
+ark-bn254 = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
+jolt-optimizations = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
+allocative = { git = "https://github.com/facebookexperimental/allocative", rev = "85b773d85d526d068ce94724ff7a7b81203fc95e" }

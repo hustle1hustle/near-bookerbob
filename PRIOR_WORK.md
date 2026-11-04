@@ -27,6 +27,7 @@ as a service or pinned as a versioned dependency, and named here.
 | rep-world-verify | World ID 4.0 off-chain verify | service that will sign the `WorldBody` (`core/src/world.rs`) the contract checks in `attest_human` | contract side built on fixtures; service not called yet |
 | HackMeridian UCP module (BookerBob, 2026-10-25, local repo `ucp-module`, commit `97d9320`) | UCP bridge to our Shopify test store `jwq0dd-rp`, Stellar USDC payment handler, draft-order write-back | the NEAR handler `ucp/src/near-usdc.mjs` is new code written in the window; the bridge surface will be ported file by file, each with a header naming its source | handler built; bridge port not started |
 | HackMeridian Proof of Stay Soroban contract (Oct 2026) | Semaphore-based Stellar contract | not used; `stellar/` is a new, much smaller contract written in the window | none |
+| REP Jolt fork and the JMPR Elite guests (REP's private Jolt fork, `examples/jmpr-elite-*`, last changed 2026-10-01 to 2026-10-14) | Jolt zkVM guests proving hotel elite status from signed sources | not used; BookerBob's Jolt guests (`zk/`) are new code, and the dependency is upstream a16z/jolt pinned to a public commit | none |
 | REP iOS app (NearTrust / NearSeal) | on-device proofs and enclave check | closed client in the demo | not in this repo |
 
 ## External data
