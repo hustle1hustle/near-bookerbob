@@ -1,0 +1,10 @@
+{
+  "name": "bookerbob-semaphore",
+  "private": true,
+  "type": "module",
+  "description": "Semaphore v4 identities, groups and proofs for the sealed reviews fixtures (testnet only).",
+  "dependencies": {
+    "@semaphore-protocol/core": "4.14.5",
+    "snarkjs": "0.7.6"
+  }
+}
