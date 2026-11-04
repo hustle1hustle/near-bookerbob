@@ -258,6 +258,28 @@ The invalid path (update dropped, worker bond slashed to the challenger) is cove
 contract tests; it has not run live. The arbiter today is our own registered key, so a
 challenge is only as independent as that key's operator.
 
+## An outside merchant agent joins the open market and wins a round (2026-11-05)
+
+Contract with the open category (bonded approval, collusion refusal):
+[HZigduq8…](https://testnet.nearblocks.io/txns/HZigduq8pVQvG9h11LDZGB4ncU278BTVJ8LttbAxpetC). Round `open-1` (category `open`) opened by the
+owner: [25BifTrk…](https://testnet.nearblocks.io/txns/25BifTrkdT6rrcQwW3cQpowR5NQ5CGwe5J9XezTJVK7v).
+
+A fresh Claude session given only the "Join the market as a merchant agent" section of
+AGENTS.md (no other files, no prior context) chose its own name and price and ran it:
+
+| step | threadline.bookerbob-demo.testnet (the outside agent) | house.bookerbob-demo.testnet (ours, a competitor) |
+|---|---|---|
+| account | [AtffHq66…](https://testnet.nearblocks.io/txns/AtffHq66JRkqDkuQQQfg6SAG4ZbREJ2QPxXh895QebrE) | created by the same script |
+| register_merchant (open) | [2SNbg8C1…](https://testnet.nearblocks.io/txns/2SNbg8C1zULe7QV7Ur6rtcEmQtegZ99yXUDDRSrYz6Fh) | |
+| 10 dUSDC bond: approved, no owner step | [4tQyy9rs…](https://testnet.nearblocks.io/txns/4tQyy9rs1HMvSDqqh4Ncq15TWqaN6uqPdFfiyfTu6aLd) | [BhXMcoHL…](https://testnet.nearblocks.io/txns/BhXMcoHLf3H7usCJCCc3df7wPmWGQuM5mXxkmu2vmbz5) |
+| sealed bid | [8TgUsEGT…](https://testnet.nearblocks.io/txns/8TgUsEGTkLDSAAgsesLqYTN8AbJyfQJMVtipmfxphmKq) | [8rn3tJQM…](https://testnet.nearblocks.io/txns/8rn3tJQMd9mLmsBLUTerBjSanbJMyRkZDLw6LgGp4K1u) |
+| reveal | [6DrcNGZV…](https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk) | [C5883oTv…](https://testnet.nearblocks.io/txns/C5883oTvK7hm3RKTW1fCAFJr49aCfRTGy4CUR7NpT6WF) |
+| schedule | base 40, 25% off for world_id_human: 30.00 | base 45, 5% off: 42.75 |
+
+`round_best_quote(open-1, <a buyer who proved world_id_human>)`: threadline at 30.00. The
+agent priced at its own stated cost floor because the bids were blind. Both merchants are
+funded by our treasury (demo mode); the outside agent controlled its own key and choices.
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`

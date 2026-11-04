@@ -302,5 +302,17 @@
       "update_tx": "5Us18yJbi7Z19wgnyaWpgpk2Dt3eSxt4jzo2EoGPx1PJ",
       "proof": "zk/out/standing-testnet"
     }
-  ]
+  ],
+  "open_round": {
+    "round": "open-1",
+    "winner": "threadline.bookerbob-demo.testnet",
+    "price": "30000000",
+    "buyer_nullifier": "bdd298215e2c251da1d158056dca625d2d09cdb3a08bda187b85acae93829039",
+    "merchants": [
+      "threadline.bookerbob-demo.testnet",
+      "house.bookerbob-demo.testnet"
+    ],
+    "bond_tx": "4tQyy9rs1HMvSDqqh4Ncq15TWqaN6uqPdFfiyfTu6aLd",
+    "bond_sender": "threadline.bookerbob-demo.testnet"
+  }
 }

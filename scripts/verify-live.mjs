@@ -148,5 +148,13 @@ if (m.standing.challenge) {
     return [root === m.standing.root && score > 0, `m01 ${score / 100}, root ${root.slice(0, 12)}..`];
   });
 }
+if (m.open_round) {
+  const o = m.open_round;
+  await attempt(`an outside merchant joined by bond (no owner step) and won blind round ${o.round}`, async () => {
+    const [q, r, mer, b] = await Promise.all([view(m.bazaar, "round_best_quote", { round_id: o.round, nullifier: o.buyer_nullifier }), view(m.bazaar, "round", { round_id: o.round }), view(m.bazaar, "merchant", { merchant: o.winner }), tx(o.bond_tx, o.bond_sender)]);
+    const approvedByBond = events(b.logs).some((e) => e.event === "merchant_approved" && e.data[0].by === "bond");
+    return [q?.merchant === o.winner && q.quote.price === o.price && r.category === "open" && r.revealed.length >= 2 && mer.approved && approvedByBond, `${o.winner.split(".")[0]} at ${Number(q?.quote?.price) / 1e6} over ${r.revealed.length} revealed bids`];
+  });
+}
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);
