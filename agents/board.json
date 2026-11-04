@@ -685,5 +685,25 @@
         "reason": "disclosure budget of 3 bits is used"
       }
     }
+  ],
+  "rounds": [
+    {
+      "round": "swarm-hoodie",
+      "category": "hoodie",
+      "commit_until_ms": 1793793660000,
+      "reveal_until_ms": 1793793720000,
+      "commits": 22,
+      "reveals": 22,
+      "winner": "m01.bookerbob.testnet"
+    },
+    {
+      "round": "swarm-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "commit_until_ms": 1793793660000,
+      "reveal_until_ms": 1793793720000,
+      "commits": 8,
+      "reveals": 8,
+      "winner": "h05.bookerbob.testnet"
+    }
   ]
 }

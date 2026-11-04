@@ -12,7 +12,7 @@
 
 - Prices come from `bookerbob-core` inside the contract. `why.mjs` never reads a price from model output.
 - Merchants see only revealed predicate names. Facts go only to the buyer's agent.
-- Round 1 is blind: `sha256("bookerbob/bid/v0\0" || account || 0 || json(schedule) || salt)`. Round 2 reveals and the contract rejects a schedule that does not validate.
+- Merchants register a public list price only. Round 1 is blind and on chain: each calls `commit_bid` with `sha256("bookerbob/bid/v0\0" || account || 0 || json(schedule) || salt)` before the commit deadline. Round 2: `reveal_bid` after it; the contract refuses a schedule that does not open the commitment or does not validate. The winner (`round_best_quote`) is readable only after the reveal deadline.
 
 ## JMPR and real hotel rates
 

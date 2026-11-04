@@ -78,3 +78,15 @@ export function registerCommand({ bazaar, merchant, s, category }) {
   const args = JSON.stringify(registerArgs(s, category));
   return `near contract call-function as-transaction ${bazaar} register_merchant json-args '${args}' prepaid-gas '30 Tgas' attached-deposit '0.05 NEAR' sign-as ${merchant} network-config testnet sign-with-keychain send`;
 }
+
+/** Arguments for `commit_bid` (round 1, before the commit deadline). Keep `salt32` secret until the reveal. */
+export function commitBidArgs(roundId, account, s, salt32) {
+  const err = validate(s);
+  if (err) throw new Error(err);
+  return { round_id: roundId, commitment: bidCommitment(account, s, salt32) };
+}
+
+/** Arguments for `reveal_bid` (round 2, after the commit deadline, before the reveal deadline). */
+export function revealBidArgs(roundId, s, salt32) {
+  return { round_id: roundId, schedule: JSON.parse(scheduleJson(s)), salt: Buffer.from(salt32).toString("hex") };
+}

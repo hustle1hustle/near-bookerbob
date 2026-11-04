@@ -1,10 +1,13 @@
-//! Swarm round, offline and deterministic.
+//! Swarm round, offline and deterministic, run through the `bazaar` contract
+//! (MockedBlockchain).
 //!
-//! Round 1 (blind): every merchant posts `sha256("bookerbob/bid/v0\0" || account || 0 ||
-//! json(schedule) || salt)`. Nobody sees a schedule. Round 2 (reveal): schedules are
-//! opened and checked against the commitments, registered in the `bazaar` contract
-//! (MockedBlockchain), and the contract quotes every merchant for the buyer's revealed
-//! predicates. The buyer column shows only the verdict commitment and the cohort size k.
+//! Merchants register a public list price only and are approved by the owner. The owner
+//! opens one blind round per category. Round 1 (commit): every merchant calls `commit_bid`
+//! with `sha256("bookerbob/bid/v0\0" || account || 0 || json(schedule) || salt)`; nobody
+//! sees a discount schedule. Round 2 (reveal, after the commit deadline): `reveal_bid`
+//! opens each schedule and the contract checks it against the commitment. After the reveal
+//! deadline the contract quotes every merchant for the buyer's revealed predicates, and
+//! `round_best_quote` must agree with the board's winner. The buyer column shows only the verdict commitment and the cohort size k.
 //! Peer verdicts in `verdicts-cohort.json` (same context) drive the group unlock.
 //! Prices come from code; no model output is read here.
 use std::collections::BTreeMap;
@@ -13,14 +16,12 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use bookerbob_bazaar::{Bazaar, RECORD_DEPOSIT};
-use bookerbob_core::{sha256_hex, Schedule, SignedVerdict, K_MIN};
+use bookerbob_core::{Schedule, SignedVerdict, K_MIN};
 use near_sdk::test_utils::VMContextBuilder;
 use near_sdk::{testing_env, AccountId};
 use serde::{Deserialize, Serialize};
 
 use crate::fixtures::{NOW_MS, OWNER, USDC};
-
-pub const BID_TAG: &[u8] = b"bookerbob/bid/v0\x00";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SwarmMerchant {
@@ -71,7 +72,25 @@ pub struct Board {
     pub receipts: Vec<ReceiptRow>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub asks: Vec<AskRow>,
+    /// The on-chain blind round per category.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rounds: Vec<RoundRow>,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct RoundRow {
+    pub round: String,
+    pub category: String,
+    pub commit_until_ms: u64,
+    pub reveal_until_ms: u64,
+    pub commits: usize,
+    pub reveals: usize,
+    pub winner: String,
+}
+
+/// Round deadlines, relative to the fixture clock.
+const COMMIT_UNTIL_MS: u64 = NOW_MS + 60_000;
+const REVEAL_UNTIL_MS: u64 = NOW_MS + 120_000;
 
 /// What revealing bits bought: the winner's base price against what the buyer pays.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -136,22 +155,19 @@ pub fn bid_salt(account: &str) -> [u8; 32] {
     bookerbob_core::sha256(format!("bookerbob fixture bid salt v0|{account}").as_bytes())
 }
 
-pub fn bid_commitment(account: &str, schedule: &Schedule, salt: &[u8; 32]) -> String {
-    let mut b = BID_TAG.to_vec();
-    b.extend_from_slice(account.as_bytes());
-    b.push(0);
-    b.extend(serde_json::to_vec(schedule).expect("serializes"));
-    b.extend_from_slice(salt);
-    sha256_hex(&b)
-}
+pub use bookerbob_core::bid_commitment;
 
 fn acc(s: &str) -> AccountId {
     s.parse().expect("account id")
 }
 
 fn as_caller(p: &str) {
+    as_caller_at(p, NOW_MS);
+}
+
+fn as_caller_at(p: &str, ms: u64) {
     let mut b = VMContextBuilder::new();
-    b.current_account_id(acc(OWNER)).predecessor_account_id(acc(p)).block_timestamp(NOW_MS * 1_000_000);
+    b.current_account_id(acc(OWNER)).predecessor_account_id(acc(p)).block_timestamp(ms * 1_000_000);
     b.attached_deposit(RECORD_DEPOSIT);
     testing_env!(b.build());
 }
@@ -167,9 +183,7 @@ pub fn build(
     worlds: &[bookerbob_core::WorldAttestation],
     extras: &Extras,
 ) -> Result<Board, String> {
-    // Round 1: blind commitments.
     let commits: Vec<String> = merchants.iter().map(|m| bid_commitment(&m.account, &m.schedule, &bid_salt(&m.account))).collect();
-    // Round 2: reveal, check, register, quote on the contract.
     as_caller(OWNER);
     let mut c = Bazaar::new(acc(OWNER), acc(USDC));
     c.register_issuer(verdict.key_id(), "fixture issuer".into());
@@ -180,21 +194,36 @@ pub fn build(
         as_caller(&w.body.agent);
         catch_unwind(AssertUnwindSafe(|| c.attest_human(w.clone()))).map_err(|_| "world attestation rejected".to_string())?;
     }
-    as_caller(OWNER);
-    for (m, commit) in merchants.iter().zip(&commits) {
-        if bid_commitment(&m.account, &m.schedule, &bid_salt(&m.account)) != *commit {
-            return Err(format!("{} revealed a schedule that does not open its commitment", m.account));
-        }
+    // Registration: a public list price only (no discounts), then owner approval.
+    for m in merchants {
         as_caller(&m.account);
-        catch_unwind(AssertUnwindSafe(|| c.register_merchant(m.schedule.clone(), m.category.clone(), None)))
-            .map_err(|_| format!("{} schedule rejected by contract", m.account))?;
+        let list = Schedule { base_price: m.schedule.base_price, rules: vec![], cap_bps: 0, cohort: None };
+        catch_unwind(AssertUnwindSafe(|| c.register_merchant(list, m.category.clone(), None))).map_err(|_| format!("{} rejected by contract", m.account))?;
         as_caller(OWNER);
-        c.approve_merchant(m.account.parse().unwrap());
+        c.approve_merchant(acc(&m.account));
     }
-    as_caller(&verdict.envelope.cnf);
+    // Round 1 (commit), on chain: one round per category, sealed discount schedules.
+    let round_of = |cat: &str| format!("swarm-{cat}");
+    let cats: std::collections::BTreeSet<String> = merchants.iter().map(|m| m.category.clone()).collect();
+    for cat in &cats {
+        as_caller(OWNER);
+        c.open_round(round_of(cat), cat.clone(), COMMIT_UNTIL_MS, REVEAL_UNTIL_MS);
+    }
+    for (m, commit) in merchants.iter().zip(&commits) {
+        as_caller(&m.account);
+        catch_unwind(AssertUnwindSafe(|| c.commit_bid(round_of(&m.category), commit.clone()))).map_err(|_| format!("{} commit rejected", m.account))?;
+    }
+    // Round 2 (reveal), after the commit deadline: the contract checks every opening.
+    for m in merchants {
+        as_caller_at(&m.account, COMMIT_UNTIL_MS);
+        catch_unwind(AssertUnwindSafe(|| c.reveal_bid(round_of(&m.category), m.schedule.clone(), hex::encode(bid_salt(&m.account)))))
+            .map_err(|_| format!("{} revealed a schedule that does not open its commitment", m.account))?;
+    }
+    // After the reveal deadline: verdicts and quotes.
+    as_caller_at(&verdict.envelope.cnf, REVEAL_UNTIL_MS);
     catch_unwind(AssertUnwindSafe(|| c.submit_verdict(verdict.clone()))).map_err(|_| "verdict rejected".to_string())?;
     for p in peers {
-        as_caller(&p.envelope.cnf);
+        as_caller_at(&p.envelope.cnf, REVEAL_UNTIL_MS);
         catch_unwind(AssertUnwindSafe(|| c.submit_verdict(p.clone()))).map_err(|_| "peer verdict rejected".to_string())?;
     }
     let n = verdict.envelope.nullifier.clone();
@@ -223,6 +252,7 @@ pub fn build(
         });
     }
     let mut categories = Vec::new();
+    let mut rounds = Vec::new();
     for (cat, mut rows) in by_cat {
         // Lowest price first; ties keep config order (stable sort), same as the contract.
         rows.sort_by_key(|r| r.price.parse::<u128>().unwrap());
@@ -233,6 +263,20 @@ pub fn build(
         if onchain.merchant.as_str() != rows[0].merchant {
             return Err(format!("contract best_quote {} differs from board winner {}", onchain.merchant, rows[0].merchant));
         }
+        let round = c.round_best_quote(round_of(&cat), n.clone()).ok_or("no round winner")?;
+        if round.merchant.as_str() != rows[0].merchant {
+            return Err(format!("round_best_quote {} differs from board winner {}", round.merchant, rows[0].merchant));
+        }
+        let r = c.round(round_of(&cat)).expect("round exists");
+        rounds.push(RoundRow {
+            round: round_of(&cat),
+            category: cat.clone(),
+            commit_until_ms: r.commit_until_ms,
+            reveal_until_ms: r.reveal_until_ms,
+            commits: r.commits.len(),
+            reveals: r.revealed.len(),
+            winner: round.merchant.to_string(),
+        });
         categories.push(CategoryBoard { category: cat, winner: rows[0].merchant.clone(), rows });
     }
     // The purchase is in the first category (the verdict's context names a hoodie).
@@ -312,6 +356,7 @@ pub fn build(
         disclosures,
         receipts,
         asks,
+        rounds,
     })
 }
 
@@ -391,6 +436,12 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     body.push('\n');
     if check {
         let same = std::fs::read_to_string(out).ok().as_deref() == Some(body.as_str());
+        for r in &board.rounds {
+            println!(
+                "PASS  blind round {} on chain: {} commit_bid, {} reveal_bid opened their commitments, round_best_quote {}",
+                r.round, r.commits, r.reveals, r.winner
+            );
+        }
         println!("\n{}  swarm board matches {} and contract best_quote per category", if same { "PASS" } else { "FAIL" }, out.display());
         return if same { ExitCode::SUCCESS } else { ExitCode::FAILURE };
     }

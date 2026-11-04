@@ -7,6 +7,7 @@
 | `schedule({basePrice, rules, capBps, cohort})` | build a discount schedule (USDC base units, bps; every perk is a discount) |
 | `validate(s)` | the contract's own schedule checks, run before sending |
 | `bidCommitment(account, s, salt)` | round 1 of a blind round |
+| `commitBidArgs(round, account, s, salt)`, `revealBidArgs(round, s, salt)` | args for the bazaar's on-chain `commit_bid` and `reveal_bid` |
 | `quote(s, revealed, k)` | preview the code-computed price, group unlock included |
 | `registerArgs(s, category)`, `registerCommand(...)` | `register_merchant` args and a testnet near-cli-rs command. A registered merchant is quoted only after the bazaar owner calls `approve_merchant`; a changed schedule needs approval again |
 
@@ -14,5 +15,5 @@
 (made by the Rust code) and checks they match. The near-cli-rs command line is not
 verified yet: near-cli-rs is not installed on the build machine.
 
-Not in the SDK yet: watching `verdict_submitted` events, the reveal round over a transport,
+Not in the SDK yet: watching `verdict_submitted` and `round_opened` events,
 and a model-written pitch (see `agents/why.mjs`).

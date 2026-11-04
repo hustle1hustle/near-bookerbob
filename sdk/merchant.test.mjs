@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { bidCommitment, quote, registerArgs, registerCommand, schedule, validate } from "./merchant.mjs";
+import { bidCommitment, commitBidArgs, quote, registerArgs, registerCommand, revealBidArgs, schedule, validate } from "./merchant.mjs";
 
 const root = new URL("../", import.meta.url);
 const json = (p) => JSON.parse(readFileSync(new URL(p, root)));
@@ -46,4 +46,15 @@ test("register command targets testnet and the merchant's own account", () => {
   const cmd = registerCommand({ bazaar: "bookerbob.testnet", merchant: "m31.bookerbob.testnet", s: schedule({ basePrice: 40_000_000, capBps: 1000, rules: [{ predicate: "claude_spender", bps: 1000 }] }), category: "hoodie" });
   assert.match(cmd, /register_merchant/);
   assert.match(cmd, /sign-as m31\.bookerbob\.testnet network-config testnet/);
+});
+
+test("commit and reveal args match the on-chain round on the board", () => {
+  const m = merchants[0];
+  const round = board.rounds.find((r) => r.category === m.category).round;
+  const c = commitBidArgs(round, m.account, m.schedule, salt(m.account));
+  assert.equal(c.round_id, "swarm-hoodie");
+  assert.equal(c.commitment, rows.find((r) => r.merchant === m.account).bid_commitment);
+  const r = revealBidArgs(round, m.schedule, salt(m.account));
+  assert.equal(r.salt, salt(m.account).toString("hex"));
+  assert.equal(JSON.stringify(r.schedule), JSON.stringify(JSON.parse(JSON.stringify(m.schedule))));
 });
