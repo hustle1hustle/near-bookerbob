@@ -68,7 +68,11 @@ committed; `make verify` then re-checks it offline.
 
 ## Try it
 
-Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
+**Fastest (about 6 s, Node 22 only, no keys, no build):** `make judge`. It re-derives every
+testnet claim over public RPC (`make verify-live`), checks the five committed Jolt proofs'
+outputs and program hashes, and runs the JS suites.
+
+The deep path needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
 Measured on 2026-11-04 on an 11-core Apple M3 Pro: `make verify` takes 40 s from a cold
 build (crates already downloaded; a first run also fetches them from crates.io) and 2 s
 warm. After the first build it needs no network.
@@ -172,6 +176,15 @@ interface exists with a test double; `planned` means not built yet.
 | MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | built (2 tests on a fake RPC); points at testnet once deployed |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
 | merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | SDK built (cross-checked against the Rust board); not listed, Agent Market is mainnet only |
+| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | built, live: 6 settles on testnet, `make verify-live` |
+| paid orders in the Shopify test store through the Admin API (draft order completed as paid, `near_tx` in the note) | realworld | `ucp/src/near-usdc.mjs` | built, live: orders #1055 to #1060 |
+| review k counts distinct World-bound persons, not purchases (`review_persons`) | privacy, security | `contract/src/lib.rs` | built, live |
+| `make leak`: what a passive observer links from public testnet data; found 6 of 6 ratings linked by order, fixed, re-run: 1 of 6 (chance) | privacy | `scripts/leak.mjs`, `docs/leak.md` | built, run live before and after |
+| challengeable Jolt updates: pending with the proof's sha256, a bonded worker key, `challenge_graph_scores` with a bond, an arbiter's signed resolution slashes a false update | security | `contract/src/lib.rs`, `docs/jolt.md` | built; one live challenge (resolved valid); the arbiter is one registered key |
+| liability record per settle (sha256 of verdict digest, receipt, merchant, price, token) and a merchant refund bond that refunds the buyer when a receipt is overturned after settle | security, realworld | `contract/src/lib.rs` (`liability`, `merchant_bond`) | built (tests); bonds live in the open market |
+| `min_tcb`: a verdict below the TDX TCB floor (UpToDate by default) is never quoted or paid | security, privacy | `core/src/envelope.rs` `tcb_meets`, `contract/src/lib.rs` | built, deployed |
+| open market: an outside merchant is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal | swarms, agents, open | `contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md | built, live: a fresh agent with only AGENTS.md won round `open-1` |
+| `make market-eval`: 1,000 simulated rounds, no disclosure vs BookerBob vs full disclosure | swarms | `scripts/market-eval.mjs`, `docs/market-eval.md` | built (a model, assumptions stated) |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | planned (mainnet only) |
 
 ## Repository layout
