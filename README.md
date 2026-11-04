@@ -20,7 +20,7 @@ customer, and keeps the customer private.
 
 ## Try it in 2 minutes
 
-Needs Rust (stable, 1.93 or newer) and `make`. No network, no keys.
+Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No network, no keys.
 
 1. Run `make verify`.
    See one line per link of the chain, each `PASS` or `FAIL`, ending in `nullifier spent`
@@ -35,6 +35,8 @@ Needs Rust (stable, 1.93 or newer) and `make`. No network, no keys.
    data is in this repository.
 
 ## How one purchase works
+
+This is the target flow. The table below says which parts are built today.
 
 ```mermaid
 sequenceDiagram
@@ -53,9 +55,10 @@ sequenceDiagram
     C-->>U: quote = code-computed price per merchant
     OL->>C: signed referee result (receipt, or refusal like F9 not in proof set)
     C->>C: ed25519_verify worker key, store receipt
-    U->>C: settle(nullifier, merchant, checkout_ref)
-    C->>C: cap check, burn nullifier, NEP-297 event
-    C->>S: ft_transfer USDC to merchant payout; UCP order stores near_tx
+    U->>C: settle(nullifier, merchant, checkout_ref, amount)
+    C->>C: amount = quote, receipt present, cap check, burn nullifier, NEP-297 event
+    C->>C: ft_transfer USDC (NEP-141) to the merchant payout
+    U->>S: UCP checkout with the near_tx; the bridge reads it and the order stores near_tx
     U->>C: same proof, another wallet
     C-->>U: "nullifier spent"
 ```
@@ -78,7 +81,7 @@ interface exists with a test double; `planned` means not built yet.
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | built (2 tests on a fake RPC); points at testnet once deployed |
-| UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, writes `near_tx` to the order | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
+| UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
 | Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `scripts/spikes/views.mjs`, `fixtures/live/views.json` | partial: live `derived_public_key` on `v1.signer-prod.testnet` and its Stellar G-address (checked with `stellar strkey decode`); first `sign` not done |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | planned (mainnet only) |
 
