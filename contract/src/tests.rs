@@ -2234,3 +2234,100 @@ mod tcb_floor {
         assert!(c.best_quote(n, None, None, None, None).is_none(), "a mainnet bazaar never quotes a fixture verdict");
     }
 }
+
+/// The open category: approval by bond, and one operator cannot stand twice in a round.
+mod open_market {
+    use super::*;
+
+    fn join(c: &mut Bazaar, m: &str, payout: Option<&str>, bond: u128) {
+        set(m);
+        c.register_merchant(schedule(), OPEN_CATEGORY.into(), payout.map(acc));
+        if bond > 0 {
+            set(USDC);
+            let _ = c.ft_on_transfer(acc(m), U128(bond), "bond".into());
+        }
+    }
+
+    #[test]
+    fn a_bonded_outside_merchant_is_approved_without_the_owner() {
+        let mut c = setup();
+        join(&mut c, "outside.testnet", None, OPEN_BOND);
+        assert!(c.merchant(acc("outside.testnet")).unwrap().approved);
+        assert!(get_logs().iter().any(|l| l.contains("merchant_approved") && l.contains("\"by\":\"bond\"")));
+        // A schedule change keeps the approval while the bond stands.
+        set("outside.testnet");
+        c.register_merchant(cheap(), OPEN_CATEGORY.into(), None);
+        assert!(c.merchant(acc("outside.testnet")).unwrap().approved);
+    }
+
+    #[test]
+    fn an_under_bonded_or_other_category_merchant_is_not_approved_by_bond() {
+        let mut c = setup();
+        join(&mut c, "small.testnet", None, OPEN_BOND - 1);
+        assert!(!c.merchant(acc("small.testnet")).unwrap().approved);
+        set("hood.testnet");
+        c.register_merchant(schedule(), "hoodie".into(), None);
+        set(USDC);
+        assert!(matches!(c.ft_on_transfer(acc("hood.testnet"), U128(OPEN_BOND), "bond".into()), PromiseOrValue::Value(U128(v)) if v == OPEN_BOND));
+        assert!(!c.merchant(acc("hood.testnet")).unwrap().approved, "outside the open category only the owner approves");
+    }
+
+    fn open_round(c: &mut Bazaar) {
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+    }
+
+    fn bid(c: &mut Bazaar, m: &str, salt: u8) {
+        at(m, NOW_MS);
+        c.commit_bid("o1".into(), sealed(m, &schedule(), salt));
+    }
+
+    fn reveal(c: &mut Bazaar, m: &str, salt: u8, ms: u64) {
+        at(m, ms);
+        c.reveal_bid("o1".into(), schedule(), hex::encode([salt; 32]));
+    }
+
+    #[test]
+    fn two_independent_outside_merchants_both_reveal_and_one_wins() {
+        let mut c = setup();
+        join(&mut c, "a.testnet", None, OPEN_BOND);
+        join(&mut c, "b.testnet", None, OPEN_BOND);
+        open_round(&mut c);
+        bid(&mut c, "a.testnet", 1);
+        bid(&mut c, "b.testnet", 2);
+        reveal(&mut c, "a.testnet", 1, COMMIT_UNTIL);
+        reveal(&mut c, "b.testnet", 2, COMMIT_UNTIL + 1);
+        at("agent.testnet", REVEAL_UNTIL);
+        assert!(c.round_best_quote("o1".into(), hex::encode([1u8; 32])).is_some());
+    }
+
+    #[test]
+    #[should_panic(expected = "linked to a merchant already revealed in this round")]
+    fn two_merchants_with_one_payout_cannot_both_reveal() {
+        let mut c = setup();
+        join(&mut c, "a.testnet", Some("wallet.testnet"), OPEN_BOND);
+        join(&mut c, "b.testnet", Some("wallet.testnet"), OPEN_BOND);
+        open_round(&mut c);
+        bid(&mut c, "a.testnet", 1);
+        bid(&mut c, "b.testnet", 2);
+        reveal(&mut c, "a.testnet", 1, COMMIT_UNTIL);
+        reveal(&mut c, "b.testnet", 2, COMMIT_UNTIL + 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "linked to a merchant already revealed in this round")]
+    fn hire_linked_merchants_cannot_both_reveal() {
+        let mut c = setup();
+        join(&mut c, "a.testnet", None, OPEN_BOND);
+        join(&mut c, "b.testnet", None, OPEN_BOND);
+        set("a.testnet");
+        c.hire(acc("b.testnet"));
+        open_round(&mut c);
+        bid(&mut c, "a.testnet", 1);
+        bid(&mut c, "b.testnet", 2);
+        reveal(&mut c, "a.testnet", 1, COMMIT_UNTIL);
+        reveal(&mut c, "b.testnet", 2, COMMIT_UNTIL + 1);
+    }
+}

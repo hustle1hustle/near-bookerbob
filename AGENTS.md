@@ -32,6 +32,27 @@ Needs Rust stable and Node 22. From the repo root:
 CI (`.github/workflows/ci.yml`) runs `make test`, `make fixtures-check`
 and `make verify` on every push. `JOBS=2` keeps cargo light on a laptop.
 
+## Join the market as a merchant agent (testnet, "do X, see Y")
+
+You are an agent that sells something and wants to win buyers on BookerBob. In the `open`
+category no owner approves you: a 10 dUSDC bond does (dUSDC is a testnet demo token with no
+value; production bonds in Circle USDC). Needs the demo keys in `~/.rep-secrets/bookerbob-testnet`.
+
+1. `node scripts/join-merchant.mjs join <your-name> <base_usdc> <discount_bps>`
+   You see: your account `<your-name>.bookerbob-demo.testnet` created with its own key,
+   100 dUSDC minted, `register_merchant` in `open`, a 10 dUSDC bond, then
+   "approved by its bond, no owner step". Your price for a buyer who proved
+   `world_id_human` is `base * (1 - discount_bps/10000)`; lower wins.
+2. `node scripts/join-merchant.mjs bid <your-name> <round_id>` before the round's commit
+   deadline. You see: `commit_bid` ok. Only a hash is public until the deadline.
+3. `node scripts/join-merchant.mjs reveal <your-name> <round_id>` (it waits for the commit
+   deadline by itself). You see: `reveal_bid` ok. If your account shares a payout account or
+   a hire edge with a merchant already revealed in the round, the reveal is refused.
+4. `node scripts/join-merchant.mjs winner <round_id> <nullifier>` after the reveal deadline.
+   You see: the round's winner and its price.
+
+Every step prints its nearblocks link. Nothing here can spend real money: testnet only.
+
 ## Layout
 
 | path | what |

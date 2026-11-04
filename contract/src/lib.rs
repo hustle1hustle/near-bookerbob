@@ -238,6 +238,10 @@ pub struct Bazaar {
 pub const GRAPH_UPDATE_TAG: &[u8] = b"bookerbob/graph-update/v0\x00";
 /// An arbiter's signed resolution of a challenged graph update.
 pub const GRAPH_CHALLENGE_TAG: &[u8] = b"bookerbob/graph-challenge/v0\x00";
+/// The permissionless category: a merchant is approved by bonding OPEN_BOND (in USDC or the
+/// testnet demo token) instead of by the owner.
+pub const OPEN_CATEGORY: &str = "open";
+pub const OPEN_BOND: u128 = 10_000_000;
 /// Bond a worker key must hold to post a graph update; slashed to a successful challenger.
 pub const WORKER_BOND: NearToken = NearToken::from_millinear(500);
 /// Bond a challenger posts; paid to the worker's bonder if the update was valid.
@@ -392,6 +396,12 @@ fn liabilities() -> LookupMap<String, String> {
 /// A merchant's refund bond per token ("usdc" or "demo"), in token base units.
 fn merchant_bonds() -> LookupMap<String, u128> {
     LookupMap::new(b"M")
+}
+
+/// The merchant's refund bond across tokens (USDC plus, on testnet, the demo token).
+fn bonded(merchant: &AccountId) -> u128 {
+    let b = merchant_bonds();
+    b.get(&format!("{merchant}|usdc")).copied().unwrap_or(0) + b.get(&format!("{merchant}|demo")).copied().unwrap_or(0)
 }
 
 /// The lowest TDX TCB status a verdict may carry to be quoted or paid. Default UpToDate.
@@ -554,9 +564,12 @@ impl Bazaar {
         );
         let merchant = env::predecessor_account_id();
         let payout = payout.unwrap_or_else(|| merchant.clone());
-        // A new or changed schedule waits for approval again: no bait and switch.
-        self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), category: category.clone(), schedule, approved: false });
-        emit("merchant_registered", serde_json::json!({ "merchant": merchant, "category": category, "payout": payout, "approved": false }));
+        // A new or changed schedule waits for approval again: no bait and switch. In the open
+        // category the bond is the approval: a bonded merchant stays approved, and a schedule
+        // change keeps the bond at stake.
+        let approved = category == OPEN_CATEGORY && bonded(&merchant) >= OPEN_BOND;
+        self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), category: category.clone(), schedule, approved });
+        emit("merchant_registered", serde_json::json!({ "merchant": merchant, "category": category, "payout": payout, "approved": approved }));
         // store:: collections write on flush; flush now so the storage delta is measurable.
         self.merchants.flush();
         charge_storage(before);
@@ -1090,6 +1103,18 @@ impl Bazaar {
         let (_, commitment) = round.commits.iter().find(|(a, _)| a == &merchant).cloned().unwrap_or_else(|| env::panic_str("no committed bid"));
         require!(!round.revealed.contains(&merchant), "already revealed");
         require!(bookerbob_core::bid_commitment(merchant.as_str(), &schedule, &salt) == commitment, "bid does not open its commitment");
+        // Open rounds: two bids under one operator cannot both stand. Same payout account, or a
+        // hire edge either way, counts as one operator; the later reveal is refused.
+        if round.category == OPEN_CATEGORY {
+            let me = self.merchants.get(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
+            let my_hires = self.hires.get(&merchant).cloned().unwrap_or_default();
+            for other in &round.revealed {
+                let o = self.merchants.get(other).expect("revealed merchants are registered");
+                let linked = o.payout == me.payout || my_hires.contains(other) || self.hires.get(other).is_some_and(|h| h.contains(&merchant));
+                require!(!linked, "linked to a merchant already revealed in this round (same payout or a hire edge)");
+            }
+        }
+        let round = self.rounds.get_mut(&round_id).expect("checked above");
         round.revealed.push(merchant.clone());
         let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
         // Committed blind before the deadline, so this change keeps the approval.
@@ -1384,7 +1409,9 @@ impl Bazaar {
         };
         // msg "bond": an approved merchant tops up its refund bond in this token.
         if msg == "bond" {
-            if !self.merchants.get(&sender_id).is_some_and(|m| m.approved) {
+            let Some(m) = self.merchants.get(&sender_id).cloned() else { return PromiseOrValue::Value(amount) };
+            // Approved merchants top up; in the open category, a registered merchant bonds in.
+            if !m.approved && m.category != OPEN_CATEGORY {
                 return PromiseOrValue::Value(amount);
             }
             let mut b = merchant_bonds();
@@ -1393,6 +1420,11 @@ impl Bazaar {
             b.insert(key, v);
             b.flush();
             emit("merchant_bonded", serde_json::json!({ "merchant": sender_id, "token": kind, "amount": U128(v) }));
+            if !m.approved && bonded(&sender_id) >= OPEN_BOND {
+                self.merchants.get_mut(&sender_id).expect("registered").approved = true;
+                self.merchants.flush();
+                emit("merchant_approved", serde_json::json!({ "merchant": sender_id, "by": "bond" }));
+            }
             return PromiseOrValue::Value(U128(0));
         }
         if token != self.usdc {

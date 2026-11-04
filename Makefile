@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -39,6 +39,10 @@ secret-scan:
 
 judge:
 	node scripts/judge.mjs
+
+# An outside merchant agent joins the open market on testnet (bond, no owner step).
+join-merchant:
+	node scripts/join-merchant.mjs join $(NAME) $(BASE) $(DISCOUNT)
 
 verify-live:
 	node scripts/verify-live.mjs
@@ -76,7 +80,7 @@ test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
 
 test-ucp:
-	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs relayer/relay.test.mjs relayer/near.test.mjs
+	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs relayer/relay.test.mjs relayer/near.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures
