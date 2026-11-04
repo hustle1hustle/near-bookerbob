@@ -114,13 +114,11 @@ pub fn collect() -> (Vec<Row>, std::time::Duration) {
     let worker_time = started.elapsed();
     let result = serde_json::from_str(&out).expect("worker json");
     at(AGENT, t, z);
-    measure(&mut c, &mut rows, "submit_referee_result", "contract balance (only a referee-signed result is stored)", |c| {
-        assert!(c.submit_referee_result(result))
-    });
+    measure(&mut c, &mut rows, "submit_referee_result", "agent, from the record reserve prepaid at submit", |c| assert!(c.submit_referee_result(result)));
     at(AGENT, t, z);
     measure(&mut c, &mut rows, "best_quote (view, 1 merchant)", "free (view)", |c| drop(c.best_quote(e.nullifier.clone(), None, None, None)));
     at(AGENT, t, z);
-    measure(&mut c, &mut rows, "settle (+ ft_transfer receipt)", "agent pays gas; contract balance pays the 14 bytes", |c| {
+    measure(&mut c, &mut rows, "settle (+ ft_transfer receipt)", "agent (gas; bytes from the record reserve)", |c| {
         drop(c.settle(e.nullifier.clone(), acc(&m.account), "evidence-1".into(), U128(q.price)))
     });
     (rows, worker_time)
@@ -140,9 +138,11 @@ pub fn run() -> ExitCode {
     print!("{}", table(&rows));
     let per = |m: &str| rows.iter().find(|r| r.method.starts_with(m)).map_or(0, |r| r.storage_bytes);
     println!(
-        "\nper verdict: {} bytes ({:.5} NEAR, paid by the agent from its 0.05 NEAR deposit, rest refunded); referee worker run: {} us (native)",
+        "\nper verdict: {} bytes ({:.5} NEAR) plus a {} byte reserve for its receipt and settle ({:.5} NEAR), paid by the agent from its 0.05 NEAR deposit, rest refunded; referee worker run: {} us (native)",
         per("submit_verdict (ed25519"),
         per("submit_verdict (ed25519") as f64 * 1e-5,
+        bookerbob_bazaar::RECORD_RESERVE_BYTES,
+        bookerbob_bazaar::RECORD_RESERVE_BYTES as f64 * 1e-5,
         worker.as_micros()
     );
     ExitCode::SUCCESS

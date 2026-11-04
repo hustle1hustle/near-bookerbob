@@ -51,12 +51,12 @@ console.log(`${r.calls.length} calls, ${ok}/${r.calls.length} signatures valid, 
   echo
   echo "## Who pays"
   echo
-  echo "- Agent: its verdict record (0.05 NEAR attached, about 0.008 used, the rest refunded),"
-  echo "  its escrow entry (0.01 NEAR), its World ID binding, and the gas of \`settle\`."
+  echo "- Agent: its verdict record plus a 512-byte reserve for that record's referee receipt"
+  echo "  and settle fields (0.05 NEAR attached, about 0.013 used, the rest refunded), its escrow"
+  echo "  entry (0.01 NEAR), its World ID binding, and the gas of \`settle\`."
   echo "- Merchant: its registration and its sealed and revealed bids."
   echo "- Owner: issuer, referee, arbiter and World verifier keys, and rounds."
-  echo "- Contract balance: the stored referee receipt (only a referee-signed result is"
-  echo "  stored) and 14 bytes per settle. Not charged to anyone yet; named, not hidden."
+  echo "- Contract balance: nothing per purchase. Growth past a record's reserve is refused."
   echo "- NEAR AI inference is paid with the buyer side's API key (per call cost above)."
 } >"$OUT"
 cat "$OUT"

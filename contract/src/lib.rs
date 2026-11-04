@@ -51,6 +51,9 @@ pub struct VerdictRecord {
     pub receipt: Option<RefereeReceipt>,
     /// Set when an arbiter overturned a receipt after the purchase settled.
     pub disputed: bool,
+    /// Bytes the agent prepaid at submit for this record's later growth (referee receipt,
+    /// settle). Growth is drawn from it, shrinkage goes back; the contract balance pays none.
+    pub storage_reserve: u64,
 }
 
 #[near(serializers = [borsh, json])]
@@ -78,6 +81,9 @@ pub struct Merchant {
 
 /// Largest `best_quote` page, so one view call has a bounded cost.
 pub const MAX_QUOTE_PAGE: u32 = 100;
+/// Prepaid growth per verdict record: a referee receipt (about 250 bytes) plus the settle
+/// fields (checkout_ref up to 128 bytes). Charged to the agent in `submit_verdict`.
+pub const RECORD_RESERVE_BYTES: u64 = 512;
 /// Most sealed bids one round holds, so a round record stays small.
 pub const MAX_ROUND_BIDS: usize = 100;
 
@@ -174,8 +180,13 @@ fn decode<const N: usize>(hex_str: &str, what: &str) -> [u8; N] {
 
 /// Charge the caller for storage added since `before`, refund the rest of the deposit.
 fn charge_storage(before: u64) {
+    charge_storage_plus(before, 0);
+}
+
+/// As `charge_storage`, plus `extra` bytes prepaid now for later growth.
+fn charge_storage_plus(before: u64, extra: u64) {
     let after = env::storage_usage();
-    let cost = env::storage_byte_cost().saturating_mul(after.saturating_sub(before) as u128);
+    let cost = env::storage_byte_cost().saturating_mul((after.saturating_sub(before) + extra) as u128);
     let attached = env::attached_deposit();
     require!(attached >= cost, format!("attach at least {} yoctoNEAR for storage", cost.as_yoctonear()));
     let refund = attached.saturating_sub(cost);
@@ -350,7 +361,7 @@ impl Bazaar {
 
     /// Test and measurement helper (unit-testing feature only): write every collection
     /// and the root state, as the runtime does at the end of a call.
-    #[cfg(feature = "unit-testing")]
+    #[cfg(any(test, feature = "unit-testing"))]
     pub fn flush_all(&mut self) {
         self.issuers.flush();
         self.merchants.flush();
@@ -471,7 +482,7 @@ impl Bazaar {
         require!(self.issuers.contains_key(&key_id), "unknown enclave key");
         require!(verify_signature(&verdict), "bad signature");
         self.accept_verdict(&verdict.envelope, key_id);
-        charge_storage(before);
+        charge_storage_plus(before, RECORD_RESERVE_BYTES);
     }
 
     /// Owner registers a NEAR AI model key after checking its attestation report off chain.
@@ -511,7 +522,23 @@ impl Bazaar {
         }
         self.accept_verdict(&envelope, format!("near-ai:{}", proof.signing_key));
         emit("near_ai_verdict", serde_json::json!({ "nullifier": envelope.nullifier, "chat_id": proof.chat_id, "signing_key": proof.signing_key }));
-        charge_storage(before);
+        charge_storage_plus(before, RECORD_RESERVE_BYTES);
+    }
+
+    /// Settle a record's storage change since `before` against its prepaid reserve.
+    fn draw_reserve(&mut self, nullifier: &str, before: u64) {
+        self.verdicts.flush();
+        let after = env::storage_usage();
+        let r = self.verdicts.get_mut(nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        if after > before {
+            let grow = after - before;
+            require!(grow <= r.storage_reserve, "record storage reserve exhausted");
+            r.storage_reserve -= grow;
+        } else {
+            r.storage_reserve += before - after;
+        }
+        // The reserve is a fixed-size u64: updating it does not change storage again.
+        self.verdicts.flush();
     }
 
     /// Checks shared by every issuer path, then the record and the cohort counters.
@@ -540,6 +567,7 @@ impl Bazaar {
             digest: hex::encode(env::sha256_array(e.signing_message())),
             receipt: None,
             disputed: false,
+            storage_reserve: RECORD_RESERVE_BYTES,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
         for p in &e.predicates {
@@ -710,6 +738,15 @@ impl Bazaar {
     }
 
     fn apply_referee_result(&mut self, result: WorkerResult) -> bool {
+        self.verdicts.flush();
+        let before = env::storage_usage();
+        let nullifier = result.body.nullifier.clone();
+        let stored = self.apply_referee_result_inner(result);
+        self.draw_reserve(&nullifier, before);
+        stored
+    }
+
+    fn apply_referee_result_inner(&mut self, result: WorkerResult) -> bool {
         let b = &result.body;
         require!(b.v == 0, "unsupported referee result");
         require!(self.referees.contains_key(&result.worker_key), "unknown referee key");
@@ -847,8 +884,12 @@ impl Bazaar {
         let bal = self.escrow.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
         require!(*bal >= price, "insufficient escrow");
         *bal -= price;
+        self.verdicts.flush();
+        let before = env::storage_usage();
+        let record = self.verdicts.get_mut(&nullifier).expect("checked above");
         record.spent = true;
         record.checkout_ref = Some(checkout_ref.clone());
+        self.draw_reserve(&nullifier, before);
         self.spent_count += 1;
         emit(
             "settled",

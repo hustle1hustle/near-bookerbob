@@ -1157,3 +1157,61 @@ mod near_ai {
         c.submit_near_ai_verdict(e, p);
     }
 }
+
+// ---------- storage: the record's growth is prepaid by the agent ----------
+
+/// Contract-owned storage right now, after writing every collection.
+fn usage(c: &mut Bazaar) -> u64 {
+    c.flush_all();
+    env::storage_usage()
+}
+
+#[test]
+fn verdict_deposit_prepays_the_record_reserve() {
+    let mut c = setup();
+    // storage_usage restarts with every testing_env!, so measure inside one context.
+    set("agent.testnet");
+    let before = usage(&mut c);
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let added = usage(&mut c) - before;
+    let cost = env::storage_byte_cost().as_yoctonear() * (added + RECORD_RESERVE_BYTES) as u128;
+    let refund: u128 = near_sdk::test_utils::get_created_receipts()
+        .iter()
+        .flat_map(|r| r.actions.iter())
+        .filter_map(|a| match a {
+            near_sdk::mock::MockAction::Transfer { deposit, .. } => Some(deposit.as_yoctonear()),
+            _ => None,
+        })
+        .sum();
+    assert_eq!(refund, RECORD_DEPOSIT.as_yoctonear() - cost);
+    assert_eq!(c.verdict(hex::encode([1u8; 32])).unwrap().storage_reserve, RECORD_RESERVE_BYTES);
+}
+
+#[test]
+fn referee_receipt_and_settle_bytes_come_from_the_reserve_not_the_contract() {
+    let mut c = setup();
+    let n = hex::encode([1u8; 32]);
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    // One context for all three measurements (storage_usage restarts with testing_env!).
+    set("agent.testnet");
+    let (u0, r0) = (usage(&mut c), c.verdict(n.clone()).unwrap().storage_reserve);
+    assert!(c.submit_referee_result(referee_result(&envelope(1, "agent.testnet"), honest_claims(), &referee_key())));
+    let (u1, r1) = (usage(&mut c), c.verdict(n.clone()).unwrap().storage_reserve);
+    assert!(u1 > u0, "the receipt adds storage");
+    assert_eq!(r0 - r1, u1 - u0, "every receipt byte is drawn from the reserve");
+    let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+    let (u2, r2) = (usage(&mut c), c.verdict(n).unwrap().storage_reserve);
+    assert_eq!(r1 - r2, u2 - u1, "every settle byte is drawn from the reserve");
+}
+
+#[test]
+#[should_panic(expected = "record storage reserve exhausted")]
+fn growth_beyond_the_reserve_is_refused() {
+    let mut c = setup();
+    let n = hex::encode([1u8; 32]);
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    c.verdicts.get_mut(&n).unwrap().storage_reserve = 10;
+    c.submit_referee_result(referee_result(&envelope(1, "agent.testnet"), honest_claims(), &referee_key()));
+}
