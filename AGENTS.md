@@ -24,7 +24,7 @@ Needs Rust stable and Node 22. From the repo root:
 | rebuild receipts data | `make receipts` | rewrites `agents/receipts.json` from contract events |
 | rebuild reviews data | `make reviews` | rewrites `agents/reviews.json` (sealed reviews) |
 | Semaphore fixtures | `cd semaphore && npm install --ignore-scripts && node gen-fixtures.mjs` | rewrites `fixtures/semaphore/` (proofs are randomized) |
-| live plan, testnet | `DRY_RUN=1 make demo-live` | 13 steps, each `ready`, `NEEDS` (with the missing tool) or `skip`; sends nothing |
+| live plan, testnet | `DRY_RUN=1 make demo-live` | 14 steps, each `ready`, `NEEDS` (with the missing tool) or `skip`; sends nothing |
 | live run, testnet | `make demo-live` | needs near-cli-rs, a deployed bazaar and seeds; refuses mainnet (exit 2) |
 | deploy plan, testnet | `DRY_RUN=1 scripts/deploy-testnet.sh` | every command printed, nothing sent |
 | contract wasm | `make wasm` | needs cargo-near |

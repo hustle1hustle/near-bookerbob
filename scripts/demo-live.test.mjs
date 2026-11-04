@@ -23,13 +23,14 @@ test("mainnet in any form is refused", () => {
 test("dry path: every step listed, tool steps marked, nothing read or sent", () => {
   const c = config({ ...base, DRY_RUN: "1" });
   const steps = plan(c, "36000000");
-  assert.deepEqual(steps.map((s) => s.id), ["board", "deployed", "sign", "agents", "world", "verdict", "quote", "referee", "receipt", "escrow", "settle", "replay", "outlayer"]);
+  assert.deepEqual(steps.map((s) => s.id), ["board", "deployed", "sign", "agents", "fckey", "world", "verdict", "quote", "referee", "receipt", "escrow", "settle", "replay", "outlayer"]);
   const text = describe(c, steps, { near: false, keys: true });
   assert.match(text, /dry run, nothing is sent/);
-  assert.equal((text.match(/ NEEDS /g) ?? []).length, 7);
+  assert.equal((text.match(/ NEEDS /g) ?? []).length, 8);
   assert.equal((describe(c, steps, { near: true, keys: false }).match(/ NEEDS /g) ?? []).length, 2);
   assert.match(text, /needs: near-cli-rs \(cargo install --locked near-cli-rs\)/);
-  assert.match(text, /13  skip .*OutLayer/);
+  assert.match(text, /14  skip .*OutLayer/);
+  assert.match(text, /grant-function-call-access --allowance 0.25 NEAR --receiver-account-id bookerbob\.testnet --method-names settle/);
   assert.match(text, /\+ near contract call-function as-transaction bookerbob\.testnet settle json-args <settle args>/);
   assert.match(text, /ft_transfer_call json-args \{"receiver_id":"bookerbob\.testnet","amount":"36000000","msg":""\}/);
   assert.equal(steps.find((s) => s.id === "replay").expectFail, "nullifier spent");

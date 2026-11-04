@@ -65,6 +65,11 @@ export function plan(c, price) {
     { id: "deployed", kind: "view", title: `bazaar ${c.bazaar} is deployed with issuers and merchants`, view: [c.bazaar, "merchants", { from_index: 0, limit: 50 }], needs: ["scripts/deploy-testnet.sh has run"] },
     { id: "sign", kind: "local", title: "sign the purchase verdict and World attestation with the testnet keys", cmd: () => [...BOOKERBOB, "sign-live", c.keysDir, c.agent, c.wallet2, c.worldAction, c.liveDir], needs: [`seeds in ${c.keysDir} (deploy-testnet.sh makes them)`] },
     { id: "agents", kind: "tx", title: `create ${c.agent} and ${c.wallet2}`, near: [sub(c.agent), sub(c.wallet2)], needs: [NEAR_CLI], skipIf: [c.agent, c.wallet2] },
+    // A function-call key for the agent, limited to `settle` on the bazaar. NEAR function-call
+    // keys cannot attach a deposit, so submit_verdict (pays storage) and withdraw (1 yocto)
+    // still need the full-access key; that is the point: this key can only spend escrow on
+    // a refereed purchase.
+    { id: "fckey", kind: "tx", title: "add a function-call key for the agent: settle only, 0.25 NEAR gas allowance", near: [["account", "add-key", c.agent, "grant-function-call-access", "--allowance", "0.25 NEAR", "--receiver-account-id", c.bazaar, "--method-names", "settle", "autogenerate-new-keypair", "save-to-keychain", "network-config", "testnet", "sign-with-keychain", "send"]], needs: [NEAR_CLI] },
     { id: "world", kind: "tx", title: "bind the agent to one World ID person", near: [call(c.agent, c.bazaar, "attest_human", () => `{"attestation":${file("world.json")()}}`, "0.01 NEAR")], needs: [NEAR_CLI] },
     { id: "verdict", kind: "tx", title: "submit the verdict: merchants see 3 bits and a commitment", near: [call(c.agent, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict.json")()}}`, "0.05 NEAR")], needs: [NEAR_CLI] },
     { id: "quote", kind: "view", title: "best hoodie quote on chain", view: [c.bazaar, "best_quote", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier, category: "hoodie" })], expect: price ? `price ${price}` : undefined },
