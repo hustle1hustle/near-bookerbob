@@ -57,6 +57,12 @@ async function renderReviews() {
     : `<tr><td>reviews.json not found. run make reviews</td></tr>`;
 }
 renderReviews();
+// #reviews: only the sealed reviews section (demo capture).
+if (location.hash === "#reviews") {
+  document.querySelectorAll(".filter, .panel:not(:last-of-type)").forEach((e) => (e.style.display = "none"));
+  document.querySelector("h1").style.display = "none";
+  document.querySelector(".sub").style.display = "none";
+}
 function render() {
   const only = document.getElementById("only").checked;
   const rows = data.receipts.filter((r) => !only || r.status === "settled").sort((a, b) => (a.status === "settled" ? -1 : 0) - (b.status === "settled" ? -1 : 0));
