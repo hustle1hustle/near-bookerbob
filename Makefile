@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -32,6 +32,10 @@ demo-tester:
 	node scripts/demo-tester.mjs run
 
 # Re-derive every testnet claim over public RPC (no keys, no build).
+# The fast path for judges: under 2 minutes from a clean clone, Node only.
+judge:
+	node scripts/judge.mjs
+
 verify-live:
 	node scripts/verify-live.mjs
 
