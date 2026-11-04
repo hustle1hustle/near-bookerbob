@@ -15,6 +15,7 @@
 mod evals;
 mod fixtures;
 mod keys;
+mod near_ai;
 mod swarm;
 mod verify;
 
@@ -126,6 +127,12 @@ fn main() -> ExitCode {
                     ExitCode::FAILURE
                 }
             }
+        }
+        Some("near-ai") if args.len() >= 3 => near_ai::run(Path::new(&args[1]), Path::new(&args[2])),
+        Some("near-ai-bind") if args.len() >= 2 => {
+            let e: bookerbob_core::Envelope = serde_json::from_str(&std::fs::read_to_string(&args[1]).expect("read envelope")).expect("parse envelope");
+            println!("{}", e.near_ai_bind());
+            ExitCode::SUCCESS
         }
         Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1]), args.get(2).map(Path::new)),
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),

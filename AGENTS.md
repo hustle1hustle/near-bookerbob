@@ -14,7 +14,7 @@ Needs Rust stable and Node 22. From the repo root:
 
 | goal | command | expected |
 |---|---|---|
-| everything offline | `make verify` | `ALL PASS (26 checks)`, `PASS  public receipts page data matches agents/receipts.json`, `PASS  swarm board matches agents/board.json and contract best_quote per category`, `PASS  referee evals 50/50 (39 cheats refused, 11 honest receipts)` |
+| everything offline | `make verify` | `ALL PASS (26 checks)`, `PASS  public receipts page data matches agents/receipts.json`, `PASS  swarm board matches agents/board.json and contract best_quote per category`, `PASS  referee evals 50/50 (39 cheats refused, 11 honest receipts)`, `PASS  NEAR AI verdict: 8 checks` |
 | the story in one screen | `make demo-offline` | the hoodie board, then the PASS lines for World ID, group unlock, cheat refused, settle, replay; ends `ALL PASS (26 checks)` |
 | unit tests | `make test` | cargo workspace (contract, core, worker, cli) and node tests (ucp, mcp, x402, sdk, scripts), all ok |
 | Stellar contract tests | `make test-stellar` | all ok (own workspace, `stellar/`) |
@@ -52,6 +52,7 @@ Real, and checked by code in this repo:
   (nearcore VM logic for host functions such as `ed25519_verify` and `p256_verify`). It is
   not deployed yet.
 - Prices: always `core/src/price.rs`. No model sets a price.
+- NEAR AI verdict: `fixtures/live/near-ai/` is a live E2EE v2 capture (synthetic facts); `make verify` checks its TDX quote, report_data, TEE signature, sealed answer and envelope binding offline.
 - NEAR AI Cloud: `agents/out/live-run.json` is a recorded live run, 32 of 32 response
   signatures verified against the exact bytes. `fixtures/live/e2ee-signature.json`: under
   E2EE v2 the signature covers the ciphertext.
@@ -69,7 +70,7 @@ Fixture or synthetic:
 - World ID: a placeholder action and a fixture verifier key.
 - The USDC payout in `make verify` is a scheduled receipt, not an executed transfer.
 
-Not built: function-call keys for agents, TDX quote verification, the NEAR side of the
+Not built: function-call keys for agents, NVIDIA GPU evidence checks, on-chain acceptance of the NEAR AI verdict, the NEAR side of the
 Stellar payout, 1Click. See `README.md` "NEAR features used" and `RESUME.md`.
 
 ## Rules for changes
