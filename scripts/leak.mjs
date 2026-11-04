@@ -76,6 +76,32 @@ links.push({ rule: "L3 funding", what: "review senders and buyers share one fund
 // L4: reveal ties a rating to its sealed hash and sender (by design; the sender is one-time).
 links.push({ rule: "L4 reveal", what: "a revealed rating to its one-time sender", linked: true, note: "by design: the sender is fresh, so this only matters combined with L2", anonymity_set: 1 });
 
+// L5: plaintext facts in tx args. Every recorded tester tx (and the delegate actions inside
+// it) is decoded and searched for the proof set's field names and proof refs. The referee
+// input must travel sealed (request_referee refuses plaintext); the receipt and the verdict
+// carry predicates, hashes and prices, never a fact.
+const facts = JSON.parse(readFileSync(new URL("../fixtures/proofs.json", import.meta.url))).facts;
+const needles = [...new Set(facts.flatMap((f) => [`"${f.field}"`, f.proof_ref]))];
+const argsOf = (actions) => (actions ?? []).flatMap((a) => {
+  if (a.FunctionCall) return [Buffer.from(a.FunctionCall.args, "base64").toString("utf8")];
+  if (a.Delegate) return argsOf(a.Delegate.delegate_action.actions.map((x) => x.NonDelegateAction ?? x));
+  return [];
+});
+// The rule must be able to fire: a plaintext referee input (what request_referee now refuses)
+// is caught.
+const probe = argsOf([{ FunctionCall: { args: Buffer.from(JSON.stringify({ proofs: { facts } })).toString("base64") } }]);
+if (!probe.some((a) => needles.some((n) => a.includes(n)))) throw new Error("L5 cannot detect a plaintext fact: rule broken");
+const hashes = buyers.flatMap((b) => Object.values(b.txs));
+let scanned = 0;
+const hits = [];
+for (const h of hashes) {
+  const r = (await rpc("tx", { tx_hash: h, sender_account_id: m.treasury, wait_until: "FINAL" })).result;
+  if (!r) continue;
+  scanned++;
+  for (const a of argsOf(r.transaction.actions)) for (const n of needles) if (a.includes(n)) hits.push({ tx: h, needle: n.slice(0, 20) });
+}
+links.push({ rule: "L5 plaintext facts", what: `the proof set's fields and proof refs in the args of ${scanned} tester txs`, linked: hits.length > 0, note: hits.length ? `found in ${hits.length} places: ${hits.slice(0, 3).map((x) => x.tx.slice(0, 8)).join(", ")}` : "none: facts never left the buyer side in tx args", anonymity_set: hits.length ? 1 : buyers.length });
+
 const ratingToBuyer = links.find((l) => l.rule.startsWith("L2")).linked;
 console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${round.round})\n`);
 for (const l of links) console.log(`${l.linked ? "LINKED  " : "unlinked"}  ${l.rule.padEnd(16)} ${l.what}  (anonymity set ${l.anonymity_set}${l.correct !== undefined ? `, ${l.correct}/${l.of} right` : ""}${l.note ? `; ${l.note}` : ""})`);

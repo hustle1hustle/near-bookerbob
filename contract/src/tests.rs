@@ -2489,3 +2489,33 @@ mod arbiter_quorum {
         c.set_arbiter_threshold(2);
     }
 }
+
+/// The referee input travels sealed: plaintext facts in `request_referee` args are refused.
+mod sealed_referee_input {
+    use super::*;
+
+    fn with_outlayer() -> Bazaar {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_outlayer(acc("outlayer.testnet"));
+        c
+    }
+
+    #[test]
+    #[should_panic(expected = "referee input must be sealed")]
+    fn plaintext_facts_are_refused() {
+        let mut c = with_outlayer();
+        let plain = serde_json::json!({ "proofs": proofs(), "claims": honest_claims() }).to_string();
+        let _ = c.request_referee("owner/referee".into(), plain);
+    }
+
+    #[test]
+    fn a_sealed_input_is_forwarded_to_outlayer() {
+        let mut c = with_outlayer();
+        let pk = bookerbob_referee_worker::sealed::public_hex(&[5u8; 32]);
+        let s = bookerbob_referee_worker::sealed::seal(&pk, b"{\"v\":0}", [9u8; 32], [1u8; 24]).unwrap();
+        let input = serde_json::json!({ "sealed": s }).to_string();
+        let _ = c.request_referee("owner/referee".into(), input);
+        assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == "outlayer.testnet"));
+    }
+}

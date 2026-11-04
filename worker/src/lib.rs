@@ -9,6 +9,7 @@
 //! Privacy: `input_data` of an on-chain `request_execution` is public. Synthetic fixtures
 //! are fine there; a real proof set goes over OutLayer's HTTPS path or sealed to the
 //! worker key. See docs/outlayer.md.
+pub mod sealed;
 use bookerbob_core::{quote_in_cohort, referee, Claim, ProofSet, RefereeOutcome, Schedule};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};

@@ -434,7 +434,7 @@ fn anchor_delay_ms() -> u64 {
 pub const MAX_ANCHOR_DELAY_MS: u64 = 30 * 24 * 3600 * 1000;
 
 /// Distinct registered arbiters that must sign a dispute decision or a challenge resolution.
-fn arbiter_threshold() -> u64 {
+fn arbiter_quorum() -> u64 {
     read_u64(b"arbiter_threshold").max(1)
 }
 
@@ -537,7 +537,7 @@ impl Bazaar {
     pub fn set_arbiter_threshold(&mut self, n: u64) {
         self.assert_owner();
         require!(n >= 1 && n <= self.arbiters.len() as u64, "threshold must be 1 to the number of arbiters");
-        if n < arbiter_threshold() && self.queue_anchor("arbiter_threshold", serde_json::json!({ "n": n })) {
+        if n < arbiter_quorum() && self.queue_anchor("arbiter_threshold", serde_json::json!({ "n": n })) {
             return;
         }
         env::storage_write(b"arbiter_threshold", &n.to_le_bytes());
@@ -545,7 +545,7 @@ impl Bazaar {
     }
 
     pub fn arbiter_threshold(&self) -> u64 {
-        arbiter_threshold()
+        arbiter_quorum()
     }
 
     pub fn anchor_delay(&self) -> u64 {
@@ -1177,7 +1177,7 @@ impl Bazaar {
                 keys.push(k);
             }
         }
-        require!(keys.len() as u64 >= arbiter_threshold(), format!("needs {} distinct arbiter signatures", arbiter_threshold()));
+        require!(keys.len() as u64 >= arbiter_quorum(), format!("needs {} distinct arbiter signatures", arbiter_quorum()));
         let mut bonds = worker_bonds();
         if valid {
             let (bonder, _) = bonds.get(&p.worker_key).cloned().expect("bonded at submit");
@@ -1639,6 +1639,15 @@ impl Bazaar {
     /// `input_data` is public on chain: synthetic fixtures only; real proofs use the HTTPS path.
     #[payable]
     pub fn request_referee(&mut self, project_id: String, input_data: String) -> Promise {
+        // Tx args are public: the proof set may only travel sealed to the worker's key
+        // (`{"sealed": {v, epk, nonce, ct, commitment}}`, worker/src/sealed.rs). Plaintext
+        // input is refused, so real facts never land on chain (audit A20).
+        let v: serde_json::Value = serde_json::from_str(&input_data).unwrap_or_else(|_| env::panic_str("input_data is not JSON"));
+        let sealed = v.as_object().is_some_and(|o| o.len() == 1)
+            && ["epk", "nonce", "ct", "commitment"]
+                .iter()
+                .all(|k| v["sealed"][k].as_str().is_some_and(|x| !x.is_empty() && x.bytes().all(|b| b.is_ascii_hexdigit())));
+        require!(sealed, "referee input must be sealed to the worker key (plaintext facts would be public)");
         let outlayer = self.outlayer.clone().unwrap_or_else(|| env::panic_str("outlayer not set"));
         ext_outlayer::ext(outlayer)
             .with_attached_deposit(env::attached_deposit())
@@ -1741,7 +1750,7 @@ impl Bazaar {
     /// settle it marks the record `disputed` (refunds are out of scope for v0).
     /// Returns true when the receipt was overturned.
     pub fn submit_dispute_decision(&mut self, decision: DisputeDecision) -> bool {
-        require!(arbiter_threshold() == 1, "this bazaar needs several arbiter signatures: submit_dispute_decisions");
+        require!(arbiter_quorum() == 1, "this bazaar needs several arbiter signatures: submit_dispute_decisions");
         self.submit_dispute_decisions(vec![decision])
     }
 
@@ -1762,7 +1771,7 @@ impl Bazaar {
                 keys.push(d.arbiter_key.clone());
             }
         }
-        require!(keys.len() as u64 >= arbiter_threshold(), format!("needs {} distinct arbiter signatures", arbiter_threshold()));
+        require!(keys.len() as u64 >= arbiter_quorum(), format!("needs {} distinct arbiter signatures", arbiter_quorum()));
         let b = &b;
         let record = self.verdicts.get_mut(&b.nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(record.digest == b.verdict_digest, "dispute is for another verdict");

@@ -46,6 +46,15 @@ Same 6 buyers, a new round: 6 sealed ratings, revealed, released by
   anonymity set is back to the group.
 - L1, L3, L4 unchanged (see Before).
 
+## L5: plaintext facts in tx args (added 2026-11-05)
+
+`make leak` decodes the args of every recorded tester tx, delegate actions included (66 txs),
+and searches them for the proof set's field names and proof refs; it first checks that a
+plaintext referee input would be caught. Result: none. The verdict carries predicate bits and
+hashes, the receipt a price and hashes, never a fact. The one call that would carry facts,
+`request_referee`, now refuses anything but input sealed to the worker's X25519 key
+(`worker/src/sealed.rs`; `bookerbob referee-pub`, `bookerbob seal-input`).
+
 ## Still open, stated plainly
 
 - L1: one demo account per purchase links that purchase's verdict, settle and review-group

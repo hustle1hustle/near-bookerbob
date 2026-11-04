@@ -144,6 +144,38 @@ fn main() -> ExitCode {
         Some("evidence") => evidence::run(),
         // graph-input <onchain-root-hex> <out.json> <agent>:<sub> | hex:<event> ...: the standing guest's input
         // for a live graph, refused unless the events hash to the root read from chain.
+        // referee-pub <keys-dir>: the worker's X25519 key a buyer seals the referee input to
+        Some("referee-pub") if args.len() >= 2 => {
+            let seed = std::fs::read_to_string(Path::new(&args[1]).join("referee.seed")).unwrap_or_default();
+            match hex::decode(seed.trim()).ok().and_then(|b| <[u8; 32]>::try_from(b).ok()) {
+                Some(s) => {
+                    println!("{}", bookerbob_referee_worker::sealed::public_hex(&s));
+                    ExitCode::SUCCESS
+                }
+                None => {
+                    eprintln!("no referee.seed in {}", args[1]);
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        // seal-input <worker-x25519-pk> <input.json>: {"sealed":{..}} for request_referee
+        Some("seal-input") if args.len() >= 3 => {
+            use std::io::Read;
+            let mut rnd = [0u8; 56];
+            std::fs::File::open("/dev/urandom").and_then(|mut f| f.read_exact(&mut rnd)).expect("urandom");
+            let pt = std::fs::read(&args[2]).expect("read input");
+            let (eph, nonce): ([u8; 32], [u8; 24]) = (rnd[..32].try_into().unwrap(), rnd[32..].try_into().unwrap());
+            match bookerbob_referee_worker::sealed::seal(&args[1], &pt, eph, nonce) {
+                Ok(s) => {
+                    println!("{}", serde_json::json!({ "sealed": s }));
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         // graph-resolve <keys-dir> <root> <scores-hash> <proof-sha256> valid|invalid
         Some("graph-resolve") if args.len() >= 6 => match keys::graph_resolve(Path::new(&args[1]), &args[2], &args[3], &args[4], args[5] == "valid") {
             Ok(v) => {

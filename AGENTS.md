@@ -97,6 +97,9 @@ Not built: function-call keys for agents, NVIDIA GPU evidence checks, a TDX quot
 
 ## Rules for changes
 
+- Run `make wasm` before any deploy and deploy only if it succeeds: the wasm build catches
+  export-name clashes (a free function named like a contract method) that native tests miss.
+
 - `make verify` and `make test` must stay offline and pass. Run both before a commit.
 - After changing merchants or schedules, run `make swarm`; after changing fixture code,
   run `make fixtures` and commit the result (`make fixtures-check` gates CI).
