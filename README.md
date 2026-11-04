@@ -301,14 +301,14 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
   numbers, plain ascii), not language understanding. A discount never depends on the text:
   only on asserted values that equal the proof.
 - `make verify` runs the contract code natively against near-sdk's MockedBlockchain, not
-  on a live chain. Nothing is deployed yet; testnet addresses and tx hashes go below.
+  on a live chain. The testnet deployment and its tx hashes are below.
 
 ## Deployments
 
 **Testnet, 2026-11-04.** The `bazaar` contract is live at
 [`bookerbob.testnet`](https://testnet.nearblocks.io/address/bookerbob.testnet) (wasm 600 KB,
 sha256 in the build output), with 30 merchant sub-accounts registered and approved, the
-trust-anchor keys registered and USDC storage paid. 139 transactions, every hash in
+trust-anchor keys registered and USDC storage paid. 156 transactions so far, every hash in
 [docs/testnet.md](docs/testnet.md). Key ones:
 
 | what | tx |
@@ -322,11 +322,24 @@ trust-anchor keys registered and USDC storage paid. 139 transactions, every hash
 | Chain Signatures `sign`, domain 0 (secp256k1), path `evm-1`: a signed Base Sepolia USDC payout | [4AN6Ytp4…](https://testnet.nearblocks.io/txns/4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM) |
 | worker-signed standing update for the live hire graph (root `782a6b09…`, proved in 1.74 s), accepted; empty score list until a paid purchase seeds the graph | [4nHqu5TW…](https://testnet.nearblocks.io/txns/4nHqu5TWinE2sXpeVkStL3N4mHJSQGm2r7Tgt2dXbGZp) |
 
-`make demo-live` ran on testnet up to escrow: the agent's settle-only function-call key, its
-World ID binding, the verdict ([86XFzy3P…](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw)) and the referee receipt
-([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2), 38.40 USDC: one buyer on testnet, so no group price). Escrow, settle and
-the replay wait on testnet USDC for the agent. Not yet on testnet: the OutLayer referee.
-Mainnet only on an explicit go.
+Where testnet stands, as of 2026-11-04:
+
+- Done on testnet: deploy, 30 approved merchants, trust anchors, the agent's settle-only
+  function-call key, its World ID binding (placeholder action), the verdict
+  ([86XFzy3P…](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw))
+  and the referee receipt
+  ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
+  38.40 USDC: one buyer on testnet, so no group price), three hire edges and a Jolt-proven,
+  worker-signed standing update for them, and one Chain Signatures payout signed for Base
+  Sepolia.
+- Waiting on testnet USDC for the agent: escrow, settle, the replay refusal, sealed reviews
+  and, through them, nonzero standing scores.
+- Waiting on Base Sepolia ETH and USDC for the MPC payer `0x56Aa…DF78`: broadcasting the
+  signed payout.
+- Not on testnet yet: the OutLayer referee, the NEP-366 relayer sending.
+- Proposed, not built: a testnet demo mode with a free-mint demo token
+  ([docs/demo-mode-plan.md](docs/demo-mode-plan.md)).
+- Mainnet only on an explicit go.
 
 ### Deploy to testnet (one command)
 
