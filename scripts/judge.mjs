@@ -75,7 +75,7 @@ const zk = (g, input) => {
 for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
 
 // 3. JS suites
-const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs"].filter((f) => existsSync(root + f));
+const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs"].filter((f) => existsSync(root + f));
 const { NEAR_RPC: _ignored, ...suiteEnv } = process.env;
 const t = spawnSync("node", ["--test", ...suites], { cwd: root, encoding: "utf8", timeout: 60_000, env: suiteEnv });
 const pass = Number(t.stdout.match(/^# pass (\d+)/m)?.[1] ?? 0);
