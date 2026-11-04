@@ -23,7 +23,7 @@ export function config(env) {
   const keysDir = env.KEYS_DIR || join(homedir(), ".rep-secrets", "bookerbob-testnet");
   return {
     network: env.NEAR_NETWORK || "testnet",
-    rpc: env.NEAR_RPC || "https://rpc.testnet.near.org",
+    rpc: env.NEAR_RPC || "https://test.rpc.fastnear.com",
     near: env.NEAR_CLI || "near",
     bazaar,
     agent: env.AGENT_ACCOUNT_ID || `agent.${bazaar}`,
@@ -42,7 +42,8 @@ export function config(env) {
 /** A reason to refuse, or null. Checked before any step, dry run included. */
 export function guard(c) {
   if (c.network !== "testnet") return `NEAR_NETWORK=${c.network}: demo-live is testnet only`;
-  if (!/testnet/.test(c.rpc)) return `RPC ${c.rpc} is not testnet`;
+  // rpc.testnet.near.org is deprecated (HTTP 429); fastnear's testnet host is allowed by name.
+  if (!/testnet/.test(c.rpc) && !c.rpc.startsWith("https://test.rpc.fastnear.com")) return `RPC ${c.rpc} is not testnet`;
   for (const a of [c.bazaar, c.agent, c.wallet2]) if (!a.endsWith(".testnet")) return `${a} is not a .testnet account`;
   if (c.usdc === MAINNET_USDC) return "USDC_CONTRACT_ID is the mainnet token";
   for (const a of [c.mpc, c.outlayer]) if (a.endsWith(".near")) return `${a} is a mainnet contract`;

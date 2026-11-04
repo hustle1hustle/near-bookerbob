@@ -8,7 +8,7 @@
 // Env: BAZAAR_ACCOUNT_ID (required), NEAR_RPC (default testnet RPC).
 import { createInterface } from "node:readline";
 
-const RPC = process.env.NEAR_RPC ?? "https://rpc.testnet.near.org";
+const RPC = process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com";
 const BAZAAR = process.env.BAZAAR_ACCOUNT_ID ?? "";
 const HEX32 = { type: "string", pattern: "^[0-9a-f]{64}$", description: "hex, 32 bytes" };
 

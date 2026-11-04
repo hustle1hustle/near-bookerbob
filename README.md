@@ -304,7 +304,21 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 
 ## Deployments
 
-None yet. Testnet first; mainnet only on an explicit go.
+**Testnet, 2026-11-04.** The `bazaar` contract is live at
+[`bookerbob.testnet`](https://testnet.nearblocks.io/address/bookerbob.testnet) (wasm 567 KB,
+sha256 in the build output), with 30 merchant sub-accounts registered and approved, the
+trust-anchor keys registered and USDC storage paid. 139 transactions, every hash in
+[docs/testnet.md](docs/testnet.md). Key ones:
+
+| what | tx |
+|---|---|
+| account (faucet) | [373gAmQ3…](https://testnet.nearblocks.io/txns/373gAmQ3hLM8snr1xQeY11YVL5Q5Nbaw1CDu7dwgYnbZ) |
+| deploy and `new` | [2Dc63333…](https://testnet.nearblocks.io/txns/2Dc63333QfYaP7zdnzoUnWBrz9B8M1trBN8LkSnYu1cy) |
+| `register_issuer` | [95mbs6KG…](https://testnet.nearblocks.io/txns/95mbs6KGPHfNYU4RHa5ZQ6jgGq6vNZw7qhXTmA3yyUoG) |
+| first Chain Signatures `sign`, domain 1 (Ed25519), path `stellar-1`: the 64-byte signature verifies over the payload with the derived key `ed25519:Hni3RKAy…` (`fixtures/live/mpc-sign.txt`) | [2yHrL9YW…](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
+
+Not yet on testnet: a purchase (`make demo-live`), the OutLayer referee. Mainnet only on an
+explicit go.
 
 ### Deploy to testnet (one command)
 

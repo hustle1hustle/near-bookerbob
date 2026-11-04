@@ -7,7 +7,7 @@
 // - USDC: ft_metadata of the Circle testnet token.
 import { writeFileSync, mkdirSync } from "node:fs";
 
-const RPC = process.env.NEAR_RPC ?? "https://rpc.testnet.near.org";
+const RPC = process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com";
 const MPC = process.env.MPC_SIGNER_ID ?? "v1.signer-prod.testnet";
 const OUTLAYER = process.env.OUTLAYER_CONTRACT_ID ?? "outlayer.testnet";
 const USDC = process.env.USDC_CONTRACT_ID ?? "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af";

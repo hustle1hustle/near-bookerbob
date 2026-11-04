@@ -102,7 +102,7 @@ export function rpcVerdictReader({ rpcUrl, bazaar }) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { X402_FACILITATOR_URL, X402_PAY_TO, BAZAAR_ACCOUNT_ID, NEAR_RPC = "https://rpc.testnet.near.org", PORT = "4021" } = process.env;
+  const { X402_FACILITATOR_URL, X402_PAY_TO, BAZAAR_ACCOUNT_ID, NEAR_RPC = "https://test.rpc.fastnear.com", PORT = "4021" } = process.env;
   if (!X402_FACILITATOR_URL || !X402_PAY_TO || !BAZAAR_ACCOUNT_ID) {
     console.error("set X402_FACILITATOR_URL, X402_PAY_TO and BAZAAR_ACCOUNT_ID (testnet)");
     process.exit(2);

@@ -1,0 +1,117 @@
+payload 46a34737e05cc22f6a9fc8df20a0238965fc227e5068fe49afc084cce1716977
+├  Unsigned transaction:
+│    signer_id:    bookerbob.testnet
+│    receiver_id:  v1.signer-prod.testnet
+│    actions:
+│       -- function call:      
+│                       method name:  sign
+│                       args:         {
+│                                       "request": {
+│                                         "domain_id": 1,
+│                                         "path": "stellar-1",
+│                                         "payload_v2": {
+│                                           "Eddsa": "46a34737e05cc22f6a9fc8df20a0238965fc227e5068fe49afc084cce1716977"
+│                                         }
+│                                       }
+│                                     }
+│                       gas:          300.0 Tgas
+│                       deposit:      1 yoctoNEAR
+│     [0m
+├  Your transaction was signed successfully.
+│    Public key: ed25519:BDvqs4A792Zib81Njs6wv4UrgazJU51aNPHaHuEyNuq
+│    Signature:  ed25519:3QRW5pQBKPDyksa2zDLmrYhUPjKcQLNwGKupCYdUij4ZUJjfyDWAw95asmgQKr9RcJupT6PvVSwS8jLUy8KumGpb
+│     [0m
+├  Transaction Execution Info:
+│    Gas burned: 0.315 Tgas
+│    Transaction fee: 0.00003147352201 NEAR
+│    Transaction ID: 2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe
+│    To see the transaction in the transaction explorer, please open this url in your browser:
+│    https://explorer.testnet.near.org/transactions/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe
+│     [0m
+├  Function execution logs:
+│    Logs [v1.signer-prod.testnet]:
+│      sign: predecessor=AccountId("bookerbob.testnet"), request=SignRequestArgs { path: "stellar-1", payload: Eddsa(BoundedVec { inner: [70, 163, 71, 55, 224, 92, 194, 47, 106, 159, 200, 223, 32, 160, 35, 137, 101, 252, 34, 126, 80, 104, 254, 73, 175, 192, 132, 204, 225, 113, 105, 119], witness: PossiblyEmpty(()) }), domain_id: DomainId(1) }
+│    Logs [v1.signer-prod.testnet]:   No logs
+│    Logs [bookerbob.testnet]:   No logs
+│    Logs [bookerbob.testnet]:   No logs
+│     [0m
+
+Function execution return value (printed to stdout):
+{
+  "scheme": "Ed25519",
+  "signature": [
+    139,
+    26,
+    238,
+    2,
+    160,
+    89,
+    241,
+    31,
+    149,
+    29,
+    232,
+    143,
+    167,
+    236,
+    124,
+    204,
+    110,
+    161,
+    147,
+    227,
+    139,
+    69,
+    149,
+    146,
+    21,
+    237,
+    148,
+    252,
+    110,
+    9,
+    201,
+    213,
+    190,
+    22,
+    240,
+    36,
+    138,
+    37,
+    70,
+    96,
+    65,
+    50,
+    152,
+    189,
+    171,
+    215,
+    69,
+    4,
+    206,
+    147,
+    7,
+    84,
+    200,
+    171,
+    253,
+    167,
+    35,
+    225,
+    40,
+    246,
+    104,
+    9,
+    206,
+    11
+  ]
+}
+
+
+The "sign" call to <v1.signer-prod.testnet> on behalf of <bookerbob.testnet> succeeded.
+
+
+
+
+Here is your console command if you need to script it or re-run:
+    [33mnear contract call-function as-transaction v1.signer-prod.testnet sign json-args '{"request":{"payload_v2":{"Eddsa":"46a34737e05cc22f6a9fc8df20a0238965fc227e5068fe49afc084cce1716977"},"path":"stellar-1","domain_id":1}}' prepaid-gas '300.0 Tgas' attached-deposit '1 yoctoNEAR' sign-as bookerbob.testnet network-config testnet sign-with-keychain send[39m

@@ -16,7 +16,7 @@ cd "$(dirname "$0")/.."
 
 DRY_RUN="${DRY_RUN:-0}"
 NETWORK="testnet"
-RPC="${NEAR_RPC:-https://rpc.testnet.near.org}"
+RPC="${NEAR_RPC:-https://test.rpc.fastnear.com}"
 NEAR="${NEAR_CLI:-near}"
 BAZAAR="${BAZAAR_ACCOUNT_ID:-bookerbob.testnet}"
 MERCHANTS="${MERCHANTS:-30}"
@@ -33,26 +33,54 @@ BOOKERBOB="cargo run -q -p bookerbob-cli --"
 
 # ---------- guards ----------
 case "$BAZAAR" in *.testnet) ;; *) echo "refusing: $BAZAAR is not a .testnet account" >&2; exit 2 ;; esac
-case "$RPC" in *testnet*) ;; *) echo "refusing: RPC $RPC is not testnet" >&2; exit 2 ;; esac
+# rpc.testnet.near.org is deprecated (HTTP 429); fastnear's testnet host has no "testnet" in it.
+case "$RPC" in *testnet* | https://test.rpc.fastnear.com*) ;; *) echo "refusing: RPC $RPC is not testnet" >&2; exit 2 ;; esac
 case "$MPC$OUTLAYER" in *.near*) echo "refusing: mainnet contract id" >&2; exit 2 ;; esac
 
 say() { printf '\n== %s\n' "$*"; }
 skip() { printf '   skip: %s\n' "$*"; }
 
 # ---------- chain reads (curl, so a dry run can see state too) ----------
-rpc() { curl -s -m 30 "$RPC" -H 'Content-Type: application/json' -d "$1"; }
+# A read is only an answer when the node answered: a result, or a definitive error
+# (unknown account, no contract code, a contract-side error). Rate limits, timeouts and
+# empty bodies are retried, then the script stops: never mistake an RPC failure for
+# "this does not exist" (that made an earlier run redo finished steps).
+rpc() {
+  local try out
+  for try in 1 2 3 4 5 6; do
+    out=$(curl -s -m 30 "$RPC" -H 'Content-Type: application/json' -d "$1" || true)
+    if printf '%s' "$out" | python3 -c '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+if "result" in d and "error" not in d["result"]:
+    sys.exit(0)
+text = json.dumps(d)
+definitive = ("UNKNOWN_ACCOUNT", "NO_CONTRACT_CODE", "CodeDoesNotExist", "MethodNotFound", "FunctionCallError", "wasm execution failed", "Smart contract panicked")
+sys.exit(0 if any(x in text for x in definitive) else 1)'; then
+      printf '%s' "$out"
+      return 0
+    fi
+    sleep $((try * 3))
+  done
+  echo "RPC $RPC did not answer after 6 tries; stopping instead of guessing" >&2
+  exit 1
+}
 
 account_exists() {
-  rpc "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"view_account\",\"finality\":\"final\",\"account_id\":\"$1\"}}" \
-    | python3 -c 'import sys,json; sys.exit(0 if "result" in json.load(sys.stdin) else 1)'
+  local out
+  out=$(rpc "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"view_account\",\"finality\":\"final\",\"account_id\":\"$1\"}}") || exit 1
+  printf '%s' "$out" | python3 -c 'import sys,json; sys.exit(0 if "result" in json.load(sys.stdin) else 1)'
 }
 
 # view <contract> <method> <json-args>: prints the JSON result, or exits 1 on error.
 view() {
-  local args_b64
+  local args_b64 out
   args_b64=$(printf '%s' "$3" | base64 | tr -d '\n')
-  rpc "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"$1\",\"method_name\":\"$2\",\"args_base64\":\"$args_b64\"}}" \
-    | python3 -c 'import sys,json
+  out=$(rpc "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"query\",\"params\":{\"request_type\":\"call_function\",\"finality\":\"final\",\"account_id\":\"$1\",\"method_name\":\"$2\",\"args_base64\":\"$args_b64\"}}") || exit 1
+  printf '%s' "$out" | python3 -c 'import sys,json
 d=json.load(sys.stdin); r=d.get("result",{})
 if "error" in d or "error" in r or "result" not in r: sys.exit(1)
 print(bytes(r["result"]).decode() or "null")'
@@ -71,7 +99,18 @@ tx() {
   printf '   + %s' "$NEAR"; printf ' %q' "$@"; printf '\n'
   [ "$DRY_RUN" = 1 ] && return 0
   local out hash
-  out=$("$NEAR" "$@" 2>&1) || { echo "$out" >&2; echo "failed: $step" >&2; exit 1; }
+  # Retry only errors raised before anything is sent (nonce fetch, rate limit), never a
+  # transaction that may have executed.
+  local try
+  for try in 1 2 3 4; do
+    if out=$("$NEAR" "$@" 2>&1); then break; fi
+    if [ "$try" -lt 4 ] && echo "$out" | grep -qE "most recent nonce|Failed to fetch access key|Too Many Requests|429"; then
+      echo "   retry $try: transient RPC error before sending" >&2
+      sleep $((try * 5))
+      continue
+    fi
+    echo "$out" >&2; echo "failed: $step" >&2; exit 1
+  done
   echo "$out" | tail -5
   hash=$(echo "$out" | grep -oE 'Transaction ID: [1-9A-HJ-NP-Za-km-z]{43,44}' | head -1 | awk '{print $3}' || true)
   log_init
@@ -148,14 +187,16 @@ m = next(x for x in json.load(open("agents/merchants.json")) if x["account"].spl
 print(json.dumps({"schedule": m["schedule"], "category": m["category"], "payout": None}))
 PY
 )
-    call "register_merchant $id" "$acct" "$BAZAAR" register_merchant "$args" '0.05 NEAR'
+    # 291 bytes of storage (about 0.003 NEAR); the rest of the deposit is refunded. 30 Tgas
+    # keeps the prepaid gas inside the 0.1 NEAR each merchant account is funded with.
+    call "register_merchant $id" "$acct" "$BAZAAR" register_merchant "$args" '0.01 NEAR' '30.0 Tgas'
   fi
   # Registered merchants are not quoted until the owner approves the schedule.
   if [ "$(view "$BAZAAR" merchant "{\"merchant\":\"$acct\"}" 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin)["approved"])' 2>/dev/null)" = "True" ]; then skip "$acct approved"
   else call "approve_merchant $id" "$BAZAAR" "$BAZAAR" approve_merchant "{\"merchant\":\"$acct\"}" '0 NEAR'
   fi
   if [ "$(view "$USDC" storage_balance_of "{\"account_id\":\"$acct\"}" 2>/dev/null || echo null)" = "null" ]; then
-    call "usdc storage_deposit $id" "$acct" "$USDC" storage_deposit "{\"account_id\":\"$acct\",\"registration_only\":true}" '0.00125 NEAR'
+    call "usdc storage_deposit $id" "$acct" "$USDC" storage_deposit "{\"account_id\":\"$acct\",\"registration_only\":true}" '0.00125 NEAR' '30.0 Tgas'
   fi
 done
 
