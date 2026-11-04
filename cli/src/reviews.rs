@@ -93,7 +93,27 @@ pub(crate) fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::Wor
         return Err("no receipt".into());
     }
     at(&e.cnf, NOW_MS);
-    call(|| drop(c.settle(e.nullifier.clone(), acc(&merchant.account), format!("review-order-{}", &e.nullifier[..8]), U128(q.price))))
+    call(|| drop(c.settle(e.nullifier.clone(), acc(&merchant.account), format!("review-order-{}", &e.nullifier[..8]), U128(q.price))))?;
+    confirm_payout(c, &e.nullifier, &e.cnf, q.price)
+}
+
+/// The USDC contract's answer to settle's ft_transfer: success, as the runtime would
+/// deliver it to the callback.
+pub(crate) fn confirm_payout(c: &mut Bazaar, nullifier: &str, agent: &str, amount: u128) -> Result<(), String> {
+    let mut b = VMContextBuilder::new();
+    b.current_account_id(acc(OWNER)).predecessor_account_id(acc(OWNER)).block_timestamp(NOW_MS * 1_000_000);
+    testing_env!(
+        b.build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![near_sdk::PromiseResult::Successful(vec![])]
+    );
+    if call(|| c.on_settle_transfer(nullifier.into(), acc(agent), U128(amount)))? {
+        Ok(())
+    } else {
+        Err("payout not confirmed".into())
+    }
 }
 
 pub(crate) fn proof(p: &Value) -> ReviewProof {

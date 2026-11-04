@@ -1261,6 +1261,7 @@ mod reviews {
             disputed: false,
             storage_reserve: RECORD_RESERVE_BYTES,
             review_joined: false,
+            paid: true,
         };
         c.verdicts.insert(n.clone(), r);
         n
@@ -1553,4 +1554,27 @@ fn hiring_is_capped_per_agent() {
     for i in 0..=MAX_HIRES {
         c.hire(acc(&format!("s{i}.testnet")));
     }
+}
+
+#[test]
+fn a_purchase_joins_the_review_group_only_after_the_payout_succeeded() {
+    // Audit A2: spent is set before the USDC transfer; a failed transfer rolls it back.
+    let mut c = setup();
+    let n = hex::encode([1u8; 32]);
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+    let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+    set("agent.testnet");
+    let early = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.join_review_group(n.clone(), "1".into())));
+    assert!(early.is_err(), "joined before the payout was confirmed");
+    testing_env!(
+        ctx("bazaar.testnet").build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![PromiseResult::Successful(vec![])],
+    );
+    assert!(c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000)));
+    assert!(c.verdict(n.clone()).unwrap().paid);
+    set("agent.testnet");
+    c.join_review_group(n, "1".into());
 }

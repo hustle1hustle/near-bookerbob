@@ -136,7 +136,8 @@ pub fn run(dir: &Path) -> ExitCode {
     at(AGENT, NOW_MS);
     let got = call(|| c.submit_referee_result(honest)).unwrap_or(false);
     at(AGENT, NOW_MS);
-    let paid = call(|| drop(c.settle(e.nullifier.clone(), best.merchant.clone(), "scenario-1".into(), U128(best.quote.price))));
+    let paid = call(|| drop(c.settle(e.nullifier.clone(), best.merchant.clone(), "scenario-1".into(), U128(best.quote.price))))
+        .and_then(|_| crate::reviews::confirm_payout(&mut c, &e.nullifier, AGENT, best.quote.price));
     stages.push((
         "settle: the receipt price leaves escrow, the nullifier is spent, USDC goes to the merchant",
         if got && paid.is_ok() && c.escrow_of(acc(AGENT)) == Some(U128(ESCROW_USDC - best.quote.price)) {

@@ -56,6 +56,8 @@ pub struct VerdictRecord {
     pub storage_reserve: u64,
     /// Set when the agent added a Semaphore identity to the merchant's review group.
     pub review_joined: bool,
+    /// Set by the settle callback once the USDC transfer to the merchant succeeded.
+    pub paid: bool,
 }
 
 #[near(serializers = [borsh, json])]
@@ -468,6 +470,9 @@ impl Bazaar {
         let r = self.verdicts.get_mut(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(r.agent == env::predecessor_account_id(), "agent mismatch");
         require!(r.spent, "only a settled purchase joins a review group");
+        // Not just spent: spent is set before the USDC transfer, and a failed transfer rolls
+        // it back (audit finding A2). Only a confirmed payment earns a membership.
+        require!(r.paid, "payment not confirmed yet");
         require!(!r.review_joined, "this purchase already joined");
         let merchant = r.receipt.as_ref().map(|x| x.merchant.clone()).unwrap_or_else(|| env::panic_str("no receipt"));
         r.review_joined = true;
@@ -824,6 +829,7 @@ impl Bazaar {
             disputed: false,
             storage_reserve: RECORD_RESERVE_BYTES,
             review_joined: false,
+            paid: false,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
         for p in &e.predicates {
@@ -1191,6 +1197,9 @@ impl Bazaar {
     #[private]
     pub fn on_settle_transfer(&mut self, nullifier: String, agent: AccountId, amount: U128) -> bool {
         if env::promise_result_checked(0, 64).is_ok() {
+            if let Some(r) = self.verdicts.get_mut(&nullifier) {
+                r.paid = true;
+            }
             return true;
         }
         if let Some(bal) = self.escrow.get_mut(&agent) {
