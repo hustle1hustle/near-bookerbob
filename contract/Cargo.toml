@@ -12,6 +12,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 near-sdk = { workspace = true }
 bookerbob-core = { path = "../core" }
+bookerbob-graph = { path = "../graph" }
 hex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

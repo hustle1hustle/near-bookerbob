@@ -329,6 +329,7 @@ name = "bookerbob-bazaar"
 version = "0.1.0"
 dependencies = [
  "bookerbob-core",
+ "bookerbob-graph",
  "bookerbob-referee-worker",
  "ed25519-dalek",
  "hex",
@@ -365,6 +366,7 @@ version = "0.1.0"
 dependencies = [
  "ark-bn254",
  "ark-ff",
+ "bookerbob-graph",
  "borsh",
  "chacha20poly1305",
  "hex",
@@ -374,6 +376,13 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "sha3 0.10.9",
+]
+
+[[package]]
+name = "bookerbob-graph"
+version = "0.1.0"
+dependencies = [
+ "sha2 0.10.9",
 ]
 
 [[package]]

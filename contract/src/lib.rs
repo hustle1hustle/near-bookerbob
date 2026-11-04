@@ -221,7 +221,18 @@ pub struct Bazaar {
     review_totals: LookupMap<AccountId, (u64, u64, u64)>,
     /// Hire edges: who an agent hired (at most MAX_HIRES).
     hires: LookupMap<AccountId, Vec<AccountId>>,
+    /// Hash chain over every graph event (hires and review releases), see bookerbob-graph.
+    graph_root: [u8; 32],
+    graph_events: u64,
+    /// sha256 of the Jolt guest ELF whose proofs a score update must come from.
+    graph_program: Option<String>,
+    /// Merchant scores from the latest accepted proven update, and the root it was for.
+    proven_scores: LookupMap<AccountId, u64>,
+    proven_root: Option<String>,
 }
+
+/// Domain tag of the worker's signature over a proven score update.
+pub const GRAPH_UPDATE_TAG: &[u8] = b"bookerbob/graph-update/v0\x00";
 
 /// A NEAR AI model key whose attestation the owner checked off chain (TDX quote to Intel's
 /// root, report_data = key || nonce; `make verify` repeats that check on the committed
@@ -310,6 +321,11 @@ impl Bazaar {
             review_rounds: LookupMap::new(b"o"),
             review_totals: LookupMap::new(b"t"),
             hires: LookupMap::new(b"x"),
+            graph_root: [0u8; 32],
+            graph_events: 0,
+            graph_program: None,
+            proven_scores: LookupMap::new(b"z"),
+            proven_root: None,
         }
     }
 
@@ -457,6 +473,7 @@ impl Bazaar {
         self.review_rounds.flush();
         self.review_totals.flush();
         self.hires.flush();
+        self.proven_scores.flush();
         env::state_write(self);
     }
 
@@ -629,6 +646,7 @@ impl Bazaar {
         v.push(sub_agent.clone());
         self.hires.insert(me.clone(), v);
         emit("hired", serde_json::json!({ "agent": me, "sub_agent": sub_agent }));
+        self.push_graph_event(bookerbob_graph::Event::Hire { agent: me.to_string(), sub: sub_agent.to_string() });
         self.hires.flush();
         charge_storage(before);
     }
@@ -647,6 +665,72 @@ impl Bazaar {
             a.parse::<AccountId>().ok().and_then(|id| self.hires.get(&id).cloned()).unwrap_or_default().into_iter().map(|x| x.to_string())
         });
         (U128(seed), got.into_iter().map(|(k, v)| (k.parse().expect("account"), U128(v))).collect())
+    }
+
+    // ---------- proven graph scores (Jolt), see docs/jolt.md ----------
+
+    fn push_graph_event(&mut self, e: bookerbob_graph::Event) {
+        self.graph_root = bookerbob_graph::extend_root(&self.graph_root, &e);
+        self.graph_events += 1;
+        // The bytes let an indexer rebuild the event list the prover needs.
+        emit("graph_event", serde_json::json!({ "index": self.graph_events, "event": hex::encode(e.bytes()), "root": hex::encode(self.graph_root) }));
+    }
+
+    pub fn graph_root(&self) -> (String, u64) {
+        (hex::encode(self.graph_root), self.graph_events)
+    }
+
+    /// Owner sets the Jolt guest (sha256 of its ELF) whose proofs score updates come from.
+    pub fn set_graph_program(&mut self, program_hash: String) {
+        self.assert_owner();
+        require!(bookerbob_core::is_hex32(&program_hash), "bad program hash");
+        self.graph_program = Some(program_hash);
+    }
+
+    /// A score update computed off chain by the Jolt guest. The proof is too big for chain
+    /// (and for OutLayer's 900-byte output), so a registered worker key verifies it off chain
+    /// and signs `sha256(TAG || program_hash || root || scores_hash)`. Accepted only for the
+    /// registered program and the current graph root (a stale root is refused).
+    #[payable]
+    pub fn submit_graph_scores(
+        &mut self,
+        program_hash: String,
+        root: String,
+        merchants: Vec<(AccountId, u64, u64)>,
+        standing: Vec<(AccountId, U128)>,
+        worker_key: String,
+        signature: String,
+    ) {
+        let before = env::storage_usage();
+        require!(self.graph_program.as_deref() == Some(program_hash.as_str()), "not the registered graph program");
+        require!(root == hex::encode(self.graph_root), "stale graph root");
+        require!(self.referees.contains_key(&worker_key), "unknown worker key");
+        let scores = bookerbob_graph::Scores {
+            root: self.graph_root,
+            merchants: merchants.iter().map(|(m, n, s)| (m.to_string(), *n, *s)).collect(),
+            standing: standing.iter().map(|(a, v)| (a.to_string(), v.0)).collect(),
+        };
+        let mut msg = GRAPH_UPDATE_TAG.to_vec();
+        msg.extend(hex::decode(&program_hash).expect("checked hex"));
+        msg.extend(self.graph_root);
+        msg.extend(scores.hash());
+        let sig: [u8; 64] = decode(&signature, "worker signature");
+        let pk: [u8; 32] = decode(&worker_key, "worker key");
+        require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad worker signature");
+        for (m, _, s) in &merchants {
+            self.proven_scores.insert(m.clone(), *s);
+        }
+        self.proven_root = Some(root.clone());
+        emit(
+            "graph_scores",
+            serde_json::json!({ "root": root, "program": program_hash, "scores_hash": hex::encode(scores.hash()), "merchants": merchants.len() }),
+        );
+        self.proven_scores.flush();
+        charge_storage(before);
+    }
+
+    pub fn proven_score(&self, merchant: AccountId) -> Option<(u64, String)> {
+        self.proven_scores.get(&merchant).map(|s| (*s, self.proven_root.clone().unwrap_or_default()))
     }
 
     // ---------- blind bid rounds ----------

@@ -7,6 +7,7 @@ rust-version.workspace = true
 description = "BookerBob verdict envelope v0, deterministic tier, price and discount stack, referee"
 
 [dependencies]
+bookerbob-graph = { path = "../graph" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 borsh = { workspace = true }

@@ -1597,3 +1597,97 @@ fn a_second_storage_deposit_is_refunded_in_full() {
         .sum();
     assert_eq!(refunded, ESCROW_STORAGE_DEPOSIT.as_yoctonear());
 }
+
+// ---------- proven graph scores (Jolt guest, signed by a worker that verified the proof) ----------
+
+mod graph_scores {
+    use super::*;
+
+    const PROGRAM: &str = "ab00000000000000000000000000000000000000000000000000000000000001";
+
+    /// m01 hires a ring; the off-chain computation over the same events.
+    fn chain() -> (Bazaar, bookerbob_graph::Scores) {
+        let mut c = setup();
+        set("owner.testnet");
+        c.set_graph_program(PROGRAM.into());
+        let mut events = vec![];
+        for (a, b) in [("m01.bazaar.testnet", "s1.testnet"), ("s1.testnet", "s2.testnet"), ("s2.testnet", "s1.testnet")] {
+            set(a);
+            c.hire(acc(b));
+            events.push(bookerbob_graph::Event::Hire { agent: a.into(), sub: b.into() });
+        }
+        let s = bookerbob_graph::compute(&events);
+        assert_eq!(hex::encode(s.root), c.graph_root().0, "the contract's root is the guest's root");
+        (c, s)
+    }
+
+    fn sign(program: &str, s: &bookerbob_graph::Scores) -> String {
+        let mut msg = GRAPH_UPDATE_TAG.to_vec();
+        msg.extend(hex::decode(program).unwrap());
+        msg.extend(s.root);
+        msg.extend(s.hash());
+        let digest = bookerbob_core::sha256(&msg);
+        hex::encode(referee_key().sign(&digest).to_bytes())
+    }
+
+    fn submit(c: &mut Bazaar, program: &str, s: &bookerbob_graph::Scores, sig: String) {
+        set("relayer.testnet");
+        let merchants = s.merchants.iter().map(|(m, n, x)| (acc(m), *n, *x)).collect();
+        let standing = s.standing.iter().map(|(a, v)| (acc(a), U128(*v))).collect();
+        c.submit_graph_scores(program.into(), hex::encode(s.root), merchants, standing, hex::encode(referee_key().verifying_key().to_bytes()), sig);
+    }
+
+    fn with_seed(mut s: bookerbob_graph::Scores) -> bookerbob_graph::Scores {
+        // A merchant score in the update (seeds come from review releases; none here).
+        s.merchants.push(("m01.bazaar.testnet".into(), 6, 345));
+        s
+    }
+
+    #[test]
+    fn a_signed_update_for_the_current_root_and_program_is_accepted() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig);
+        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")).map(|x| x.0), Some(345));
+    }
+
+    #[test]
+    #[should_panic(expected = "bad worker signature")]
+    fn a_tampered_score_is_refused() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        let mut t = s.clone();
+        t.merchants[0].2 = 500;
+        submit(&mut c, PROGRAM, &t, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "stale graph root")]
+    fn an_update_for_a_stale_root_is_refused() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        set("s2.testnet");
+        c.hire(acc("s3.testnet"));
+        submit(&mut c, PROGRAM, &s, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "not the registered graph program")]
+    fn an_update_from_another_program_is_refused() {
+        let (mut c, s) = chain();
+        let other = "cd00000000000000000000000000000000000000000000000000000000000002";
+        let sig = sign(other, &s);
+        submit(&mut c, other, &s, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown worker key")]
+    fn an_update_signed_by_an_unregistered_worker_is_refused() {
+        let (mut c, s) = chain();
+        set("relayer.testnet");
+        c.submit_graph_scores(PROGRAM.into(), hex::encode(s.root), vec![], vec![], "11".repeat(32), "22".repeat(64));
+    }
+}

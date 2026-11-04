@@ -1,0 +1,9 @@
+[package]
+name = "bookerbob-graph"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "The BookerBob standing graph: events, the hash-chained root, conserved transport. no_std, shared by core, the contract and the Jolt guest."
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
