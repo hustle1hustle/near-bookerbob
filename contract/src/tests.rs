@@ -743,3 +743,120 @@ fn failed_withdraw_restores_escrow() {
     assert!(!c.on_withdraw(acc("agent.testnet"), U128(50_000_000)));
     assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
 }
+
+/// Property tests: generated amounts and sequences against the real contract code.
+mod props {
+    use super::*;
+    use proptest::prelude::*;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+
+    /// Run `f`; Ok if it returned, Err(message) if the contract panicked.
+    fn attempt<T>(f: impl FnOnce() -> T) -> Result<T, String> {
+        catch_unwind(AssertUnwindSafe(f)).map_err(|e| {
+            e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default()
+        })
+    }
+
+    /// Each case on its own thread: near-sdk's mocked storage is thread-local and survives
+    /// `testing_env!`, so cases would otherwise share state.
+    fn fresh(f: impl FnOnce() -> Result<(), TestCaseError> + Send + 'static) -> Result<(), TestCaseError> {
+        std::thread::spawn(f).join().unwrap_or_else(|e| std::panic::resume_unwind(e))
+    }
+
+    fn with_one_yocto(predecessor: &str) {
+        let mut b = ctx(predecessor);
+        b.attached_deposit(NearToken::from_yoctonear(1));
+        testing_env!(b.build());
+    }
+
+    #[derive(Clone, Debug)]
+    enum Op {
+        Deposit(u128),
+        Withdraw(u128),
+    }
+
+    fn op() -> impl Strategy<Value = Op> {
+        prop_oneof![(1u128..1_000_000_000).prop_map(Op::Deposit), (0u128..2_000_000_000).prop_map(Op::Withdraw)]
+    }
+
+    fn escrow_case(ops: Vec<Op>) -> Result<(), TestCaseError> {
+        let mut c = setup();
+        let mut model: u128 = 200_000_000;
+        for o in ops {
+            match o {
+                Op::Deposit(a) => {
+                    set(USDC);
+                    let _ = c.ft_on_transfer(acc("agent.testnet"), U128(a), String::new());
+                    model += a;
+                }
+                Op::Withdraw(a) => {
+                    with_one_yocto("agent.testnet");
+                    let r = attempt(|| drop(c.withdraw(U128(a))));
+                    if a > 0 && a <= model {
+                        prop_assert!(r.is_ok(), "withdraw {} of {} failed: {:?}", a, model, r);
+                        model -= a;
+                    } else {
+                        prop_assert!(r.unwrap_err().contains("insufficient escrow"));
+                    }
+                }
+            }
+            prop_assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(model)));
+        }
+        Ok(())
+    }
+
+    fn nullifier_case(n: u8, settle_first: bool) -> Result<(), TestCaseError> {
+        let mut c = setup();
+        let null = hex::encode([n; 32]);
+        submit_with_receipt(&mut c, envelope(n, "agent.testnet"));
+        if settle_first {
+            let _ = c.settle(null, acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+        }
+        // Same nullifier, any wallet: the original agent or a second one.
+        for agent in ["agent.testnet", "wallet2.testnet"] {
+            set(agent);
+            let err = attempt(|| c.submit_verdict(sign_ed(envelope(n, agent)))).unwrap_err();
+            prop_assert!(err.contains(if settle_first { "nullifier spent" } else { "nullifier pending" }), "{}", err);
+        }
+        prop_assert_eq!(c.spent_count(), settle_first as u64);
+        Ok(())
+    }
+
+    fn settle_case(max_spend: u128, delta: i64) -> Result<(), TestCaseError> {
+        let mut c = setup();
+        let price: u128 = 151_200_000;
+        let mut e = envelope(1, "agent.testnet");
+        e.max_spend = max_spend;
+        submit_with_receipt(&mut c, e);
+        let amount = (price as i128 + delta as i128) as u128;
+        let r = attempt(|| drop(c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(amount))));
+        if delta == 0 && max_spend >= price {
+            prop_assert!(r.is_ok(), "{:?}", r);
+            prop_assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000 - price)));
+            prop_assert_eq!(c.nullifier_status(hex::encode([1u8; 32])), NullifierStatus::Spent);
+        } else {
+            prop_assert!(r.is_err());
+            prop_assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        }
+        Ok(())
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(64))]
+
+        #[test]
+        fn escrow_balance_is_conserved(ops in prop::collection::vec(op(), 1..20)) {
+            fresh(move || escrow_case(ops))?;
+        }
+
+        #[test]
+        fn a_nullifier_is_accepted_once(n in 2u8..=255, settle_first in any::<bool>()) {
+            fresh(move || nullifier_case(n, settle_first))?;
+        }
+
+        #[test]
+        fn settle_pays_exactly_the_quote_within_the_cap(max_spend in 1u128..400_000_000, delta in -2i64..=2) {
+            fresh(move || settle_case(max_spend, delta))?;
+        }
+    }
+}

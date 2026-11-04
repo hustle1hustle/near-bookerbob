@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc f2390aa9d6515be8cbc3bc49670106599cbba66a44793e81e7c3badecb3e7987 # shrinks to p = ProofSet { facts: [Fact { id: "F6", platform: "booking", field: "genius_level", value: 0, proof_ref: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" }, Fact { id: "F6", platform: "airbnb", field: "trips_12m", value: 3, proof_ref: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" }] }, s = Schedule { base_price: 1, rules: [], cap_bps: 0, cohort: None }

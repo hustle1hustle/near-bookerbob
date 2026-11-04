@@ -1,7 +1,7 @@
 //! Referee: a deterministic fact-citation checker. A model writes the "why" for each
 //! discount line and must cite facts by id. The referee refuses the receipt if any cited
 //! fact is missing from the proof set, does not prove the line, or the line was not
-//! revealed, and if any applied discount line has no cited claim.
+//! revealed, if any applied discount line has no cited claim, and if two facts share an id.
 //! "The agent can lie. The receipt cannot."
 use serde::{Deserialize, Serialize};
 
@@ -37,6 +37,12 @@ fn refuse(reason: String) -> RefereeOutcome {
 }
 
 pub fn referee(proofs: &ProofSet, revealed: &[String], quote: &Quote, claims: &[Claim]) -> RefereeOutcome {
+    // A citation must name exactly one fact.
+    for (i, f) in proofs.facts.iter().enumerate() {
+        if proofs.facts[..i].iter().any(|g| g.id == f.id) {
+            return refuse(format!("duplicate fact id {} in proof set", f.id));
+        }
+    }
     for c in claims {
         if !crate::is_known_predicate(&c.line) {
             return refuse(format!("{} is not a known predicate", c.line));
