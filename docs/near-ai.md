@@ -51,9 +51,13 @@ What the disclosure gives away: the one-time client secret opens only answers se
 it (this one). The request, which holds the facts, is sealed to the model key and stays
 sealed. Chat ids to look up: verdict `08af1d014f2d4f379dba94094562d9ba`; buyer "why"
 runs `68657600d12549518664defcf8fb0dd1` (honest), `bfbb3d0db39447918285c8b6570ddc7f`
-(injected), `b7b3a69052d84f938b2702e435ef41ff` (direct). NEAR AI's no-code page is
-https://cloud.near.ai/verify; we have not confirmed whether it takes these ids without
-our account.
+(injected), `b7b3a69052d84f938b2702e435ef41ff` (direct). NEAR AI's page
+https://cloud.near.ai/verify does not take a chat id: checked read-only on 2026-11-04,
+its script runs as an embedded widget (it checks `window.parent !== window`) and gets the
+completion and signature from the parent NEAR AI app by `postMessage`; its only URL
+parameters are `canClose` and `canRequestReports`. So there is no link a judge can open
+for these ids. The way to check them is `make verify` (N1 to N14) on the committed bytes,
+or `GET /v1/signature/<chat_id>` with a NEAR AI key.
 
 On chain (`submit_near_ai_verdict`): the model key is shared by every user of the model,
 so a TEE signature alone proves only that the model said something. The contract accepts
