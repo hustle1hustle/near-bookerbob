@@ -7,8 +7,12 @@ window and is pushed as it is written.
 ## Written during the hackathon (in this repo)
 
 Everything in this repository: the `bazaar` contract, the `bookerbob-core` library (verdict
-envelope v0, deterministic tier, price and discount stack, referee), the `bookerbob` CLI,
-fixtures, the swarm and board, the UCP handler under `ucp/`, docs and CI.
+envelope v0, deterministic tier, price and discount stack, referee, Semaphore pieces,
+conserved delegation), the `bookerbob` CLI, fixtures, the swarm and board, the UCP
+handler under `ucp/`, the relayer, docs and CI.
+
+How it was built: Claude Code sessions directed by the founder, one coordinating session
+and one build session, with each commit pushed as it was written.
 
 ## Prior REP work, used only as named services or dependencies
 
@@ -44,3 +48,9 @@ as a service or pinned as a versioned dependency, and named here.
 
 Code in this repository is written with Claude Code sessions directed by the team. Commits
 carry a `Co-Authored-By` trailer where an AI session wrote the change.
+| proptest | MIT / Apache-2.0 | property tests (dev only) |
+| dcap-qvl 0.3 (Phala) | MIT | Intel TDX quote verification for the NEAR AI attestation, offline with committed collateral |
+| chacha20poly1305, hkdf, curve25519-dalek (RustCrypto, dalek) | MIT / Apache-2.0 / BSD-3 | opening the NEAR AI E2EE v2 answer (contract and CLI) |
+| light-poseidon 0.4, ark-bn254, ark-ff (arkworks), sha3 | Apache-2.0 / MIT | Semaphore Poseidon and LeanIMT on chain, Semaphore's message hash |
+| @semaphore-protocol/core 4.14.5, snarkjs 0.7.6 (npm, `semaphore/`) | MIT / GPL-3.0 | generating the Semaphore identities, groups and proofs for the fixtures only; not shipped in the contract |
+| Semaphore V4 trusted setup (PSE ceremony, 2024-07-13) | public artifacts | the verification keys compiled into the contract (`fixtures/semaphore/verification-key.json`) |
