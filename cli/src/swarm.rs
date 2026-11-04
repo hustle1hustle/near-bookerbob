@@ -188,6 +188,8 @@ pub fn build(
         as_caller(&m.account);
         catch_unwind(AssertUnwindSafe(|| c.register_merchant(m.schedule.clone(), m.category.clone(), None)))
             .map_err(|_| format!("{} schedule rejected by contract", m.account))?;
+        as_caller(OWNER);
+        c.approve_merchant(m.account.parse().unwrap());
     }
     as_caller(&verdict.envelope.cnf);
     catch_unwind(AssertUnwindSafe(|| c.submit_verdict(verdict.clone()))).map_err(|_| "verdict rejected".to_string())?;
@@ -227,7 +229,7 @@ pub fn build(
         for (i, r) in rows.iter_mut().enumerate() {
             r.rank = i + 1;
         }
-        let onchain = c.best_quote(n.clone(), Some(cat.clone())).ok_or("no quote")?;
+        let onchain = c.best_quote(n.clone(), Some(cat.clone()), None, None).ok_or("no quote")?;
         if onchain.merchant.as_str() != rows[0].merchant {
             return Err(format!("contract best_quote {} differs from board winner {}", onchain.merchant, rows[0].merchant));
         }

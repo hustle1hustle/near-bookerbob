@@ -156,6 +156,12 @@ fn submit_with_receipt(c: &mut Bazaar, e: Envelope) {
 
 /// Owner deploys, registers both issuer keys, one merchant registers, agent opens escrow
 /// and deposits 200 USDC.
+/// Owner approves a merchant's current schedule.
+fn approve(c: &mut Bazaar, merchant: &str) {
+    set_no_deposit("owner.testnet");
+    c.approve_merchant(acc(merchant));
+}
+
 fn setup() -> Bazaar {
     set("owner.testnet");
     let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
@@ -168,6 +174,7 @@ fn setup() -> Bazaar {
     attest(&mut c, "agent.testnet", 200);
     set("m01.bazaar.testnet");
     c.register_merchant(schedule(), "hoodie".into(), None);
+    approve(&mut c, "m01.bazaar.testnet");
     let mut b = ctx("agent.testnet");
     b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
     testing_env!(b.build());
@@ -350,6 +357,7 @@ fn settle_without_enough_escrow_is_rejected() {
     attest(&mut c, "agent.testnet", 200);
     set("m01.bazaar.testnet");
     c.register_merchant(schedule(), "hoodie".into(), None);
+    approve(&mut c, "m01.bazaar.testnet");
     let mut b = ctx("agent.testnet");
     b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
     testing_env!(b.build());
@@ -419,14 +427,77 @@ fn best_quote_picks_lowest_price() {
     set("m02.bazaar.testnet");
     c.register_merchant(Schedule { base_price: 160_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hoodie".into(), None);
     set("h01.bazaar.testnet");
-    c.register_merchant(Schedule { base_price: 90_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hotel-lisbon-2n".into(), None);
+    c.register_merchant(Schedule { base_price: 90_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hotel-lisbon".into(), None);
+    approve(&mut c, "m02.bazaar.testnet");
+    approve(&mut c, "h01.bazaar.testnet");
     set("agent.testnet");
     c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
-    let best = c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into())).unwrap();
+    let best = c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into()), None, None).unwrap();
     assert_eq!(best.merchant, acc("m01.bazaar.testnet"));
     assert_eq!(best.quote.price, 151_200_000);
-    let hotel = c.best_quote(hex::encode([1u8; 32]), Some("hotel-lisbon-2n".into())).unwrap();
+    let hotel = c.best_quote(hex::encode([1u8; 32]), Some("hotel-lisbon".into()), None, None).unwrap();
     assert_eq!(hotel.merchant, acc("h01.bazaar.testnet"));
+}
+
+#[test]
+fn unapproved_merchant_is_never_quoted() {
+    // A spammer registers a cheaper schedule; until the owner approves it, the board ignores it.
+    let mut c = setup();
+    set("spam.testnet");
+    c.register_merchant(Schedule { base_price: 1, rules: vec![], cap_bps: 0, cohort: None }, "hoodie".into(), None);
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let n = hex::encode([1u8; 32]);
+    assert_eq!(c.best_quote(n.clone(), Some("hoodie".into()), None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
+    approve(&mut c, "spam.testnet");
+    assert_eq!(c.best_quote(n.clone(), Some("hoodie".into()), None, None).unwrap().merchant, acc("spam.testnet"));
+    set_no_deposit("owner.testnet");
+    c.revoke_merchant(acc("spam.testnet"));
+    assert_eq!(c.best_quote(n, Some("hoodie".into()), None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
+}
+
+#[test]
+#[should_panic(expected = "merchant not approved")]
+fn changed_schedule_needs_new_approval_before_payment() {
+    // Bait and switch: m01 is approved, then re-registers a different schedule.
+    let mut c = setup();
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+    set("m01.bazaar.testnet");
+    c.register_merchant(schedule(), "hoodie".into(), None);
+    assert!(!c.merchant(acc("m01.bazaar.testnet")).unwrap().approved);
+    set("agent.testnet");
+    let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+}
+
+#[test]
+#[should_panic(expected = "owner only")]
+fn only_owner_approves_merchants() {
+    let mut c = setup();
+    set_no_deposit("m01.bazaar.testnet");
+    c.approve_merchant(acc("m01.bazaar.testnet"));
+}
+
+#[test]
+fn best_quote_is_paginated_and_capped() {
+    let mut c = setup();
+    // m01 (151.20 after discounts) is index 0; three cheaper flat merchants follow.
+    for (i, price) in [(2, 140_000_000u128), (3, 130_000_000), (4, 120_000_000)] {
+        let id = format!("m0{i}.bazaar.testnet");
+        set(&id);
+        c.register_merchant(Schedule { base_price: price, rules: vec![], cap_bps: 0, cohort: None }, "hoodie".into(), None);
+        approve(&mut c, &id);
+    }
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let n = hex::encode([1u8; 32]);
+    let page = |c: &Bazaar, from, limit| c.best_quote(n.clone(), Some("hoodie".into()), Some(from), Some(limit)).map(|q| q.merchant.to_string());
+    assert_eq!(page(&c, 0, 1).as_deref(), Some("m01.bazaar.testnet"));
+    assert_eq!(page(&c, 0, 2).as_deref(), Some("m02.bazaar.testnet"));
+    assert_eq!(page(&c, 2, 2).as_deref(), Some("m04.bazaar.testnet"));
+    assert_eq!(page(&c, 4, 10), None);
+    // A huge limit is capped, and still sees all four.
+    assert_eq!(page(&c, 0, u32::MAX).as_deref(), Some("m04.bazaar.testnet"));
+    assert_eq!(MAX_QUOTE_PAGE, 100);
 }
 
 #[test]
@@ -581,6 +652,7 @@ fn receipt_price_holds_when_the_cohort_grows_later() {
     let mut c = setup();
     set("m01.bazaar.testnet");
     c.register_merchant(cohort_schedule(), "hoodie".into(), None);
+    approve(&mut c, "m01.bazaar.testnet");
     let e = envelope(1, "agent.testnet");
     submit_with_receipt(&mut c, e.clone());
     join_cohort(&mut c, 5);

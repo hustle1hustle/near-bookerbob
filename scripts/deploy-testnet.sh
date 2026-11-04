@@ -150,6 +150,10 @@ PY
 )
     call "register_merchant $id" "$acct" "$BAZAAR" register_merchant "$args" '0.05 NEAR'
   fi
+  # Registered merchants are not quoted until the owner approves the schedule.
+  if [ "$(view "$BAZAAR" merchant "{\"merchant\":\"$acct\"}" 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin)["approved"])' 2>/dev/null)" = "True" ]; then skip "$acct approved"
+  else call "approve_merchant $id" "$BAZAAR" "$BAZAAR" approve_merchant "{\"merchant\":\"$acct\"}" '0 NEAR'
+  fi
   if [ "$(view "$USDC" storage_balance_of "{\"account_id\":\"$acct\"}" 2>/dev/null || echo null)" = "null" ]; then
     call "usdc storage_deposit $id" "$acct" "$USDC" storage_deposit "{\"account_id\":\"$acct\",\"registration_only\":true}" '0.00125 NEAR'
   fi

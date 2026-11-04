@@ -67,10 +67,16 @@ pub struct RefereeReceipt {
 #[derive(Clone, Debug)]
 pub struct Merchant {
     pub payout: AccountId,
-    /// What the merchant sells, e.g. `hoodie` or `hotel-lisbon-2n`. Quotes compare within a category.
+    /// What the merchant sells, e.g. `hoodie` or `hotel-lisbon`. Quotes compare within a category.
     pub category: String,
     pub schedule: Schedule,
+    /// Set by the owner. Unapproved merchants are never quoted and cannot be paid, so a
+    /// flood of registrations cannot crowd out or undercut the board.
+    pub approved: bool,
 }
+
+/// Largest `best_quote` page, so one view call has a bounded cost.
+pub const MAX_QUOTE_PAGE: u32 = 100;
 
 #[near(serializers = [json])]
 pub struct MerchantQuote {
@@ -282,11 +288,28 @@ impl Bazaar {
         );
         let merchant = env::predecessor_account_id();
         let payout = payout.unwrap_or_else(|| merchant.clone());
-        self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), category: category.clone(), schedule });
-        emit("merchant_registered", serde_json::json!({ "merchant": merchant, "category": category, "payout": payout }));
+        // A new or changed schedule waits for approval again: no bait and switch.
+        self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), category: category.clone(), schedule, approved: false });
+        emit("merchant_registered", serde_json::json!({ "merchant": merchant, "category": category, "payout": payout, "approved": false }));
         // store:: collections write on flush; flush now so the storage delta is measurable.
         self.merchants.flush();
         charge_storage(before);
+    }
+
+    /// Owner approves a registered merchant's current schedule.
+    pub fn approve_merchant(&mut self, merchant: AccountId) {
+        self.assert_owner();
+        let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
+        m.approved = true;
+        emit("merchant_approved", serde_json::json!({ "merchant": merchant }));
+    }
+
+    /// Owner withdraws approval: the merchant drops out of quotes and cannot be paid.
+    pub fn revoke_merchant(&mut self, merchant: AccountId) {
+        self.assert_owner();
+        let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
+        m.approved = false;
+        emit("merchant_revoked", serde_json::json!({ "merchant": merchant }));
     }
 
     pub fn merchant(&self, merchant: AccountId) -> Option<Merchant> {
@@ -382,13 +405,16 @@ impl Bazaar {
         self.quote_for(&m.schedule, v)
     }
 
-    /// Lowest price across merchants in `category` (all when None); ties go to the
-    /// merchant registered first.
-    pub fn best_quote(&self, nullifier: String, category: Option<String>) -> Option<MerchantQuote> {
+    /// Lowest price across approved merchants in `category` (all when None), over the page
+    /// `from_index .. from_index + limit` of the registry (default 50, at most
+    /// `MAX_QUOTE_PAGE`). Ties go to the merchant registered first. A client with more
+    /// merchants than one page asks page by page and keeps the lowest.
+    pub fn best_quote(&self, nullifier: String, category: Option<String>, from_index: Option<u32>, limit: Option<u32>) -> Option<MerchantQuote> {
         let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        let limit = limit.unwrap_or(50).min(MAX_QUOTE_PAGE) as usize;
         let mut best: Option<MerchantQuote> = None;
-        for (id, m) in self.merchants.iter() {
-            if category.as_ref().is_some_and(|c| c != &m.category) {
+        for (id, m) in self.merchants.iter().skip(from_index.unwrap_or(0) as usize).take(limit) {
+            if !m.approved || category.as_ref().is_some_and(|c| c != &m.category) {
                 continue;
             }
             let q = self.quote_for(&m.schedule, v);
@@ -626,6 +652,7 @@ impl Bazaar {
         require!(!checkout_ref.is_empty() && checkout_ref.len() <= 128, "bad checkout_ref");
         let agent = env::predecessor_account_id();
         let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
+        require!(m.approved, "merchant not approved");
         let record = self.verdicts.get_mut(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(!record.spent, "nullifier spent");
         require!(record.agent == agent, "agent mismatch");

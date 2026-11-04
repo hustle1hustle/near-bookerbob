@@ -8,7 +8,7 @@
 | `validate(s)` | the contract's own schedule checks, run before sending |
 | `bidCommitment(account, s, salt)` | round 1 of a blind round |
 | `quote(s, revealed, k)` | preview the code-computed price, group unlock included |
-| `registerArgs(s, category)`, `registerCommand(...)` | `register_merchant` args and a testnet near-cli-rs command |
+| `registerArgs(s, category)`, `registerCommand(...)` | `register_merchant` args and a testnet near-cli-rs command. A registered merchant is quoted only after the bazaar owner calls `approve_merchant`; a changed schedule needs approval again |
 
 `merchant.test.mjs` recomputes all 30 bid commitments and prices in `agents/board.json`
 (made by the Rust code) and checks they match. The near-cli-rs command line is not

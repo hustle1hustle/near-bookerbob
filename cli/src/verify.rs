@@ -251,6 +251,8 @@ pub fn run(dir: &Path) -> ExitCode {
     for m in &merchants {
         as_caller(&m.account, Some(RECORD_DEPOSIT));
         c.register_merchant(m.schedule.clone(), m.category.clone(), None);
+        as_caller(OWNER, None);
+        c.approve_merchant(acc(&m.account));
     }
     as_caller(&e.cnf, Some(ESCROW_STORAGE_DEPOSIT));
     c.storage_deposit(None);
@@ -293,7 +295,7 @@ pub fn run(dir: &Path) -> ExitCode {
     r.check(sub.is_ok(), "contract accepts p256 verdict (env::p256_verify, low-S)", sub.err().unwrap_or_default());
 
     // --- quotes ---
-    let best = c.best_quote(e.nullifier.clone(), Some("hoodie".into())).expect("a quote");
+    let best = c.best_quote(e.nullifier.clone(), Some("hoodie".into()), None, None).expect("a quote");
     let offchain_ok = merchants.iter().all(|m| quote(&m.schedule, &e.predicates) == c.quote(acc(&m.account), e.nullifier.clone()));
     r.check(offchain_ok, "on-chain quotes equal the core library, every merchant", "");
     r.check(
@@ -308,7 +310,7 @@ pub fn run(dir: &Path) -> ExitCode {
         let _ = call(|| c.submit_verdict(p.clone()));
     }
     let k = c.cohort_size(e.context.clone(), "world_id_human".into());
-    let best = c.best_quote(e.nullifier.clone(), Some("hoodie".into())).expect("a quote");
+    let best = c.best_quote(e.nullifier.clone(), Some("hoodie".into()), None, None).expect("a quote");
     r.check(
         k == exp.cohort_k
             && best.merchant.as_str() == exp.winner
