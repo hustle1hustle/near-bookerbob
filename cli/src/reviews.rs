@@ -20,7 +20,7 @@ fn acc(s: &str) -> AccountId {
     s.parse().expect("account id")
 }
 
-fn at(who: &str, ms: u64) {
+pub(crate) fn at(who: &str, ms: u64) {
     let mut b = VMContextBuilder::new();
     b.current_account_id(acc(OWNER)).predecessor_account_id(acc(who)).block_timestamp(ms * 1_000_000).attached_deposit(RECORD_DEPOSIT);
     testing_env!(b.build());
@@ -54,13 +54,13 @@ pub fn gas_table() -> Vec<(&'static str, f64, usize)> {
     })
 }
 
-fn call<T>(f: impl FnOnce() -> T) -> Result<T, String> {
+pub(crate) fn call<T>(f: impl FnOnce() -> T) -> Result<T, String> {
     catch_unwind(AssertUnwindSafe(f))
         .map_err(|e| e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())
 }
 
 /// One purchase: World ID binding, escrow, verdict, referee receipt, settle.
-fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::WorldAttestation, merchant: &fixtures::MerchantFixture) -> Result<(), String> {
+pub(crate) fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::WorldAttestation, merchant: &fixtures::MerchantFixture) -> Result<(), String> {
     let e = &v.envelope;
     at(&e.cnf, NOW_MS);
     call(|| c.attest_human(world.clone()))?;
@@ -96,7 +96,7 @@ fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::WorldAttestati
     call(|| drop(c.settle(e.nullifier.clone(), acc(&merchant.account), format!("review-order-{}", &e.nullifier[..8]), U128(q.price))))
 }
 
-fn proof(p: &Value) -> ReviewProof {
+pub(crate) fn proof(p: &Value) -> ReviewProof {
     let pts: Vec<String> = p["points"].as_array().unwrap().iter().map(|x| x.as_str().unwrap().into()).collect();
     ReviewProof {
         depth: p["merkleTreeDepth"].as_u64().unwrap() as u32,
@@ -107,7 +107,7 @@ fn proof(p: &Value) -> ReviewProof {
 }
 
 /// During the round: post the sealed rating with its Semaphore proof, from a relayer.
-fn rate(c: &mut Bazaar, merchant: &str, review: &Value, p: &Value, relayer: &str) -> Result<(), String> {
+pub(crate) fn rate(c: &mut Bazaar, merchant: &str, review: &Value, p: &Value, relayer: &str) -> Result<(), String> {
     at(relayer, NOW_MS);
     let r = call(|| c.submit_review(acc(merchant), review["sealed"].as_str().unwrap().into(), proof(p)));
     if r.is_ok() {
@@ -117,7 +117,7 @@ fn rate(c: &mut Bazaar, merchant: &str, review: &Value, p: &Value, relayer: &str
 }
 
 /// After the round: open it, in the reveal window.
-fn reveal(c: &mut Bazaar, merchant: &str, round: u64, r: &Value, relayer: &str) -> Result<(), String> {
+pub(crate) fn reveal(c: &mut Bazaar, merchant: &str, round: u64, r: &Value, relayer: &str) -> Result<(), String> {
     at(relayer, NOW_MS + REVIEW_ROUND_MS);
     let r = call(|| {
         c.reveal_review(

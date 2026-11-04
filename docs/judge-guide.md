@@ -20,6 +20,7 @@ tool install). One NEAR AI verdict and the merchant pitches are real live captur
 
 ```sh
 make verify          # Rust stable; about 40 s from a cold build, 4 s warm; no keys
+make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
 
 What each block of PASS lines proves:

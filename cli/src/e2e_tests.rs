@@ -59,3 +59,8 @@ fn evidence_measures_every_purchase_path_method() {
     assert!(rows.len() >= 15);
     assert!(rows.iter().any(|r| r.method.starts_with("submit_verdict") && r.storage_bytes > 0));
 }
+
+#[test]
+fn one_scenario_chains_every_feature_on_one_chain() {
+    assert!(ok(crate::scenario::run(&root().join("fixtures"))));
+}

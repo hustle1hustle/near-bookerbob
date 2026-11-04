@@ -20,6 +20,7 @@ mod fixtures;
 mod keys;
 mod near_ai;
 mod reviews;
+mod scenario;
 mod swarm;
 mod verify;
 
@@ -133,6 +134,7 @@ fn main() -> ExitCode {
             }
         }
         Some("evidence") => evidence::run(),
+        Some("scenario") if args.len() >= 2 => scenario::run(Path::new(&args[1])),
         Some("reviews") if args.len() >= 2 => {
             reviews::run(Path::new(&args[1]), args.get(2).filter(|a| !a.starts_with("--")).map(Path::new), args.iter().any(|a| a == "--check"))
         }

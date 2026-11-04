@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: reviews receipts verify demo-offline demo-live test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
+.PHONY: scenario reviews receipts verify demo-offline demo-live test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -13,6 +13,7 @@ verify:
 	$(BOOKERBOB) evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
 	$(BOOKERBOB) near-ai fixtures/live/near-ai fixtures/proofs.json
 	$(BOOKERBOB) reviews fixtures agents/reviews.json --check
+	$(BOOKERBOB) scenario fixtures
 
 # The story in one screen: contract logs (stderr) hidden, PASS/FAIL lines only.
 demo-offline:
@@ -26,6 +27,10 @@ demo-offline:
 # Refuses mainnet. DRY_RUN=1 prints every step and which ones need tools.
 demo-live:
 	@node scripts/demo-live.mjs
+
+# Every feature in one run on one chain, one summary line.
+scenario:
+	@$(BOOKERBOB) scenario fixtures 2>/dev/null
 
 reviews:
 	$(BOOKERBOB) reviews fixtures agents/reviews.json 2>/dev/null | tail -1
