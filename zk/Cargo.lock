@@ -444,6 +444,7 @@ version = "0.1.0"
 dependencies = [
  "bookerbob-zkcore",
  "jolt-sdk",
+ "serde",
 ]
 
 [[package]]
@@ -1417,6 +1418,7 @@ version = "0.1.0"
 dependencies = [
  "bookerbob-zkcore",
  "jolt-sdk",
+ "serde",
 ]
 
 [[package]]
@@ -1499,6 +1501,7 @@ version = "0.1.0"
 dependencies = [
  "bookerbob-zkcore",
  "jolt-sdk",
+ "serde",
 ]
 
 [[package]]
@@ -1725,6 +1728,7 @@ version = "0.1.0"
 dependencies = [
  "bookerbob-graph",
  "jolt-sdk",
+ "serde",
 ]
 
 [[package]]

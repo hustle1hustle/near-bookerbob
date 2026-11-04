@@ -10,3 +10,5 @@ guest = []
 [dependencies]
 jolt = { package = "jolt-sdk", git = "https://github.com/a16z/jolt", rev = "997c1543efd49eb193ca403bb7722fc4b2f8e65b" }
 bookerbob-graph = { path = "../../../graph" }
+# no_std guest: Vec and String inputs need serde's alloc feature to deserialize.
+serde = { version = "1", default-features = false, features = ["alloc", "derive"] }
