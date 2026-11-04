@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: verify test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: verify demo-offline test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -11,6 +11,14 @@ verify:
 	$(BOOKERBOB) verify fixtures
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
 	$(BOOKERBOB) evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
+
+# The story in one screen: contract logs (stderr) hidden, PASS/FAIL lines only.
+demo-offline:
+	@echo "bookerbob. merchants compete for you. none of them learns who you are."
+	@echo
+	@$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check 2>/dev/null | head -14
+	@echo
+	@$(BOOKERBOB) verify fixtures 2>/dev/null | sed -n '1p;10,$$p'
 
 swarm:
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json

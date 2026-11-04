@@ -26,6 +26,8 @@ Needs Rust (stable, 1.93 or newer) and `make`. No network, no keys.
    See one line per link of the chain, each `PASS` or `FAIL`, ending in `nullifier spent`
    for the replayed proof and `ALL PASS`, then the 30-agent board and
    `PASS  swarm board matches agents/board.json and contract best_quote per category`.
+   The `EVENT_JSON:` lines on stderr are the contract's own NEP-297 logs.
+   `make demo-offline` prints the same story on one screen without them.
 2. Run `make test`.
    See the contract and core unit tests, named by behaviour
    (`replayed_nullifier_is_rejected`, `uncited_fact_refuses_receipt`, ...).
