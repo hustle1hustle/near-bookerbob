@@ -77,6 +77,23 @@ pub struct Merchant {
 
 /// Largest `best_quote` page, so one view call has a bounded cost.
 pub const MAX_QUOTE_PAGE: u32 = 100;
+/// Most sealed bids one round holds, so a round record stays small.
+pub const MAX_ROUND_BIDS: usize = 100;
+
+/// A blind round in one category. Approved merchants commit a hash of their discount
+/// schedule before `commit_until_ms`, then reveal it before `reveal_until_ms`. A reveal
+/// that does not open its commitment is refused; a bid not revealed in time is void. The
+/// winner is readable only after the reveal deadline.
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct Round {
+    pub category: String,
+    pub commit_until_ms: u64,
+    pub reveal_until_ms: u64,
+    /// (merchant, commitment hex).
+    pub commits: Vec<(AccountId, String)>,
+    pub revealed: Vec<AccountId>,
+}
 
 #[near(serializers = [json])]
 pub struct MerchantQuote {
@@ -121,6 +138,8 @@ pub struct Bazaar {
     humans: LookupMap<AccountId, String>,
     /// Dispute arbiter keys (hex ed25519) to labels.
     arbiters: IterableMap<String, String>,
+    /// Blind bid rounds by id.
+    rounds: LookupMap<String, Round>,
 }
 
 fn emit(event: &str, data: serde_json::Value) {
@@ -186,6 +205,7 @@ impl Bazaar {
             world_agents: LookupMap::new(b"a"),
             humans: LookupMap::new(b"h"),
             arbiters: IterableMap::new(b"d"),
+            rounds: LookupMap::new(b"b"),
         }
     }
 
@@ -310,6 +330,87 @@ impl Bazaar {
         let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
         m.approved = false;
         emit("merchant_revoked", serde_json::json!({ "merchant": merchant }));
+    }
+
+    // ---------- blind bid rounds ----------
+
+    /// Owner opens a round in `category` with a commit and a reveal deadline.
+    pub fn open_round(&mut self, round_id: String, category: String, commit_until_ms: u64, reveal_until_ms: u64) {
+        self.assert_owner();
+        require!(!round_id.is_empty() && round_id.len() <= 64, "bad round id");
+        require!(!self.rounds.contains_key(&round_id), "round exists");
+        require!(env::block_timestamp_ms() < commit_until_ms && commit_until_ms < reveal_until_ms, "bad round deadlines");
+        self.rounds.insert(round_id.clone(), Round { category: category.clone(), commit_until_ms, reveal_until_ms, commits: vec![], revealed: vec![] });
+        emit(
+            "round_opened",
+            serde_json::json!({ "round": round_id, "category": category, "commit_until_ms": commit_until_ms, "reveal_until_ms": reveal_until_ms }),
+        );
+    }
+
+    /// Phase 1: an approved merchant in the round's category posts a sealed bid.
+    #[payable]
+    pub fn commit_bid(&mut self, round_id: String, commitment: String) {
+        let before = env::storage_usage();
+        require!(bookerbob_core::is_hex32(&commitment), "bad commitment");
+        let merchant = env::predecessor_account_id();
+        let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
+        require!(m.approved, "merchant not approved");
+        let round = self.rounds.get_mut(&round_id).unwrap_or_else(|| env::panic_str("unknown round"));
+        require!(m.category == round.category, "wrong category for this round");
+        require!(env::block_timestamp_ms() < round.commit_until_ms, "commit phase is over");
+        require!(!round.commits.iter().any(|(a, _)| a == &merchant), "already committed");
+        require!(round.commits.len() < MAX_ROUND_BIDS, "round is full");
+        round.commits.push((merchant.clone(), commitment.clone()));
+        emit("bid_committed", serde_json::json!({ "round": round_id, "merchant": merchant, "commitment": commitment }));
+        self.rounds.flush();
+        charge_storage(before);
+    }
+
+    /// Phase 2: the merchant opens its bid. The schedule becomes its quoting schedule.
+    #[payable]
+    pub fn reveal_bid(&mut self, round_id: String, schedule: Schedule, salt: String) {
+        let before = env::storage_usage();
+        if let Err(e) = schedule.validate() {
+            env::panic_str(e);
+        }
+        let salt: [u8; 32] = decode(&salt, "salt");
+        let merchant = env::predecessor_account_id();
+        let round = self.rounds.get_mut(&round_id).unwrap_or_else(|| env::panic_str("unknown round"));
+        let now = env::block_timestamp_ms();
+        require!(now >= round.commit_until_ms, "reveal opens after the commit deadline");
+        require!(now < round.reveal_until_ms, "reveal phase is over");
+        let (_, commitment) = round.commits.iter().find(|(a, _)| a == &merchant).cloned().unwrap_or_else(|| env::panic_str("no committed bid"));
+        require!(!round.revealed.contains(&merchant), "already revealed");
+        require!(bookerbob_core::bid_commitment(merchant.as_str(), &schedule, &salt) == commitment, "bid does not open its commitment");
+        round.revealed.push(merchant.clone());
+        let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
+        // Committed blind before the deadline, so this change keeps the approval.
+        m.schedule = schedule;
+        emit("bid_revealed", serde_json::json!({ "round": round_id, "merchant": merchant }));
+        self.rounds.flush();
+        self.merchants.flush();
+        charge_storage(before);
+    }
+
+    pub fn round(&self, round_id: String) -> Option<Round> {
+        self.rounds.get(&round_id).cloned()
+    }
+
+    /// Lowest price among bids revealed in the round, for this verdict. Only after the
+    /// reveal deadline: before it, a merchant could still learn and react.
+    pub fn round_best_quote(&self, round_id: String, nullifier: String) -> Option<MerchantQuote> {
+        let round = self.rounds.get(&round_id).unwrap_or_else(|| env::panic_str("unknown round"));
+        require!(env::block_timestamp_ms() >= round.reveal_until_ms, "round still open");
+        let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        let mut best: Option<MerchantQuote> = None;
+        for id in &round.revealed {
+            let Some(m) = self.merchants.get(id).filter(|m| m.approved) else { continue };
+            let q = self.quote_for(&m.schedule, v);
+            if best.as_ref().is_none_or(|b| q.price < b.quote.price) {
+                best = Some(MerchantQuote { merchant: id.clone(), quote: q });
+            }
+        }
+        best
     }
 
     pub fn merchant(&self, merchant: AccountId) -> Option<Merchant> {

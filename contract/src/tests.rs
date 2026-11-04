@@ -941,3 +941,124 @@ mod props {
         }
     }
 }
+
+// ---------- blind bid rounds ----------
+
+const COMMIT_UNTIL: u64 = NOW_MS + 60_000;
+const REVEAL_UNTIL: u64 = NOW_MS + 120_000;
+
+fn at(predecessor: &str, ms: u64) {
+    let mut b = ctx(predecessor);
+    b.block_timestamp(ms * 1_000_000).attached_deposit(RECORD_DEPOSIT);
+    testing_env!(b.build());
+}
+
+fn sealed(account: &str, s: &Schedule, salt: u8) -> String {
+    bookerbob_core::bid_commitment(account, s, &[salt; 32])
+}
+
+fn cheap() -> Schedule {
+    Schedule { base_price: 189_000_000, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 5000 }], cap_bps: 5000, cohort: None }
+}
+
+/// setup(), m02 approved, a verdict on chain and an open hoodie round.
+fn round_setup() -> Bazaar {
+    let mut c = setup();
+    set("m02.bazaar.testnet");
+    c.register_merchant(Schedule { base_price: 189_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hoodie".into(), None);
+    approve(&mut c, "m02.bazaar.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    set_no_deposit("owner.testnet");
+    c.open_round("r1".into(), "hoodie".into(), COMMIT_UNTIL, REVEAL_UNTIL);
+    c
+}
+
+#[test]
+fn blind_round_picks_the_lowest_revealed_bid_after_the_deadline() {
+    let mut c = round_setup();
+    at("m01.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m01.bazaar.testnet", &schedule(), 1));
+    at("m02.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+    // The board shows only hashes until the commit deadline; m02's public schedule is flat.
+    assert_eq!(c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into()), None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
+    at("m01.bazaar.testnet", COMMIT_UNTIL);
+    c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
+    at("m02.bazaar.testnet", COMMIT_UNTIL + 1);
+    c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32]));
+    at("agent.testnet", REVEAL_UNTIL);
+    let w = c.round_best_quote("r1".into(), hex::encode([1u8; 32])).unwrap();
+    assert_eq!((w.merchant, w.quote.price), (acc("m02.bazaar.testnet"), 94_500_000));
+    assert_eq!(c.round("r1".into()).unwrap().revealed.len(), 2);
+}
+
+#[test]
+#[should_panic(expected = "round still open")]
+fn round_winner_is_hidden_until_the_reveal_deadline() {
+    let c = round_setup();
+    at("agent.testnet", REVEAL_UNTIL - 1);
+    let _ = c.round_best_quote("r1".into(), hex::encode([1u8; 32]));
+}
+
+#[test]
+#[should_panic(expected = "bid does not open its commitment")]
+fn reveal_that_differs_from_the_commitment_is_refused() {
+    let mut c = round_setup();
+    at("m02.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &schedule(), 2));
+    at("m02.bazaar.testnet", COMMIT_UNTIL);
+    // Saw the others, tries a cheaper schedule than it committed to.
+    c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32]));
+}
+
+#[test]
+#[should_panic(expected = "commit phase is over")]
+fn late_commit_is_refused() {
+    let mut c = round_setup();
+    at("m02.bazaar.testnet", COMMIT_UNTIL);
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+}
+
+#[test]
+#[should_panic(expected = "reveal opens after the commit deadline")]
+fn early_reveal_is_refused() {
+    let mut c = round_setup();
+    at("m02.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+    c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32]));
+}
+
+#[test]
+fn unrevealed_bid_is_void() {
+    let mut c = round_setup();
+    at("m01.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m01.bazaar.testnet", &schedule(), 1));
+    at("m02.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+    at("m01.bazaar.testnet", COMMIT_UNTIL);
+    c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
+    // m02 never reveals; after the deadline it cannot.
+    at("m02.bazaar.testnet", REVEAL_UNTIL);
+    assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32])))).is_err());
+    at("agent.testnet", REVEAL_UNTIL);
+    assert_eq!(c.round_best_quote("r1".into(), hex::encode([1u8; 32])).unwrap().merchant, acc("m01.bazaar.testnet"));
+}
+
+#[test]
+#[should_panic(expected = "merchant not approved")]
+fn unapproved_merchant_cannot_bid() {
+    let mut c = round_setup();
+    at("spam.testnet", NOW_MS);
+    c.register_merchant(cheap(), "hoodie".into(), None);
+    c.commit_bid("r1".into(), sealed("spam.testnet", &cheap(), 3));
+}
+
+#[test]
+#[should_panic(expected = "already committed")]
+fn one_sealed_bid_per_merchant() {
+    let mut c = round_setup();
+    at("m02.bazaar.testnet", NOW_MS);
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+    c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &schedule(), 2));
+}

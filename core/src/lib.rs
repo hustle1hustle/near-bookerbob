@@ -1,6 +1,7 @@
 //! bookerbob-core: everything that must be deterministic and shared by the contract and
 //! the off-chain tools. No randomness, no clock, no network, no floating point.
 
+pub mod bid;
 pub mod disclosure;
 pub mod envelope;
 pub mod price;
@@ -10,6 +11,7 @@ pub mod tier;
 pub mod u128_str;
 pub mod world;
 
+pub use bid::{bid_commitment, BID_TAG};
 pub use envelope::{Attestation, Envelope, SigAlg, SignedVerdict};
 pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN};
 pub use referee::{referee, Citation, Claim, RefereeOutcome};
@@ -37,6 +39,6 @@ pub fn sha256(bytes: &[u8]) -> [u8; 32] {
     Sha256::digest(bytes).into()
 }
 
-pub(crate) fn is_hex32(s: &str) -> bool {
+pub fn is_hex32(s: &str) -> bool {
     s.len() == 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
