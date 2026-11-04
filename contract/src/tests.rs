@@ -1359,6 +1359,19 @@ mod reviews {
     }
 
     #[test]
+    #[should_panic(expected = "nullifier and root must be canonical field elements")]
+    fn a_second_rating_with_a_zero_padded_nullifier_is_refused() {
+        // Audit A5: "0" + nullifier is the same field element, so the proof still verifies;
+        // only the canonical form may enter the nullifier set.
+        let (mut c, r) = six();
+        rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][0], "relayer0.testnet");
+        let mut again = r["proofs"][0].clone();
+        let n = again["proof"]["nullifier"].as_str().unwrap().to_string();
+        again["proof"]["nullifier"] = format!("0{n}").into();
+        rate(&mut c, "m01.bookerbob.testnet", &again, "relayer9.testnet");
+    }
+
+    #[test]
     #[should_panic(expected = "proof is not for this merchant's group")]
     fn a_valid_proof_from_a_non_member_is_refused() {
         let (mut c, r) = six();

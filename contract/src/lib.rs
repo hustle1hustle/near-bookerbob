@@ -505,6 +505,12 @@ impl Bazaar {
         let message = bookerbob_core::semaphore::review_message(&sealed).unwrap_or_else(|| env::panic_str("bad sealed rating"));
         let round = self.review_round_now();
         let g = self.review_groups.get(&merchant).unwrap_or_else(|| env::panic_str("merchant has no review group"));
+        // Canonical decimals only: "0123" and "123" are one field element, and the
+        // nullifier set compares strings (audit finding A5).
+        require!(
+            bookerbob_core::semaphore::is_canonical_field(&proof.nullifier) && bookerbob_core::semaphore::is_canonical_field(&proof.merkle_root),
+            "nullifier and root must be canonical field elements"
+        );
         require!(g.recent_roots.contains(&proof.merkle_root), "proof is not for this merchant's group");
         let scope = bookerbob_core::semaphore::review_scope(merchant.as_str(), round);
         let key = format!("{scope}|{}", proof.nullifier);

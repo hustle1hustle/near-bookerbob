@@ -41,6 +41,13 @@ fn fr(s: &str) -> Option<Fr> {
     (f.into_bigint().to_bytes_le() == le.to_vec()).then_some(f)
 }
 
+/// True for the one canonical decimal form of a field element: no leading zeros, below the
+/// modulus. A nullifier or root compared as a string must be canonical, or "0123" and "123"
+/// would be the same field element under two different strings.
+pub fn is_canonical_field(s: &str) -> bool {
+    fr(s).is_some_and(|f| dec(f) == s)
+}
+
 fn dec(f: Fr) -> String {
     f.into_bigint().to_string()
 }
@@ -167,6 +174,15 @@ mod tests {
             sc.reverse();
             assert_eq!(semaphore_hash(&sc), scope);
         }
+    }
+
+    #[test]
+    fn only_the_canonical_decimal_is_canonical() {
+        assert!(is_canonical_field("123"));
+        assert!(is_canonical_field("0"));
+        assert!(!is_canonical_field("0123"));
+        assert!(!is_canonical_field("00"));
+        assert!(!is_canonical_field("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
     }
 
     #[test]
