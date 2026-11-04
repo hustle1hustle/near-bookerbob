@@ -2,7 +2,7 @@
 //! `gen-fixtures --check` can prove the committed files are what this code produces.
 //! No real user data: facts, nullifier and keys are labelled placeholders.
 use bookerbob_core::envelope::commitment;
-use bookerbob_core::{derive, sha256, sha256_hex, Attestation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict};
+use bookerbob_core::{derive, sha256, sha256_hex, Attestation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict, WorldAttestation, WorldBody};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
 
@@ -36,6 +36,7 @@ pub struct Expected {
     pub discount_bps: u16,
     pub escrow_after: String,
     pub cheat_refusal: String,
+    pub second_agent_error: String,
     pub replay_error: String,
 }
 
@@ -174,6 +175,31 @@ pub fn envelope(agent: &str) -> Envelope {
 }
 
 pub const COHORT_PEERS: usize = 5;
+/// Placeholder action. The real World action for BookerBob is created by the team.
+pub const WORLD_ACTION: &str = "bookerbob-fixture-action";
+
+pub fn world_verifier() -> SigningKey {
+    SigningKey::from_bytes(&label_hash("bookerbob fixture world verifier v0"))
+}
+
+pub fn world_attestation(agent: &str, person: &str) -> WorldAttestation {
+    let body = WorldBody {
+        v: 0,
+        action: WORLD_ACTION.into(),
+        world_nullifier: sha256_hex(format!("bookerbob fixture world nullifier placeholder v0|{person}").as_bytes()),
+        agent: agent.into(),
+        issued_at_ms: NOW_MS,
+    };
+    let k = world_verifier();
+    WorldAttestation { verifier_key: hex::encode(k.verifying_key().to_bytes()), signature: hex::encode(k.sign(&body.signing_message()).to_bytes()), body }
+}
+
+/// The buyer's agent and the five peers, each a different synthetic person.
+pub fn world_attestations() -> Vec<WorldAttestation> {
+    let mut v = vec![world_attestation(AGENT, "fixture-person-1")];
+    v.extend((1..=COHORT_PEERS).map(|i| world_attestation(&format!("peer{i}.bookerbob.testnet"), &format!("fixture-person-peer-{i}"))));
+    v
+}
 
 /// Five other buyers in the same context who revealed `world_id_human`. Synthetic.
 pub fn cohort_verdicts() -> Vec<SignedVerdict> {
@@ -240,6 +266,7 @@ pub fn all() -> Vec<(&'static str, String)> {
         discount_bps: q.discount_bps,
         escrow_after: (ESCROW_USDC - q.price).to_string(),
         cheat_refusal: "F9 not in proof set".into(),
+        second_agent_error: "one person, one agent".into(),
         replay_error: "nullifier spent".into(),
     };
     let opening = Opening {
@@ -257,6 +284,8 @@ pub fn all() -> Vec<(&'static str, String)> {
         ("verdict-p256.json", pretty(&sign_p256(p256_env))),
         ("verdict-replay.json", pretty(&sign_ed(envelope(WALLET2)))),
         ("verdicts-cohort.json", pretty(&cohort_verdicts())),
+        ("world-attestations.json", pretty(&world_attestations())),
+        ("world-attestation-second-agent.json", pretty(&world_attestation(WALLET2, "fixture-person-1"))),
         ("expected.json", pretty(&expected)),
     ]
 }

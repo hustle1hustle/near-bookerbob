@@ -1,5 +1,5 @@
 use super::*;
-use bookerbob_core::{Attestation, Claim, Envelope, ProofSet, Fact, Rule};
+use bookerbob_core::{Attestation, Claim, Envelope, ProofSet, Fact, Rule, WorldAttestation, WorldBody};
 use bookerbob_referee_worker::{run as run_referee, WorkerInput};
 use ed25519_dalek::{Signer, SigningKey};
 use near_sdk::test_utils::{get_logs, VMContextBuilder};
@@ -92,6 +92,22 @@ fn schedule() -> Schedule {
     }
 }
 
+const WORLD_ACTION: &str = "bookerbob-fixture-action";
+
+fn world_key() -> SigningKey {
+    SigningKey::from_bytes(&[4u8; 32])
+}
+
+fn world_attestation(agent: &str, person: u8, key: &SigningKey) -> WorldAttestation {
+    let body = WorldBody { v: 0, action: WORLD_ACTION.into(), world_nullifier: hex::encode([person; 32]), agent: agent.into(), issued_at_ms: NOW_MS };
+    WorldAttestation { verifier_key: hex::encode(key.verifying_key().to_bytes()), signature: hex::encode(key.sign(&body.signing_message()).to_bytes()), body }
+}
+
+fn attest(c: &mut Bazaar, agent: &str, person: u8) {
+    set(agent);
+    c.attest_human(world_attestation(agent, person, &world_key()));
+}
+
 fn referee_key() -> SigningKey {
     SigningKey::from_bytes(&[5u8; 32])
 }
@@ -142,6 +158,8 @@ fn setup() -> Bazaar {
     c.register_issuer(ed.key_id(), "fixture ed25519 issuer".into());
     c.register_issuer(p.key_id(), "fixture p256 issuer".into());
     c.register_referee(hex::encode(referee_key().verifying_key().to_bytes()), "fixture referee".into());
+    c.register_world_verifier(hex::encode(world_key().verifying_key().to_bytes()), WORLD_ACTION.into(), "fixture world verifier".into());
+    attest(&mut c, "agent.testnet", 200);
     set("m01.bazaar.testnet");
     c.register_merchant(schedule(), "hoodie".into(), None);
     let mut b = ctx("agent.testnet");
@@ -318,6 +336,8 @@ fn settle_without_enough_escrow_is_rejected() {
     let v = sign_ed(envelope(1, "agent.testnet"));
     c.register_issuer(v.key_id(), "x".into());
     c.register_referee(hex::encode(referee_key().verifying_key().to_bytes()), "x".into());
+    c.register_world_verifier(hex::encode(world_key().verifying_key().to_bytes()), WORLD_ACTION.into(), "x".into());
+    attest(&mut c, "agent.testnet", 200);
     set("m01.bazaar.testnet");
     c.register_merchant(schedule(), "hoodie".into(), None);
     let mut b = ctx("agent.testnet");
@@ -515,6 +535,7 @@ fn cohort_schedule() -> Schedule {
 fn join_cohort(c: &mut Bazaar, n: u8) {
     for i in 0..n {
         let agent = format!("peer{i}.testnet");
+        attest(c, &agent, 210 + i);
         set(&agent);
         c.submit_verdict(sign_ed(envelope(100 + i, &agent)));
     }
@@ -558,4 +579,44 @@ fn receipt_price_holds_when_the_cohort_grows_later() {
     set("agent.testnet");
     let _ = c.settle(e.nullifier.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
     assert_eq!(c.nullifier_status(e.nullifier), NullifierStatus::Spent);
+}
+
+#[test]
+#[should_panic(expected = "one person, one agent")]
+fn second_agent_of_the_same_person_is_blocked() {
+    let mut c = setup();
+    attest(&mut c, "agent2.testnet", 200); // same World nullifier as agent.testnet
+}
+
+#[test]
+#[should_panic(expected = "world_id_human needs a world attestation")]
+fn world_id_predicate_without_attestation_is_rejected() {
+    let mut c = setup();
+    set("stranger.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "stranger.testnet")));
+}
+
+#[test]
+#[should_panic(expected = "unknown world verifier")]
+fn world_attestation_from_unknown_verifier_is_rejected() {
+    let mut c = setup();
+    set("x.testnet");
+    c.attest_human(world_attestation("x.testnet", 9, &SigningKey::from_bytes(&[1u8; 32])));
+}
+
+#[test]
+#[should_panic(expected = "bad world signature")]
+fn tampered_world_attestation_is_rejected() {
+    let mut c = setup();
+    let mut a = world_attestation("x.testnet", 9, &world_key());
+    a.body.agent = "y.testnet".into();
+    set("y.testnet");
+    c.attest_human(a);
+}
+
+#[test]
+fn reattesting_the_same_pair_is_idempotent() {
+    let mut c = setup();
+    attest(&mut c, "agent.testnet", 200);
+    assert!(c.is_human(acc("agent.testnet")));
 }

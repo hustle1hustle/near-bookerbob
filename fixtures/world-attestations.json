@@ -1,0 +1,68 @@
+[
+  {
+    "body": {
+      "v": 0,
+      "action": "bookerbob-fixture-action",
+      "world_nullifier": "9a37ee8cd5d999c4d05ccd2adf76b6f7910036a964f1613073bc731eb94f27a6",
+      "agent": "agent.bookerbob.testnet",
+      "issued_at_ms": 1793793600000
+    },
+    "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+    "signature": "5869f22760b98ef6e25a37de20494cc60119ec508f5689a2ab5bf002c5d7bbfa7c6061558a40cc5935cc8fd810886125289a377f782d0af7e29adaec4d67d808"
+  },
+  {
+    "body": {
+      "v": 0,
+      "action": "bookerbob-fixture-action",
+      "world_nullifier": "963344239d35d034ec6401b7d0c81f219785e7c93b8ea673fd0e01acbcef5e64",
+      "agent": "peer1.bookerbob.testnet",
+      "issued_at_ms": 1793793600000
+    },
+    "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+    "signature": "9e1b584d3a1ab18e55bffeae14d96dc8456fa95592ad68097fbc22ac3c8fed43252451a5cb7efd9573235b2ade03ba42ad3e985139762e5b5cec2290617a2b04"
+  },
+  {
+    "body": {
+      "v": 0,
+      "action": "bookerbob-fixture-action",
+      "world_nullifier": "6d1beebc28c1307a036abe480572edb5054eebea279522e95a2a7eed6e5b6bbe",
+      "agent": "peer2.bookerbob.testnet",
+      "issued_at_ms": 1793793600000
+    },
+    "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+    "signature": "6899d87bcdd86563dd187a8ddd3511cc33f51cbc3a264885bdc3756cbe044d46700a99ac9fe24681195ad053bad08fab7637fc1fa13c8b3b6ba77b0478110408"
+  },
+  {
+    "body": {
+      "v": 0,
+      "action": "bookerbob-fixture-action",
+      "world_nullifier": "1e84e8b4bd9b27048b81957e27d13bce7f22781d7a22dd8a85602b7af1fdcf04",
+      "agent": "peer3.bookerbob.testnet",
+      "issued_at_ms": 1793793600000
+    },
+    "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+    "signature": "caedd276f00aea25e327dec0d72117edbc1c7f7cd7bf21867f5c34524aa5cf454dbdb027df45bf4142b1f82df92566f5b6487c72c44429416f8062e428b46c0c"
+  },
+  {
+    "body": {
+      "v": 0,
+      "action": "bookerbob-fixture-action",
+      "world_nullifier": "485054ff7cb45a8e0833d3cd3da52941190223185f541408d5f77f21a4e75f57",
+      "agent": "peer4.bookerbob.testnet",
+      "issued_at_ms": 1793793600000
+    },
+    "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+    "signature": "1ba96a7156048d5613feb81b763636105b5b1782a20b682aa34fe8a22a165942a1b1859629af9a3f27ffe88900c22777e6d2a6570e0b3b29d05c89e0f904e80b"
+  },
+  {
+    "body": {
+      "v": 0,
+      "action": "bookerbob-fixture-action",
+      "world_nullifier": "2d0a7b4eb5750edc25b50b8628b1ee5a93e1e01574bb9c11f727a32529168160",
+      "agent": "peer5.bookerbob.testnet",
+      "issued_at_ms": 1793793600000
+    },
+    "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+    "signature": "fdfcf44f35ea018edeb47b6779c6c5770828c82591f68b76aab2e0aca52e08e5b91007fee10c7777f94bf24fe8b767e4287c4b4d4189b53544d08adfc5aa990d"
+  }
+]

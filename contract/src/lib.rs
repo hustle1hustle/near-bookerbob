@@ -5,7 +5,7 @@
 //! The chain's job: a global spent-set for nullifiers, signature checks with host
 //! functions, a code-computed price, and payout atomic with the nullifier burn.
 
-use bookerbob_core::{quote_in_cohort, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult};
+use bookerbob_core::{quote_in_cohort, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult, WorldAttestation};
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
 use near_sdk::{
@@ -109,6 +109,14 @@ pub struct Bazaar {
     outlayer: Option<AccountId>,
     /// `context|predicate` to the number of verdicts in that context revealing it.
     cohorts: LookupMap<String, u32>,
+    /// World ID verifier service keys (hex ed25519) to labels.
+    world_verifiers: IterableMap<String, String>,
+    /// The World action this bazaar accepts.
+    world_action: Option<String>,
+    /// World nullifier to the one agent it bound.
+    world_agents: LookupMap<String, AccountId>,
+    /// Agent to its World nullifier.
+    humans: LookupMap<AccountId, String>,
 }
 
 fn emit(event: &str, data: serde_json::Value) {
@@ -169,6 +177,10 @@ impl Bazaar {
             referees: IterableMap::new(b"r"),
             outlayer: None,
             cohorts: LookupMap::new(b"k"),
+            world_verifiers: IterableMap::new(b"w"),
+            world_action: None,
+            world_agents: LookupMap::new(b"a"),
+            humans: LookupMap::new(b"h"),
         }
     }
 
@@ -208,6 +220,50 @@ impl Bazaar {
 
     pub fn issuers(&self) -> Vec<(String, String)> {
         self.issuers.iter().map(|(k, v)| (k.clone(), v.clone())).collect()
+    }
+
+    // ---------- World ID: one person, one agent ----------
+
+    /// Register the World ID verifier service key (hex ed25519) and the accepted action.
+    pub fn register_world_verifier(&mut self, key_hex: String, action: String, label: String) {
+        self.assert_owner();
+        require!(key_hex.len() == 64 && hex::decode(&key_hex).is_ok(), "bad verifier key");
+        self.world_verifiers.insert(key_hex.clone(), label.clone());
+        self.world_action = Some(action.clone());
+        emit("world_verifier_registered", serde_json::json!({ "key": key_hex, "action": action, "label": label }));
+    }
+
+    /// Bind an agent to a World ID holder. Anyone may relay the attestation; the verifier
+    /// signature is what counts. A World nullifier binds exactly one agent.
+    #[payable]
+    pub fn attest_human(&mut self, attestation: WorldAttestation) {
+        let before = env::storage_usage();
+        let b = &attestation.body;
+        if let Err(e) = b.validate() {
+            env::panic_str(e);
+        }
+        require!(self.world_verifiers.contains_key(&attestation.verifier_key), "unknown world verifier");
+        require!(self.world_action.as_deref() == Some(b.action.as_str()), "wrong world action");
+        let sig: [u8; 64] = decode(&attestation.signature, "world signature");
+        let pk: [u8; 32] = decode(&attestation.verifier_key, "world verifier key");
+        require!(env::ed25519_verify(&sig, b.signing_message(), &pk), "bad world signature");
+        let agent: AccountId = b.agent.parse().unwrap_or_else(|_| env::panic_str("bad agent"));
+        match self.world_agents.get(&b.world_nullifier) {
+            Some(bound) if *bound == agent => return,
+            Some(_) => env::panic_str("one person, one agent: world id already bound to another agent"),
+            None => {}
+        }
+        require!(!self.humans.contains_key(&agent), "agent already bound to another world id");
+        self.world_agents.insert(b.world_nullifier.clone(), agent.clone());
+        self.humans.insert(agent.clone(), b.world_nullifier.clone());
+        emit("human_attested", serde_json::json!({ "agent": agent, "action": b.action }));
+        self.world_agents.flush();
+        self.humans.flush();
+        charge_storage(before);
+    }
+
+    pub fn is_human(&self, agent: AccountId) -> bool {
+        self.humans.contains_key(&agent)
     }
 
     // ---------- merchants ----------
@@ -266,6 +322,9 @@ impl Bazaar {
         require!(env::predecessor_account_id().as_str() == e.cnf, "agent mismatch");
         if let Some(existing) = self.verdicts.get(&e.nullifier) {
             env::panic_str(if existing.spent { "nullifier spent" } else { "nullifier pending" });
+        }
+        if e.predicates.iter().any(|p| p == "world_id_human") {
+            require!(self.humans.contains_key(&env::predecessor_account_id()), "world_id_human needs a world attestation for this agent");
         }
         let record = VerdictRecord {
             agent: env::predecessor_account_id(),

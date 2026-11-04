@@ -94,13 +94,21 @@ fn usdc(v: u128) -> String {
     format!("{}.{:02}", v / 1_000_000, (v % 1_000_000) / 10_000)
 }
 
-pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict, peers: &[SignedVerdict]) -> Result<Board, String> {
+pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict, peers: &[SignedVerdict], worlds: &[bookerbob_core::WorldAttestation]) -> Result<Board, String> {
     // Round 1: blind commitments.
     let commits: Vec<String> = merchants.iter().map(|m| bid_commitment(&m.account, &m.schedule, &bid_salt(&m.account))).collect();
     // Round 2: reveal, check, register, quote on the contract.
     as_caller(OWNER);
     let mut c = Bazaar::new(acc(OWNER), acc(USDC));
     c.register_issuer(verdict.key_id(), "fixture issuer".into());
+    if let Some(w) = worlds.first() {
+        c.register_world_verifier(w.verifier_key.clone(), w.body.action.clone(), "fixture world verifier".into());
+    }
+    for w in worlds {
+        as_caller(&w.body.agent);
+        catch_unwind(AssertUnwindSafe(|| c.attest_human(w.clone()))).map_err(|_| "world attestation rejected".to_string())?;
+    }
+    as_caller(OWNER);
     for (m, commit) in merchants.iter().zip(&commits) {
         if bid_commitment(&m.account, &m.schedule, &bid_salt(&m.account)) != *commit {
             return Err(format!("{} revealed a schedule that does not open its commitment", m.account));
@@ -171,7 +179,9 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     // Peer verdicts for the group unlock sit next to the buyer's verdict, if present.
     let peers_path = verdict_path.with_file_name("verdicts-cohort.json");
     let peers: Vec<SignedVerdict> = std::fs::read_to_string(&peers_path).ok().map(|s| serde_json::from_str(&s).expect("parse peers")).unwrap_or_default();
-    let board = match build(&merchants, &verdict, &peers) {
+    let worlds_path = verdict_path.with_file_name("world-attestations.json");
+    let worlds: Vec<bookerbob_core::WorldAttestation> = std::fs::read_to_string(&worlds_path).ok().map(|s| serde_json::from_str(&s).expect("parse world attestations")).unwrap_or_default();
+    let board = match build(&merchants, &verdict, &peers, &worlds) {
         Ok(b) => b,
         Err(e) => {
             println!("FAIL  swarm  ({e})");

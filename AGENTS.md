@@ -6,7 +6,7 @@ Instructions for AI agents (Claude Code, Codex) working in or judging this repo.
 
 | goal | command | expected |
 |---|---|---|
-| offline end-to-end check | `make verify` | 21 chain checks `ALL PASS`, swarm board `PASS`, `referee evals 20/20` |
+| offline end-to-end check | `make verify` | 23 chain checks `ALL PASS`, swarm board `PASS`, `referee evals 20/20` |
 | unit tests | `make test` | all tests pass |
 | regenerate fixtures | `make fixtures` | rewrites `fixtures/*.json` byte-identically (deterministic seeds) |
 | check fixtures are reproducible | `make fixtures-check` | `fixtures up to date` |

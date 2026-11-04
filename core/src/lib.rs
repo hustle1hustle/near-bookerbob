@@ -7,11 +7,13 @@ pub mod referee;
 pub mod referee_result;
 pub mod tier;
 pub mod u128_str;
+pub mod world;
 
 pub use envelope::{Attestation, Envelope, SignedVerdict, SigAlg};
 pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN};
 pub use referee::{referee, Citation, Claim, RefereeOutcome};
 pub use referee_result::{ResultBody, WorkerResult};
+pub use world::{WorldAttestation, WorldBody};
 pub use tier::{derive, Derived, Fact, ProofSet, Tier, TierResult};
 
 /// Coarse predicates a verdict may reveal. Anything else is rejected, so a merchant or a

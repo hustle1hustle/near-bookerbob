@@ -99,6 +99,8 @@ pub fn run(dir: &Path) -> ExitCode {
     let v_p256: SignedVerdict = load(dir, "verdict-p256.json");
     let v_replay: SignedVerdict = load(dir, "verdict-replay.json");
     let peers: Vec<SignedVerdict> = load(dir, "verdicts-cohort.json");
+    let worlds: Vec<bookerbob_core::WorldAttestation> = load(dir, "world-attestations.json");
+    let second_agent: bookerbob_core::WorldAttestation = load(dir, "world-attestation-second-agent.json");
     let exp: Expected = load(dir, "expected.json");
     let e = &v_ed.envelope;
     println!("bookerbob verify: {} (synthetic fixtures, offline)", dir.display());
@@ -132,6 +134,7 @@ pub fn run(dir: &Path) -> ExitCode {
     c.register_issuer(v_p256.key_id(), "fixture p256 issuer".into());
     let worker_key = key_from_seed_hex(&referee_seed_hex()).expect("seed");
     c.register_referee(hex::encode(worker_key.verifying_key().to_bytes()), "fixture referee worker".into());
+    c.register_world_verifier(worlds[0].verifier_key.clone(), worlds[0].body.action.clone(), "fixture world verifier".into());
     for m in &merchants {
         as_caller(&m.account, Some(RECORD_DEPOSIT));
         c.register_merchant(m.schedule.clone(), m.category.clone(), None);
@@ -144,6 +147,25 @@ pub fn run(dir: &Path) -> ExitCode {
         c.escrow_of(acc(&e.cnf)) == Some(U128(ESCROW_USDC)) && c.merchants(None, None).len() == merchants.len(),
         "contract set up: 2 enclave keys, 1 referee key, merchants, escrow",
         format!("{} merchants, escrow {} USDC base units", merchants.len(), ESCROW_USDC),
+    );
+
+    // --- World ID: one person, one agent ---
+    let mut attested = 0;
+    for w in &worlds {
+        as_caller(&w.body.agent, Some(RECORD_DEPOSIT));
+        attested += call(|| c.attest_human(w.clone())).is_ok() as usize;
+    }
+    r.check(
+        attested == worlds.len() && c.is_human(acc(&e.cnf)),
+        "world id attestations accepted (verifier ed25519 signature), buyer agent bound",
+        format!("{attested} agents, action {}", worlds[0].body.action),
+    );
+    as_caller(&second_agent.body.agent, Some(RECORD_DEPOSIT));
+    let second = call(|| c.attest_human(second_agent.clone()));
+    r.check(
+        second.as_ref().err().is_some_and(|m| m.contains(&exp.second_agent_error)) && second_agent.body.world_nullifier == worlds[0].body.world_nullifier,
+        "second agent of the same person is blocked",
+        exp.second_agent_error.clone(),
     );
 
     as_caller(&e.cnf, Some(RECORD_DEPOSIT));

@@ -20,7 +20,7 @@ as a service or pinned as a versioned dependency, and named here.
 | REP zkTLS prover and MPC notary (TLSNotary lineage) | proves facts over a user's own accounts; notary sees ciphertext only | external service that produces the proof a verdict is issued over | not used by `make verify`; fixtures are synthetic |
 | rep-attest | verdict and SD-JWT-VC issuance, tier-issuer | the envelope v0 format here is written fresh and is compatible in spirit; the service is not called today | spec only |
 | rep-concierge (NEAR AI attestation, E2EE v2) | private inference pipeline | reference for request shapes; the NEAR AI client in this repo is written in the window | planned |
-| rep-world-verify | World ID 4.0 off-chain verify | service that will sign `{world_nullifier, action, agent_pk}` for the contract | planned, service |
+| rep-world-verify | World ID 4.0 off-chain verify | service that will sign the `WorldBody` (`core/src/world.rs`) the contract checks in `attest_human` | contract side built on fixtures; service not called yet |
 | HackMeridian UCP module (BookerBob, 2026-10-25, local repo `ucp-module`, commit `97d9320`) | UCP bridge to our Shopify test store `jwq0dd-rp`, Stellar USDC payment handler, draft-order write-back | the NEAR handler `ucp/src/near-usdc.mjs` is new code written in the window; the bridge surface will be ported file by file, each with a header naming its source | handler built; bridge port not started |
 | REP iOS app (NearTrust / NearSeal) | on-device proofs and enclave check | closed client in the demo | not in this repo |
 

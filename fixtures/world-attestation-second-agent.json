@@ -1,0 +1,11 @@
+{
+  "body": {
+    "v": 0,
+    "action": "bookerbob-fixture-action",
+    "world_nullifier": "9a37ee8cd5d999c4d05ccd2adf76b6f7910036a964f1613073bc731eb94f27a6",
+    "agent": "wallet2.bookerbob.testnet",
+    "issued_at_ms": 1793793600000
+  },
+  "verifier_key": "9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94",
+  "signature": "b26f63e29cae164d8f955af3537f5df822cb9e0683f66f8d86e77708e59fbf1159c518d917d67042b962edae5498a398e9d2547a4b8077d05d5016bdf76f1109"
+}
