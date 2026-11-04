@@ -1691,3 +1691,23 @@ mod graph_scores {
         c.submit_graph_scores(PROGRAM.into(), hex::encode(s.root), vec![], vec![], "11".repeat(32), "22".repeat(64));
     }
 }
+
+#[test]
+fn the_cohort_root_commits_to_the_counted_nullifiers_in_order() {
+    // What the cohort guest proves k >= 5 against (bookerbob-zkcore::cohort).
+    let mut c = setup();
+    let mut nulls = vec![];
+    for i in 1..=5u8 {
+        let agent = format!("peer{i}.testnet");
+        attest(&mut c, &agent, 100 + i);
+        set(&agent);
+        let e = envelope(i, &agent);
+        nulls.push(e.nullifier.clone());
+        c.submit_verdict(sign_ed(e));
+    }
+    let (root, k) = c.cohort_root("bookerbob:v0:test".into(), "world_id_human".into());
+    let refs: Vec<&str> = nulls.iter().map(String::as_str).collect();
+    assert_eq!(k, 5);
+    assert_eq!(root, hex::encode(bookerbob_zkcore::cohort::root("bookerbob:v0:test", "world_id_human", &refs)));
+    assert!(bookerbob_zkcore::cohort::check("bookerbob:v0:test", "world_id_human", &refs).is_ok());
+}

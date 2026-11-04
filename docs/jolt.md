@@ -1,7 +1,7 @@
 # Jolt zkVM for BookerBob (status 2026-11-04)
 
-Status: **the graph and the on-chain side are built and tested; the Jolt prover itself is
-not built yet.** Fetching and compiling the Jolt git dependency (a16z/jolt) was blocked by
+Status: **all four guests and the host are written; none is compiled, built or proven
+yet** (the Jolt dependency is not fetched, so the guest crates have never compiled). Fetching and compiling the Jolt git dependency (a16z/jolt) was blocked by
 the build session's permission check as external code. The command for the founder is in
 `RESUME.md` ("Blocked"). Nothing below claims a proof that has not been made.
 
@@ -15,10 +15,17 @@ and OutLayer's output is capped at 900 bytes. Jolt proves an arbitrary Rust comp
 
 | guest | proves | status |
 |---|---|---|
-| `standing` ("verifiable PageRank for agents") | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents") | source written (`zk/guests/standing`), not built |
-| price stack | `price = f(verdict, schedule)`; the receipt carries the proof hash | not started |
-| referee | the citation check, as a second path beside the TEE | not started |
-| cohort matching | the answer came from a committed cohort with k >= 5 | not started |
+| `standing` ("verifiable PageRank for agents") | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | source written (`zk/guests/standing`), **not built** |
+| `price` | `price = f(schedule, revealed, cohort size)` with `bookerbob-zkcore::price`, the contract's own function; output (price, discount_bps, input hash), so a receipt can carry the proof hash next to its price | source written, **not built** |
+| `referee` | the structured-claim check with `bookerbob-zkcore::referee`, as a second path beside the TEE worker; output (receipt?, input hash); a refusal proves too | source written, **not built** |
+| `cohort` | the answer came from a committed cohort of at least 5 distinct members: the hash chain over their nullifiers equals the contract's `cohort_root`; output (root, k); below 5 no proof exists | source written, **not built** |
+
+Shared no_std code, unit-tested natively without Jolt: `bookerbob-graph` (standing) and
+`bookerbob-zkcore` (price, referee, cohort). `bookerbob-core` and the contract call the same
+functions, so a proof covers exactly what the chain runs. The guest inputs come from the
+contract's own data (`bookerbob zk-inputs`, `fixtures/zk/`, checked in `make verify`): the
+price input reproduces the contract's quote (36 USDC), the cohort input reproduces its
+`cohort_root` (k = 6), the honest referee input passes and the injected one is refused.
 
 ## What is built and tested (no Jolt needed)
 
@@ -40,10 +47,11 @@ and OutLayer's output is capped at 900 bytes. Jolt proves an arbitrary Rust comp
 ## The flow once Jolt builds
 
 1. Rebuild the events from the contract's `graph_event` logs.
-2. `cargo run --release -- prove-standing fixtures/graph/standing-events.json zk/out/standing`
-   (in `zk/`): proof, verifier preprocessing, `result.json` (root, scores hash, program
-   hash, prove time, proof size).
-3. The worker verifies the proof (`verify-standing`), recomputes the scores natively,
+2. In `zk/`: `cargo run --release -- prove <guest> ../fixtures/zk/<guest>-input.json
+   out/<guest>` for standing, price, referee and cohort: proof, verifier preprocessing,
+   `result.json` (output, program hash, prove time, proof size); peak RAM with
+   `/usr/bin/time -l`, on AC power.
+3. The worker verifies the proof (`verify <guest> ...`), recomputes the output natively,
    checks their hash, and signs the update. `make verify` reruns the offline verify on the
    committed files.
 4. `submit_graph_scores` on chain.

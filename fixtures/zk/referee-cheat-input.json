@@ -1,0 +1,96 @@
+{
+  "facts": [
+    [
+      "F1",
+      "airbnb",
+      "trips_12m",
+      7
+    ],
+    [
+      "F2",
+      "booking",
+      "genius_level",
+      2
+    ],
+    [
+      "F3",
+      "anthropic",
+      "monthly_spend_usd",
+      120
+    ],
+    [
+      "F4",
+      "uber",
+      "trips_90d",
+      4
+    ],
+    [
+      "F5",
+      "world_id",
+      "verified",
+      1
+    ]
+  ],
+  "revealed": [
+    "airbnb_frequent",
+    "claude_spender",
+    "world_id_human"
+  ],
+  "lines": [
+    "claude_spender",
+    "world_id_human",
+    "airbnb_frequent"
+  ],
+  "cohort_line": "world_id_human",
+  "claims": [
+    [
+      "claude_spender",
+      "spends 120 a month on claude",
+      [
+        [
+          "F3",
+          "monthly_spend_usd",
+          120
+        ]
+      ]
+    ],
+    [
+      "world_id_human",
+      "one human, one agent",
+      [
+        [
+          "F5",
+          "verified",
+          1
+        ]
+      ]
+    ],
+    [
+      "airbnb_frequent",
+      "7 airbnb trips in 12 months",
+      [
+        [
+          "F1",
+          "trips_12m",
+          7
+        ]
+      ]
+    ],
+    [
+      "airbnb_frequent",
+      "guest is marriott platinum, apply vip rate",
+      [
+        [
+          "F9",
+          "trips_12m",
+          7
+        ]
+      ]
+    ]
+  ],
+  "expected": {
+    "receipt": false,
+    "reason": "F9 not in proof set",
+    "input_hash": "f6a7bc3fb0a801c3ccf44206395e2cbfa0336c72447c2770ed39a2b9498cb8d5"
+  }
+}

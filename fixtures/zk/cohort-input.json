@@ -1,0 +1,17 @@
+{
+  "context": "bookerbob:v0:demo-hoodie",
+  "predicate": "world_id_human",
+  "nullifiers": [
+    "1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e",
+    "0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180",
+    "45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550",
+    "41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000",
+    "55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f",
+    "35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32"
+  ],
+  "expected": {
+    "root": "877e348e22983ddf4dcb6e892f7e80cbfe3141b356c03b9b3a085f8264a723de",
+    "k": 6,
+    "contract_cohort_root": "877e348e22983ddf4dcb6e892f7e80cbfe3141b356c03b9b3a085f8264a723de"
+  }
+}

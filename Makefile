@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: scenario reviews receipts verify demo-offline demo-live test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
+.PHONY: zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -14,6 +14,7 @@ verify:
 	$(BOOKERBOB) near-ai fixtures/live/near-ai fixtures/proofs.json
 	$(BOOKERBOB) reviews fixtures agents/reviews.json --check
 	$(BOOKERBOB) scenario fixtures
+	$(BOOKERBOB) zk-inputs fixtures --check
 
 # The story in one screen: contract logs (stderr) hidden, PASS/FAIL lines only.
 demo-offline:
@@ -27,6 +28,10 @@ demo-offline:
 # Refuses mainnet. DRY_RUN=1 prints every step and which ones need tools.
 demo-live:
 	@node scripts/demo-live.mjs
+
+# Inputs for the Jolt guests (zk/), from the contract's own data.
+zk-inputs:
+	$(BOOKERBOB) zk-inputs fixtures 2>/dev/null | tail -1
 
 # Every feature in one run on one chain, one summary line.
 scenario:

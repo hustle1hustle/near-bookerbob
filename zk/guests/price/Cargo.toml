@@ -1,0 +1,12 @@
+[package]
+name = "price-guest"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[features]
+guest = []
+
+[dependencies]
+jolt = { package = "jolt-sdk", git = "https://github.com/a16z/jolt", rev = "997c1543efd49eb193ca403bb7722fc4b2f8e65b" }
+bookerbob-zkcore = { path = "../../../zkcore" }

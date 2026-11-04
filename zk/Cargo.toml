@@ -10,7 +10,7 @@ license = "MIT"
 publish = false
 
 [workspace]
-members = ["guests/standing"]
+members = ["guests/standing", "guests/price", "guests/referee", "guests/cohort"]
 
 [profile.release]
 debug = 1
@@ -20,6 +20,10 @@ lto = "fat"
 [dependencies]
 jolt-sdk = { git = "https://github.com/a16z/jolt", rev = "997c1543efd49eb193ca403bb7722fc4b2f8e65b", features = ["host"] }
 standing-guest = { path = "./guests/standing" }
+price-guest = { path = "./guests/price" }
+referee-guest = { path = "./guests/referee" }
+cohort-guest = { path = "./guests/cohort" }
+bookerbob-zkcore = { path = "../zkcore" }
 bookerbob-graph = { path = "../graph" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

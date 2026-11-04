@@ -229,6 +229,9 @@ pub struct Bazaar {
     /// Merchant scores from the latest accepted proven update, and the root it was for.
     proven_scores: LookupMap<AccountId, u64>,
     proven_root: Option<String>,
+    /// `context|predicate` to the hash chain over the nullifiers of the verdicts counted in
+    /// that cohort (bookerbob-zkcore::cohort): what the cohort guest proves k >= 5 against.
+    cohort_roots: LookupMap<String, [u8; 32]>,
 }
 
 /// Domain tag of the worker's signature over a proven score update.
@@ -326,6 +329,7 @@ impl Bazaar {
             graph_program: None,
             proven_scores: LookupMap::new(b"z"),
             proven_root: None,
+            cohort_roots: LookupMap::new(b"c"),
         }
     }
 
@@ -336,6 +340,12 @@ impl Bazaar {
     /// Code-computed quote including the group unlock for the verdict's context.
     fn quote_for(&self, schedule: &Schedule, record: &VerdictRecord) -> Quote {
         quote_in_cohort(schedule, &record.predicates, |p| *self.cohorts.get(&Self::cohort_key(&record.context, p)).unwrap_or(&0))
+    }
+
+    /// The cohort commitment for (context, predicate) and its size.
+    pub fn cohort_root(&self, context: String, predicate: String) -> (String, u32) {
+        let k = Self::cohort_key(&context, &predicate);
+        (hex::encode(self.cohort_roots.get(&k).copied().unwrap_or([0u8; 32])), *self.cohorts.get(&k).unwrap_or(&0))
     }
 
     /// How many verdicts in `context` revealed `predicate`. Only the count is public.
@@ -474,6 +484,7 @@ impl Bazaar {
         self.review_totals.flush();
         self.hires.flush();
         self.proven_scores.flush();
+        self.cohort_roots.flush();
         env::state_write(self);
     }
 
@@ -930,7 +941,9 @@ impl Bazaar {
         for p in &e.predicates {
             let k = Self::cohort_key(&e.context, p);
             let n = *self.cohorts.get(&k).unwrap_or(&0);
-            self.cohorts.insert(k, n + 1);
+            self.cohorts.insert(k.clone(), n + 1);
+            let r = self.cohort_roots.get(&k).copied().unwrap_or([0u8; 32]);
+            self.cohort_roots.insert(k, bookerbob_zkcore::cohort::extend(&r, &e.context, p, &e.nullifier));
         }
         emit(
             "verdict_submitted",
@@ -943,6 +956,7 @@ impl Bazaar {
         );
         self.verdicts.flush();
         self.cohorts.flush();
+        self.cohort_roots.flush();
     }
 
     pub fn nullifier_status(&self, nullifier: String) -> NullifierStatus {

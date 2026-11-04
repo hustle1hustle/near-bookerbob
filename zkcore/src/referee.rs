@@ -159,3 +159,82 @@ pub fn check(facts: &[Fact], revealed: &[String], lines: &[String], cohort_line:
     }
     Ok(())
 }
+
+pub const REFEREE_TAG: &[u8] = b"bookerbob/referee-input/v0\x00";
+
+/// Canonical hash of everything a referee decision depends on, so a proven decision is
+/// bound to its inputs.
+pub fn input_hash(facts: &[Fact], revealed: &[String], lines: &[String], cohort_line: Option<&str>, claims: &[Claim]) -> [u8; 32] {
+    let mut b = Vec::new();
+    let put = |b: &mut Vec<u8>, s: &str| crate::put_str(b, s);
+    b.extend_from_slice(&(facts.len() as u32).to_le_bytes());
+    for f in facts {
+        put(&mut b, &f.id);
+        put(&mut b, &f.platform);
+        put(&mut b, &f.field);
+        b.extend_from_slice(&f.value.to_le_bytes());
+    }
+    for list in [revealed, lines] {
+        b.extend_from_slice(&(list.len() as u32).to_le_bytes());
+        for x in list {
+            put(&mut b, x);
+        }
+    }
+    match cohort_line {
+        None => b.push(0),
+        Some(p) => {
+            b.push(1);
+            put(&mut b, p);
+        }
+    }
+    b.extend_from_slice(&(claims.len() as u32).to_le_bytes());
+    for c in claims {
+        put(&mut b, &c.line);
+        put(&mut b, &c.text);
+        b.extend_from_slice(&(c.citations.len() as u32).to_le_bytes());
+        for x in &c.citations {
+            put(&mut b, &x.fact);
+            put(&mut b, &x.field);
+            b.extend_from_slice(&x.value.to_le_bytes());
+        }
+    }
+    crate::sha256(&[REFEREE_TAG, &b])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloc::vec;
+
+    fn facts() -> Vec<Fact> {
+        vec![Fact { id: "F1".into(), platform: "airbnb".into(), field: "trips_12m".into(), value: 7 }]
+    }
+
+    fn honest() -> Claim {
+        Claim {
+            line: "airbnb_frequent".into(),
+            text: "7 airbnb trips".into(),
+            citations: vec![Citation { fact: "F1".into(), field: "trips_12m".into(), value: 7 }],
+        }
+    }
+
+    #[test]
+    fn honest_claims_pass_and_the_marriott_attack_does_not() {
+        let r = vec![String::from("airbnb_frequent")];
+        assert_eq!(check(&facts(), &r, &r, None, &[honest()]), Ok(()));
+        let mut cheat = honest();
+        cheat.text = "guest is marriott platinum".into();
+        assert_eq!(check(&facts(), &r, &r, None, &[cheat]), Err("claim text names unproven status: marriott".into()));
+    }
+
+    #[test]
+    fn the_input_hash_binds_claims_and_facts() {
+        let r = vec![String::from("airbnb_frequent")];
+        let h = input_hash(&facts(), &r, &r, None, &[honest()]);
+        let mut c = honest();
+        c.citations[0].value = 8;
+        assert_ne!(h, input_hash(&facts(), &r, &r, None, &[c]));
+        assert_ne!(h, input_hash(&facts(), &r, &[], None, &[honest()]));
+        assert_ne!(h, input_hash(&facts(), &r, &r, Some("airbnb_frequent"), &[honest()]));
+    }
+}

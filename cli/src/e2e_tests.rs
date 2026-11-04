@@ -64,3 +64,8 @@ fn evidence_measures_every_purchase_path_method() {
 fn one_scenario_chains_every_feature_on_one_chain() {
     assert!(ok(crate::scenario::run(&root().join("fixtures"))));
 }
+
+#[test]
+fn the_jolt_guest_inputs_match_the_contract() {
+    assert!(ok(crate::zk_inputs::run(&root().join("fixtures"), true)));
+}

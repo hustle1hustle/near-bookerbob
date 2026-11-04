@@ -141,7 +141,7 @@ interface exists with a test double; `planned` means not built yet.
 | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | `core/src/world.rs`, `contract/src/lib.rs` `attest_human` | built on offline fixtures (placeholder action); live verifier is the rep-world-verify service, not wired |
 | sealed reviews (Semaphore v4): a settled purchase joins the merchant's group (LeanIMT, Poseidon on chain); during a round a member posts a sealed rating with a Groth16 proof checked on `alt_bn128` host functions, one per member per round (nullifier scoped to merchant and round); after the round members reveal, only if the group has k >= 5; release is batched and sorted by hash; `best_quote` breaks price ties by the score and takes a `min_score` floor | swarms, privacy | `docs/semaphore.md`, `core/src/semaphore.rs`, `contract/src/groth16.rs`, `contract/src/lib.rs`, `cli/src/reviews.rs`, `semaphore/` | built: 13 contract tests on real Semaphore proofs and a `make verify` step through 10 real purchases (15 checks, conserved delegation and the graph root included); trusted setup is Semaphore's V4 ceremony; gas in `docs/evidence.md` |
 | conserved delegation: standing flows from a merchant's released ratings along hire edges to the sub-agents it hires (w = 1/2), following a design rule in REP's unpublished draft "(title withheld) for a World of Agents": the whole chain gets at most w/(1-w) of the seed | swarms, security | `core/src/delegation.rs`, `contract/src/lib.rs` (`hire`, `standing_from`) | built: property test over random graphs with rings, 3 contract tests, `make verify` R10 (a spawned ring of 8 collects 5.9998 of 6 units) |
-| verifiable graph compute (Jolt zkVM): the contract keeps a hash-chained root of the standing graph and accepts score updates only from the registered Jolt program, for the current root, signed by a worker that verified the proof off chain | swarms, security | `graph/`, `contract/src/lib.rs` (`submit_graph_scores`), `zk/`, `docs/jolt.md` | contract side built and tested (5 tests, `make verify` R11 and R12); the Jolt prover is **not built** (the dependency fetch was blocked), so no proof exists yet |
+| verifiable compute (Jolt zkVM), four guests: standing graph, price stack, referee, cohort k >= 5. The contract keeps the graph root and per-cohort roots; for the graph, the contract keeps a hash-chained root of the standing graph and accepts score updates only from the registered Jolt program, for the current root, signed by a worker that verified the proof off chain | swarms, security | `graph/`, `contract/src/lib.rs` (`submit_graph_scores`), `zk/`, `docs/jolt.md` | contract side built and tested (5 tests, `make verify` R11, R12 and the guest-input check); guests and host written but **not compiled** (the Jolt dependency fetch was blocked), so no proof exists yet |
 | NEP-366 meta-tx relayer for `submit_review` and `reveal_review`: the rater signs with a one-time key, the relayer pays gas (gasless rating) | privacy, realworld | `relayer/` | stub: policy and signature check with 5 synthetic SignedDelegate tests; sending on testnet waits on the deploy; the signer is still the on-chain caller and the relayer sees senders (see `relayer/README.md`) |
 | FUNCTION CALL KEYS: agent key limited to `settle` (a function-call key cannot attach a deposit, so `submit_verdict` and `withdraw` stay with the full-access key) | security, agents | `scripts/demo-live.mjs` step `fckey` | pre-staged in the testnet script; not run (no deploy) |
 | x402 v2 paid verdict read (`exact`, USDC on `near:testnet`, verify and settle through an explicit x402 facilitator) | agents, realworld | `x402/verdict-read.mjs` | built (7 tests on synthetic payments); no facilitator wired, testnet config only |
@@ -196,27 +196,28 @@ Full output in `docs/evidence.md`, rerun to refresh. Headline numbers from 2026-
 checks, 2 blind rounds through the contract, 15/15 sealed-review checks (a Semaphore
 proof costs about 33 Tgas of mocked host gas); NEAR AI live run 33/33 signatures at about
 $0.00024 per call; referee worker about 0.25 ms per run (native). A verdict record costs the
-agent 823 bytes plus a 512-byte reserve for its receipt and settle (0.0134 NEAR in all);
+agent 1174 bytes (record, cohort counters and cohort roots) plus a 512-byte reserve for its
+receipt and settle (0.0169 NEAR in all);
 the contract balance pays nothing per purchase. Gas below is a mocked lower bound (host
 functions only); real gas comes with the testnet deploy.
 
 | method | who pays | storage added (bytes) | storage cost (NEAR) | host gas, mocked (Tgas, lower bound; settle includes gas attached to its two receipts) |
 |---|---|---|---|---|
-| `register_issuer` | owner | 224 | 0.00224 | 0.468 |
-| `register_world_verifier` | owner | 229 | 0.00229 | 1.553 |
-| `attest_human` | agent | 272 | 0.00272 | 1.191 |
-| `register_merchant` | merchant | 291 | 0.00291 | 0.946 |
-| `approve_merchant` | owner | 0 | 0.00000 | 0.305 |
-| `open_round` | owner | 87 | 0.00087 | 0.374 |
-| `commit_bid` | merchant | 93 | 0.00093 | 0.807 |
-| `reveal_bid` | merchant | 25 | 0.00025 | 0.863 |
-| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.309 |
-| `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.306 |
-| `submit_verdict (ed25519, first in context)` | agent | 824 | 0.00824 | 1.624 |
-| `submit_verdict (p256, same context)` | agent | 558 | 0.00558 | 2.541 |
-| `submit_referee_result` | agent, from the record reserve prepaid at submit | 245 | 0.00245 | 0.725 |
-| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.227 |
-| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.831 |
+| `register_issuer` | owner | 224 | 0.00224 | 0.472 |
+| `register_world_verifier` | owner | 229 | 0.00229 | 1.562 |
+| `attest_human` | agent | 272 | 0.00272 | 1.195 |
+| `register_merchant` | merchant | 291 | 0.00291 | 0.951 |
+| `approve_merchant` | owner | 0 | 0.00000 | 0.310 |
+| `open_round` | owner | 87 | 0.00087 | 0.378 |
+| `commit_bid` | merchant | 93 | 0.00093 | 0.811 |
+| `reveal_bid` | merchant | 25 | 0.00025 | 0.868 |
+| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.314 |
+| `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.310 |
+| `submit_verdict (ed25519, first in context)` | agent | 1174 | 0.01174 | 2.033 |
+| `submit_verdict (p256, same context)` | agent | 559 | 0.00559 | 2.776 |
+| `submit_referee_result` | agent, from the record reserve prepaid at submit | 245 | 0.00245 | 0.729 |
+| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.231 |
+| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.836 |
 
 ## Threat model and trust
 

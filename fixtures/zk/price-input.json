@@ -1,0 +1,35 @@
+{
+  "base_price": 48000000,
+  "rules": [
+    [
+      "claude_spender",
+      1000
+    ],
+    [
+      "world_id_human",
+      800
+    ],
+    [
+      "airbnb_frequent",
+      500
+    ]
+  ],
+  "cap_bps": 2000,
+  "cohort": [
+    "world_id_human",
+    5,
+    500
+  ],
+  "revealed": [
+    "airbnb_frequent",
+    "claude_spender",
+    "world_id_human"
+  ],
+  "cohort_k": 6,
+  "expected": {
+    "price": "36000000",
+    "discount_bps": 2500,
+    "input_hash": "909cfea6e6e6afae12dda5729618bd5b0b37fbf7daaa2f41298d7be1cf8119ae",
+    "contract_quote": "36000000"
+  }
+}
