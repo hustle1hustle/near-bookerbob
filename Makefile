@@ -18,7 +18,7 @@ demo-offline:
 	@echo
 	@$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check 2>/dev/null | head -14
 	@echo
-	@$(BOOKERBOB) verify fixtures 2>/dev/null | sed -n '1p;10,$$p'
+	@$(BOOKERBOB) verify fixtures 2>/dev/null | sed -n '1p;6p;13p;17,$$p'
 
 receipts:
 	$(BOOKERBOB) verify fixtures --receipts agents/receipts.json 2>/dev/null | tail -1

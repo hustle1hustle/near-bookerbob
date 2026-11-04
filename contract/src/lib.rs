@@ -588,6 +588,37 @@ impl Bazaar {
         }
     }
 
+    // ---------- withdraw ----------
+
+    /// Take unspent USDC back out of escrow. Requires 1 yoctoNEAR (full-access key), like
+    /// NEP-141 transfers, so an agent's function-call key cannot drain escrow this way.
+    #[payable]
+    pub fn withdraw(&mut self, amount: U128) -> Promise {
+        near_sdk::assert_one_yocto();
+        let account = env::predecessor_account_id();
+        let bal = self.escrow.get_mut(&account).unwrap_or_else(|| env::panic_str("no escrow"));
+        require!(amount.0 > 0 && *bal >= amount.0, "insufficient escrow");
+        *bal -= amount.0;
+        emit("escrow_withdraw", serde_json::json!({ "account": account, "amount": amount }));
+        ext_ft::ext(self.usdc.clone())
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(account.clone(), amount, Some("bookerbob:withdraw".into()))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_withdraw(account, amount))
+    }
+
+    #[private]
+    pub fn on_withdraw(&mut self, account: AccountId, amount: U128) -> bool {
+        if env::promise_result_checked(0, 64).is_ok() {
+            return true;
+        }
+        if let Some(bal) = self.escrow.get_mut(&account) {
+            *bal += amount.0;
+        }
+        emit("withdraw_reverted", serde_json::json!({ "account": account, "amount": amount }));
+        false
+    }
+
     // ---------- settle ----------
 
     /// Pay `merchant` for the verdict under `nullifier`. Called by the verdict's agent (a

@@ -696,3 +696,50 @@ fn decision_from_unknown_arbiter_is_rejected() {
     c.submit_referee_result(forged.clone());
     c.submit_dispute_decision(decide(&v, &forged, cheat));
 }
+
+#[test]
+fn withdraw_returns_unspent_escrow() {
+    let mut c = setup();
+    let mut b = ctx("agent.testnet");
+    b.attached_deposit(NearToken::from_yoctonear(1));
+    testing_env!(b.build());
+    let _ = c.withdraw(U128(50_000_000));
+    assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(150_000_000)));
+    assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == USDC));
+}
+
+#[test]
+#[should_panic(expected = "Requires attached deposit of exactly 1 yoctoNEAR")]
+fn withdraw_needs_a_full_access_key() {
+    let mut c = setup();
+    set_no_deposit("agent.testnet");
+    let _ = c.withdraw(U128(1));
+}
+
+#[test]
+#[should_panic(expected = "insufficient escrow")]
+fn withdraw_more_than_escrow_is_rejected() {
+    let mut c = setup();
+    let mut b = ctx("agent.testnet");
+    b.attached_deposit(NearToken::from_yoctonear(1));
+    testing_env!(b.build());
+    let _ = c.withdraw(U128(200_000_001));
+}
+
+#[test]
+fn failed_withdraw_restores_escrow() {
+    let mut c = setup();
+    let mut b = ctx("agent.testnet");
+    b.attached_deposit(NearToken::from_yoctonear(1));
+    testing_env!(b.build());
+    let _ = c.withdraw(U128(50_000_000));
+    testing_env!(
+        ctx("bazaar.testnet").build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![PromiseResult::Failed],
+    );
+    assert!(!c.on_withdraw(acc("agent.testnet"), U128(50_000_000)));
+    assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+}

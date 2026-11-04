@@ -142,31 +142,75 @@ proves the committed fixtures are exactly what the generator produces.
 
 ## Threat model and trust
 
+### Trust anchors
+
+Every key the contract trusts is registered by the contract **owner**: verdict issuers
+(enclave keys), the referee worker, the dispute arbiter and the World ID verifier. The
+owner is one account today. A stolen owner key can register a rogue issuer or referee.
+Mitigation path: a multisig or DAO owner, and registering only keys an attestation proves
+(the OutLayer worker's TDX-registered key, the NEAR AI model key). Not built.
+
 | layer | what it proves | what it does not |
 |---|---|---|
 | zkTLS proof | the facts came from the user's real account over TLS | the notary is a single MPC key today, not attested ("notary not attested") |
-| NEAR AI TEE | the verdict was computed by an attested model; the tier is computed by code | TEE trust caveats apply; `tcb_status` is recorded, not hidden (OutOfDate grades exist) |
-| OutLayer TDX | the referee ran a known binary | OutLayer is unaudited; it only computes, our contract checks every signature |
-| contract | nullifier used once, price within the verdict cap, payout atomic with the burn | it cannot see the raw facts, by design |
+| NEAR AI TEE | the answer came from the attested model key; under E2EE v2 the signature covers the ciphertext | TEE caveats apply; `tcb_status` is recorded, not hidden (OutOfDate grades exist); the TDX quote is not verified in this repo yet |
+| verdict issuer | the envelope was signed by a registered key (`ed25519_verify` / `p256_verify`) | that the issuer is honest beyond its key |
+| referee (OutLayer worker) | every cited fact is in the proof set and proves its line; the price is the code quote | OutLayer is unaudited; a compromised referee key can sign a false receipt (the dispute path exists for that) |
+| dispute arbiter | an independent re-run of every check, signed | only as independent as its operator; today it is a fixture seed like the referee |
+| World ID verifier | one World ID holder bound one agent | there is no World ID verifier on NEAR; the contract trusts the service key |
+| contract | nullifier used once, price from code, cap, receipt required, payout atomic with the burn | it never sees raw facts, by design |
 
-Who sees what: merchants see the coarse predicate category and their own quote. The board
-shows a commitment, not the buyer. The contract stores nullifiers, commitments and
-predicate bits revealed for a discount, never raw history.
+### Who sees what
+
+| party | sees | never sees |
+|---|---|---|
+| merchants and the board | revealed predicate names, their own quote, the verdict commitment, the cohort size k | raw history, identity, unrevealed predicates, fact values |
+| anyone reading the chain | per verdict: nullifier, commitment, revealed predicates, tcb_status, cap; settled amount, merchant, checkout_ref | the proof set, the buyer's other contexts (the nullifier is per context) |
+| the referee and arbiter | the proof set they judge (synthetic in fixtures) | nothing more; on-chain `input_data` is public, so real proofs must go over OutLayer's HTTPS path or sealed (not built) |
+| NEAR AI enclave | the facts, sealed to its key | |
+| REP | today, the HMAC nullifier key, so it could link accounts | |
+
+### Attacks and what stops them
+
+| attack | stopped by | where |
+|---|---|---|
+| replay the same proof from another wallet | per-context nullifier in a global spent-set | `submit_verdict`, `settle`; `make verify` check 25 |
+| model claims a status it cannot prove (prompt injection) | referee refuses uncited or unproven facts; no receipt, no payment | `core/src/referee.rs`; checks 19 to 21; 20 evals |
+| compromised referee signs a false receipt | arbiter re-runs and signs `overturned`; the receipt is cleared | check 22 |
+| merchant asks for raw history or identity | buyer agent policy declines by rule | `core/src/disclosure.rs`; check 05 |
+| one person runs many agents | one agent per World nullifier | `attest_human`; check 12 |
+| LLM sets the price | prices come only from `bookerbob-core` inside the contract | `quote_in_cohort` |
+| tampered envelope, forged or malleable signature | digest over every field, ed25519 / p256 with low-S | contract tests |
+| agent overspends | `max_spend` cap in the verdict, amount must equal the receipt price | `settle` |
+| agent key drains escrow | `withdraw` needs a full-access key (1 yoctoNEAR); settle only pays a registered merchant with a receipt | `withdraw`, `settle` |
+| payout fails after the burn | callback restores escrow and the nullifier | `on_settle_transfer` |
+
+### Not defended, stated plainly
+
+- A stolen agent key plus a merchant the attacker controls can get an honest receipt for
+  that merchant and settle up to `max_spend`. Keep caps small; the planned function-call
+  key per agent sub-account narrows the blast radius but does not remove this.
+- Cohorts on predicates other than `world_id_human` are not sybil-resistant: one person
+  with many accounts adds many verdicts. Only the World-bound predicate is one per person.
+- Cohort counts never decrease (spent and expired verdicts still count).
+- Revealed predicates are public on chain per verdict. Within one context, a rare
+  combination can narrow who the buyer is. Category-only bids, blind rounds and k>=5
+  reduce this; they do not remove it.
+- Owner key centralization (above). Fixture keys are public seeds: test only.
 
 ## Known limits
 
 - The account nullifier is an HMAC under a REP-held key today, so REP could link accounts.
   VOPRF is the chosen replacement and is not built. In fixtures the nullifier is a
   labelled placeholder.
-- World ID: there is no verifier on NEAR. An off-chain service checks World ID and signs
-  the binding; the contract trusts that service's key. The fixtures use a placeholder
-  action, and say "proven customer", not "verified human", until the live path ships.
-- The bid board can leak coarse buyer traits. Mitigations: category-only bids, blind
-  rounds, k>=5 cohorts.
-- Callers pay for the storage they add (`submit_verdict`, `register_merchant`, unused deposit
-  refunded); `storage_deposit` opens an escrow entry for 0.01 NEAR.
+- World ID runs on fixtures with a placeholder action. Say "proven customer", not
+  "verified human", until the live path ships.
+- Callers pay for the storage they add (`submit_verdict`, `register_merchant`,
+  `attest_human`, unused deposit refunded); `storage_deposit` opens an escrow entry for
+  0.01 NEAR.
+- No refunds after a dispute that lands after settle; the record is only flagged.
 - `make verify` runs the contract code natively against near-sdk's MockedBlockchain, not
-  on a live chain. Testnet addresses and tx hashes are listed below once deployed.
+  on a live chain. Nothing is deployed yet; testnet addresses and tx hashes go below.
 
 ## Deployments
 
