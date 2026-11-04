@@ -161,6 +161,33 @@ issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, n
 RPC), and the USDC transfer (a scheduled receipt, not executed). `make fixtures-check`
 proves the committed fixtures are exactly what the generator produces.
 
+## Evidence (measured, `scripts/evidence.sh`)
+
+Full output in `docs/evidence.md`, rerun to refresh. Headline numbers from 2026-11-04:
+`make verify` 3.9 s warm; 26 chain checks, 50/50 referee evals, 8/8 NEAR AI verdict
+checks, 2 blind rounds through the contract; NEAR AI live run 33/33 signatures at about
+$0.00024 per call; referee worker 0.27 ms per run (native). A verdict record costs the
+agent 815 bytes (0.00815 NEAR) of storage. Gas below is a mocked lower bound (host
+functions only); real gas comes with the testnet deploy.
+
+| method | who pays | storage added (bytes) | storage cost (NEAR) | host gas, mocked (Tgas, lower bound; settle includes gas attached to its two receipts) |
+|---|---|---|---|---|
+| `register_issuer` | owner | 224 | 0.00224 | 0.466 |
+| `register_world_verifier` | owner | 229 | 0.00229 | 1.549 |
+| `attest_human` | agent | 272 | 0.00272 | 1.189 |
+| `register_merchant` | merchant | 291 | 0.00291 | 0.944 |
+| `approve_merchant` | owner | 0 | 0.00000 | 0.303 |
+| `open_round` | owner | 87 | 0.00087 | 0.372 |
+| `commit_bid` | merchant | 93 | 0.00093 | 0.805 |
+| `reveal_bid` | merchant | 25 | 0.00025 | 0.862 |
+| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.307 |
+| `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.304 |
+| `submit_verdict (ed25519, first in context)` | agent | 815 | 0.00815 | 1.622 |
+| `submit_verdict (p256, same context)` | agent | 549 | 0.00549 | 2.538 |
+| `submit_referee_result` | contract balance (only a referee-signed result is stored) | 245 | 0.00245 | 0.617 |
+| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.165 |
+| `settle (+ ft_transfer receipt)` | agent pays gas; contract balance pays the 14 bytes | 14 | 0.00014 | 39.619 |
+
 ## Threat model and trust
 
 ### Trust anchors

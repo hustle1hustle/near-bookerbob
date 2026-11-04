@@ -332,6 +332,24 @@ impl Bazaar {
         emit("merchant_revoked", serde_json::json!({ "merchant": merchant }));
     }
 
+    /// Test and measurement helper (unit-testing feature only): write every collection
+    /// and the root state, as the runtime does at the end of a call.
+    #[cfg(feature = "unit-testing")]
+    pub fn flush_all(&mut self) {
+        self.issuers.flush();
+        self.merchants.flush();
+        self.verdicts.flush();
+        self.escrow.flush();
+        self.referees.flush();
+        self.cohorts.flush();
+        self.world_verifiers.flush();
+        self.world_agents.flush();
+        self.humans.flush();
+        self.arbiters.flush();
+        self.rounds.flush();
+        env::state_write(self);
+    }
+
     // ---------- blind bid rounds ----------
 
     /// Owner opens a round in `category` with a commit and a reveal deadline.

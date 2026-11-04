@@ -13,6 +13,7 @@
 //! through nearcore's VM logic. No network, no keys.
 
 mod evals;
+mod evidence;
 mod fixtures;
 mod keys;
 mod near_ai;
@@ -128,6 +129,7 @@ fn main() -> ExitCode {
                 }
             }
         }
+        Some("evidence") => evidence::run(),
         Some("near-ai") if args.len() >= 3 => near_ai::run(Path::new(&args[1]), Path::new(&args[2])),
         Some("near-ai-bind") if args.len() >= 2 => {
             let e: bookerbob_core::Envelope = serde_json::from_str(&std::fs::read_to_string(&args[1]).expect("read envelope")).expect("parse envelope");
