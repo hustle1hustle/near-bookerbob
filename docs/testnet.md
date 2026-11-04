@@ -343,6 +343,14 @@ each, so an amount narrowed a buyer to 3 people; the five group members share on
 Not built: a DAO sub-account holding the group's escrow (each member pays from its own
 escrow today), and the 20% tier has not been reached live.
 
+## Market fee into the DAO treasury (2026-11-05)
+
+Contract with the fee: [FLabtw87…](https://testnet.nearblocks.io/txns/FLabtw87QgzTUGpbq2Nka8kkkC1tGePJ7N434347Z5ZJ). The owner set 1% to the Sputnik DAO
+`bookerbob-gov.sputnikv2.testnet` ([FBfDnpEw…](https://testnet.nearblocks.io/txns/FBfDnpEwkEVjc9Rakbans9t7b632REixfeBST188DQQH)). One tester purchase at 36.00
+([3onZqGr3…](https://testnet.nearblocks.io/txns/3onZqGr3gGH8Ac8thA5RzuLxmTHbGdvq65gqm7HAE8Ra)): the merchant received 35.64, 0.36 accrued as the fee, and the
+liability record includes it. `sweep_fees` ([EzLN3dX8…](https://testnet.nearblocks.io/txns/EzLN3dX8xSkUoyW63ikEsiVbCbVP4euuJ3Nx5GQfPUR)) moved the 0.36 dUSDC to the
+DAO, whose balance went from 0 to 0.36. The buyer never pays more than the receipt price.
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`

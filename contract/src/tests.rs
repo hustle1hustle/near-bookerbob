@@ -303,7 +303,7 @@ fn settle_burns_nullifier_and_pays_merchant() {
     // The liability record: what the payment relied on, hashed, queryable per nullifier.
     let rec = c.verdict(n.clone()).unwrap();
     let rh = rec.receipt.as_ref().unwrap().receipt_hash.clone();
-    let want = hex::encode(bookerbob_core::sha256(&serde_json::to_vec(&(&rec.digest, &rh, "m01.bazaar.testnet", "151200000", "usdc")).unwrap()));
+    let want = hex::encode(bookerbob_core::sha256(&serde_json::to_vec(&(&rec.digest, &rh, "m01.bazaar.testnet", "151200000", "usdc", "0")).unwrap()));
     assert_eq!(c.liability(n.clone()), Some(want.clone()));
     assert!(logs.iter().any(|l| l.contains(&want)));
     // The ft_transfer receipt to the USDC contract is scheduled in the same call.
@@ -2631,5 +2631,90 @@ mod buying_groups {
         set(&b[1].0);
         let k2 = c.post_intent(b[1].1.clone(), "hotel".into(), "77".repeat(32));
         assert_ne!(k1, k2, "category is part of the key");
+    }
+}
+
+/// The market fee: conserved (merchant + fee = price), swept to a treasury, given back on a
+/// failed payout; at most 2%, and a raise waits out the anchor timelock.
+mod market_fee {
+    use super::*;
+    const TREASURY: &str = "gov.sputnikv2.testnet";
+
+    fn with_fee(bps: u64) -> Bazaar {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_fee(bps, acc(TREASURY));
+        c
+    }
+
+    #[test]
+    fn the_fee_is_taken_from_the_price_and_conserved() {
+        let mut c = with_fee(100);
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "o".into(), U128(151_200_000));
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000 - 151_200_000)), "the buyer pays the price, nothing more");
+        assert_eq!(c.fees_accrued("usdc".into()), U128(1_512_000));
+        let logs = get_logs();
+        assert!(logs.iter().any(|l| l.contains("\"fee\":\"1512000\"")));
+        // The merchant transfer is price - fee.
+        let r = near_sdk::test_utils::get_created_receipts();
+        let to_usdc = r.iter().find(|x| x.receiver_id.as_str() == USDC).unwrap();
+        let amount = to_usdc.actions.iter().find_map(|a| match a {
+            near_sdk::mock::MockAction::FunctionCallWeight { method_name, args, .. } if method_name == b"ft_transfer" => {
+                serde_json::from_slice::<serde_json::Value>(args).ok().map(|v| v["amount"].as_str().unwrap_or("").to_string())
+            }
+            _ => None,
+        });
+        assert_eq!(amount.as_deref(), Some("149688000"), "merchant gets 151.2 - 1.512");
+    }
+
+    #[test]
+    fn a_failed_payout_gives_back_price_and_fee() {
+        let mut c = with_fee(100);
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "o".into(), U128(151_200_000));
+        testing_env!(
+            ctx("bazaar.testnet").build(),
+            near_sdk::test_vm_config(),
+            near_sdk::RuntimeFeesConfig::test(),
+            Default::default(),
+            vec![PromiseResult::Failed]
+        );
+        assert!(!c.on_settle_transfer(n, acc("agent.testnet"), U128(151_200_000), None));
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert_eq!(c.fees_accrued("usdc".into()), U128(0));
+    }
+
+    #[test]
+    fn anyone_sweeps_the_fees_to_the_treasury() {
+        let mut c = with_fee(100);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "o".into(), U128(151_200_000));
+        set_no_deposit("anyone.testnet");
+        let _ = c.sweep_fees("usdc".into());
+        assert_eq!(c.fees_accrued("usdc".into()), U128(0));
+        assert!(get_logs().iter().any(|l| l.contains("fees_swept") && l.contains(TREASURY)));
+    }
+
+    #[test]
+    #[should_panic(expected = "fee over 2%")]
+    fn the_fee_is_capped() {
+        with_fee(201);
+    }
+
+    #[test]
+    fn with_a_timelock_a_fee_raise_waits() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_anchor_delay(600_000);
+        c.set_fee(100, acc(TREASURY));
+        assert_eq!(c.fee().0, 0, "queued, not applied");
+        let mut b = ctx("anyone.testnet");
+        b.block_timestamp((NOW_MS + 600_000) * 1_000_000);
+        testing_env!(b.build());
+        c.execute_anchor(1);
+        assert_eq!(c.fee(), (100, Some(acc(TREASURY))));
     }
 }

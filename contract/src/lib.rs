@@ -459,6 +459,25 @@ pub struct BuyingGroup {
     pub offer: Option<(AccountId, u16, U128)>,
 }
 
+// ---------- market fee into a treasury ----------
+
+/// The most the owner may set as the market fee: 2%.
+pub const MAX_FEE_BPS: u64 = 200;
+
+fn fee_rate() -> u64 {
+    read_u64(b"fee_bps")
+}
+
+/// Fees accrued in the contract per token ("usdc" or "demo"), swept to the treasury.
+fn fee_ledger() -> LookupMap<String, u128> {
+    LookupMap::new(b"F")
+}
+
+/// The fee taken on each settled nullifier, kept so a failed payout can give it back.
+fn settle_fees() -> LookupMap<String, u128> {
+    LookupMap::new(b"f")
+}
+
 /// Quantized group tiers: (persons needed, the most a merchant may offer, bps).
 pub const GROUP_TIERS: [(u64, u16); 2] = [(5, 1000), (10, 2000)];
 
@@ -588,6 +607,64 @@ impl Bazaar {
         arbiter_quorum()
     }
 
+    /// Owner: the market fee (at most 2%) and the treasury it is swept to, e.g. a Sputnik DAO.
+    /// Raising the fee, or changing the treasury, waits out the anchor timelock.
+    pub fn set_fee(&mut self, bps: u64, treasury: AccountId) {
+        self.assert_owner();
+        require!(bps <= MAX_FEE_BPS, "fee over 2%");
+        let same_to = env::storage_read(b"fee_to").map(|b| b == treasury.as_bytes()).unwrap_or(false);
+        if (bps > fee_rate() || !same_to) && self.queue_anchor("fee", serde_json::json!({ "bps": bps, "to": treasury })) {
+            return;
+        }
+        env::storage_write(b"fee_bps", &bps.to_le_bytes());
+        env::storage_write(b"fee_to", treasury.as_bytes());
+        emit("fee_set", serde_json::json!({ "bps": bps, "treasury": treasury }));
+    }
+
+    pub fn fee(&self) -> (u64, Option<AccountId>) {
+        (fee_rate(), env::storage_read(b"fee_to").and_then(|b| String::from_utf8(b).ok()).and_then(|s| s.parse().ok()))
+    }
+
+    pub fn fees_accrued(&self, token: String) -> U128 {
+        U128(fee_ledger().get(&token).copied().unwrap_or(0))
+    }
+
+    /// Anyone: send the accrued fees in `token` ("usdc" or "demo") to the treasury.
+    pub fn sweep_fees(&mut self, token: String) -> Promise {
+        let to: AccountId = env::storage_read(b"fee_to")
+            .and_then(|b| String::from_utf8(b).ok())
+            .and_then(|s| s.parse().ok())
+            .unwrap_or_else(|| env::panic_str("no treasury set"));
+        let contract = match token.as_str() {
+            "usdc" => self.usdc.clone(),
+            "demo" => demo_token_id().unwrap_or_else(|| env::panic_str("no demo token")),
+            _ => env::panic_str("token is usdc or demo"),
+        };
+        let mut fa = fee_ledger();
+        let amount = fa.get(&token).copied().unwrap_or(0);
+        require!(amount > 0, "no fees to sweep");
+        fa.insert(token.clone(), 0);
+        fa.flush();
+        emit("fees_swept", serde_json::json!({ "token": token, "amount": U128(amount), "to": to }));
+        ext_ft::ext(contract)
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(to, U128(amount), Some("bookerbob:fees".into()))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_sweep(token, U128(amount)))
+    }
+
+    #[private]
+    pub fn on_sweep(&mut self, token: String, amount: U128) -> bool {
+        if env::promise_result_checked(0, 64).is_ok() {
+            return true;
+        }
+        let mut fa = fee_ledger();
+        let v = fa.get(&token).copied().unwrap_or(0) + amount.0;
+        fa.insert(token, v);
+        fa.flush();
+        false
+    }
+
     pub fn anchor_delay(&self) -> u64 {
         anchor_delay_ms()
     }
@@ -637,6 +714,12 @@ impl Bazaar {
                 self.world_verifiers.insert(s("key_hex"), s("label"));
                 self.world_action = Some(s("action"));
                 emit("world_verifier_registered", serde_json::json!({ "key": s("key_hex"), "action": s("action"), "label": s("label"), "timelock": id }));
+            }
+            "fee" => {
+                let bps = a["bps"].as_u64().expect("bps");
+                env::storage_write(b"fee_bps", &bps.to_le_bytes());
+                env::storage_write(b"fee_to", s("to").as_bytes());
+                emit("fee_set", serde_json::json!({ "bps": bps, "treasury": s("to"), "timelock": id }));
             }
             "arbiter_threshold" => {
                 let n = a["n"].as_u64().expect("n");
@@ -1214,7 +1297,7 @@ impl Bazaar {
         ext_ft::ext(token)
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
+            .ft_transfer(m.payout.clone(), U128(price - settle_fees().get(&nullifier).copied().unwrap_or(0)), Some(format!("bookerbob:{checkout_ref}")))
             .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), Some(true)))
     }
 
@@ -2003,7 +2086,7 @@ impl Bazaar {
         ext_ft::ext(self.usdc.clone())
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
+            .ft_transfer(m.payout.clone(), U128(price - settle_fees().get(&nullifier).copied().unwrap_or(0)), Some(format!("bookerbob:{checkout_ref}")))
             .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), None))
     }
 
@@ -2015,7 +2098,7 @@ impl Bazaar {
         ext_ft::ext(token)
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
+            .ft_transfer(m.payout.clone(), U128(price - settle_fees().get(&nullifier).copied().unwrap_or(0)), Some(format!("bookerbob:{checkout_ref}")))
             .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), Some(true)))
     }
 
@@ -2089,11 +2172,23 @@ impl Bazaar {
         // Written before draw_reserve, so its bytes come from the agent's prepaid reserve.
         let record = self.verdicts.get(nullifier).expect("checked above");
         let receipt_hash = record.receipt.as_ref().map(|r| r.receipt_hash.clone()).unwrap_or_default();
+        // The market fee: taken from the price, never added to it; conserved (merchant + fee = price).
+        let fee = price * fee_rate() as u128 / 10_000;
         let liability = hex::encode(env::sha256_array(
-            serde_json::to_vec(&(&record.digest, &receipt_hash, merchant.as_str(), price.to_string(), if demo { "demo" } else { "usdc" }))
+            serde_json::to_vec(&(&record.digest, &receipt_hash, merchant.as_str(), price.to_string(), if demo { "demo" } else { "usdc" }, fee.to_string()))
                 .expect("json")
                 .as_slice(),
         ));
+        if fee > 0 {
+            let mut sf = settle_fees();
+            sf.insert(nullifier.to_string(), fee);
+            sf.flush();
+            let mut fa = fee_ledger();
+            let k = if demo { "demo" } else { "usdc" }.to_string();
+            let v = fa.get(&k).copied().unwrap_or(0) + fee;
+            fa.insert(k, v);
+            fa.flush();
+        }
         let mut l = liabilities();
         l.insert(nullifier.to_string(), liability.clone());
         l.flush();
@@ -2111,6 +2206,7 @@ impl Bazaar {
                 "path": path,
                 "token": if demo { "demo" } else { "usdc" },
                 "liability": liability,
+                "fee": U128(fee),
             }),
         );
         (m, price, agent)
@@ -2130,6 +2226,15 @@ impl Bazaar {
 
     fn on_settle_rollback(&mut self, nullifier: &str, agent: &AccountId, amount: U128, demo: bool) {
         self.credit(agent, amount.0, demo);
+        let mut sf = settle_fees();
+        if let Some(fee) = sf.remove(nullifier) {
+            sf.flush();
+            let mut fa = fee_ledger();
+            let k = if demo { "demo" } else { "usdc" }.to_string();
+            let v = fa.get(&k).copied().unwrap_or(0).saturating_sub(fee);
+            fa.insert(k, v);
+            fa.flush();
+        }
         if demo {
             let mut t = demo_paid();
             t.remove(nullifier);

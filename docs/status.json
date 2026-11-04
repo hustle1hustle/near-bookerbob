@@ -303,6 +303,16 @@
     ]
   },
   {
+    "feature": "market fee into a DAO treasury: at most 2%, taken from the price (merchant + fee = price), in the liability record, given back on a failed payout, swept by anyone to the treasury; a raise waits out the anchor timelock",
+    "tracks": "business, social, security",
+    "where": "`contract/src/lib.rs` (`set_fee`, `sweep_fees`)",
+    "status": "live",
+    "detail": "1% on testnet, swept to the Sputnik DAO `bookerbob-gov.sputnikv2.testnet`; 5 contract tests",
+    "evidence": [
+      "fee"
+    ]
+  },
+  {
     "feature": "NEAR INTENTS / 1Click top-up from any chain",
     "tracks": "realworld, agents",
     "where": "`docs/`",

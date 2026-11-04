@@ -233,5 +233,16 @@ for (const g of m.groups ?? []) {
     return [grp.persons >= 5 && grp.offer?.[1] === 1000 && txs.every((t) => t.ok && t.delegated) && same, `${grp.members.length} members, ${grp.persons} persons, offer ${grp.offer?.[0]?.split(".")[0]} at tier ${grp.offer?.[1] / 100}%; every settled amount ${Number(g.offer.price) / 1e6}`];
   });
 }
+if (m.fee) {
+  const f = m.fee;
+  await attempt(`market fee ${f.bps / 100}%: the merchant got the price minus the fee, the fee was swept to the DAO treasury`, async () => {
+    const [s, w] = await Promise.all([tx(f.settle_tx, m.treasury), tx(f.sweep_tx, f.sweep_sender)]);
+    const settled = events(s.logs).find((e) => e.event === "settled")?.data?.[0];
+    const toMerchant = events(s.logs).find((e) => e.standard === "nep141" && e.event === "ft_transfer" && e.data[0].new_owner_id === m.merchant)?.data?.[0];
+    const toTreasury = events(w.logs).find((e) => e.standard === "nep141" && e.event === "ft_transfer" && e.data[0].new_owner_id === f.treasury)?.data?.[0];
+    const conserved = BigInt(toMerchant?.amount ?? -1) + BigInt(settled?.fee ?? -1) === BigInt(settled?.amount ?? 0);
+    return [s.ok && w.ok && conserved && settled.fee === f.fee && toTreasury?.amount === f.fee, `paid ${Number(settled?.amount) / 1e6} = merchant ${Number(toMerchant?.amount) / 1e6} + fee ${Number(settled?.fee) / 1e6}; ${Number(toTreasury?.amount) / 1e6} swept to ${f.treasury.split(".")[0]}`];
+  });
+}
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);
