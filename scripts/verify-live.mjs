@@ -3,6 +3,7 @@
 // Reads fixtures/live/testnet-manifest.json (public data only: accounts, nullifiers, tx
 // hashes, expected values) and checks each against chain state and tx outcomes now.
 //   NEAR_RPC=<url> make verify-live     another public testnet RPC (fallback list below)
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 const RPCS = [process.env.NEAR_RPC, "https://test.rpc.fastnear.com", "https://rpc.testnet.pagoda.co", "https://neart.lava.build"].filter(Boolean);
@@ -126,9 +127,25 @@ await attempt("the proven standing root is a root the live graph had (its events
 });
 if (m.standing.update_tx) {
   await attempt("the Jolt standing update (worker-signed) was accepted with nonzero merchants", async () => {
-    const r = await tx(m.standing.update_tx, m.bazaar);
+    const r = await tx(m.standing.update_tx, m.standing.update_sender ?? m.bazaar);
     const e = events(r.logs).find((x) => x.event === "graph_scores")?.data?.[0];
     return [r.ok && e && e.merchants > 0 && e.program === m.standing.program_hash, e ? `merchants ${e.merchants}, program ${e.program.slice(0, 12)}..` : "no graph_scores event"];
+  });
+}
+if (m.standing.challenge) {
+  const ch = m.standing.challenge;
+  await attempt("the standing update was posted pending with its proof hash, challenged, and applied only after the arbiter's resolution", async () => {
+    const [p, c, r] = await Promise.all([tx(ch.pending_tx, ch.pending_sender), tx(ch.challenge_tx, ch.challenger), tx(ch.resolve_tx, m.standing.update_sender)]);
+    const pe = events(p.logs).find((e) => e.event === "graph_update_pending")?.data?.[0];
+    const ce = events(c.logs).find((e) => e.event === "graph_update_challenged")?.data?.[0];
+    const re = events(r.logs).find((e) => e.event === "graph_scores")?.data?.[0];
+    const local = createHash("sha256").update(readFileSync(new URL(`../${m.standing.proof}/proof.bin`, import.meta.url))).digest("hex");
+    const ok = p.ok && c.ok && r.ok && pe?.proof_sha256 === local && ce?.challenger === ch.challenger && re?.root === m.standing.root && re?.proof_sha256 === local;
+    return [ok, `pending ${ch.pending_tx.slice(0, 8)}, challenged by ${ch.challenger.split(".")[0]} ${ch.challenge_tx.slice(0, 8)}, resolved ${ch.resolution} ${ch.resolve_tx.slice(0, 8)}; proof sha256 ${local.slice(0, 12)}.. matches the committed proof`];
+  });
+  await attempt("the proven score on chain is the resolved update's", async () => {
+    const [score, root] = await view(m.bazaar, "proven_score", { merchant: m.merchant });
+    return [root === m.standing.root && score > 0, `m01 ${score / 100}, root ${root.slice(0, 12)}..`];
   });
 }
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);

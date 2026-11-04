@@ -240,6 +240,24 @@ signed by the worker key and accepted by `submit_graph_scores`
 Leak check (`make leak`, docs/leak.md): on this run a passive observer links all 6 ratings to
 their buyers by order alone. Stated as found; the fix is in progress.
 
+## Challengeable Jolt updates on testnet (2026-11-05)
+
+Contract with challengeable graph updates, bonds and the liability ledger:
+[FiPrhTwG…](https://testnet.nearblocks.io/txns/FiPrhTwGYeQxkfrsxhDHdQMdTkCDZkAFfH6JqXp1d7ky).
+`min_tcb` (UpToDate floor) deployed before it: [6i3dqGo6…](https://testnet.nearblocks.io/txns/6i3dqGo653RbjbnF2EKxYksnqeVha3cWLLEQNbRdNQho).
+
+| step | account | tx |
+|---|---|---|
+| bond the worker key, 0.5 NEAR | bookerbob-demo.testnet | [FuBdzQBQ…](https://testnet.nearblocks.io/txns/FuBdzQBQvgDiNpNin7DaaQyqDxWgYin71R7C1M8pu1A3) |
+| post the round-2 standing update, pending, with sha256 of its Jolt proof (`a001a88a…`, `zk/out/standing-testnet-2`) | bookerbob-demo.testnet | [9EJTKQNR…](https://testnet.nearblocks.io/txns/9EJTKQNRjVrw5uBZFdEAkJt8cEauBxKBmRYWWbNATRdU) |
+| challenge it, 0.1 NEAR bond | agent.bookerbob.testnet | [6z9po7X9…](https://testnet.nearblocks.io/txns/6z9po7X9DkafmygZQNeQokzWwKeBSUxtDXdox9wuCMBt) |
+| arbiter resolution `valid`, after the Jolt verifier passed on that proof (coordinating session: 65 ms); the update applies, the challenger's bond goes to the bonder | bookerbob-demo.testnet (relays the arbiter's signature) | [95PrdqgG…](https://testnet.nearblocks.io/txns/95PrdqgGboj2GUiLnsd7aJjw2Rc2Dp9Fnspf3yKiVcDQ) |
+
+After it: `proven_score(m01)` = 4.00 on root `39615a18…` (3 hires + 2 seeds; 12 ratings).
+The invalid path (update dropped, worker bond slashed to the challenger) is covered by the
+contract tests; it has not run live. The arbiter today is our own registered key, so a
+challenge is only as independent as that key's operator.
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`

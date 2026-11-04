@@ -276,10 +276,31 @@
     }
   ],
   "standing": {
-    "input": "fixtures/zk/standing-testnet-input.json",
-    "root": "ad42980dafd34038b63552ea229024f827ea968159d2369943a405b9d1e72326",
+    "input": "fixtures/zk/standing-testnet-2-input.json",
+    "root": "39615a186cb8fcbc432dcf3aefa3f9367e9aa72934185de9c53e1d76c0272fb3",
     "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
-    "update_tx": "5Us18yJbi7Z19wgnyaWpgpk2Dt3eSxt4jzo2EoGPx1PJ",
-    "proof": "zk/out/standing-testnet"
-  }
+    "proof": "zk/out/standing-testnet-2",
+    "proof_sha256": "a001a88af664ddeb95b9b57e1bad8e3dad2abfb6c9cdad9eca39825a57b84598",
+    "update_tx": "95PrdqgGboj2GUiLnsd7aJjw2Rc2Dp9Fnspf3yKiVcDQ",
+    "update_sender": "bookerbob-demo.testnet",
+    "challenge": {
+      "bond_tx": "FuBdzQBQvgDiNpNin7DaaQyqDxWgYin71R7C1M8pu1A3",
+      "bond_sender": "bookerbob-demo.testnet",
+      "pending_tx": "9EJTKQNRjVrw5uBZFdEAkJt8cEauBxKBmRYWWbNATRdU",
+      "pending_sender": "bookerbob-demo.testnet",
+      "challenge_tx": "6z9po7X9DkafmygZQNeQokzWwKeBSUxtDXdox9wuCMBt",
+      "challenger": "agent.bookerbob.testnet",
+      "resolve_tx": "95PrdqgGboj2GUiLnsd7aJjw2Rc2Dp9Fnspf3yKiVcDQ",
+      "resolution": "valid"
+    }
+  },
+  "standing_history": [
+    {
+      "input": "fixtures/zk/standing-testnet-input.json",
+      "root": "ad42980dafd34038b63552ea229024f827ea968159d2369943a405b9d1e72326",
+      "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+      "update_tx": "5Us18yJbi7Z19wgnyaWpgpk2Dt3eSxt4jzo2EoGPx1PJ",
+      "proof": "zk/out/standing-testnet"
+    }
+  ]
 }

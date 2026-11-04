@@ -11,6 +11,8 @@ Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), 
 | `referee` | 2.34 | 61 | 84,796 | 729 | 5.8 | 4,652,009 | `a66f1c29e3b7199a..` |
 | `cohort` | 2.91 | 63 | 84,724 | 560 | 5.0 | 2,876,057 | `50eb77d3d5c13c68..` |
 
+Challengeable on chain since 2026-11-05: an update is posted pending with sha256 of its proof; anyone can challenge it inside one review round with a 0.1 NEAR bond; a registered arbiter re-runs the verifier and signs the resolution; a false update slashes the worker's 0.5 NEAR bond to the challenger. Run live once (valid, docs/testnet.md). Round 2 (3 hires + 2 seeds, `zk/out/standing-testnet-2`): prove 2.71 s, verify 61 ms, proof 84,796 B, peak RSS 999 MB.
+
 Live testnet graph (3 hires + 1 seed, root `ad42980d…`, `zk/out/standing-testnet`): prove 3.32 s, verify 66 ms, proof 84,796 B, peak RSS 998 MB (on battery); its worker-signed update was accepted on chain (tx `5Us18yJb…`, docs/testnet.md).
 
 Standing was re-proved on 2026-11-05 after `publish_reviews` started pushing the Seed graph event: the fixture graph is now 20 hires and 1 seed (before, hires only, so the standing list was empty). Same program hash.

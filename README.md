@@ -323,9 +323,13 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
   derives the verdict predicates; Jolt proves the standing, price, referee and cohort code),
   so they cannot disagree on one value. Where both will exist (planned predicate guest),
   the rule is that the contract refuses on mismatch rather than picking one.
-- Jolt updates are not challengeable on chain yet: the contract accepts a standing update
-  signed by the registered worker key, and the worker's honesty is checked off chain by
-  rerunning `make zk-verify`. Challengeable updates with a bond are planned.
+- Jolt updates are challengeable, but the arbiter is one registered key today: a standing
+  update waits out a window with sha256 of its proof, anyone can challenge it with a bond,
+  and a false one slashes the worker's bond; the resolution is signed by our arbiter key after
+  it reruns the verifier. An arbiter set, or verifying the proof on chain, would remove that
+  trust; neither is built.
+- The verdict TCB floor is enforced (`min_tcb`, UpToDate by default): a verdict below it is
+  never quoted or paid. Synthetic `fixture` verdicts pass only on a `.testnet` bazaar.
 
 ## Known limits
 
