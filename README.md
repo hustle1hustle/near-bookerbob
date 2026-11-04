@@ -62,7 +62,10 @@ from the contract's own NEP-297 events in the `make verify` run and checked ther
 
 ## How one purchase works
 
-This is the target flow. The table below says which parts are built today.
+This is the **target flow**, not what runs today. Today `make verify` runs the contract
+steps on fixtures: the verdict is signed by a fixture issuer seed (`cli/src/fixtures.rs`),
+not by NEAR AI; the referee result is signed by a fixture referee seed, not on OutLayer;
+there is no notary proof and no Shopify order. The table below says which parts are built.
 
 ```mermaid
 sequenceDiagram
@@ -75,7 +78,7 @@ sequenceDiagram
     participant S as Shopify store via UCP
     U->>N: zkTLS proof over own account (notary sees ciphertext)
     U->>AI: proven facts, E2EE v2
-    AI-->>U: verdict envelope v0 (coarse predicates, tcb_status, cnf, expiry), signed
+    AI-->>U: verdict envelope v0 (coarse predicates, tcb_status, cnf, expiry), signed (target; today a fixture issuer key signs)
     U->>C: submit_verdict(envelope, signature): ed25519_verify / p256_verify, nullifier check
     M->>C: discount schedules (base, per-predicate bps, cap)
     C-->>U: quote = code-computed price per merchant
@@ -85,7 +88,7 @@ sequenceDiagram
     C->>C: amount = quote, receipt present, cap check, burn nullifier, NEP-297 event
     C->>C: ft_transfer USDC (NEP-141) to the merchant payout
     U->>S: UCP checkout with the near_tx; the bridge reads it and the order stores near_tx
-    U->>C: same proof, another wallet
+    U->>C: a second verdict for the same account (same nullifier), another wallet
     C-->>U: "nullifier spent"
 ```
 
@@ -103,7 +106,7 @@ interface exists with a test double; `planned` means not built yet.
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | built; `make verify` checks 04 and 05 |
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | built; `make verify` shows `k=6` |
-| SUB-ACCOUNTS: 30 merchant agents, one sub-account each, blind commit then reveal | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | built as config and offline board; accounts not created on testnet yet |
+| 30 merchant agents with a blind commit then reveal (sub-accounts planned, not created) | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | offline board only; the commit and reveal run in the CLI, not on chain; no sub-account exists yet |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
 | NEAR AI E2EE v2: the TEE signature covers the ciphertext, so it verifies without decrypting | privacy | `scripts/spikes/e2ee-signature.mjs`, `docs/near-ai.md` | checked live; TDX quote verification planned |
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
@@ -146,7 +149,7 @@ group unlock (5 peer verdicts bring the cohort to `k=6` and the cohort price ope
 referee worker (a signed refusal for the injected claim `F9 not in proof set`, settle
 blocked without a receipt, a signed receipt for honest claims), settle (escrow debit,
 nullifier burn, `settled` event, `ft_transfer` receipt to USDC), and the replay from
-another wallet (`nullifier spent`). Then the 30-agent board check and 50 referee evals.
+another wallet: a second verdict for the same account, same nullifier (`nullifier spent`). Then the 30-agent board check and 50 referee evals.
 
 Mocked or synthetic today: the proof set and attestation report (synthetic fixtures), the
 issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, no live
@@ -187,7 +190,7 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 
 | attack | stopped by | where |
 |---|---|---|
-| replay the same proof from another wallet | per-context nullifier in a global spent-set | `submit_verdict`, `settle`; `make verify` check 25 |
+| a second verdict for the same account (same nullifier) from another wallet | per-context nullifier in a global spent-set | `submit_verdict`, `settle`; `make verify` check 25 |
 | model claims a status it cannot prove (prompt injection) | structured claims: each citation asserts a field and value that must equal the proof; text naming an unproven status, another platform or an unasserted number is refused; no receipt, no payment | `core/src/referee.rs`; checks 19 to 21; 50 evals, 30 of them injection-style |
 | compromised referee signs a false receipt | arbiter re-runs and signs `overturned`; the receipt is cleared | check 22 |
 | merchant asks for raw history or identity | buyer agent policy declines by rule | `core/src/disclosure.rs`; check 05 |

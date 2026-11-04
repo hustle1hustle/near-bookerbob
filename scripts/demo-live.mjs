@@ -76,7 +76,7 @@ export function plan(c, price) {
       call(c.agent, c.usdc, "ft_transfer_call", `{"receiver_id":"${c.bazaar}","amount":"${price ?? 0}","msg":""}`, "1 yoctoNEAR", "100.0 Tgas"),
     ], needs: [NEAR_CLI, `testnet USDC on ${c.agent} (faucet.circle.com, NEAR testnet)`] },
     { id: "settle", kind: "tx", title: "settle: the merchant is paid the receipt price, the nullifier is spent", near: [call(c.agent, c.bazaar, "settle", () => `{"nullifier":"${JSON.parse(file("verdict.json")()).envelope.nullifier}","merchant":"m01.${c.bazaar}","checkout_ref":"demo-live-1","amount":"${price ?? 0}"}`, "0 NEAR", "150.0 Tgas")], needs: [NEAR_CLI] },
-    { id: "replay", kind: "tx", title: "same proof from another wallet is refused", near: [call(c.wallet2, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict-replay.json")()}}`, "0.05 NEAR")], expectFail: "nullifier spent", needs: [NEAR_CLI] },
+    { id: "replay", kind: "tx", title: "same account (same nullifier) from another wallet is refused", near: [call(c.wallet2, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict-replay.json")()}}`, "0.05 NEAR")], expectFail: "nullifier spent", needs: [NEAR_CLI] },
     { id: "outlayer", kind: "tx", title: "OutLayer runs the same referee in a TEE", needs: [NEAR_CLI, "OUTLAYER_PROJECT (worker for wasm32-wasip2, rustup target add wasm32-wasip2)"], optional: !c.outlayerProject, near: [call(c.bazaar, c.bazaar, "request_referee", () => JSON.stringify({ project_id: c.outlayerProject, input_data: readFileSync(join(c.liveDir, "worker-input.json"), "utf8").trim() }), "0.01 NEAR", "300.0 Tgas")] },
   ];
 }
@@ -88,7 +88,8 @@ export function describe(c, steps, tools) {
   const out = [`demo-live on testnet: bazaar ${c.bazaar}, agent ${c.agent}${c.dryRun ? " (dry run, nothing is sent)" : ""}`];
   for (const [i, s] of steps.entries()) {
     const missing = (s.needs ?? []).filter((n) => (n === NEAR_CLI && !tools.near) || (/seed/.test(n) && !tools.keys));
-    const tag = s.optional ? "skip " : missing.length ? "NEEDS" : "ready";
+    // A view can only be checked against the chain, so a dry run never calls it ready.
+    const tag = s.optional ? "skip " : missing.length ? "NEEDS" : s.kind === "view" && c.dryRun ? "check" : "ready";
     out.push(`${String(i + 1).padStart(2)}  ${tag}  ${s.kind.padEnd(5)}  ${s.title}`);
     for (const n of s.needs ?? []) out.push(`             needs: ${n}`);
     if (s.near && c.dryRun) for (const a of s.near) out.push(`             + ${c.near} ${a.map((x) => (typeof x === "function" ? `<${s.id} args>` : x)).join(" ")}`);

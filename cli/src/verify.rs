@@ -433,7 +433,7 @@ pub fn run(dir: &Path) -> ExitCode {
     let msg = replay.err().unwrap_or_else(|| "accepted".into());
     r.check(
         msg.contains(&exp.replay_error) && v_replay.envelope.nullifier == e.nullifier && v_replay.envelope.cnf != e.cnf,
-        "same proof from another wallet is rejected",
+        "same account (same nullifier) from another wallet is rejected",
         exp.replay_error.clone(),
     );
     as_caller(&e.cnf, None);
