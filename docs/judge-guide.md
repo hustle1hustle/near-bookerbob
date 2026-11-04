@@ -7,8 +7,9 @@ prices from code, and pays the merchant in USDC only against a referee receipt. 
 who paid can leave sealed ratings that name nobody.
 
 Honest status: everything runs on the real contract code against near-sdk's mocked
-chain, on synthetic fixtures. **Nothing is deployed yet** (the testnet deploy waits on a
-tool install). One NEAR AI verdict and the merchant pitches are real live captures.
+chain, on synthetic fixtures. The contract is also deployed on NEAR testnet
+(`bookerbob.testnet`, every tx in `docs/testnet.md`); nothing is on mainnet. One NEAR AI
+verdict and the merchant pitches are real live captures.
 
 ## Minute 1: open
 
@@ -54,13 +55,18 @@ Also tested offline (`make test`): the NEP-366 relayer policy for gasless rating
 
 ## Minute 5: check what is not claimed
 
-- Not deployed; no USDC has moved; no real zkTLS proof (the facts are synthetic).
+- Testnet only; no USDC has moved (escrow and settle wait on testnet USDC); no real zkTLS
+  proof (the facts are synthetic).
+- Chain Signatures EVM leg: the MPC signed a Base Sepolia USDC payout on testnet (tx
+  4AN6Ytp4, `fixtures/live/evm-sign.json`); it is not broadcast, the payer is unfunded.
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
 - Jolt: the four proofs are committed (`zk/out/`); `make verify` checks their outputs against
   the contract's code natively, and `make zk-verify` checks the proofs (needs the Jolt
-  build). The proven standing scores are not yet posted on testnet.
+  build). A fifth proof covers the live testnet hire graph; its worker-signed update is
+  accepted on chain (tx 4nHqu5TW) with an empty score list, since nothing seeds the live
+  graph until a paid purchase releases reviews.
 - Prior work is listed in `PRIOR_WORK.md`.
 
 Deeper reading: `docs/near-ai.md`, `docs/semaphore.md`, `docs/outlayer.md`, and the threat

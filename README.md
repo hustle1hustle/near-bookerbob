@@ -21,9 +21,10 @@ customer, and keeps the customer private.
 
 ## What is live and what is offline
 
-Exact as of 2026-11-04. **Nothing is deployed and no transaction has been sent**: the
-testnet deploy waits on a tool install. "Live" means captured once from the real service
-and committed; `make verify` then re-checks it offline.
+Exact as of 2026-11-04. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
+tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. No USDC has moved yet:
+escrow and settle wait on testnet USDC. "Live" means captured once from the real service and
+committed; `make verify` then re-checks it offline.
 
 | live, captured from the real service | where |
 |---|---|
@@ -31,6 +32,8 @@ and committed; `make verify` then re-checks it offline.
 | NEAR AI E2EE v2: one verdict issued in the enclave, its attestation report and TEE signature | `fixtures/live/near-ai/` |
 | Intel PCS collateral for that TDX quote (status UpToDate) | `fixtures/live/near-ai/collateral.json` |
 | NEAR testnet views (no transactions): the Chain Signatures derived key, OutLayer's cost estimate, USDC metadata | `fixtures/live/views.json` |
+| NEAR Chain Signatures, domain 0: the MPC signed a 38.40 USDC payout on Base Sepolia for the testnet receipt (tx 4AN6Ytp4); the raw tx recovers to the MPC-derived payer. Not broadcast: payer unfunded | `fixtures/live/evm-sign.json`, `fixtures/live/evm-payout-raw.txt` |
+| Jolt standing proof over the live testnet hire graph, its worker-signed update accepted on chain (tx 4nHqu5TW) | `zk/out/standing-testnet/` |
 | JMPR hotel rates (read-only search, nothing booked) | `fixtures/live/jmpr-lisbon-rates.json` |
 
 | offline: real code, mocked chain or synthetic inputs | where |
@@ -316,6 +319,7 @@ trust-anchor keys registered and USDC storage paid. 139 transactions, every hash
 | first Chain Signatures `sign`, domain 1 (Ed25519), path `stellar-1` (from the archived Stellar leg): the 64-byte signature verifies over the payload with the derived key `ed25519:Hni3RKAy…` (`fixtures/live/mpc-sign.txt`) | [2yHrL9YW…](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
 | redeploy with the EVM payout leg (600 KB wasm) | [2L63k3jZ…](https://testnet.nearblocks.io/txns/2L63k3jZYSXT3AUhukjQyxsbkhqefs7f12Njspte3JfF) |
 | Jolt standing program registered (`set_graph_program c780ceab…`) | [BRH8KVo1…](https://testnet.nearblocks.io/txns/BRH8KVo1hURxDDaHCN8ttZpngnv2ek4vnJVGuygS8HaR) |
+| Chain Signatures `sign`, domain 0 (secp256k1), path `evm-1`: a signed Base Sepolia USDC payout | [4AN6Ytp4…](https://testnet.nearblocks.io/txns/4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM) |
 | worker-signed standing update for the live hire graph (root `782a6b09…`, proved in 1.74 s), accepted; empty score list until a paid purchase seeds the graph | [4nHqu5TW…](https://testnet.nearblocks.io/txns/4nHqu5TWinE2sXpeVkStL3N4mHJSQGm2r7Tgt2dXbGZp) |
 
 `make demo-live` ran on testnet up to escrow: the agent's settle-only function-call key, its
