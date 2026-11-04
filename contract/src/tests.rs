@@ -1773,7 +1773,7 @@ mod graph_scores {
         let mut c = challenged();
         let (k, sig) = resolution(&c, false);
         set_no_deposit("anyone.testnet");
-        assert!(!c.resolve_graph_challenge(PROOF.into(), false, k, sig));
+        assert!(!c.resolve_graph_challenge(PROOF.into(), false, k, sig, None));
         assert_eq!(c.proven_score(acc("m01.bazaar.testnet")), None);
         assert!(c.worker_bond(worker()).is_none(), "slashed");
         let r = near_sdk::test_utils::get_created_receipts();
@@ -1786,7 +1786,7 @@ mod graph_scores {
         let mut c = challenged();
         let (k, sig) = resolution(&c, true);
         set_no_deposit("anyone.testnet");
-        assert!(c.resolve_graph_challenge(PROOF.into(), true, k, sig));
+        assert!(c.resolve_graph_challenge(PROOF.into(), true, k, sig, None));
         assert_eq!(c.proven_score(acc("m01.bazaar.testnet")).map(|x| x.0), Some(345));
         assert!(near_sdk::test_utils::get_created_receipts().iter().any(|x| x.receiver_id.as_str() == "bonder.testnet"));
     }
@@ -1797,7 +1797,7 @@ mod graph_scores {
         let mut c = challenged();
         let (k, sig) = resolution(&c, true);
         set_no_deposit("anyone.testnet");
-        c.resolve_graph_challenge(PROOF.into(), false, k, sig);
+        c.resolve_graph_challenge(PROOF.into(), false, k, sig, None);
     }
 
     #[test]
@@ -2414,5 +2414,78 @@ mod anchor_timelock {
         let mut c = delayed();
         at_ms("anyone.testnet", NOW_MS + 1);
         c.cancel_anchor(1);
+    }
+}
+
+/// 2-of-3 arbiters: with the threshold at 2, one arbiter key cannot overturn a receipt.
+mod arbiter_quorum {
+    use super::*;
+
+    fn key(n: u8) -> SigningKey {
+        SigningKey::from_bytes(&[n; 32])
+    }
+
+    fn signed_by(v: &SignedVerdict, result: &WorkerResult, claims: Vec<Claim>, k: &SigningKey) -> bookerbob_core::DisputeDecision {
+        let d = DisputeInput {
+            v: 0,
+            verdict: v.clone(),
+            result: result.clone(),
+            schedule: schedule(),
+            claims,
+            proofs: proofs(),
+            cohort_k: 0,
+            issuer_keys: vec![v.key_id()],
+            referee_keys: vec![hex::encode(referee_key().verifying_key().to_bytes())],
+        };
+        serde_json::from_str(&arbitrate(&d, k).unwrap()).unwrap()
+    }
+
+    /// Three arbiters, threshold 2, and a forged receipt on chain.
+    fn quorum() -> (Bazaar, SignedVerdict, WorkerResult, Vec<Claim>) {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        for n in [31, 32, 33] {
+            c.register_arbiter(hex::encode(key(n).verifying_key().to_bytes()), format!("arbiter {n}"));
+        }
+        c.set_arbiter_threshold(2);
+        let e = envelope(1, "agent.testnet");
+        let v = sign_ed(e.clone());
+        set("agent.testnet");
+        c.submit_verdict(v.clone());
+        let (cheat, forged) = forged_receipt(&e);
+        assert!(c.submit_referee_result(forged.clone()));
+        (c, v, forged, cheat)
+    }
+
+    #[test]
+    #[should_panic(expected = "needs several arbiter signatures")]
+    fn one_arbiter_key_alone_is_refused() {
+        let (mut c, v, r, cheat) = quorum();
+        c.submit_dispute_decision(signed_by(&v, &r, cheat, &key(31)));
+    }
+
+    #[test]
+    #[should_panic(expected = "needs 2 distinct arbiter signatures")]
+    fn one_key_twice_is_still_one() {
+        let (mut c, v, r, cheat) = quorum();
+        let d = signed_by(&v, &r, cheat, &key(31));
+        c.submit_dispute_decisions(vec![d.clone(), d]);
+    }
+
+    #[test]
+    fn two_distinct_arbiters_overturn_the_receipt() {
+        let (mut c, v, r, cheat) = quorum();
+        let a = signed_by(&v, &r, cheat.clone(), &key(31));
+        let b = signed_by(&v, &r, cheat, &key(32));
+        assert!(c.submit_dispute_decisions(vec![a, b]));
+        assert_eq!(c.verdict(v.envelope.nullifier).unwrap().receipt, None);
+    }
+
+    #[test]
+    #[should_panic(expected = "threshold must be 1 to the number of arbiters")]
+    fn the_threshold_cannot_exceed_the_arbiters() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_arbiter_threshold(2);
     }
 }

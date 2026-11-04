@@ -433,6 +433,11 @@ fn anchor_delay_ms() -> u64 {
 
 pub const MAX_ANCHOR_DELAY_MS: u64 = 30 * 24 * 3600 * 1000;
 
+/// Distinct registered arbiters that must sign a dispute decision or a challenge resolution.
+fn arbiter_threshold() -> u64 {
+    read_u64(b"arbiter_threshold").max(1)
+}
+
 /// The lowest TDX TCB status a verdict may carry to be quoted or paid. Default UpToDate.
 fn tcb_floor() -> String {
     env::storage_read(b"min_tcb").and_then(|b| String::from_utf8(b).ok()).unwrap_or_else(|| "UpToDate".into())
@@ -527,6 +532,22 @@ impl Bazaar {
         emit("anchor_delay_set", serde_json::json!({ "ms": ms }));
     }
 
+    /// Owner: how many distinct arbiters must sign. Raising applies at once (at most the
+    /// registered arbiters); lowering waits out the anchor delay like any trust-anchor change.
+    pub fn set_arbiter_threshold(&mut self, n: u64) {
+        self.assert_owner();
+        require!(n >= 1 && n <= self.arbiters.len() as u64, "threshold must be 1 to the number of arbiters");
+        if n < arbiter_threshold() && self.queue_anchor("arbiter_threshold", serde_json::json!({ "n": n })) {
+            return;
+        }
+        env::storage_write(b"arbiter_threshold", &n.to_le_bytes());
+        emit("arbiter_threshold_set", serde_json::json!({ "n": n }));
+    }
+
+    pub fn arbiter_threshold(&self) -> u64 {
+        arbiter_threshold()
+    }
+
     pub fn anchor_delay(&self) -> u64 {
         anchor_delay_ms()
     }
@@ -576,6 +597,11 @@ impl Bazaar {
                 self.world_verifiers.insert(s("key_hex"), s("label"));
                 self.world_action = Some(s("action"));
                 emit("world_verifier_registered", serde_json::json!({ "key": s("key_hex"), "action": s("action"), "label": s("label"), "timelock": id }));
+            }
+            "arbiter_threshold" => {
+                let n = a["n"].as_u64().expect("n");
+                env::storage_write(b"arbiter_threshold", &n.to_le_bytes());
+                emit("arbiter_threshold_set", serde_json::json!({ "n": n, "timelock": id }));
             }
             "delay" => {
                 let ms = a["ms"].as_u64().expect("ms");
@@ -1127,16 +1153,31 @@ impl Bazaar {
     /// verifier on the proof with that sha256 against this root and scores hash. Invalid:
     /// the update is dropped, the worker bond goes to the challenger with its own bond back.
     /// Valid: the update applies and the challenger's bond goes to the worker's bonder.
-    pub fn resolve_graph_challenge(&mut self, proof_sha256: String, valid: bool, arbiter_key: String, signature: String) -> bool {
+    pub fn resolve_graph_challenge(
+        &mut self,
+        proof_sha256: String,
+        valid: bool,
+        arbiter_key: String,
+        signature: String,
+        more: Option<Vec<(String, String)>>,
+    ) -> bool {
         let p = pending_graph().unwrap_or_else(|| env::panic_str("no pending update"));
         let (challenger, cbond) = p.challenger.clone().unwrap_or_else(|| env::panic_str("not challenged"));
         require!(p.proof_sha256 == proof_sha256, "resolution is for another proof");
-        require!(self.arbiters.contains_key(&arbiter_key), "unknown arbiter key");
         let mut msg = GRAPH_CHALLENGE_TAG.to_vec();
         msg.extend(serde_json::to_vec(&(&p.root, &p.scores_hash, &proof_sha256, valid)).expect("json"));
-        let sig: [u8; 64] = decode(&signature, "arbiter signature");
-        let pk: [u8; 32] = decode(&arbiter_key, "arbiter key");
-        require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad arbiter signature");
+        let digest = env::sha256_array(&msg);
+        let mut keys: Vec<String> = Vec::new();
+        for (k, sg) in std::iter::once((arbiter_key, signature)).chain(more.unwrap_or_default()) {
+            require!(self.arbiters.contains_key(&k), "unknown arbiter key");
+            let sig: [u8; 64] = decode(&sg, "arbiter signature");
+            let pk: [u8; 32] = decode(&k, "arbiter key");
+            require!(env::ed25519_verify(&sig, digest, &pk), "bad arbiter signature");
+            if !keys.contains(&k) {
+                keys.push(k);
+            }
+        }
+        require!(keys.len() as u64 >= arbiter_threshold(), format!("needs {} distinct arbiter signatures", arbiter_threshold()));
         let mut bonds = worker_bonds();
         if valid {
             let (bonder, _) = bonds.get(&p.worker_key).cloned().expect("bonded at submit");
@@ -1700,12 +1741,29 @@ impl Bazaar {
     /// settle it marks the record `disputed` (refunds are out of scope for v0).
     /// Returns true when the receipt was overturned.
     pub fn submit_dispute_decision(&mut self, decision: DisputeDecision) -> bool {
-        let b = &decision.body;
+        require!(arbiter_threshold() == 1, "this bazaar needs several arbiter signatures: submit_dispute_decisions");
+        self.submit_dispute_decisions(vec![decision])
+    }
+
+    /// The same decision body signed by at least `arbiter_threshold` distinct registered
+    /// arbiters; one key, or one key twice, is not enough when the threshold is above 1.
+    pub fn submit_dispute_decisions(&mut self, decisions: Vec<DisputeDecision>) -> bool {
+        let first = decisions.first().unwrap_or_else(|| env::panic_str("no decision"));
+        let b = first.body.clone();
         require!(b.v == 0, "unsupported dispute decision");
-        require!(self.arbiters.contains_key(&decision.arbiter_key), "unknown arbiter key");
-        let sig: [u8; 64] = decode(&decision.signature, "arbiter signature");
-        let pk: [u8; 32] = decode(&decision.arbiter_key, "arbiter key");
-        require!(env::ed25519_verify(&sig, b.signing_message(), &pk), "bad arbiter signature");
+        let mut keys: Vec<String> = Vec::new();
+        for d in &decisions {
+            require!(d.body == b, "decisions disagree");
+            require!(self.arbiters.contains_key(&d.arbiter_key), "unknown arbiter key");
+            let sig: [u8; 64] = decode(&d.signature, "arbiter signature");
+            let pk: [u8; 32] = decode(&d.arbiter_key, "arbiter key");
+            require!(env::ed25519_verify(&sig, b.signing_message(), &pk), "bad arbiter signature");
+            if !keys.contains(&d.arbiter_key) {
+                keys.push(d.arbiter_key.clone());
+            }
+        }
+        require!(keys.len() as u64 >= arbiter_threshold(), format!("needs {} distinct arbiter signatures", arbiter_threshold()));
+        let b = &b;
         let record = self.verdicts.get_mut(&b.nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(record.digest == b.verdict_digest, "dispute is for another verdict");
         let receipt = record.receipt.clone().unwrap_or_else(|| env::panic_str("no receipt to dispute"));
