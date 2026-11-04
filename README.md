@@ -231,10 +231,10 @@ Full output in `docs/evidence.md`, rerun to refresh. Headline numbers from 2026-
 checks, 2 blind rounds through the contract, 15/15 sealed-review checks (a Semaphore
 proof costs about 33 Tgas of mocked host gas); NEAR AI live run 33/33 signatures at about
 $0.00024 per call; referee worker about 0.25 ms per run (native). A verdict record costs the
-agent 1174 bytes (record, cohort counters and cohort roots) plus a 512-byte reserve for its
-receipt and settle (0.0169 NEAR in all);
+agent 1174 bytes (record, cohort counters and cohort roots) plus a 768-byte reserve for its
+receipt, settle and liability record (0.0194 NEAR in all);
 the contract balance pays nothing per purchase. Gas below is a mocked lower bound (host
-functions only); real gas comes with the testnet deploy.
+functions only); on testnet every tx's real gas is on nearblocks (docs/testnet.md).
 
 | method | who pays | storage added (bytes) | storage cost (NEAR) | host gas, mocked (Tgas, lower bound; settle includes gas attached to its two receipts) |
 |---|---|---|---|---|

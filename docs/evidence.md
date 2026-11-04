@@ -4,7 +4,7 @@ Written by `scripts/evidence.sh` on 2026-11-04 (arm64, 11 cores). Rerun it to re
 
 | what | measured |
 |---|---|
-| `make verify`, warm build | 10.5 s |
+| `make verify`, warm build | 13.5 s |
 | chain checks (contract code on MockedBlockchain) | ALL PASS (26 checks) |
 | referee evals | referee evals 50/50 (39 cheats refused, 11 honest receipts) |
 | NEAR AI verdict, offline checks | NEAR AI verdict: 14 checks |
@@ -30,15 +30,15 @@ first verdict in a context also creates its cohort counters, so it costs more.
 | `open_round` | owner | 87 | 0.00087 | 0.378 |
 | `commit_bid` | merchant | 93 | 0.00093 | 0.811 |
 | `reveal_bid` | merchant | 25 | 0.00025 | 0.868 |
-| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.314 |
+| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.382 |
 | `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.310 |
 | `submit_verdict (ed25519, first in context)` | agent | 1174 | 0.01174 | 2.033 |
 | `submit_verdict (p256, same context)` | agent | 559 | 0.00559 | 2.776 |
 | `submit_referee_result` | agent, from the record reserve prepaid at submit | 245 | 0.00245 | 0.729 |
-| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.231 |
-| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.840 |
+| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.300 |
+| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 191 | 0.00191 | 40.097 |
 
-per verdict: 1174 bytes (0.01174 NEAR) plus a 512 byte reserve for its receipt and settle (0.00512 NEAR), paid by the agent from its 0.05 NEAR deposit, rest refunded; referee worker run: 252 us (native)
+per verdict: 1174 bytes (0.01174 NEAR) plus a 768 byte reserve for its receipt and settle (0.00768 NEAR), paid by the agent from its 0.05 NEAR deposit, rest refunded; referee worker run: 278 us (native)
 
 ## Sealed reviews gas
 
@@ -49,10 +49,10 @@ counted. Treat both as floors until the testnet deploy.
 
 | method | host gas, mocked (Tgas) | calls |
 |---|---|---|
-| `join_review_group (LeanIMT insert, Poseidon)` | 0.81 | 10 |
-| `publish_reviews (6 ratings)` | 0.81 | 1 |
-| `reveal_review` | 0.60 | 6 |
-| `submit_review (Groth16 on alt_bn128)` | 33.19 | 10 |
+| `join_review_group (LeanIMT insert, Poseidon)` | 1.09 | 10 |
+| `publish_reviews (6 ratings)` | 1.04 | 1 |
+| `reveal_review` | 0.74 | 6 |
+| `submit_review (Groth16 on alt_bn128)` | 33.26 | 10 |
 
 ## Jolt zkVM guests
 
@@ -60,7 +60,7 @@ From zk/out/<guest>/result.json and the /usr/bin/time -l logs (this Mac, cargo -
 
 | guest | prove (s) | verify (ms) | proof (bytes) | peak RAM (MB) |
 |---|---|---|---|---|
-| standing | 8.94 | 70 | 92,716 | 3,230 |
+| standing | 8.94 | 70 | 92,716 | 1,393 |
 | price | 1.27 | 59 | 80,380 | 375 |
 | referee | 2.34 | 61 | 84,796 | 729 |
 | cohort | 2.91 | 63 | 84,724 | 560 |
