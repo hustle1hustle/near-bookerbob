@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-04T20:50:22.825Z",
+  "when": "2026-11-04T22:01:12.961Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
@@ -60,6 +60,13 @@
       "linked": true,
       "note": "by design: the sender is fresh, so this only matters combined with L2",
       "anonymity_set": 1
+    },
+    {
+      "rule": "L5 plaintext facts",
+      "what": "the proof set's fields and proof refs in the args of 66 tester txs",
+      "linked": false,
+      "note": "none: facts never left the buyer side in tx args",
+      "anonymity_set": 6
     }
   ],
   "rating_to_buyer_linked": false
