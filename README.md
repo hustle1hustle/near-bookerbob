@@ -34,6 +34,13 @@ Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. N
 3. Read `fixtures/` to see exactly what went in. All fixtures are synthetic. No real user
    data is in this repository.
 
+## The board
+
+![bookerbob board: 30 merchant agents bid, the buyer column shows only k=6 and the disclosure counter, the injected claim gets a red refused receipt](docs/img/board.png)
+
+`make swarm` writes `agents/board.json`; `python3 -m http.server -d agents` and open
+`/board.html`. Synthetic fixtures.
+
 ## How one purchase works
 
 This is the target flow. The table below says which parts are built today.

@@ -56,6 +56,36 @@ pub struct Board {
     pub merchants: usize,
     pub buyer: BuyerColumn,
     pub categories: Vec<CategoryBoard>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disclosure: Option<Disclosure>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub receipts: Vec<ReceiptRow>,
+}
+
+/// What revealing bits bought: the winner's base price against what the buyer pays.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Disclosure {
+    pub category: String,
+    pub revealed_bits: usize,
+    pub base_price: String,
+    pub price: String,
+    pub saved: String,
+}
+
+/// Referee outcome for the winner's quote, for each claim set next to the verdict.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct ReceiptRow {
+    pub label: String,
+    pub claims: Vec<bookerbob_core::Claim>,
+    pub outcome: String,
+    pub detail: String,
+}
+
+/// Claim sets and proofs that sit next to the verdict, if present.
+#[derive(Default)]
+pub struct Extras {
+    pub proofs: Option<bookerbob_core::ProofSet>,
+    pub claim_sets: Vec<(String, Vec<bookerbob_core::Claim>)>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -94,7 +124,13 @@ fn usdc(v: u128) -> String {
     format!("{}.{:02}", v / 1_000_000, (v % 1_000_000) / 10_000)
 }
 
-pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict, peers: &[SignedVerdict], worlds: &[bookerbob_core::WorldAttestation]) -> Result<Board, String> {
+pub fn build(
+    merchants: &[SwarmMerchant],
+    verdict: &SignedVerdict,
+    peers: &[SignedVerdict],
+    worlds: &[bookerbob_core::WorldAttestation],
+    extras: &Extras,
+) -> Result<Board, String> {
     // Round 1: blind commitments.
     let commits: Vec<String> = merchants.iter().map(|m| bid_commitment(&m.account, &m.schedule, &bid_salt(&m.account))).collect();
     // Round 2: reveal, check, register, quote on the contract.
@@ -159,6 +195,24 @@ pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict, peers: &[Sign
         }
         categories.push(CategoryBoard { category: cat, winner: rows[0].merchant.clone(), rows });
     }
+    // The purchase is in the first category (the verdict's context names a hoodie).
+    let buy = categories.iter().find(|c| c.category == "hoodie").or(categories.first());
+    let disclosure = buy.map(|cat| {
+        let w = &cat.rows[0];
+        let (base, price): (u128, u128) = (w.base_price.parse().unwrap(), w.price.parse().unwrap());
+        Disclosure { category: cat.category.clone(), revealed_bits: verdict.envelope.predicates.len(), base_price: base.to_string(), price: price.to_string(), saved: (base - price).to_string() }
+    });
+    let mut receipts = Vec::new();
+    if let (Some(proofs), Some(cat)) = (&extras.proofs, buy) {
+        let q = c.quote(acc(&cat.winner), n.clone());
+        for (label, claims) in &extras.claim_sets {
+            let (outcome, detail) = match bookerbob_core::referee(proofs, &verdict.envelope.predicates, &q, claims) {
+                bookerbob_core::RefereeOutcome::Receipt { receipt_hash } => ("receipt".to_string(), receipt_hash),
+                bookerbob_core::RefereeOutcome::Refused { reason } => ("refused".to_string(), reason),
+            };
+            receipts.push(ReceiptRow { label: label.clone(), claims: claims.clone(), outcome, detail });
+        }
+    }
     Ok(Board {
         note: "synthetic fixtures; prices computed by bookerbob-core inside the bazaar contract".into(),
         merchants: merchants.len(),
@@ -169,6 +223,8 @@ pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict, peers: &[Sign
             group_unlock: if cohort_k >= K_MIN { format!("unlocked (k={cohort_k})") } else { format!("locked (k={cohort_k}, needs k>={K_MIN})") },
         },
         categories,
+        disclosure,
+        receipts,
     })
 }
 
@@ -181,7 +237,14 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     let peers: Vec<SignedVerdict> = std::fs::read_to_string(&peers_path).ok().map(|s| serde_json::from_str(&s).expect("parse peers")).unwrap_or_default();
     let worlds_path = verdict_path.with_file_name("world-attestations.json");
     let worlds: Vec<bookerbob_core::WorldAttestation> = std::fs::read_to_string(&worlds_path).ok().map(|s| serde_json::from_str(&s).expect("parse world attestations")).unwrap_or_default();
-    let board = match build(&merchants, &verdict, &peers, &worlds) {
+    let near = |name: &str| std::fs::read_to_string(verdict_path.with_file_name(name)).ok();
+    let mut extras = Extras { proofs: near("proofs.json").map(|s| serde_json::from_str(&s).expect("parse proofs")), claim_sets: vec![] };
+    for (label, file) in [("honest claims", "claims-honest.json"), ("claims after a prompt injection", "claims-cheat.json")] {
+        if let Some(s) = near(file) {
+            extras.claim_sets.push((label.into(), serde_json::from_str(&s).expect("parse claims")));
+        }
+    }
+    let board = match build(&merchants, &verdict, &peers, &worlds, &extras) {
         Ok(b) => b,
         Err(e) => {
             println!("FAIL  swarm  ({e})");
@@ -190,6 +253,12 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     };
     println!("board: {} merchant agents, blind commit then reveal", board.merchants);
     println!("buyer: commitment {}..  revealed {} bits  {}", &board.buyer.verdict_commitment[..12], board.buyer.revealed_bits, board.buyer.group_unlock);
+    if let Some(d) = &board.disclosure {
+        println!("disclosure: revealed {} bits, saved {} USDC on {}", d.revealed_bits, usdc(d.saved.parse().unwrap()), d.category);
+    }
+    for r in &board.receipts {
+        println!("receipt: {}: {} ({})", r.label, r.outcome, if r.outcome == "receipt" { &r.detail[..12] } else { &r.detail });
+    }
     for cat in &board.categories {
         println!("\n[{}]", cat.category);
         println!("{:>3}  {:<26} {:>9} {:>6} {:>9}  lines", "#", "merchant", "base", "disc", "price");
