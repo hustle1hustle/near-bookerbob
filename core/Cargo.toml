@@ -8,6 +8,7 @@ description = "BookerBob verdict envelope v0, deterministic tier, price and disc
 
 [dependencies]
 bookerbob-graph = { path = "../graph" }
+bookerbob-zkcore = { path = "../zkcore" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 borsh = { workspace = true }

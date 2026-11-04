@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-REF = "core/src/referee.rs"
+REF = "zkcore/src/referee.rs"  # the referee checks live here; core delegates
 LIB = "contract/src/lib.rs"
 
 # (id, what it breaks, file, exact old text, new text, cargo package to test)
@@ -24,13 +24,13 @@ MUTANTS = [
     ("M3", "referee: asserted value not compared", REF,
      "if fact.field != cit.field || fact.value != cit.value {", "if fact.field != cit.field {", "bookerbob-core"),
     ("M4", "referee: a fact that proves another line accepted", REF,
-     "if predicate_for(fact) != Some(c.line.as_str()) {", "if predicate_for(fact).is_none() {", "bookerbob-core"),
+     "if predicate_for(&fact.platform, &fact.field, fact.value) != Some(c.line.as_str()) {", "if predicate_for(&fact.platform, &fact.field, fact.value).is_none() {", "bookerbob-core"),
     ("M5", "referee: text tripwires off", REF,
      "if let Some(reason) = check_text(c) {", "if let Some(reason) = None::<String> {", "bookerbob-core"),
     ("M6", "referee: a discount line without a claim accepted", REF,
-     "if !claims.iter().any(|c| c.line == line.predicate) {", "if false {", "bookerbob-core"),
+     "if !claims.iter().any(|c| &c.line == line) {", "if false {", "bookerbob-core"),
     ("M7", "referee: duplicate fact ids accepted", REF,
-     "if proofs.facts[..i].iter().any(|g| g.id == f.id) {", "if false {", "bookerbob-core"),
+     "if facts[..i].iter().any(|g| g.id == f.id) {", "if false {", "bookerbob-core"),
     ("M8", "nullifier: a pending or spent nullifier accepted again", LIB,
      'env::panic_str(if existing.spent { "nullifier spent" } else { "nullifier pending" });', "let _ = existing;", "bookerbob-bazaar"),
     ("M9", "nullifier: settle on a spent nullifier", LIB,

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core", "contract", "cli", "worker", "graph"]
+members = ["core", "contract", "cli", "worker", "graph", "zkcore"]
 exclude = ["stellar", "tools/tdx-collateral", "zk"]
 
 [workspace.package]

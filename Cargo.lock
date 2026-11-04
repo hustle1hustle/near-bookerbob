@@ -368,6 +368,7 @@ dependencies = [
  "ark-bn254",
  "ark-ff",
  "bookerbob-graph",
+ "bookerbob-zkcore",
  "borsh",
  "chacha20poly1305",
  "hex",
@@ -396,6 +397,13 @@ dependencies = [
  "p256",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "bookerbob-zkcore"
+version = "0.1.0"
+dependencies = [
+ "sha2 0.10.9",
 ]
 
 [[package]]

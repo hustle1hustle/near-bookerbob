@@ -10,7 +10,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::price::Quote;
-use crate::tier::{predicate_for, ProofSet, RULES};
+use crate::tier::ProofSet;
 
 /// One cited fact and what the claim asserts about it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -48,118 +48,42 @@ fn refuse(reason: String) -> RefereeOutcome {
     RefereeOutcome::Refused { reason }
 }
 
-/// Status words no fact in this system can prove. Text that uses one is a claim the
-/// receipt would launder, so it is refused.
-pub const UNPROVEN_STATUS: &[&str] = &[
-    "platinum",
-    "diamond",
-    "titanium",
-    "gold",
-    "silver",
-    "elite",
-    "vip",
-    "ambassador",
-    "superhost",
-    "premier",
-    "executive",
-    "centurion",
-    "marriott",
-    "hilton",
-    "hyatt",
-    "ihg",
-    "accor",
-    "bonvoy",
-    "amex",
-    "loyalty",
-];
-
-/// Words that name a platform, and the predicate whose facts come from it.
-const PLATFORM_WORDS: &[(&str, &str)] = &[
-    ("airbnb", "airbnb_frequent"),
-    ("booking", "booking_genius"),
-    ("genius", "booking_genius"),
-    ("anthropic", "claude_spender"),
-    ("claude", "claude_spender"),
-    ("steam", "steam_veteran"),
-    ("uber", "uber_regular"),
-    ("world", "world_id_human"),
-];
-
-fn words(text: &str) -> Vec<String> {
-    text.to_lowercase().split(|c: char| !c.is_ascii_alphanumeric()).filter(|w| !w.is_empty()).map(String::from).collect()
-}
-
-/// Numbers that are part of a field name for this line, like the 12 in `trips_12m`.
-fn window_numbers(line: &str) -> Vec<u64> {
-    RULES.iter().filter(|r| r.3 == line).flat_map(|r| r.1.split(|c: char| !c.is_ascii_digit()).filter_map(|d| d.parse().ok()).collect::<Vec<u64>>()).collect()
-}
-
-fn check_text(c: &Claim) -> Option<String> {
-    // Homoglyphs and zero-width characters would slip past the word checks.
-    if !c.text.chars().all(|ch| ch == ' ' || ch.is_ascii_graphic()) {
-        return Some("claim text must be plain ascii".into());
-    }
-    if c.text.len() > 280 {
-        return Some("claim text over 280 characters".into());
-    }
-    let w = words(&c.text);
-    if let Some(bad) = w.iter().find(|x| UNPROVEN_STATUS.contains(&x.as_str())) {
-        return Some(format!("claim text names unproven status: {bad}"));
-    }
-    if let Some((word, _)) = PLATFORM_WORDS.iter().find(|(word, pred)| *pred != c.line && w.iter().any(|x| x == word)) {
-        return Some(format!("claim text names {word}, which the {} claim does not prove", c.line));
-    }
-    let allowed: Vec<u64> = c.citations.iter().map(|x| x.value).chain(window_numbers(&c.line)).collect();
-    if let Some(n) = w.iter().filter_map(|x| x.parse::<u64>().ok()).find(|n| !allowed.contains(n)) {
-        return Some(format!("claim text states {n}, not an asserted value"));
-    }
-    None
-}
+/// Status words no fact in this system can prove (the list lives in bookerbob-zkcore).
+pub use bookerbob_zkcore::referee::UNPROVEN_STATUS;
 
 pub fn referee(proofs: &ProofSet, revealed: &[String], quote: &Quote, claims: &[Claim]) -> RefereeOutcome {
-    // A citation must name exactly one fact.
-    for (i, f) in proofs.facts.iter().enumerate() {
-        if proofs.facts[..i].iter().any(|g| g.id == f.id) {
-            return refuse(format!("duplicate fact id {} in proof set", f.id));
+    // One implementation of the checks, in bookerbob-zkcore (the referee guest proves it).
+    let (facts, zclaims) = to_zk(proofs, claims);
+    let lines: Vec<String> = quote.lines.iter().map(|l| l.predicate.clone()).collect();
+    match bookerbob_zkcore::referee::check(&facts, revealed, &lines, quote.cohort.as_ref().map(|c| c.predicate.as_str()), &zclaims) {
+        Err(reason) => refuse(reason),
+        Ok(()) => {
+            let body = serde_json::to_vec(&(quote, claims)).expect("serializes");
+            RefereeOutcome::Receipt { receipt_hash: crate::sha256_hex(&body) }
         }
     }
-    for c in claims {
-        if !crate::is_known_predicate(&c.line) {
-            return refuse(format!("{} is not a known predicate", c.line));
-        }
-        if !revealed.iter().any(|p| p == &c.line) {
-            return refuse(format!("{} not revealed", c.line));
-        }
-        if c.citations.is_empty() {
-            return refuse(format!("claim for {} cites no fact", c.line));
-        }
-        for cit in &c.citations {
-            let Some(fact) = proofs.facts.iter().find(|f| f.id == cit.fact) else {
-                return refuse(format!("{} not in proof set", cit.fact));
-            };
-            if fact.field != cit.field || fact.value != cit.value {
-                return refuse(format!("{} asserted {}={}, proven {}={}", cit.fact, cit.field, cit.value, fact.field, fact.value));
-            }
-            if predicate_for(fact) != Some(c.line.as_str()) {
-                return refuse(format!("{} does not prove {}", cit.fact, c.line));
-            }
-        }
-        if let Some(reason) = check_text(c) {
-            return refuse(reason);
-        }
-    }
-    for line in &quote.lines {
-        if !claims.iter().any(|c| c.line == line.predicate) {
-            return refuse(format!("discount line {} has no cited claim", line.predicate));
-        }
-    }
-    if let Some(c) = &quote.cohort {
-        if !claims.iter().any(|cl| cl.line == c.predicate) {
-            return refuse(format!("cohort line {} has no cited claim", c.predicate));
-        }
-    }
-    let body = serde_json::to_vec(&(quote, claims)).expect("serializes");
-    RefereeOutcome::Receipt { receipt_hash: crate::sha256_hex(&body) }
+}
+
+/// The plain form the shared no_std code and the Jolt guest take.
+pub fn to_zk(proofs: &ProofSet, claims: &[Claim]) -> (Vec<bookerbob_zkcore::referee::Fact>, Vec<bookerbob_zkcore::referee::Claim>) {
+    let facts = proofs
+        .facts
+        .iter()
+        .map(|f| bookerbob_zkcore::referee::Fact { id: f.id.clone(), platform: f.platform.clone(), field: f.field.clone(), value: f.value })
+        .collect();
+    let claims = claims
+        .iter()
+        .map(|c| bookerbob_zkcore::referee::Claim {
+            line: c.line.clone(),
+            text: c.text.clone(),
+            citations: c
+                .citations
+                .iter()
+                .map(|x| bookerbob_zkcore::referee::Citation { fact: x.fact.clone(), field: x.field.clone(), value: x.value })
+                .collect(),
+        })
+        .collect();
+    (facts, claims)
 }
 
 #[cfg(test)]

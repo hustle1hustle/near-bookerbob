@@ -113,21 +113,27 @@ pub fn quote(schedule: &Schedule, revealed: &[String]) -> Quote {
 /// Price with the group unlock: `cohort_size(p)` is how many verdicts in this context
 /// revealed predicate `p` (the buyer's own included).
 pub fn quote_in_cohort(schedule: &Schedule, revealed: &[String], cohort_size: impl Fn(&str) -> u32) -> Quote {
-    let lines: Vec<DiscountLine> = schedule
-        .rules
-        .iter()
-        .filter(|r| revealed.iter().any(|p| p == &r.predicate))
-        .map(|r| DiscountLine { predicate: r.predicate.clone(), bps: r.bps })
-        .collect();
-    let sum: u32 = lines.iter().map(|l| l.bps as u32).sum();
-    let cohort = schedule.cohort.as_ref().and_then(|c| {
-        let k = cohort_size(&c.predicate);
-        (revealed.iter().any(|p| p == &c.predicate) && k >= c.k_min).then(|| CohortLine { predicate: c.predicate.clone(), k, bps: c.bps })
-    });
-    let capped = sum.min(schedule.cap_bps as u32);
-    let discount_bps = (capped + cohort.as_ref().map_or(0, |c| c.bps as u32)).min(BPS_DENOM as u32) as u16;
-    let discount = schedule.base_price * discount_bps as u128 / BPS_DENOM;
-    Quote { base_price: schedule.base_price, lines, cohort, discount_bps, price: schedule.base_price - discount }
+    // One implementation, in bookerbob-zkcore (the price guest proves the same function).
+    let z = bookerbob_zkcore::price::quote_in_cohort(&schedule.to_zk(), revealed, cohort_size);
+    Quote {
+        base_price: schedule.base_price,
+        lines: z.lines.into_iter().map(|(predicate, bps)| DiscountLine { predicate, bps }).collect(),
+        cohort: z.cohort.map(|(predicate, k, bps)| CohortLine { predicate, k, bps }),
+        discount_bps: z.discount_bps,
+        price: z.price,
+    }
+}
+
+impl Schedule {
+    /// The plain form the shared no_std code and the Jolt guest take.
+    pub fn to_zk(&self) -> bookerbob_zkcore::price::Schedule {
+        bookerbob_zkcore::price::Schedule {
+            base_price: self.base_price,
+            rules: self.rules.iter().map(|r| (r.predicate.clone(), r.bps)).collect(),
+            cap_bps: self.cap_bps,
+            cohort: self.cohort.as_ref().map(|c| (c.predicate.clone(), c.k_min, c.bps)),
+        }
+    }
 }
 
 #[cfg(test)]

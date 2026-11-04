@@ -56,19 +56,12 @@ impl TierResult {
     }
 }
 
-/// (platform, field, minimum value, predicate). The whole rule table, in one place.
-pub const RULES: &[(&str, &str, u64, &str)] = &[
-    ("airbnb", "trips_12m", 3, "airbnb_frequent"),
-    ("booking", "genius_level", 2, "booking_genius"),
-    ("anthropic", "monthly_spend_usd", 20, "claude_spender"),
-    ("steam", "account_age_years", 5, "steam_veteran"),
-    ("uber", "trips_90d", 10, "uber_regular"),
-    ("world_id", "verified", 1, "world_id_human"),
-];
+/// (platform, field, minimum value, predicate). The whole rule table, in `bookerbob-zkcore`.
+pub use bookerbob_zkcore::referee::RULES;
 
 /// Which predicate, if any, a single fact proves.
 pub fn predicate_for(fact: &Fact) -> Option<&'static str> {
-    RULES.iter().find(|(p, f, min, _)| *p == fact.platform && *f == fact.field && fact.value >= *min).map(|(_, _, _, pred)| *pred)
+    bookerbob_zkcore::referee::predicate_for(&fact.platform, &fact.field, fact.value)
 }
 
 pub fn tier_for_count(n: usize) -> Tier {

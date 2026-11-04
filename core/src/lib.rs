@@ -22,13 +22,9 @@ pub use referee_result::{DisputeBody, DisputeDecision, ResultBody, WorkerResult}
 pub use tier::{derive, Derived, Fact, ProofSet, Tier, TierResult};
 pub use world::{WorldAttestation, WorldBody};
 
-/// Coarse predicates a verdict may reveal. Anything else is rejected, so a merchant or a
-/// model cannot invent a property. Each one is derived by code in [`tier`].
-pub const KNOWN_PREDICATES: &[&str] = &["airbnb_frequent", "booking_genius", "claude_spender", "steam_veteran", "uber_regular", "world_id_human"];
-
-pub fn is_known_predicate(p: &str) -> bool {
-    KNOWN_PREDICATES.contains(&p)
-}
+/// Coarse predicates a verdict may reveal; derived by code in [`tier`]. One list, in
+/// `bookerbob-zkcore`, shared with the Jolt guests.
+pub use bookerbob_zkcore::referee::{is_known_predicate, KNOWN_PREDICATES};
 
 /// sha256 as lowercase hex. Used for proof hashes and commitments off-chain; the contract
 /// uses the `env::sha256` host function for the same digest.
