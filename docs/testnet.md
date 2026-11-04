@@ -173,7 +173,22 @@ Stops at escrow: the agent holds no testnet USDC yet (faucet.circle.com, a web f
 
 After the three hires, `graph_root` on chain is `782a6b09457d692214c2cee8523619275d670579a83fdf6a9e5468d96e803b2f`.
 `bookerbob graph-input <root> fixtures/zk/standing-testnet-input.json <agent>:<sub> ...` writes
-the standing guest's input only if the events hash to that root. Next: prove it with Jolt, register
-the program hash (`set_graph_program`), sign the update with the referee key
-(`bookerbob graph-sign ~/.rep-secrets/bookerbob-testnet <program-hash> <input> <args.json>`) and
-call `submit_graph_scores`.
+the standing guest's input only if the events hash to that root.
+
+## Jolt-proven standing update on the live graph (2026-11-04)
+
+The standing guest proved the three live hire events (zk/out/standing-testnet: proved in 1.74 s,
+verified in 64 ms, proof 83,884 B, peak RSS 811 MB). The program hash is
+`c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5`, which is sha256 of the
+verifier preprocessing and the same as the fixture standing proof (one guest program).
+The referee key verified the proof off chain and signed the update (`bookerbob graph-sign`).
+
+| step | account | tx |
+|---|---|---|
+| set_graph_program | bookerbob.testnet | [BRH8KVo1hURxDDaHCN8ttZpngnv2ek4vnJVGuygS8HaR](https://testnet.nearblocks.io/txns/BRH8KVo1hURxDDaHCN8ttZpngnv2ek4vnJVGuygS8HaR) |
+| submit_graph_scores (worker-signed, root 782a6b09.., scores_hash a1d47385..) | bookerbob.testnet | [4nHqu5TWinE2sXpeVkStL3N4mHJSQGm2r7Tgt2dXbGZp](https://testnet.nearblocks.io/txns/4nHqu5TWinE2sXpeVkStL3N4mHJSQGm2r7Tgt2dXbGZp) |
+
+The contract logged `graph_scores` with `merchants: 0`. The live graph has hire edges but no
+seed yet: seeds come from released reviews, which need a paid purchase, which waits on testnet
+USDC. So this update binds the proven root and an empty score list. Once a purchase settles and
+reviews release, the same commands carry nonzero standing.
