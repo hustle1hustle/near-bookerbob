@@ -85,7 +85,9 @@ fn referee_cmd(a: &[String]) -> ExitCode {
 
 /// Print the referee worker input for the fixture purchase (honest claims, winner m01).
 /// An optional second argument swaps in another signed verdict (the live one in demo-live).
-fn worker_input(dir: &Path, verdict: Option<&Path>) -> ExitCode {
+/// `cohort_k`: the cohort size the contract counts now (its `quote` view), so the referee's
+/// price equals the on-chain quote once a group price has unlocked; 0 offline.
+fn worker_input(dir: &Path, verdict: Option<&Path>, cohort_k: u32) -> ExitCode {
     fn load<T: serde::de::DeserializeOwned>(p: std::path::PathBuf) -> T {
         serde_json::from_str(&std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()))).expect("parse")
     }
@@ -100,7 +102,7 @@ fn worker_input(dir: &Path, verdict: Option<&Path>) -> ExitCode {
         revealed: v.envelope.predicates.clone(),
         claims: load(dir.join("claims-honest.json")),
         proofs: load(dir.join("proofs.json")),
-        cohort_k: 0,
+        cohort_k,
     };
     println!("{}", serde_json::to_string(&input).unwrap());
     ExitCode::SUCCESS
@@ -140,7 +142,7 @@ fn main() -> ExitCode {
             }
         }
         Some("evidence") => evidence::run(),
-        // graph-input <onchain-root-hex> <out.json> <agent>:<sub> ...: the standing guest's input
+        // graph-input <onchain-root-hex> <out.json> <agent>:<sub> | hex:<event> ...: the standing guest's input
         // for a live graph, refused unless the events hash to the root read from chain.
         // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
         // sign-tester <keys-dir> <tester> <replay-account> <world-action> <out-dir>: prints the nullifier
@@ -173,9 +175,13 @@ fn main() -> ExitCode {
         Some("graph-input") if args.len() >= 4 => {
             let ev: Vec<bookerbob_graph::Event> = args[3..]
                 .iter()
-                .map(|p| {
-                    let (a, b) = p.split_once(':').expect("agent:sub");
-                    bookerbob_graph::Event::Hire { agent: a.into(), sub: b.into() }
+                .map(|p| match p.strip_prefix("hex:") {
+                    // A logged graph_event (e.g. the Seed from publish_reviews), as on chain.
+                    Some(h) => bookerbob_graph::Event::from_bytes(&hex::decode(h).expect("hex event")).expect("graph event"),
+                    None => {
+                        let (a, b) = p.split_once(':').expect("agent:sub or hex:<event>");
+                        bookerbob_graph::Event::Hire { agent: a.into(), sub: b.into() }
+                    }
                 })
                 .collect();
             let s = bookerbob_graph::compute(&ev);
@@ -208,7 +214,7 @@ fn main() -> ExitCode {
             println!("{}", e.near_ai_bind());
             ExitCode::SUCCESS
         }
-        Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1]), args.get(2).map(Path::new)),
+        Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1]), args.get(2).map(Path::new), args.get(3).and_then(|k| k.parse().ok()).unwrap_or(0)),
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
         Some("swarm") if args.len() >= 4 => swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check")),
         _ => usage(),

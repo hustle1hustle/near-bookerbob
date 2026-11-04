@@ -103,31 +103,39 @@ test("a settle_demo tx is refused without a demo token, or when the USDC transfe
   assert.throws(() => readPayment(t, { ...cfg, demoToken: DUSDC }), /does not match the method/);
 });
 
-test("recordPaidOrder posts one paid order with the near_tx and never logs the token", async () => {
+test("recordPaidOrder: client-credentials token, draft order, completed as paid; nothing secret returned", async () => {
   const f = orderFields(readPayment(demoFixture(), { ...cfg, demoToken: DUSDC }), { network: "testnet" });
-  let seen;
+  const calls = [];
   const fetchImpl = async (url, init) => {
-    seen = { url, init, body: JSON.parse(init.body) };
-    return { ok: true, status: 201, json: async () => ({ order: { id: 42, name: "#1001", order_number: 1001 } }) };
+    calls.push({ url, init });
+    if (url.endsWith("/admin/oauth/access_token")) return { ok: true, status: 200, json: async () => ({ access_token: "shpat_runtime", expires_in: 86399 }) };
+    const q = JSON.parse(init.body);
+    if (q.query.includes("draftOrderCreate")) return { ok: true, status: 200, json: async () => ({ data: { draftOrderCreate: { draftOrder: { id: "gid://shopify/DraftOrder/7", name: "#D7" }, userErrors: [] } } }) };
+    return { ok: true, status: 200, json: async () => ({ data: { draftOrderComplete: { draftOrder: { id: "gid://shopify/DraftOrder/7", order: { id: "gid://shopify/Order/42", name: "#1001" } }, userErrors: [] } } }) };
   };
-  const admin = adminFromEnv("SHOPIFY_STORE_DOMAIN=test-store.myshopify.com\nSHOPIFY_ADMIN_ACCESS_TOKEN=shpat_x\nSHOPIFY_ADMIN_API_VERSION=2025-07\n");
+  const admin = adminFromEnv("SHOPIFY_STORE_DOMAIN=test-store.myshopify.com\nSHOPIFY_CLIENT_ID=cid\nSHOPIFY_CLIENT_SECRET=csecret\nSHOPIFY_ADMIN_API_VERSION=2026-07\n");
   const r = await recordPaidOrder([{ title: "m01 hoodie (BookerBob demo)" }], f, { admin, fetchImpl });
-  assert.deepEqual(r, { id: 42, name: "#1001", order_number: 1001, admin_url: "https://test-store.myshopify.com/admin/orders/42" });
-  assert.equal(seen.url, "https://test-store.myshopify.com/admin/api/2025-07/orders.json");
-  assert.equal(seen.init.headers["X-Shopify-Access-Token"], "shpat_x");
-  const o = seen.body.order;
-  assert.equal(o.financial_status, "paid");
-  assert.equal(o.line_items[0].price, "38.400000");
-  assert.equal(o.note_attributes.find((a) => a.name === "near_tx").value, "9fGx1eTvJ1nEKkuy3sXxF6gsmPvWXWJmUb5HpjB2kQwz");
-  assert.match(o.tags, /near-dusdc-demo/);
-  assert.equal(o.send_receipt, false);
-  assert.ok(!JSON.stringify(r).includes("shpat_x"));
+  assert.deepEqual(r, { id: "42", name: "#1001", draft: "#D7", admin_url: "https://test-store.myshopify.com/admin/orders/42" });
+  assert.match(calls[0].init.body, /grant_type=client_credentials/);
+  assert.equal(calls[1].url, "https://test-store.myshopify.com/admin/api/2026-07/graphql.json");
+  assert.equal(calls[1].init.headers["X-Shopify-Access-Token"], "shpat_runtime");
+  const input = JSON.parse(calls[1].init.body).variables.input;
+  assert.equal(input.lineItems[0].originalUnitPrice, "38.400000");
+  assert.equal(input.customAttributes.find((a) => a.key === "near_tx").value, "9fGx1eTvJ1nEKkuy3sXxF6gsmPvWXWJmUb5HpjB2kQwz");
+  assert.ok(input.tags.includes("near-dusdc-demo"));
+  assert.match(JSON.parse(calls[2].init.body).query, /paymentPending: false/);
+  assert.ok(!/csecret|shpat_runtime/.test(JSON.stringify(r)));
+  // The token is cached: a second order fetches no new token.
+  await recordPaidOrder([{ title: "x" }], f, { admin, fetchImpl });
+  assert.equal(calls.filter((c) => c.url.endsWith("/access_token")).length, 1);
 });
 
 test("Shopify errors and bad settings are reported, not swallowed", async () => {
   const f = orderFields(readPayment(fixture(), cfg), { network: "testnet" });
-  const admin = { domain: "test-store.myshopify.com", token: "t", version: "2025-07" };
-  await assert.rejects(recordPaidOrder([{ title: "x" }], f, { admin, fetchImpl: async () => ({ ok: false, status: 403, json: async () => ({ errors: "forbidden" }) }) }), /403/);
+  const admin = { domain: "other-store.myshopify.com", version: "2026-07", token: "t" };
+  await assert.rejects(recordPaidOrder([{ title: "x" }], f, { admin, fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ data: { draftOrderCreate: { draftOrder: null, userErrors: [{ message: "bad" }] } } }) }) }), /draftOrderCreate/);
+  await assert.rejects(recordPaidOrder([{ title: "x" }], f, { admin, fetchImpl: async () => ({ ok: false, status: 401, json: async () => ({ errors: "Invalid API key" }) }) }), /401/);
   await assert.rejects(recordPaidOrder([{ title: "x" }], f, { admin: { ...admin, domain: "evil.com" } }), /myshopify\.com/);
+  await assert.rejects(recordPaidOrder([{ title: "x" }], f, { admin: { domain: "x3.myshopify.com", version: "v", clientId: "a", clientSecret: "b" }, fetchImpl: async () => ({ ok: false, status: 400, json: async () => ({ error: "invalid_client" }) }) }), /access_token 400/);
   assert.throws(() => adminFromEnv("SHOPIFY_STORE_DOMAIN=x.myshopify.com\n"), /required/);
 });

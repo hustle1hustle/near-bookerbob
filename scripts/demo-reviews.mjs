@@ -46,6 +46,13 @@ export async function reviews(d, phase) {
   if (phase === "seal") {
     const all = ms.map((m) => m.review.commitment);
     if (all.length !== (g?.tree?.size ?? 0)) throw new Error(`the group has ${g?.tree?.size} members, ${all.length} known locally: proofs need the full member list`);
+    // Every proof is scoped to one round: start only with enough of it left.
+    const left = (now + 1) * roundMs - Date.now();
+    if (left < 150_000) {
+      console.log(`round ${now} ends in ${Math.round(left / 1000)} s: waiting for the next one`);
+      await new Promise((ok) => setTimeout(ok, left + 15_000));
+      return reviews(d, phase);
+    }
     st.round = now;
     st.sealed = [];
     for (const [i, m] of ms.entries()) {

@@ -132,41 +132,74 @@ export function orderFields(paid, { network }) {
   };
 }
 
+const tokenCache = new Map();
+
 /**
- * Write the paid order to the store through the Admin API (REST `orders.json`): one custom
- * line at the settled amount, marked paid by a `bookerbob-near` sale, with the near_tx in the
- * note, the note attributes and the tags. `admin` = { domain, token, version } from
- * SHOPIFY_STORE_DOMAIN, SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_ADMIN_API_VERSION; never logged.
- * Without `admin`, returns the order it would write and calls nothing.
+ * A short-lived Admin API token from the app's client credentials (Shopify Dev Dashboard
+ * apps: POST /admin/oauth/access_token, grant_type=client_credentials). Cached in memory
+ * until shortly before it expires; never written anywhere.
  */
-export async function recordPaidOrder(lines, fields, { admin, fetchImpl = fetch } = {}) {
-  const order = {
-    line_items: lines.map((l) => ({ title: l.title, price: l.price ?? fields.amount, quantity: l.quantity ?? 1, requires_shipping: false, taxable: false })),
-    financial_status: "paid",
-    transactions: [{ kind: "sale", status: "success", amount: fields.amount, gateway: "bookerbob-near" }],
-    note: fields.note,
-    note_attributes: fields.customAttributes.map((a) => ({ name: a.key, value: a.value })),
-    tags: fields.tags.join(", "),
-    send_receipt: false,
-    send_fulfillment_receipt: false,
-    inventory_behaviour: "bypass",
-  };
-  if (!admin) return { stub: true, would_write: order };
-  if (!/^[a-z0-9-]+\.myshopify\.com$/.test(admin.domain)) throw new Error("SHOPIFY_STORE_DOMAIN must be <store>.myshopify.com");
-  const r = await fetchImpl(`https://${admin.domain}/admin/api/${admin.version}/orders.json`, {
+export async function adminToken(admin, { fetchImpl = fetch, now = Date.now } = {}) {
+  if (admin.token) return admin.token;
+  const hit = tokenCache.get(admin.domain);
+  if (hit && hit.expires > now() + 60_000) return hit.token;
+  const r = await fetchImpl(`https://${admin.domain}/admin/oauth/access_token`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": admin.token },
-    body: JSON.stringify({ order }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "client_credentials", client_id: admin.clientId, client_secret: admin.clientSecret }).toString(),
   });
   const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`Shopify orders.json ${r.status}: ${JSON.stringify(body.errors ?? body).slice(0, 300)}`);
-  return { id: body.order.id, name: body.order.name, order_number: body.order.order_number, admin_url: `https://${admin.domain}/admin/orders/${body.order.id}` };
+  if (!r.ok || !body.access_token) throw new Error(`Shopify access_token ${r.status}: ${String(body.error_description ?? body.error ?? "no token").slice(0, 200)}`);
+  tokenCache.set(admin.domain, { token: body.access_token, expires: now() + (body.expires_in ?? 3600) * 1000 });
+  return body.access_token;
+}
+
+const DRAFT_CREATE = `mutation($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id name } userErrors { field message } } }`;
+const DRAFT_COMPLETE = `mutation($id: ID!) { draftOrderComplete(id: $id, paymentPending: false) { draftOrder { id order { id name } } userErrors { field message } } }`;
+
+/**
+ * Write the paid order to the store through the Admin GraphQL API: a draft order with one
+ * custom line at the settled amount, the near_tx in the note, custom attributes and tags,
+ * then draftOrderComplete(paymentPending: false), which turns it into a real paid order.
+ * (The app holds write_draft_orders, not write_orders.) `admin` = { domain, version, and
+ * clientId + clientSecret, or a token }, from SHOPIFY_* settings outside the repo; nothing
+ * secret is logged or returned. Without `admin`, returns what it would write.
+ */
+export async function recordPaidOrder(lines, fields, { admin, fetchImpl = fetch } = {}) {
+  const input = {
+    lineItems: lines.map((l) => ({ title: l.title, originalUnitPrice: l.price ?? fields.amount, quantity: l.quantity ?? 1, requiresShipping: false, taxable: false })),
+    note: fields.note,
+    customAttributes: fields.customAttributes,
+    tags: fields.tags,
+  };
+  if (!admin) return { stub: true, would_write: input };
+  if (!/^[a-z0-9-]+\.myshopify\.com$/.test(admin.domain)) throw new Error("SHOPIFY_STORE_DOMAIN must be <store>.myshopify.com");
+  const token = await adminToken(admin, { fetchImpl });
+  const gql = async (query, variables) => {
+    const r = await fetchImpl(`https://${admin.domain}/admin/api/${admin.version}/graphql.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": token },
+      body: JSON.stringify({ query, variables }),
+    });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok || body.errors) throw new Error(`Shopify graphql ${r.status}: ${JSON.stringify(body.errors ?? body).slice(0, 300)}`);
+    return body.data;
+  };
+  const c = (await gql(DRAFT_CREATE, { input })).draftOrderCreate;
+  if (c.userErrors?.length) throw new Error(`draftOrderCreate: ${JSON.stringify(c.userErrors).slice(0, 300)}`);
+  const done = (await gql(DRAFT_COMPLETE, { id: c.draftOrder.id })).draftOrderComplete;
+  if (done.userErrors?.length) throw new Error(`draftOrderComplete: ${JSON.stringify(done.userErrors).slice(0, 300)}`);
+  const order = done.draftOrder.order;
+  const num = order.id.split("/").pop();
+  return { id: num, name: order.name, draft: c.draftOrder.name, admin_url: `https://${admin.domain}/admin/orders/${num}` };
 }
 
 /** Read the store settings from an env file's KEY=value lines (values are never printed). */
 export function adminFromEnv(text) {
   const env = Object.fromEntries(text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#") && l.includes("=")).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).replace(/^["']|["']$/g, "")]));
-  const admin = { domain: env.SHOPIFY_STORE_DOMAIN, token: env.SHOPIFY_ADMIN_ACCESS_TOKEN, version: env.SHOPIFY_ADMIN_API_VERSION || "2025-07" };
-  if (!admin.domain || !admin.token) throw new Error("SHOPIFY_STORE_DOMAIN and SHOPIFY_ADMIN_ACCESS_TOKEN are required");
+  const admin = { domain: env.SHOPIFY_STORE_DOMAIN, version: env.SHOPIFY_ADMIN_API_VERSION || "2025-07" };
+  if (env.SHOPIFY_CLIENT_ID && env.SHOPIFY_CLIENT_SECRET) Object.assign(admin, { clientId: env.SHOPIFY_CLIENT_ID, clientSecret: env.SHOPIFY_CLIENT_SECRET });
+  else if (env.SHOPIFY_ADMIN_ACCESS_TOKEN) admin.token = env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+  if (!admin.domain || !(admin.token || admin.clientId)) throw new Error("SHOPIFY_STORE_DOMAIN and SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET (or SHOPIFY_ADMIN_ACCESS_TOKEN) are required");
   return admin;
 }

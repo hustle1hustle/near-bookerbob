@@ -197,13 +197,19 @@ export class Demo {
     step(7, "submit_verdict");
     rec.txs.verdict = (await this.relay("submit_verdict", tester, c.bazaar, fc("submit_verdict", { verdict: file("verdict.json") }, 50n * MILLI))).hash;
     step(8, "referee receipt");
-    const input = run([...BOOKERBOB, "worker-input", "fixtures", join(live, "verdict.json")]);
+    // The live quote: once k >= 5 verdicts in the context reveal the cohort predicate, the
+    // group price unlocks on chain, and the referee must price with the same k.
+    const q = await this.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
+    const k = q.cohort?.k ?? 0;
+    const input = run([...BOOKERBOB, "worker-input", "fixtures", join(live, "verdict.json"), String(k)]);
     const seed = readFileSync(join(c.keysDir, "referee.seed"), "utf8").trim();
     const result = JSON.parse(run(["cargo", "run", "-q", "-p", "bookerbob-referee-worker"], { input, env: { ...process.env, REFEREE_SIGNING_SEED: seed } }));
     if (result.body.merchant !== c.merchant) throw new Error(`the referee's winner is ${result.body.merchant}, expected ${c.merchant}`);
     rec.price = result.body.price;
+    rec.cohort_k = k;
+    if (String(rec.price) !== String(q.price)) throw new Error(`referee price ${rec.price} differs from the on-chain quote ${q.price} (k=${k})`);
     rec.txs.receipt = (await this.relay("submit_referee_result", tester, c.bazaar, fc("submit_referee_result", { result }, 0n, 100n * TGAS))).hash;
-    console.log(`   receipt price ${Number(rec.price) / 1e6} dUSDC`);
+    console.log(`   receipt price ${Number(rec.price) / 1e6} dUSDC${k ? ` (group price, k=${k})` : ""}`);
     step(9, "escrow in dUSDC");
     rec.txs.escrow = (await this.relay("ft_transfer_call", tester, c.dusdc, fc("ft_transfer_call", { receiver_id: c.bazaar, amount: String(rec.price), msg: "" }, 1n, 100n * TGAS))).hash;
     const bal = await this.client.view(c.bazaar, "demo_escrow_of", { account_id: id });
@@ -215,12 +221,38 @@ export class Demo {
     if (s.logs.some((l) => l.includes("settle_reverted"))) throw new Error("the dUSDC payout failed and the settle was reverted");
     if ((await this.client.view(c.bazaar, "paid_in", { nullifier: rec.nullifier })) !== "demo") throw new Error("paid_in is not demo");
     save();
+    return this.finish(rec, tester, dir, save, step);
+  }
+
+  /** Steps 11 to 13; `resume <tester>` re-enters here for a purchase that already settled. */
+  async finish(rec, tester, dir, save, step) {
+    const c = this.c;
+    const id = tester.id;
+    const live = join(dir, "live");
+    const file = (n) => JSON.parse(readFileSync(join(live, n), "utf8"));
     step(11, "Shopify order");
-    rec.shopify = await this.shopify(rec, s);
-    save();
+    if (!rec.shopify?.id) {
+      try {
+        rec.shopify = await this.shopify(rec, { hash: rec.txs.settle });
+      } catch (e) {
+        // The purchase is on chain either way; the store write is retried by `resume`.
+        rec.shopify = { error: e.message };
+        console.log(`   NOT WRITTEN: ${e.message}`);
+      }
+      save();
+    } else console.log(`   skip: order ${rec.shopify.name}`);
     step(12, "replay: same nullifier from the treasury account");
+    if (rec.txs.replay) {
+      console.log("   skip: done");
+    } else {
     rec.txs.replay = (await this.direct("replay refused", c.treasury, this.treasury, c.bazaar, [fc("submit_verdict", { verdict: file("verdict-replay.json") }, 50n * MILLI)], { expectFail: "nullifier spent" })).hash;
+      save();
+    }
     step(13, "join m01's review group with a fresh Semaphore identity");
+    if (rec.review?.size) {
+      console.log(`   skip: member ${rec.review.size}`);
+      return rec;
+    }
     const identity = randomBytes(32).toString("hex");
     writeFileSync(join(dir, "semaphore.secret"), identity + "\n", { mode: 0o600 });
     const commitment = run(["node", "identity.mjs", "commitment"], { input: identity, cwd: "semaphore" }).trim();
@@ -229,8 +261,19 @@ export class Demo {
     const added = j.logs.map((l) => (l.startsWith("EVENT_JSON:") ? JSON.parse(l.slice(11)) : null)).find((e) => e?.event === "review_member_added")?.data?.[0];
     rec.review = { commitment, size: added?.size, root: added?.root };
     save();
-    console.log(`\ndemo-tester: PASS  ${id}, paid ${Number(rec.price) / 1e6} dUSDC, review group size ${added?.size}`);
+    console.log(`\ndemo-tester: PASS  ${id}, paid ${Number(rec.price) / 1e6} dUSDC, review group size ${added?.size}${rec.shopify?.id ? `, Shopify ${rec.shopify.name}` : ", Shopify order NOT written"}`);
     return rec;
+  }
+
+  async resume(id) {
+    await this.preflight();
+    const dir = join(this.c.testersDir, id);
+    const recPath = join(this.c.testersDir, `${id}.json`);
+    const rec = JSON.parse(readFileSync(recPath, "utf8"));
+    if (!rec.txs.settle) throw new Error(`${id} has not settled; start a new tester instead`);
+    const tester = { id, key: keyFromSeed(readFileSync(join(dir, "account.seed"), "utf8")) };
+    const save = () => writeFileSync(recPath, JSON.stringify(rec, null, 2) + "\n");
+    return this.finish(rec, tester, dir, save, (i, t) => console.log(`${i}. ${t}`));
   }
 
   async shopify(rec, settleTx) {
@@ -264,7 +307,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   const d = new Demo(c);
-  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
+  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
   go.then(
     () => {},
     (e) => {

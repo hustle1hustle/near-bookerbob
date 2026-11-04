@@ -56,7 +56,7 @@ const BOOKERBOB = ["cargo", "run", "-q", "-p", "bookerbob-cli", "--"];
 /** The steps, in demo order. Pure: reads nothing from the network or the keys dir. */
 // The amount escrowed and settled is the referee receipt's price, read during the run (on
 // testnet the cohort is smaller than in the offline board, so the price differs).
-const live_state = { price: null };
+const live_state = { price: null, cohortK: 0 };
 
 export function plan(c, price) {
   const amount = () => String(live_state.price ?? price ?? 0);
@@ -80,7 +80,7 @@ export function plan(c, price) {
     { id: "world", kind: "tx", skipView: [c.bazaar, "is_human", () => ({ agent: c.agent }), (v) => v === true], title: "bind the agent to one World ID person", near: [call(c.agent, c.bazaar, "attest_human", () => `{"attestation":${file("world.json")()}}`, "0.01 NEAR")], needs: [NEAR_CLI] },
     { id: "verdict", kind: "tx", skipView: [c.bazaar, "nullifier_status", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier }), (v) => v !== "Unknown"], title: "submit the verdict: merchants see 3 bits and a commitment", near: [call(c.agent, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict.json")()}}`, "0.05 NEAR")], needs: [NEAR_CLI] },
     { id: "quote", kind: "view", title: "best hoodie quote on chain", view: [c.bazaar, "best_quote", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier, category: "hoodie" })] },
-    { id: "referee", kind: "local", title: "referee checks the winner's claims against the proofs, signs a receipt", cmd: () => [...BOOKERBOB, "worker-input", "fixtures", join(c.liveDir, "verdict.json")], then: "worker", needs: [`referee.seed in ${c.keysDir}`] },
+    { id: "referee", kind: "local", title: "referee checks the winner's claims against the proofs, signs a receipt", cmd: () => [...BOOKERBOB, "worker-input", "fixtures", join(c.liveDir, "verdict.json"), String(live_state.cohortK ?? 0)], then: "worker", needs: [`referee.seed in ${c.keysDir}`] },
     { id: "receipt", kind: "tx", skipView: [c.bazaar, "verdict", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier }), (v) => Boolean(v && v.receipt)], title: "post the signed referee receipt", near: [call(c.agent, c.bazaar, "submit_referee_result", () => `{"result":${file("referee-result.json")()}}`, "0 NEAR")], needs: [NEAR_CLI] },
     { id: "escrow", kind: "tx", title: `escrow ${price ? Number(price) / 1e6 : "the price in"} testnet USDC`, near: [
       call(c.agent, c.bazaar, "storage_deposit", "{}", "0.01 NEAR"),
@@ -135,6 +135,7 @@ async function live(c, steps) {
       const v = await view(c, s.view);
       console.log(`   ${JSON.stringify(v).slice(0, 300)}`);
       if (s.id === "deployed" && (!Array.isArray(v) || v.length === 0)) throw new Error("no merchants: run scripts/deploy-testnet.sh first");
+      if (s.id === "quote") live_state.cohortK = v?.cohort?.k ?? 0;
       if (s.id === "quote" && s.expect && v?.price !== s.expect.split(" ")[1]) throw new Error(`expected ${s.expect}, got ${JSON.stringify(v)}`);
       continue;
     }
