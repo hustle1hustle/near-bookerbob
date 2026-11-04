@@ -68,12 +68,14 @@ function events(outcome) {
 }
 
 /** Parse a `tx` RPC result into the settled payment, or throw PaymentError. */
-export function readPayment(result, { bazaar, usdc }) {
+export function readPayment(result, { bazaar, usdc, demoToken = null }) {
   if (!result?.transaction) throw new PaymentError("no transaction in rpc result");
   const tx = result.transaction;
   if (tx.receiver_id !== bazaar) throw new PaymentError("transaction was not sent to the bazaar contract");
   const call = (tx.actions ?? []).find((a) => a.FunctionCall)?.FunctionCall;
-  if (!call || call.method_name !== "settle") throw new PaymentError("transaction does not call settle");
+  const demo = call?.method_name === "settle_demo";
+  if (!call || (call.method_name !== "settle" && !demo)) throw new PaymentError("transaction does not call settle");
+  if (demo && !demoToken) throw new PaymentError("a demo-token settle, but no demo token configured");
   if (!result.status || !("SuccessValue" in result.status)) throw new PaymentError("transaction did not succeed");
 
   const outcomes = result.receipts_outcome ?? [];
@@ -83,9 +85,11 @@ export function readPayment(result, { bazaar, usdc }) {
   if (all.some(({ e, executor }) => e.event === "settle_reverted" && executor === bazaar)) {
     throw new PaymentError("payout failed and the contract reverted the settle");
   }
-  const ft = outcomes.find((o) => o.outcome.executor_id === usdc);
+  if ((settled.token === "demo") !== demo) throw new PaymentError("settled token does not match the method");
+  const token = demo ? demoToken : usdc;
+  const ft = outcomes.find((o) => o.outcome.executor_id === token);
   if (!ft || !ft.outcome.status || !("SuccessValue" in ft.outcome.status)) {
-    throw new PaymentError("USDC ft_transfer did not succeed");
+    throw new PaymentError(`${demo ? "dUSDC" : "USDC"} ft_transfer did not succeed`);
   }
   return {
     tx_hash: tx.hash,
@@ -96,6 +100,7 @@ export function readPayment(result, { bazaar, usdc }) {
     amount: BigInt(settled.amount),
     discount_bps: settled.discount_bps,
     checkout_ref: settled.checkout_ref,
+    token: demo ? "dUSDC" : "USDC",
   };
 }
 
@@ -111,24 +116,57 @@ export function acceptPayment(paid, quote, usedTx = {}) {
 /** Fields the Shopify order carries: note, attributes and tag. */
 export function orderFields(paid, { network }) {
   const usdc = `${paid.amount / 1_000_000n}.${(paid.amount % 1_000_000n).toString().padStart(6, "0")}`;
+  const demo = paid.token === "dUSDC";
+  const what = demo ? "dUSDC (testnet demo token, no value; production uses Circle USDC)" : "USDC";
+  const discount = paid.discount_bps == null ? "" : ` Discount ${paid.discount_bps / 100}% from proven predicates.`;
   return {
-    note: `Paid ${usdc} USDC on NEAR ${network}, tx ${paid.tx_hash}. Discount ${paid.discount_bps / 100}% from proven predicates, nullifier burned in the same call.`,
+    note: `Paid ${usdc} ${what} on NEAR ${network}, tx ${paid.tx_hash}.${discount} Nullifier burned in the same call.`,
     customAttributes: [
       { key: "near_tx", value: paid.tx_hash },
       { key: "checkout_ref", value: paid.checkout_ref },
       { key: "nullifier", value: paid.nullifier },
     ],
-    tags: ["near-usdc"],
+    tags: demo ? ["bookerbob", "near-dusdc-demo", "testnet"] : ["bookerbob", "near-usdc"],
+    amount: usdc,
     explorer: `https://${network === "mainnet" ? "" : "testnet."}nearblocks.io/txns/${paid.tx_hash}`,
   };
 }
 
 /**
- * Write the paid order to the store (draft order, completed as paid).
- * TODO(founder): needs the Shopify test store Admin API credentials, a the founder item. Until then
- * this returns the order it would write and does not call Shopify.
+ * Write the paid order to the store through the Admin API (REST `orders.json`): one custom
+ * line at the settled amount, marked paid by a `bookerbob-near` sale, with the near_tx in the
+ * note, the note attributes and the tags. `admin` = { domain, token, version } from
+ * SHOPIFY_STORE_DOMAIN, SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_ADMIN_API_VERSION; never logged.
+ * Without `admin`, returns the order it would write and calls nothing.
  */
-export async function recordPaidOrder(lines, fields, { adminFetch } = {}) {
-  if (!adminFetch) return { stub: true, would_write: { lines, ...fields } };
-  throw new Error("Shopify write-back not wired yet");
+export async function recordPaidOrder(lines, fields, { admin, fetchImpl = fetch } = {}) {
+  const order = {
+    line_items: lines.map((l) => ({ title: l.title, price: l.price ?? fields.amount, quantity: l.quantity ?? 1, requires_shipping: false, taxable: false })),
+    financial_status: "paid",
+    transactions: [{ kind: "sale", status: "success", amount: fields.amount, gateway: "bookerbob-near" }],
+    note: fields.note,
+    note_attributes: fields.customAttributes.map((a) => ({ name: a.key, value: a.value })),
+    tags: fields.tags.join(", "),
+    send_receipt: false,
+    send_fulfillment_receipt: false,
+    inventory_behaviour: "bypass",
+  };
+  if (!admin) return { stub: true, would_write: order };
+  if (!/^[a-z0-9-]+\.myshopify\.com$/.test(admin.domain)) throw new Error("SHOPIFY_STORE_DOMAIN must be <store>.myshopify.com");
+  const r = await fetchImpl(`https://${admin.domain}/admin/api/${admin.version}/orders.json`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": admin.token },
+    body: JSON.stringify({ order }),
+  });
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`Shopify orders.json ${r.status}: ${JSON.stringify(body.errors ?? body).slice(0, 300)}`);
+  return { id: body.order.id, name: body.order.name, order_number: body.order.order_number, admin_url: `https://${admin.domain}/admin/orders/${body.order.id}` };
+}
+
+/** Read the store settings from an env file's KEY=value lines (values are never printed). */
+export function adminFromEnv(text) {
+  const env = Object.fromEntries(text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#") && l.includes("=")).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).replace(/^["']|["']$/g, "")]));
+  const admin = { domain: env.SHOPIFY_STORE_DOMAIN, token: env.SHOPIFY_ADMIN_ACCESS_TOKEN, version: env.SHOPIFY_ADMIN_API_VERSION || "2025-07" };
+  if (!admin.domain || !admin.token) throw new Error("SHOPIFY_STORE_DOMAIN and SHOPIFY_ADMIN_ACCESS_TOKEN are required");
+  return admin;
 }
