@@ -68,8 +68,8 @@ committed; `make verify` then re-checks it offline.
 
 ## Try it
 
-**Fastest (about 6 s, Node 22 only, no keys, no build):** `make judge`. It re-derives every
-testnet claim over public RPC (`make verify-live`), checks the five committed Jolt proofs'
+**Fastest (15 to 30 s, Node 22 only, no keys, no build):** `make judge`. It re-derives every
+testnet claim over public RPC (`make verify-live`), checks the six committed Jolt proofs'
 outputs and program hashes, and runs the JS suites.
 
 The deep path needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
