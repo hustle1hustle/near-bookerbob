@@ -6,4 +6,4 @@ node_modules/
 *.key
 *.pem
 .DS_Store
-out/
+/out/
