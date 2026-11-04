@@ -144,6 +144,17 @@ fn main() -> ExitCode {
         Some("evidence") => evidence::run(),
         // graph-input <onchain-root-hex> <out.json> <agent>:<sub> | hex:<event> ...: the standing guest's input
         // for a live graph, refused unless the events hash to the root read from chain.
+        // graph-resolve <keys-dir> <root> <scores-hash> <proof-sha256> valid|invalid
+        Some("graph-resolve") if args.len() >= 6 => match keys::graph_resolve(Path::new(&args[1]), &args[2], &args[3], &args[4], args[5] == "valid") {
+            Ok(v) => {
+                println!("{v}");
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                ExitCode::FAILURE
+            }
+        },
         // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
         // sign-tester <keys-dir> <tester> <replay-account> <world-action> <out-dir>: prints the nullifier
         Some("sign-tester") if args.len() >= 6 => {
@@ -162,16 +173,19 @@ fn main() -> ExitCode {
                 }
             }
         }
-        Some("graph-sign") if args.len() >= 5 => match keys::graph_sign(Path::new(&args[1]), &args[2], Path::new(&args[3]), Path::new(&args[4])) {
-            Ok(root) => {
-                println!("signed score update for root {}.. with the referee key; wrote {}", &root[..16], args[4]);
-                ExitCode::SUCCESS
+        // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json> [proof.bin]
+        Some("graph-sign") if args.len() >= 5 => {
+            match keys::graph_sign_with_proof(Path::new(&args[1]), &args[2], Path::new(&args[3]), Path::new(&args[4]), args.get(5).map(Path::new)) {
+                Ok(root) => {
+                    println!("signed score update for root {}.. with the referee key; wrote {}", &root[..16], args[4]);
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{e}");
+                    ExitCode::FAILURE
+                }
             }
-            Err(e) => {
-                eprintln!("{e}");
-                ExitCode::FAILURE
-            }
-        },
+        }
         Some("graph-input") if args.len() >= 4 => {
             let ev: Vec<bookerbob_graph::Event> = args[3..]
                 .iter()

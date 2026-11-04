@@ -52,7 +52,9 @@ fn load_seed(dir: &Path, role: &str) -> Result<SigningKey, String> {
 /// recomputes the scores from the guest input's events (the same code the Jolt guest runs),
 /// signs `sha256(TAG || program_hash || root || scores_hash)` and writes the call args.
 /// The seed never leaves `dir`; only the public key and the signature are written.
-pub fn graph_sign(dir: &Path, program_hash: &str, input: &Path, out: &Path) -> Result<String, String> {
+/// As `graph_sign`, naming the Jolt proof file whose sha256 the update carries (the file a
+/// challenger re-verifies). Without it the hash is of the input (tests only).
+pub fn graph_sign_with_proof(dir: &Path, program_hash: &str, input: &Path, out: &Path, proof: Option<&Path>) -> Result<String, String> {
     use ed25519_dalek::Signer;
     use sha2::{Digest, Sha256};
     let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(input).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
@@ -80,6 +82,7 @@ pub fn graph_sign(dir: &Path, program_hash: &str, input: &Path, out: &Path) -> R
         "standing": s.standing.iter().map(|(a, x)| (a.clone(), x.to_string())).collect::<Vec<_>>(),
         "worker_key": hex::encode(worker.verifying_key().to_bytes()),
         "signature": hex::encode(sig.to_bytes()),
+        "proof_sha256": hex::encode(Sha256::digest(std::fs::read(proof.unwrap_or(input)).map_err(|e| e.to_string())?)),
     });
     std::fs::write(out, serde_json::to_string_pretty(&args).unwrap() + "\n").map_err(|e| e.to_string())?;
     Ok(hex::encode(s.root))
@@ -91,6 +94,23 @@ pub fn graph_sign(dir: &Path, program_hash: &str, input: &Path, out: &Path) -> R
 /// artifacts are written; seeds never leave `dir`.
 pub fn sign_live(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u64, out: &Path) -> Result<(), String> {
     sign_purchase(dir, agent, wallet2, action, now_ms, out, None, "fixture-person-1")
+}
+
+/// The arbiter's signed resolution of a challenged graph update: `valid` after the Jolt
+/// verifier ran on the proof with sha256 `proof_sha256` (`make zk-verify`). Prints the
+/// `resolve_graph_challenge` args; the arbiter seed stays in `dir`.
+pub fn graph_resolve(dir: &Path, root: &str, scores_hash: &str, proof_sha256: &str, valid: bool) -> Result<serde_json::Value, String> {
+    use ed25519_dalek::Signer;
+    use sha2::{Digest, Sha256};
+    let mut msg = bookerbob_bazaar::GRAPH_CHALLENGE_TAG.to_vec();
+    msg.extend(serde_json::to_vec(&(root, scores_hash, proof_sha256, valid)).map_err(|e| e.to_string())?);
+    let k = load_seed(dir, "arbiter")?;
+    Ok(serde_json::json!({
+        "proof_sha256": proof_sha256,
+        "valid": valid,
+        "arbiter_key": hex::encode(k.verifying_key().to_bytes()),
+        "signature": hex::encode(k.sign(&Sha256::digest(&msg)).to_bytes()),
+    }))
 }
 
 /// A demo tester's purchase (`make demo-tester`): the same fixture facts, but a nullifier and
@@ -153,7 +173,7 @@ mod tests {
         std::fs::write(&input, serde_json::json!({ "events": bytes }).to_string()).unwrap();
         let ph = "11".repeat(32);
         let out = dir.join("args.json");
-        let root = super::graph_sign(&dir, &ph, &input, &out).unwrap();
+        let root = super::graph_sign_with_proof(&dir, &ph, &input, &out, None).unwrap();
         let s = bookerbob_graph::compute(&ev);
         assert_eq!(root, hex::encode(s.root));
         let a: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
@@ -164,7 +184,7 @@ mod tests {
         let pk = VerifyingKey::from_bytes(&hex::decode(a["worker_key"].as_str().unwrap()).unwrap().try_into().unwrap()).unwrap();
         let sig = Signature::from_bytes(&hex::decode(a["signature"].as_str().unwrap()).unwrap().try_into().unwrap());
         assert!(pk.verify(&Sha256::digest(&msg), &sig).is_ok());
-        assert!(super::graph_sign(&dir, "zz", &input, &out).is_err());
+        assert!(super::graph_sign_with_proof(&dir, "zz", &input, &out, None).is_err());
         let _ = std::fs::remove_dir_all(&dir);
     }
 

@@ -300,6 +300,12 @@ fn settle_burns_nullifier_and_pays_merchant() {
     assert_eq!(c.spent_count(), 1);
     let logs = get_logs();
     assert!(logs.iter().any(|l| l.contains("\"event\":\"settled\"") && l.contains("\"amount\":\"151200000\"")));
+    // The liability record: what the payment relied on, hashed, queryable per nullifier.
+    let rec = c.verdict(n.clone()).unwrap();
+    let rh = rec.receipt.as_ref().unwrap().receipt_hash.clone();
+    let want = hex::encode(bookerbob_core::sha256(&serde_json::to_vec(&(&rec.digest, &rh, "m01.bazaar.testnet", "151200000", "usdc")).unwrap()));
+    assert_eq!(c.liability(n.clone()), Some(want.clone()));
+    assert!(logs.iter().any(|l| l.contains(&want)));
     // The ft_transfer receipt to the USDC contract is scheduled in the same call.
     let receipts = near_sdk::test_utils::get_created_receipts();
     assert!(receipts.iter().any(|r| r.receiver_id.as_str() == USDC));
@@ -749,6 +755,40 @@ fn compromised_referee_receipt_is_overturned_and_settle_is_blocked() {
     assert!(c.submit_dispute_decision(decision));
     assert_eq!(c.verdict(e.nullifier.clone()).unwrap().receipt, None);
     assert!(get_logs().iter().any(|l| l.contains("dispute_overturned")));
+}
+
+#[test]
+fn an_overturned_receipt_after_settle_refunds_the_buyer_from_the_merchant_bond() {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    // m01 bonds 500 USDC (ft_transfer_call with msg "bond").
+    set(USDC);
+    assert!(matches!(c.ft_on_transfer(acc("m01.bazaar.testnet"), U128(500_000_000), "bond".into()), PromiseOrValue::Value(U128(0))));
+    assert_eq!(c.merchant_bond(acc("m01.bazaar.testnet"), "usdc".into()), U128(500_000_000));
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    assert!(c.submit_referee_result(forged.clone()));
+    let price = c.verdict(e.nullifier.clone()).unwrap().receipt.unwrap().price.0;
+    set("agent.testnet");
+    let _ = c.settle(e.nullifier.clone(), acc("m01.bazaar.testnet"), "o-1".into(), U128(price));
+    assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000 - price)));
+    assert!(c.submit_dispute_decision(decide(&v, &forged, cheat)));
+    assert!(c.verdict(e.nullifier.clone()).unwrap().disputed);
+    assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)), "the price is back in the buyer's escrow");
+    assert_eq!(c.merchant_bond(acc("m01.bazaar.testnet"), "usdc".into()), U128(500_000_000 - price));
+    assert!(get_logs().iter().any(|l| l.contains("dispute_overturned_after_settle") && l.contains(&format!("\"refund\":\"{price}\""))));
+}
+
+#[test]
+fn a_bond_from_an_unapproved_account_is_returned() {
+    let mut c = setup();
+    set(USDC);
+    assert!(matches!(c.ft_on_transfer(acc("stranger.testnet"), U128(7), "bond".into()), PromiseOrValue::Value(U128(7))));
+    assert_eq!(c.merchant_bond(acc("stranger.testnet"), "usdc".into()), U128(0));
 }
 
 #[test]
@@ -1622,7 +1662,34 @@ mod graph_scores {
         }
         let s = bookerbob_graph::compute(&events);
         assert_eq!(hex::encode(s.root), c.graph_root().0, "the contract's root is the guest's root");
+        let mut b = ctx("bonder.testnet");
+        b.attached_deposit(WORKER_BOND);
+        testing_env!(b.build());
+        c.bond_worker(worker());
         (c, s)
+    }
+
+    fn worker() -> String {
+        hex::encode(referee_key().verifying_key().to_bytes())
+    }
+
+    const PROOF: &str = "9f00000000000000000000000000000000000000000000000000000000000009";
+
+    fn at_ms(who: &str, ms: u64, deposit: NearToken) {
+        let mut b = ctx(who);
+        b.block_timestamp(ms * 1_000_000).attached_deposit(deposit);
+        testing_env!(b.build());
+    }
+
+    fn arbiter_key() -> SigningKey {
+        SigningKey::from_bytes(&[23u8; 32])
+    }
+
+    fn resolution(c: &Bazaar, valid: bool) -> (String, String) {
+        let p = c.pending_graph_update().unwrap();
+        let mut msg = GRAPH_CHALLENGE_TAG.to_vec();
+        msg.extend(serde_json::to_vec(&(&p.root, &p.scores_hash, &p.proof_sha256, valid)).unwrap());
+        (hex::encode(arbiter_key().verifying_key().to_bytes()), hex::encode(arbiter_key().sign(&bookerbob_core::sha256(&msg)).to_bytes()))
     }
 
     fn sign(program: &str, s: &bookerbob_graph::Scores) -> String {
@@ -1638,7 +1705,7 @@ mod graph_scores {
         set("relayer.testnet");
         let merchants = s.merchants.iter().map(|(m, n, x)| (acc(m), *n, *x)).collect();
         let standing = s.standing.iter().map(|(a, v)| (acc(a), U128(*v))).collect();
-        c.submit_graph_scores(program.into(), hex::encode(s.root), merchants, standing, hex::encode(referee_key().verifying_key().to_bytes()), sig);
+        c.submit_graph_scores(program.into(), hex::encode(s.root), merchants, standing, worker(), sig, PROOF.into());
     }
 
     fn with_seed(mut s: bookerbob_graph::Scores) -> bookerbob_graph::Scores {
@@ -1648,12 +1715,110 @@ mod graph_scores {
     }
 
     #[test]
-    fn a_signed_update_for_the_current_root_and_program_is_accepted() {
+    fn a_signed_update_waits_out_the_window_then_applies() {
         let (mut c, s) = chain();
         let s = with_seed(s);
         let sig = sign(PROGRAM, &s);
         submit(&mut c, PROGRAM, &s, sig);
+        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")), None, "pending, not applied");
+        assert_eq!(c.pending_graph_update().unwrap().proof_sha256, PROOF);
+        at_ms("anyone.testnet", NOW_MS + REVIEW_ROUND_MS, NearToken::from_yoctonear(0));
+        c.finalize_graph_scores();
         assert_eq!(c.proven_score(acc("m01.bazaar.testnet")).map(|x| x.0), Some(345));
+        assert!(c.pending_graph_update().is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "challenge window still open")]
+    fn finalize_inside_the_window_is_refused() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig);
+        c.finalize_graph_scores();
+    }
+
+    #[test]
+    #[should_panic(expected = "worker key has no bond")]
+    fn an_unbonded_worker_cannot_post() {
+        let (mut c, s) = chain();
+        at_ms("bonder.testnet", NOW_MS, NearToken::from_yoctonear(0));
+        let _ = c.unbond_worker(worker());
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig);
+    }
+
+    fn challenged() -> Bazaar {
+        let (mut c, s) = chain();
+        set_no_deposit("owner.testnet");
+        c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "graph arbiter".into());
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig);
+        at_ms("challenger.testnet", NOW_MS + 1000, CHALLENGE_BOND);
+        c.challenge_graph_scores();
+        c
+    }
+
+    #[test]
+    #[should_panic(expected = "challenged: waits for the arbiter")]
+    fn a_challenged_update_cannot_be_finalized() {
+        let mut c = challenged();
+        at_ms("anyone.testnet", NOW_MS + REVIEW_ROUND_MS, NearToken::from_yoctonear(0));
+        c.finalize_graph_scores();
+    }
+
+    #[test]
+    fn a_false_update_is_dropped_and_the_worker_bond_goes_to_the_challenger() {
+        let mut c = challenged();
+        let (k, sig) = resolution(&c, false);
+        set_no_deposit("anyone.testnet");
+        assert!(!c.resolve_graph_challenge(PROOF.into(), false, k, sig));
+        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")), None);
+        assert!(c.worker_bond(worker()).is_none(), "slashed");
+        let r = near_sdk::test_utils::get_created_receipts();
+        assert!(r.iter().any(|x| x.receiver_id.as_str() == "challenger.testnet"));
+        assert!(get_logs().iter().any(|l| l.contains("graph_update_rejected")));
+    }
+
+    #[test]
+    fn a_valid_update_applies_and_the_challenger_bond_goes_to_the_bonder() {
+        let mut c = challenged();
+        let (k, sig) = resolution(&c, true);
+        set_no_deposit("anyone.testnet");
+        assert!(c.resolve_graph_challenge(PROOF.into(), true, k, sig));
+        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")).map(|x| x.0), Some(345));
+        assert!(near_sdk::test_utils::get_created_receipts().iter().any(|x| x.receiver_id.as_str() == "bonder.testnet"));
+    }
+
+    #[test]
+    #[should_panic(expected = "bad arbiter signature")]
+    fn a_resolution_with_the_other_verdict_is_refused() {
+        let mut c = challenged();
+        let (k, sig) = resolution(&c, true);
+        set_no_deposit("anyone.testnet");
+        c.resolve_graph_challenge(PROOF.into(), false, k, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "challenge window is over")]
+    fn a_late_challenge_is_refused() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig);
+        at_ms("challenger.testnet", NOW_MS + REVIEW_ROUND_MS, CHALLENGE_BOND);
+        c.challenge_graph_scores();
+    }
+
+    #[test]
+    #[should_panic(expected = "a graph update is already pending")]
+    fn one_pending_update_at_a_time() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig.clone());
+        submit(&mut c, PROGRAM, &s, sig);
     }
 
     #[test]
@@ -1692,7 +1857,7 @@ mod graph_scores {
     fn an_update_signed_by_an_unregistered_worker_is_refused() {
         let (mut c, s) = chain();
         set("relayer.testnet");
-        c.submit_graph_scores(PROGRAM.into(), hex::encode(s.root), vec![], vec![], "11".repeat(32), "22".repeat(64));
+        c.submit_graph_scores(PROGRAM.into(), hex::encode(s.root), vec![], vec![], "11".repeat(32), "22".repeat(64), PROOF.into());
     }
 }
 

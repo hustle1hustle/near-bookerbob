@@ -87,7 +87,7 @@ pub struct Merchant {
 pub const MAX_QUOTE_PAGE: u32 = 100;
 /// Prepaid growth per verdict record: a referee receipt (about 250 bytes) plus the settle
 /// fields (checkout_ref up to 128 bytes). Charged to the agent in `submit_verdict`.
-pub const RECORD_RESERVE_BYTES: u64 = 512;
+pub const RECORD_RESERVE_BYTES: u64 = 768;
 /// Review rounds: ratings are released per round, after it closes, all at once.
 pub const REVIEW_ROUND_MS: u64 = 24 * 3600 * 1000;
 /// Recent group roots a review proof may use (members keep joining while others prove).
@@ -236,6 +236,12 @@ pub struct Bazaar {
 
 /// Domain tag of the worker's signature over a proven score update.
 pub const GRAPH_UPDATE_TAG: &[u8] = b"bookerbob/graph-update/v0\x00";
+/// An arbiter's signed resolution of a challenged graph update.
+pub const GRAPH_CHALLENGE_TAG: &[u8] = b"bookerbob/graph-challenge/v0\x00";
+/// Bond a worker key must hold to post a graph update; slashed to a successful challenger.
+pub const WORKER_BOND: NearToken = NearToken::from_millinear(500);
+/// Bond a challenger posts; paid to the worker's bonder if the update was valid.
+pub const CHALLENGE_BOND: NearToken = NearToken::from_millinear(100);
 
 /// A NEAR AI model key whose attestation the owner checked off chain (TDX quote to Intel's
 /// root, report_data = key || nonce; `make verify` repeats that check on the committed
@@ -332,6 +338,60 @@ fn group_persons() -> LookupMap<String, bool> {
 /// joined before (all World-bound demo buyers) count once each: tree size minus tracked.
 fn group_person_counts() -> LookupMap<AccountId, (u64, u64)> {
     LookupMap::new(b"Q")
+}
+
+// ---------- challengeable graph updates and bonds, see docs/jolt.md ----------
+
+/// A worker key's bond: (bonder account, yoctoNEAR).
+fn worker_bonds() -> LookupMap<String, (AccountId, u128)> {
+    LookupMap::new(b"W")
+}
+
+/// The graph update waiting out its challenge window (at most one at a time).
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct PendingGraphUpdate {
+    pub program_hash: String,
+    pub root: String,
+    pub scores_hash: String,
+    /// sha256 of the Jolt proof file the worker verified; anyone can fetch and re-verify it.
+    pub proof_sha256: String,
+    pub worker_key: String,
+    pub merchants: Vec<(AccountId, u64, u64)>,
+    pub submitted_ms: u64,
+    /// The challenger and its bond, once challenged: the update is frozen until resolved.
+    pub challenger: Option<(AccountId, U128)>,
+}
+
+fn pending_graph() -> Option<PendingGraphUpdate> {
+    env::storage_read(b"pending_graph").and_then(|b| near_sdk::borsh::from_slice(&b).ok())
+}
+
+fn set_pending_graph(p: Option<&PendingGraphUpdate>) {
+    match p {
+        Some(p) => {
+            env::storage_write(b"pending_graph", &near_sdk::borsh::to_vec(p).expect("borsh"));
+        }
+        None => {
+            env::storage_remove(b"pending_graph");
+        }
+    }
+}
+
+/// The challenge window: one review round (24 h; 5 min on the testnet demo).
+fn challenge_window_ms() -> u64 {
+    round_ms()
+}
+
+/// Per settled record: sha256 over what the payment relied on (the verdict digest, the
+/// referee receipt hash, the merchant, the price, the token). What a dispute is judged against.
+fn liabilities() -> LookupMap<String, String> {
+    LookupMap::new(b"L")
+}
+
+/// A merchant's refund bond per token ("usdc" or "demo"), in token base units.
+fn merchant_bonds() -> LookupMap<String, u128> {
+    LookupMap::new(b"M")
 }
 
 /// The lowest TDX TCB status a verdict may carry to be quoted or paid. Default UpToDate.
@@ -822,6 +882,7 @@ impl Bazaar {
     /// and signs `sha256(TAG || program_hash || root || scores_hash)`. Accepted only for the
     /// registered program and the current graph root (a stale root is refused).
     #[payable]
+    #[allow(clippy::too_many_arguments)]
     pub fn submit_graph_scores(
         &mut self,
         program_hash: String,
@@ -830,11 +891,16 @@ impl Bazaar {
         standing: Vec<(AccountId, U128)>,
         worker_key: String,
         signature: String,
+        proof_sha256: String,
     ) {
         let before = env::storage_usage();
+        require!(bookerbob_core::is_hex32(&proof_sha256), "bad proof hash");
+        require!(pending_graph().is_none(), "a graph update is already pending");
         require!(self.graph_program.as_deref() == Some(program_hash.as_str()), "not the registered graph program");
         require!(root == hex::encode(self.graph_root), "stale graph root");
         require!(self.referees.contains_key(&worker_key), "unknown worker key");
+        let bonded = worker_bonds().get(&worker_key).map_or(0, |b| b.1);
+        require!(bonded >= WORKER_BOND.as_yoctonear(), "worker key has no bond (bond_worker)");
         let scores = bookerbob_graph::Scores {
             root: self.graph_root,
             merchants: merchants.iter().map(|(m, n, s)| (m.to_string(), *n, *s)).collect(),
@@ -847,16 +913,127 @@ impl Bazaar {
         let sig: [u8; 64] = decode(&signature, "worker signature");
         let pk: [u8; 32] = decode(&worker_key, "worker key");
         require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad worker signature");
-        for (m, _, s) in &merchants {
+        let p = PendingGraphUpdate {
+            program_hash,
+            root,
+            scores_hash: hex::encode(scores.hash()),
+            proof_sha256,
+            worker_key,
+            merchants,
+            submitted_ms: env::block_timestamp_ms(),
+            challenger: None,
+        };
+        set_pending_graph(Some(&p));
+        emit(
+            "graph_update_pending",
+            serde_json::json!({ "root": p.root, "program": p.program_hash, "scores_hash": p.scores_hash, "proof_sha256": p.proof_sha256, "merchants": p.merchants.len(), "challenge_until_ms": p.submitted_ms + challenge_window_ms() }),
+        );
+        charge_storage(before);
+    }
+
+    pub fn merchant_bond(&self, merchant: AccountId, token: String) -> U128 {
+        U128(merchant_bonds().get(&format!("{merchant}|{token}")).copied().unwrap_or(0))
+    }
+
+    /// The liability record of a settled purchase (see `liabilities`).
+    pub fn liability(&self, nullifier: String) -> Option<String> {
+        liabilities().get(&nullifier).cloned()
+    }
+
+    pub fn pending_graph_update(&self) -> Option<PendingGraphUpdate> {
+        pending_graph()
+    }
+
+    /// Bond a worker key (anyone may bond it; the bonder gets it back on `unbond_worker`).
+    #[payable]
+    pub fn bond_worker(&mut self, worker_key: String) {
+        require!(self.referees.contains_key(&worker_key), "unknown worker key");
+        let mut b = worker_bonds();
+        let me = env::predecessor_account_id();
+        let (owner, amount) = b.get(&worker_key).cloned().unwrap_or((me.clone(), 0));
+        require!(owner == me, "another account bonds this key");
+        b.insert(worker_key.clone(), (owner, amount + env::attached_deposit().as_yoctonear()));
+        b.flush();
+        emit("worker_bonded", serde_json::json!({ "worker_key": worker_key, "amount": U128(amount + env::attached_deposit().as_yoctonear()) }));
+    }
+
+    pub fn worker_bond(&self, worker_key: String) -> Option<(AccountId, U128)> {
+        worker_bonds().get(&worker_key).map(|(a, v)| (a.clone(), U128(*v)))
+    }
+
+    /// The bonder takes the bond back, only while no update by that key is pending.
+    pub fn unbond_worker(&mut self, worker_key: String) -> Promise {
+        require!(pending_graph().is_none_or(|p| p.worker_key != worker_key), "an update by this key is pending");
+        let mut b = worker_bonds();
+        let (owner, amount) = b.get(&worker_key).cloned().unwrap_or_else(|| env::panic_str("no bond"));
+        require!(owner == env::predecessor_account_id(), "not the bonder");
+        b.remove(&worker_key);
+        b.flush();
+        Promise::new(owner).transfer(NearToken::from_yoctonear(amount))
+    }
+
+    /// Anyone, inside the window, with CHALLENGE_BOND: freeze the pending update until an
+    /// arbiter re-runs the Jolt verifier on the proof (sha256 `proof_sha256`) and resolves.
+    #[payable]
+    pub fn challenge_graph_scores(&mut self) {
+        let mut p = pending_graph().unwrap_or_else(|| env::panic_str("no pending update"));
+        require!(p.challenger.is_none(), "already challenged");
+        require!(env::block_timestamp_ms() < p.submitted_ms + challenge_window_ms(), "challenge window is over");
+        let d = env::attached_deposit();
+        require!(d >= CHALLENGE_BOND, "attach the challenge bond (0.1 NEAR)");
+        p.challenger = Some((env::predecessor_account_id(), U128(d.as_yoctonear())));
+        set_pending_graph(Some(&p));
+        emit("graph_update_challenged", serde_json::json!({ "root": p.root, "challenger": env::predecessor_account_id(), "proof_sha256": p.proof_sha256 }));
+    }
+
+    /// After the window, an unchallenged update applies. Anyone may call it.
+    pub fn finalize_graph_scores(&mut self) {
+        let p = pending_graph().unwrap_or_else(|| env::panic_str("no pending update"));
+        require!(p.challenger.is_none(), "challenged: waits for the arbiter");
+        require!(env::block_timestamp_ms() >= p.submitted_ms + challenge_window_ms(), "challenge window still open");
+        self.apply_graph_update(&p);
+        set_pending_graph(None);
+    }
+
+    /// An arbiter's signed resolution of a challenge: `valid` after re-running the Jolt
+    /// verifier on the proof with that sha256 against this root and scores hash. Invalid:
+    /// the update is dropped, the worker bond goes to the challenger with its own bond back.
+    /// Valid: the update applies and the challenger's bond goes to the worker's bonder.
+    pub fn resolve_graph_challenge(&mut self, proof_sha256: String, valid: bool, arbiter_key: String, signature: String) -> bool {
+        let p = pending_graph().unwrap_or_else(|| env::panic_str("no pending update"));
+        let (challenger, cbond) = p.challenger.clone().unwrap_or_else(|| env::panic_str("not challenged"));
+        require!(p.proof_sha256 == proof_sha256, "resolution is for another proof");
+        require!(self.arbiters.contains_key(&arbiter_key), "unknown arbiter key");
+        let mut msg = GRAPH_CHALLENGE_TAG.to_vec();
+        msg.extend(serde_json::to_vec(&(&p.root, &p.scores_hash, &proof_sha256, valid)).expect("json"));
+        let sig: [u8; 64] = decode(&signature, "arbiter signature");
+        let pk: [u8; 32] = decode(&arbiter_key, "arbiter key");
+        require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad arbiter signature");
+        let mut bonds = worker_bonds();
+        if valid {
+            let (bonder, _) = bonds.get(&p.worker_key).cloned().expect("bonded at submit");
+            self.apply_graph_update(&p);
+            Promise::new(bonder).transfer(NearToken::from_yoctonear(cbond.0)).detach();
+        } else {
+            let (_, slashed) = bonds.remove(&p.worker_key).unwrap_or_else(|| (challenger.clone(), 0));
+            bonds.flush();
+            Promise::new(challenger.clone()).transfer(NearToken::from_yoctonear(slashed + cbond.0)).detach();
+            emit("graph_update_rejected", serde_json::json!({ "root": p.root, "worker_key": p.worker_key, "slashed": U128(slashed), "to": challenger }));
+        }
+        set_pending_graph(None);
+        valid
+    }
+
+    fn apply_graph_update(&mut self, p: &PendingGraphUpdate) {
+        for (m, _, s) in &p.merchants {
             self.proven_scores.insert(m.clone(), *s);
         }
-        self.proven_root = Some(root.clone());
+        self.proven_root = Some(p.root.clone());
         emit(
             "graph_scores",
-            serde_json::json!({ "root": root, "program": program_hash, "scores_hash": hex::encode(scores.hash()), "merchants": merchants.len() }),
+            serde_json::json!({ "root": p.root, "program": p.program_hash, "scores_hash": p.scores_hash, "proof_sha256": p.proof_sha256, "merchants": p.merchants.len() }),
         );
         self.proven_scores.flush();
-        charge_storage(before);
     }
 
     pub fn proven_score(&self, merchant: AccountId) -> Option<(u64, String)> {
@@ -1197,8 +1374,27 @@ impl Bazaar {
     /// NEP-141 `ft_transfer_call` receiver. Accepts USDC only, and only for an account with
     /// an open escrow entry; otherwise returns the full amount (the token refunds it).
     pub fn ft_on_transfer(&mut self, sender_id: AccountId, amount: U128, msg: String) -> PromiseOrValue<U128> {
-        let _ = msg;
         let token = env::predecessor_account_id();
+        let kind = if token == self.usdc {
+            "usdc"
+        } else if demo_token_id().as_ref() == Some(&token) {
+            "demo"
+        } else {
+            env::panic_str("only USDC is accepted")
+        };
+        // msg "bond": an approved merchant tops up its refund bond in this token.
+        if msg == "bond" {
+            if !self.merchants.get(&sender_id).is_some_and(|m| m.approved) {
+                return PromiseOrValue::Value(amount);
+            }
+            let mut b = merchant_bonds();
+            let key = format!("{sender_id}|{kind}");
+            let v = b.get(&key).copied().unwrap_or(0) + amount.0;
+            b.insert(key, v);
+            b.flush();
+            emit("merchant_bonded", serde_json::json!({ "merchant": sender_id, "token": kind, "amount": U128(v) }));
+            return PromiseOrValue::Value(U128(0));
+        }
         if token != self.usdc {
             // The demo token, on a testnet bazaar only (demo_token_id() is None elsewhere).
             if demo_token_id().as_ref() != Some(&token) {
@@ -1369,7 +1565,23 @@ impl Bazaar {
             "overturned" => {
                 if record.spent {
                     record.disputed = true;
-                    emit("dispute_overturned_after_settle", serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons }));
+                    // The liability ledger pays: the merchant's bond in the token the buyer
+                    // paid refunds the price (up to the bond) into the buyer's escrow.
+                    let (agent, price, merchant) = (record.agent.clone(), receipt.price.0, receipt.merchant.clone());
+                    let demo = demo_paid().contains_key(&b.nullifier);
+                    let mut bonds = merchant_bonds();
+                    let key = format!("{merchant}|{}", if demo { "demo" } else { "usdc" });
+                    let have = bonds.get(&key).copied().unwrap_or(0);
+                    let refund = have.min(price);
+                    if refund > 0 {
+                        bonds.insert(key, have - refund);
+                        bonds.flush();
+                        self.credit(&agent, refund, demo);
+                    }
+                    emit(
+                        "dispute_overturned_after_settle",
+                        serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons, "refund": U128(refund), "token": if demo { "demo" } else { "usdc" } }),
+                    );
                 } else {
                     record.receipt = None;
                     emit("dispute_overturned", serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons, "referee": receipt.referee }));
@@ -1509,6 +1721,19 @@ impl Bazaar {
         let record = self.verdicts.get_mut(nullifier).expect("checked above");
         record.spent = true;
         record.checkout_ref = Some(checkout_ref.to_string());
+        // The liability record: what this payment relied on, hashed, queryable per nullifier.
+        // Written before draw_reserve, so its bytes come from the agent's prepaid reserve.
+        let record = self.verdicts.get(nullifier).expect("checked above");
+        let receipt_hash = record.receipt.as_ref().map(|r| r.receipt_hash.clone()).unwrap_or_default();
+        let liability = hex::encode(env::sha256_array(
+            serde_json::to_vec(&(&record.digest, &receipt_hash, merchant.as_str(), price.to_string(), if demo { "demo" } else { "usdc" }))
+                .expect("json")
+                .as_slice(),
+        ));
+        let mut l = liabilities();
+        l.insert(nullifier.to_string(), liability.clone());
+        l.flush();
+        self.verdicts.flush();
         self.draw_reserve(nullifier, before);
         self.spent_count += 1;
         emit(
@@ -1521,6 +1746,7 @@ impl Bazaar {
                 "checkout_ref": checkout_ref,
                 "path": path,
                 "token": if demo { "demo" } else { "usdc" },
+                "liability": liability,
             }),
         );
         (m, price, agent)
