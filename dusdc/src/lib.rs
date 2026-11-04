@@ -8,7 +8,7 @@
 //! - Refuses to initialise on an account that is not `.testnet`.
 use near_sdk::json_types::U128;
 use near_sdk::store::LookupMap;
-use near_sdk::{env, ext_contract, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseOrValue, PromiseResult};
+use near_sdk::{env, ext_contract, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseOrValue};
 
 pub const DECIMALS: u8 = 6;
 pub const MINT_AMOUNT: u128 = 100_000_000;
@@ -120,9 +120,9 @@ impl Dusdc {
     /// Returns the amount the receiver kept; the rest goes back to the sender.
     #[private]
     pub fn ft_resolve_transfer(&mut self, sender_id: AccountId, receiver_id: AccountId, amount: U128) -> U128 {
-        let unused = match env::promise_result(0) {
-            PromiseResult::Successful(v) => serde_json::from_slice::<U128>(&v).map(|u| u.0.min(amount.0)).unwrap_or(amount.0),
-            PromiseResult::Failed => amount.0,
+        let unused = match env::promise_result_checked(0, 64) {
+            Ok(v) => serde_json::from_slice::<U128>(&v).map(|u| u.0.min(amount.0)).unwrap_or(amount.0),
+            Err(_) => amount.0,
         };
         let refund = unused.min(self.balance(&receiver_id));
         if refund > 0 && self.balances.contains_key(&sender_id) {

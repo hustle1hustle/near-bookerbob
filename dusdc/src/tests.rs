@@ -1,6 +1,7 @@
 use super::*;
 use near_sdk::test_utils::{get_created_receipts, get_logs, VMContextBuilder};
 use near_sdk::testing_env;
+use near_sdk::PromiseResult;
 
 const T0: u64 = 1_793_000_000_000;
 

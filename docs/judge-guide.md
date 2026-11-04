@@ -57,8 +57,6 @@ Also tested offline (`make test`): the NEP-366 relayer policy for gasless rating
 
 - Testnet only; no USDC has moved (escrow and settle wait on testnet USDC); no real zkTLS
   proof (the facts are synthetic).
-- Chain Signatures EVM leg: the MPC signed a Base Sepolia USDC payout on testnet (tx
-  4AN6Ytp4, `fixtures/live/evm-sign.json`); it is not broadcast, the payer is unfunded.
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.

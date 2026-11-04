@@ -160,7 +160,7 @@ Stops at escrow: the agent holds no testnet USDC yet (faucet.circle.com, a web f
 | usdc storage_deposit bazaar (repeat, refunded) | agent.bookerbob.testnet | [8G3peQpWjNRASsjvYARE9TyYqpgyaRRQDcN7KsEEZaa5](https://testnet.nearblocks.io/txns/8G3peQpWjNRASsjvYARE9TyYqpgyaRRQDcN7KsEEZaa5) |
 | usdc storage_deposit agent | agent.bookerbob.testnet | [AFfAVeJVchBMpN3NkLiE6PGCK3sS5GKHnv4UxdYdJdG](https://testnet.nearblocks.io/txns/AFfAVeJVchBMpN3NkLiE6PGCK3sS5GKHnv4UxdYdJdG) |
 
-## Redeploy with the EVM payout code, and a live hire graph (2026-11-04)
+## Redeploy (with the since-cut EVM payout code), and a live hire graph (2026-11-04)
 
 | step | account | tx |
 |---|---|---|
@@ -193,26 +193,11 @@ seed yet: seeds come from released reviews, which need a paid purchase, which wa
 USDC. So this update binds the proven root and an empty score list. Once a purchase settles and
 reviews release, the same commands carry nonzero standing.
 
-## Chain Signatures EVM payout leg (2026-11-04)
+## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
-One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`, the path
-`settle_evm` uses, over the hash of an EIP-1559 USDC `transfer` on Base Sepolia (chain 84532):
-38.40 USDC (the testnet receipt price) to m01's address, nonce 0.
-
-| step | account | tx |
-|---|---|---|
-| mpc sign domain 0, path evm-1 | bookerbob.testnet | [4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM](https://testnet.nearblocks.io/txns/4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM) |
-
-- Payer, derived by the MPC for (bookerbob.testnet, evm-1, domain 0): `0x56AaAf0eCcd17c7D57d6A7dC3d6B5C213d40DF78`.
-- Merchant m01, derived for (m01.bookerbob.testnet, evm-1, domain 0): `0x910721608E44b775E43cE180912421Ad03888E58`.
-- The answer is in `fixtures/live/evm-sign.json`. `bookerbob evm-payout raw ...` assembles the
-  signed raw tx in `fixtures/live/evm-payout-raw.txt`; ethers recovers its sender as the payer
-  above (Base Sepolia tx hash once broadcast: `0xaa295c74eee041bffe822eaa0aabbe1aeaafb09de7229a7755a3d02f496fb7a0`).
-  A core test pins the assembly byte for byte.
-- Not broadcast. The payer holds 0 ETH and 0 USDC on Base Sepolia. Funding it with about 0.001
-  Base Sepolia ETH and 38.40 Base Sepolia USDC (faucet.circle.com) lets anyone broadcast the
-  committed raw tx unchanged (`eth_sendRawTransaction`, nonce 0).
-- What this run shows and what it does not: the request was signed directly by the
-  bookerbob.testnet account, so the MPC derived the same key `settle_evm` would. The full
-  `settle_evm` path (escrowed USDC on NEAR, the double-pay guard, the callback storing the
-  signature) is covered by the contract tests and waits on testnet USDC for a live run.
+One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`
+([4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM](https://testnet.nearblocks.io/txns/4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM)):
+the MPC signed an EIP-1559 USDC transfer for Base Sepolia, and the assembled raw tx recovered
+to the MPC-derived address `0x56AaAf0eCcd17c7D57d6A7dC3d6B5C213d40DF78`. It was never
+broadcast. The EVM payout leg was cut on 2026-11-05 (payments run on NEAR only); its code,
+tests and the signed answer are on the `evm-archive` branch.
