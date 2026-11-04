@@ -2010,3 +2010,62 @@ mod review_persons {
         assert_eq!(c.review_persons(acc("m01.bazaar.testnet")), 1, "but they are one person for the k floor");
     }
 }
+
+/// min_tcb: a verdict whose enclave TCB is below the floor is not quoted or paid.
+mod tcb_floor {
+    use super::*;
+
+    fn with_tcb(c: &mut Bazaar, n: u8, status: &str) -> String {
+        let mut e = envelope(n, "agent.testnet");
+        e.attestation.tcb_status = status.into();
+        submit_with_receipt(c, e);
+        hex::encode([n; 32])
+    }
+
+    #[test]
+    fn up_to_date_is_quoted_and_paid() {
+        let mut c = setup();
+        let n = with_tcb(&mut c, 1, "UpToDate");
+        assert!(c.best_quote(n.clone(), None, None, None, None).is_some());
+        let _ = c.settle(n, acc("m01.bazaar.testnet"), "o".into(), U128(151_200_000));
+    }
+
+    #[test]
+    #[should_panic(expected = "verdict enclave TCB below min_tcb")]
+    fn out_of_date_is_refused_at_settle() {
+        let mut c = setup();
+        let n = with_tcb(&mut c, 1, "OutOfDate");
+        assert!(c.best_quote(n.clone(), None, None, None, None).is_none(), "and never quoted");
+        set("agent.testnet");
+        let _ = c.settle(n, acc("m01.bazaar.testnet"), "o".into(), U128(151_200_000));
+    }
+
+    #[test]
+    fn the_owner_can_lower_the_floor_and_out_of_date_then_pays() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_min_tcb("OutOfDate".into());
+        assert_eq!(c.min_tcb(), "OutOfDate");
+        let n = with_tcb(&mut c, 1, "OutOfDate");
+        let _ = c.settle(n, acc("m01.bazaar.testnet"), "o".into(), U128(151_200_000));
+    }
+
+    #[test]
+    #[should_panic(expected = "not a TCB status that can pass")]
+    fn revoked_cannot_be_the_floor() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_min_tcb("Revoked".into());
+    }
+
+    #[test]
+    fn fixture_status_passes_on_testnet_only() {
+        let mut c = setup();
+        let n = with_tcb(&mut c, 1, "fixture");
+        assert!(c.best_quote(n.clone(), None, None, None, None).is_some());
+        let mut b = ctx("agent.testnet");
+        b.current_account_id(acc("bazaar.near"));
+        testing_env!(b.build());
+        assert!(c.best_quote(n, None, None, None, None).is_none(), "a mainnet bazaar never quotes a fixture verdict");
+    }
+}

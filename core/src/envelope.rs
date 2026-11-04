@@ -16,6 +16,31 @@ pub struct Attestation {
     pub report_hash: String,
 }
 
+/// Intel TDX TCB status, ordered: higher is better. The DCAP names (dcap-qvl, Intel PCS).
+/// None for anything else, including the offline `fixture` status.
+pub fn tcb_rank(status: &str) -> Option<u8> {
+    Some(match status {
+        "UpToDate" => 4,
+        "SWHardeningNeeded" => 3,
+        "ConfigurationNeeded" | "ConfigurationAndSWHardeningNeeded" => 2,
+        "OutOfDate" | "OutOfDateConfigurationNeeded" => 1,
+        "Revoked" => 0,
+        _ => return None,
+    })
+}
+
+/// True when `status` meets `min` (both DCAP names). `fixture` (synthetic, offline and testnet
+/// demo) passes only when `allow_fixture`; any unknown status fails.
+pub fn tcb_meets(status: &str, min: &str, allow_fixture: bool) -> bool {
+    if status == "fixture" {
+        return allow_fixture;
+    }
+    match (tcb_rank(status), tcb_rank(min)) {
+        (Some(s), Some(m)) => s >= m && s > 0,
+        _ => false,
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Envelope {
     pub v: u8,
@@ -145,6 +170,19 @@ pub fn commitment(salt: &[u8; 32], all_predicates: &[String]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tcb_order_and_floor() {
+        assert!(tcb_meets("UpToDate", "UpToDate", false));
+        assert!(!tcb_meets("OutOfDate", "UpToDate", false));
+        assert!(tcb_meets("OutOfDate", "OutOfDate", false));
+        assert!(tcb_meets("SWHardeningNeeded", "ConfigurationNeeded", false));
+        assert!(!tcb_meets("Revoked", "Revoked", false), "revoked never passes");
+        assert!(!tcb_meets("uptodate", "UpToDate", false), "exact DCAP names only");
+        assert!(!tcb_meets("fixture", "UpToDate", false));
+        assert!(tcb_meets("fixture", "UpToDate", true));
+        assert!(!tcb_meets("UpToDate", "bogus", false), "an unknown floor fails closed");
+    }
 
     pub(crate) fn sample() -> Envelope {
         Envelope {

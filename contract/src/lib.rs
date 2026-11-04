@@ -334,6 +334,17 @@ fn group_person_counts() -> LookupMap<AccountId, (u64, u64)> {
     LookupMap::new(b"Q")
 }
 
+/// The lowest TDX TCB status a verdict may carry to be quoted or paid. Default UpToDate.
+fn tcb_floor() -> String {
+    env::storage_read(b"min_tcb").and_then(|b| String::from_utf8(b).ok()).unwrap_or_else(|| "UpToDate".into())
+}
+
+/// The verdict's enclave status meets the floor. Synthetic `fixture` verdicts pass on a
+/// `.testnet` bazaar only (demo and make verify), never on mainnet.
+fn tcb_ok(status: &str) -> bool {
+    bookerbob_core::envelope::tcb_meets(status, &tcb_floor(), is_testnet())
+}
+
 /// Review round length: 24 h, or a shorter testnet-only value for the demo.
 fn round_ms() -> u64 {
     if !is_testnet() {
@@ -1086,9 +1097,22 @@ impl Bazaar {
     // ---------- quotes ----------
 
     /// Code-computed price of `merchant` for the predicates revealed under `nullifier`.
+    /// Owner: the lowest TDX TCB status quoted or paid (a DCAP name, `UpToDate` by default).
+    pub fn set_min_tcb(&mut self, status: String) {
+        self.assert_owner();
+        require!(bookerbob_core::envelope::tcb_rank(&status).is_some_and(|r| r > 0), "not a TCB status that can pass");
+        env::storage_write(b"min_tcb", status.as_bytes());
+        emit("min_tcb_set", serde_json::json!({ "status": status }));
+    }
+
+    pub fn min_tcb(&self) -> String {
+        tcb_floor()
+    }
+
     pub fn quote(&self, merchant: AccountId, nullifier: String) -> Quote {
         let m = self.merchants.get(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
         let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        require!(tcb_ok(&v.tcb_status), "verdict enclave TCB below min_tcb");
         self.quote_for(&m.schedule, v)
     }
 
@@ -1109,6 +1133,9 @@ impl Bazaar {
         min_score: Option<u64>,
     ) -> Option<MerchantQuote> {
         let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        if !tcb_ok(&v.tcb_status) {
+            return None;
+        }
         let limit = limit.unwrap_or(50).min(MAX_QUOTE_PAGE) as usize;
         let mut best: Option<(MerchantQuote, u64)> = None;
         for (id, m) in self.merchants.iter().skip(from_index.unwrap_or(0) as usize).take(limit) {
@@ -1454,6 +1481,7 @@ impl Bazaar {
         let record = self.verdicts.get_mut(nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(!record.spent, "nullifier spent");
         require!(record.agent == agent, "agent mismatch");
+        require!(tcb_ok(&record.tcb_status), "verdict enclave TCB below min_tcb");
         require!(env::block_timestamp_ms() < record.expires_at_ms, "verdict expired");
         // The receipt fixes the price: a cohort that grows after the receipt cannot change it.
         let price = match &record.receipt {
