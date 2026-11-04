@@ -97,8 +97,7 @@ interface exists with a test double; `planned` means not built yet.
 | `cli/` | `bookerbob` CLI: offline end-to-end on fixtures, fixture generator, swarm, referee, evals |
 | `worker/` | referee as an OutLayer worker (stdin in, signed result out) |
 | `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
-| `ucp/` | x402 v2 paid verdict read (`exact`, USDC on `near:testnet`, verify and settle through an explicit x402 facilitator) | agents, realworld | `x402/verdict-read.mjs` | built (7 tests on synthetic payments); no facilitator wired, testnet config only |
-| MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | built (2 tests on a fake RPC); points at testnet once deployed |
+| `ucp/` | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
 | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
 | `x402/` | x402 v2 resource server for paid verdict reads |
 | `mcp/` | MCP server wrapping the contract views (`nullifier_status`, `verdict`, `quote`, `best_quote`, `merchants`) |
