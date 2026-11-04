@@ -6,10 +6,12 @@ Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), 
 
 | guest | prove (s) | verify (ms) | proof (bytes) | peak RAM (MB) | wall incl. guest build (s) | verifier preprocessing (bytes) | program hash |
 |---|---|---|---|---|---|---|---|
-| `standing` | 4.69 | 68 | 88,300 | 1,393 | 12.4 | 4,180,340 | `c780ceabae4decfa..` |
+| `standing` | 8.94 | 70 | 92,716 | 3,230 | 15.1 | 4,180,340 | `c780ceabae4decfa..` |
 | `price` | 1.27 | 59 | 80,380 | 375 | 3.4 | 3,284,109 | `6a35b5c3a8c1fe69..` |
 | `referee` | 2.34 | 61 | 84,796 | 729 | 5.8 | 4,652,009 | `a66f1c29e3b7199a..` |
 | `cohort` | 2.91 | 63 | 84,724 | 560 | 5.0 | 2,876,057 | `50eb77d3d5c13c68..` |
+
+Standing was re-proved on 2026-11-05 after `publish_reviews` started pushing the Seed graph event: the fixture graph is now 20 hires and 1 seed (before, hires only, so the standing list was empty). Same program hash.
 
 `make verify` checks natively that each committed output equals what the contract's code
 computes and that each program hash is the sha256 of its committed verifier

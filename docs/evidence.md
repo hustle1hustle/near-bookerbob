@@ -60,7 +60,7 @@ From zk/out/<guest>/result.json and the /usr/bin/time -l logs (this Mac, cargo -
 
 | guest | prove (s) | verify (ms) | proof (bytes) | peak RAM (MB) |
 |---|---|---|---|---|
-| standing | 4.69 | 68 | 88,300 | 1,393 |
+| standing | 8.94 | 70 | 92,716 | 3,230 |
 | price | 1.27 | 59 | 80,380 | 375 |
 | referee | 2.34 | 61 | 84,796 | 729 |
 | cohort | 2.91 | 63 | 84,724 | 560 |
