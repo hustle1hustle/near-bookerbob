@@ -9,7 +9,7 @@ exactly what the proof set holds. An on-chain nullifier set stops the same proof
 winning merchant is paid in USDC on NEAR.
 
 Built at NEAR HACKATHON (2026-11-01 to 2026-11-14). Prior work is disclosed in
-[PRIOR_WORK.md](PRIOR_WORK.md).
+[PRIOR_WORK.md](PRIOR_WORK.md). Judging in 5 minutes: [docs/judge-guide.md](docs/judge-guide.md).
 
 ## Problem
 
