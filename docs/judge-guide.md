@@ -35,7 +35,7 @@ What each block of PASS lines proves:
 | `PASS  blind round ...` | 30 merchant agents bid through on-chain `commit_bid` and `reveal_bid` with deadlines; the board's winner equals `round_best_quote` |
 | `PASS  referee evals 50/50` | 50 authored cases, 30 of them prompt-injection style ("guest is marriott platinum" citing a real fact is refused) |
 | `PASS  NEAR AI verdict: 14 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
-| `PASS  sealed reviews: 13 checks` | 10 real purchases join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
+| `PASS  sealed reviews: 15 checks` | 10 real purchases join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
 
 ## Minute 4: look
 

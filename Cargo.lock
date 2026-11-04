@@ -346,6 +346,7 @@ version = "0.1.0"
 dependencies = [
  "bookerbob-bazaar",
  "bookerbob-core",
+ "bookerbob-graph",
  "bookerbob-referee-worker",
  "chacha20poly1305",
  "curve25519-dalek",

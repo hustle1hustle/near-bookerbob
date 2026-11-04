@@ -54,6 +54,17 @@ pub fn gas_table() -> Vec<(&'static str, f64, usize)> {
     })
 }
 
+/// The graph events the last call emitted (hex bytes), from its NEP-297 logs.
+fn graph_events_logged() -> Vec<String> {
+    near_sdk::test_utils::get_logs()
+        .iter()
+        .filter_map(|l| l.strip_prefix("EVENT_JSON:"))
+        .filter_map(|j| serde_json::from_str::<Value>(j).ok())
+        .filter(|v| v["event"] == "graph_event")
+        .filter_map(|v| v["data"][0]["event"].as_str().map(String::from))
+        .collect()
+}
+
 pub(crate) fn call<T>(f: impl FnOnce() -> T) -> Result<T, String> {
     catch_unwind(AssertUnwindSafe(f))
         .map_err(|e| e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())
@@ -286,6 +297,7 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
     ));
     at("anyone.testnet", NOW_MS + 2 * REVIEW_ROUND_MS);
     let released = call(|| c.publish_reviews(acc(&m01.account), round)).unwrap_or(false);
+    let mut graph_events: Vec<String> = graph_events_logged();
     note_gas("publish_reviews (6 ratings)");
     let s = c.merchant_score(acc(&m01.account));
     out.push((
@@ -298,9 +310,11 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
     ));
     // Conserved delegation: m01 hires a sub-agent, which spawns a ring of 8 that hire each
     // other and back; an unseeded ring sits next to it.
-    let hire = |c: &mut Bazaar, who: &str, sub: &str| {
+    let mut hire = |c: &mut Bazaar, who: &str, sub: &str| {
         at(who, NOW_MS + 2 * REVIEW_ROUND_MS);
-        let _ = call(|| c.hire(acc(sub)));
+        if call(|| c.hire(acc(sub))).is_ok() {
+            graph_events.extend(graph_events_logged());
+        }
     };
     hire(&mut c, &m01.account, "sub1.bookerbob.testnet");
     for i in 1..=8 {
@@ -321,6 +335,30 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
             Err(format!("seed {}, conferred {total}, bound {bound}", seed.0))
         },
     ));
+    // The graph the Jolt guest proves (zk/): these events, in the contract's order, must
+    // hash to the contract's graph_root.
+    let ev: Vec<bookerbob_graph::Event> = graph_events.iter().map(|h| bookerbob_graph::Event::from_bytes(&hex::decode(h).unwrap()).expect("event")).collect();
+    let (onchain_root, n_events) = c.graph_root();
+    out.push((
+        "graph events from the contract's logs hash to its graph_root (the Jolt guest's input)".into(),
+        if hex::encode(bookerbob_graph::root_of(&ev)) == onchain_root && n_events as usize == ev.len() {
+            Ok(format!("{} events, root {}..", ev.len(), &onchain_root[..16]))
+        } else {
+            Err(format!("{} logged, {n_events} on chain", ev.len()))
+        },
+    ));
+    let events_body = serde_json::to_string_pretty(&graph_events).unwrap() + "\n";
+    let events_path = dir.join("graph").join("standing-events.json");
+    if check {
+        let same = std::fs::read_to_string(&events_path).ok().as_deref() == Some(events_body.as_str());
+        out.push((
+            "fixtures/graph/standing-events.json matches the contract's events".into(),
+            if same { Ok("ok".into()) } else { Err("stale (run make reviews)".into()) },
+        ));
+    } else if out_path.is_some() {
+        std::fs::create_dir_all(dir.join("graph")).expect("graph dir");
+        std::fs::write(&events_path, &events_body).expect("write graph events");
+    }
     let delegation = serde_json::json!({ "root": m01.account, "seed_units": seed.0 as f64 / 1e6, "conferred_units": total as f64 / 1e6, "bound_units": bound as f64 / 1e6, "accounts": got.len() });
     // Agents choose agents: on the tie, the reviewed merchant wins; a floor filters.
     let n0 = issuer.envelope.nullifier.clone();

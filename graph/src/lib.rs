@@ -56,6 +56,31 @@ impl Event {
     }
 }
 
+impl Event {
+    /// Inverse of `bytes`; None for anything malformed.
+    pub fn from_bytes(b: &[u8]) -> Option<Event> {
+        let (&kind, mut rest) = b.split_first()?;
+        let take_str = |r: &mut &[u8]| -> Option<String> {
+            let n = u32::from_le_bytes(r.get(..4)?.try_into().ok()?) as usize;
+            let s = core::str::from_utf8(r.get(4..4 + n)?).ok()?.to_string();
+            *r = &r[4 + n..];
+            Some(s)
+        };
+        let e = match kind {
+            1 => Event::Hire { agent: take_str(&mut rest)?, sub: take_str(&mut rest)? },
+            2 => {
+                let merchant = take_str(&mut rest)?;
+                let ratings = u64::from_le_bytes(rest.get(..8)?.try_into().ok()?);
+                let sum = u64::from_le_bytes(rest.get(8..16)?.try_into().ok()?);
+                rest = &rest[16..];
+                Event::Seed { merchant, ratings, sum }
+            }
+            _ => return None,
+        };
+        rest.is_empty().then_some(e)
+    }
+}
+
 pub fn extend_root(root: &[u8; 32], e: &Event) -> [u8; 32] {
     let mut h = Sha256::new();
     h.update(GRAPH_TAG);
@@ -216,6 +241,17 @@ mod tests {
         let total: u128 = s.standing.iter().map(|x| x.1).sum();
         assert!(total <= bound(6 * SEED_PER_RATING, W_HALF));
         assert_eq!(s.root, root_of(&ev));
+    }
+
+    #[test]
+    fn event_bytes_round_trip_and_garbage_is_refused() {
+        for e in [hire("m01.x.testnet", "sub.testnet"), Event::Seed { merchant: "m".into(), ratings: 6, sum: 23 }] {
+            assert_eq!(Event::from_bytes(&e.bytes()), Some(e.clone()));
+            let mut b = e.bytes();
+            b.push(0);
+            assert_eq!(Event::from_bytes(&b), None);
+        }
+        assert_eq!(Event::from_bytes(&[9]), None);
     }
 
     #[test]
