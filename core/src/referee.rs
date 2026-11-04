@@ -234,6 +234,25 @@ mod tests {
     }
 
     #[test]
+    fn a_claim_without_citations_is_refused() {
+        let c = Claim { line: "airbnb_frequent".into(), text: "trust me".into(), citations: vec![] };
+        assert_eq!(refused(c), "claim for airbnb_frequent cites no fact");
+    }
+
+    #[test]
+    fn a_fact_that_proves_a_different_line_is_refused() {
+        // F3 really proves claude_spender; citing it for airbnb_frequent must fail.
+        let p = ProofSet {
+            facts: vec![
+                Fact { id: "F1".into(), platform: "airbnb".into(), field: "trips_12m".into(), value: 7, proof_ref: "aa".repeat(32) },
+                Fact { id: "F3".into(), platform: "anthropic".into(), field: "monthly_spend_usd".into(), value: 120, proof_ref: "bb".repeat(32) },
+            ],
+        };
+        let c = claim("airbnb_frequent", "spends on claude", cite("F3", "monthly_spend_usd", 120));
+        assert_eq!(referee(&p, &["airbnb_frequent".into()], &q(), &[c]), RefereeOutcome::Refused { reason: "F3 does not prove airbnb_frequent".into() });
+    }
+
+    #[test]
     fn a_real_fact_with_a_false_status_in_the_text_is_refused() {
         // The review's attack: a real citation, an invented status in the text.
         assert_eq!(refused(claim("airbnb_frequent", "guest is marriott platinum", cite("F1", "trips_12m", 7))), "claim text names unproven status: marriott");
