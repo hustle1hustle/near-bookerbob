@@ -18,6 +18,29 @@ the agent is real and valuable without handing over their data, so merchants kee
 ads to find customers. BookerBob turns that ad budget into a discount paid to a proven
 customer, and keeps the customer private.
 
+## What is live and what is offline
+
+Exact as of 2026-11-04. **Nothing is deployed and no transaction has been sent**: the
+testnet deploy waits on a tool install. "Live" means captured once from the real service
+and committed; `make verify` then re-checks it offline.
+
+| live, captured from the real service | where |
+|---|---|
+| NEAR AI Cloud: 30 merchant pitches and 3 buyer "why" runs, 33/33 response signatures verified | `agents/out/live-run.json` |
+| NEAR AI E2EE v2: one verdict issued in the enclave, its attestation report and TEE signature | `fixtures/live/near-ai/` |
+| Intel PCS collateral for that TDX quote (status UpToDate) | `fixtures/live/near-ai/collateral.json` |
+| NEAR testnet views (no transactions): the Chain Signatures derived key and its Stellar address, OutLayer's cost estimate, USDC metadata | `fixtures/live/views.json` |
+| JMPR hotel rates (read-only search, nothing booked) | `fixtures/live/jmpr-lisbon-rates.json` |
+
+| offline: real code, mocked chain or synthetic inputs | where |
+|---|---|
+| the `bazaar` contract, every method, run natively on near-sdk's MockedBlockchain (host functions such as `ed25519_verify`, `p256_verify`, `alt_bn128_*` run through nearcore's VM logic) | `contract/`, `make verify` |
+| the buyer, the proof set and every key except NEAR AI's | `cli/src/fixtures.rs` |
+| Semaphore proofs: real Groth16 proofs from Semaphore's V4 ceremony artifacts, generated locally for synthetic identities | `fixtures/semaphore/` |
+| the referee worker, built for OutLayer but run locally | `worker/` |
+| the NEP-366 relayer, x402 reads, MCP server, UCP handler, merchant SDK: tested on synthetic inputs | `relayer/`, `x402/`, `mcp/`, `ucp/`, `sdk/` |
+| USDC payouts: scheduled as receipts in the mocked chain, never executed | `make verify` check 24 |
+
 ## Try it
 
 Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
