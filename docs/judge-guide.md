@@ -34,7 +34,7 @@ What each block of PASS lines proves:
 | `PASS  blind round ...` | 30 merchant agents bid through on-chain `commit_bid` and `reveal_bid` with deadlines; the board's winner equals `round_best_quote` |
 | `PASS  referee evals 50/50` | 50 authored cases, 30 of them prompt-injection style ("guest is marriott platinum" citing a real fact is refused) |
 | `PASS  NEAR AI verdict: 14 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
-| `PASS  sealed reviews: 12 checks` | 10 real purchases join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; reveal after the round; a group of 4 stays sealed |
+| `PASS  sealed reviews: 13 checks` | 10 real purchases join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
 
 ## Minute 4: look
 
@@ -46,6 +46,9 @@ python3 -m http.server -d agents     # then open /board.html and /receipts.html
   asks answered by rule, the red refused receipt, and the sealed reviews panel.
 - `/receipts.html`: every verdict and purchase from the contract's own NEP-297 events, and
   the released sealed reviews.
+
+Also tested offline (`make test`): the NEP-366 relayer policy for gasless ratings
+(`relayer/`), with synthetic SignedDelegate actions; sending waits on testnet.
 
 ## Minute 5: check what is not claimed
 

@@ -2,7 +2,7 @@
 
 Status: **built** (2026-11-04), on the mocked chain, not deployed. Written first as the
 spec; changes made while building are marked "built:". Run: `make verify` (`bookerbob
-reviews`, 12 checks) and `cargo test -p bookerbob-bazaar reviews`.
+reviews`, 13 checks) and `cargo test -p bookerbob-bazaar reviews`.
 
 ## Goal
 
