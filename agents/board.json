@@ -4,8 +4,8 @@
   "buyer": {
     "verdict_commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
     "revealed_bits": 3,
-    "cohort_k": 1,
-    "group_unlock": "locked (k=1, needs k>=5)"
+    "cohort_k": 6,
+    "group_unlock": "unlocked (k=6)"
   },
   "categories": [
     {
@@ -15,15 +15,16 @@
           "rank": 1,
           "merchant": "m01.bookerbob.testnet",
           "persona": "shopify test store via UCP (the store the demo buys from)",
-          "bid_commitment": "96775bddecc4f7e8aa8470c8414134d4ba9ecaf388df1329c60aef49fefcb9c0",
+          "bid_commitment": "db10d8a372669dda7b70cb5ff9335aff291c8de429dfbfc15528e051e20edea2",
           "base_price": "48000000",
           "lines": [
             "-1000bps claude_spender",
             "-800bps world_id_human",
-            "-500bps airbnb_frequent"
+            "-500bps airbnb_frequent",
+            "-500bps group k=6 world_id_human"
           ],
-          "discount_bps": 2000,
-          "price": "38400000"
+          "discount_bps": 2500,
+          "price": "36000000"
         },
         {
           "rank": 2,
@@ -289,6 +290,20 @@
         },
         {
           "rank": 2,
+          "merchant": "h08.bookerbob.testnet",
+          "persona": "verified-guest rate",
+          "bid_commitment": "324cb1a787b27a1d54af05ac61a058b87d1ed59b8af766ea0674f41fbf933174",
+          "base_price": "185000000",
+          "lines": [
+            "-1500bps world_id_human",
+            "-500bps airbnb_frequent",
+            "-700bps group k=6 world_id_human"
+          ],
+          "discount_bps": 2700,
+          "price": "135050000"
+        },
+        {
+          "rank": 3,
           "merchant": "h06.bookerbob.testnet",
           "persona": "riverside apartments",
           "bid_commitment": "1b9cdab23f3f2fd188350cb4197c8b794462768e9727fb8edcae12c9932673da",
@@ -299,19 +314,6 @@
           ],
           "discount_bps": 1800,
           "price": "143500000"
-        },
-        {
-          "rank": 3,
-          "merchant": "h08.bookerbob.testnet",
-          "persona": "verified-guest rate",
-          "bid_commitment": "30f72e5f25beaa11c374bcfe5f8a15f7c6936425d1a6f8c58c0f23fbf1e88c5f",
-          "base_price": "185000000",
-          "lines": [
-            "-1500bps world_id_human",
-            "-500bps airbnb_frequent"
-          ],
-          "discount_bps": 2000,
-          "price": "148000000"
         },
         {
           "rank": 4,

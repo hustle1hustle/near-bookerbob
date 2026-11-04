@@ -61,6 +61,11 @@ pub fn referee(proofs: &ProofSet, revealed: &[String], quote: &Quote, claims: &[
             return refuse(format!("discount line {} has no cited claim", line.predicate));
         }
     }
+    if let Some(c) = &quote.cohort {
+        if !claims.iter().any(|cl| cl.line == c.predicate) {
+            return refuse(format!("cohort line {} has no cited claim", c.predicate));
+        }
+    }
     let body = serde_json::to_vec(&(quote, claims)).expect("serializes");
     RefereeOutcome::Receipt { receipt_hash: crate::sha256_hex(&body) }
 }
@@ -81,7 +86,7 @@ mod tests {
     }
 
     fn q() -> Quote {
-        let s = Schedule { base_price: 100, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 1000 }], cap_bps: 2500 };
+        let s = Schedule { base_price: 100, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 1000 }], cap_bps: 2500, cohort: None };
         quote(&s, &["airbnb_frequent".into()])
     }
 

@@ -9,7 +9,7 @@ pub mod tier;
 pub mod u128_str;
 
 pub use envelope::{Attestation, Envelope, SignedVerdict, SigAlg};
-pub use price::{quote, DiscountLine, Quote, Rule, Schedule};
+pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN};
 pub use referee::{referee, Citation, Claim, RefereeOutcome};
 pub use referee_result::{ResultBody, WorkerResult};
 pub use tier::{derive, Derived, Fact, ProofSet, Tier, TierResult};

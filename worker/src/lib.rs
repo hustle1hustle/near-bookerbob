@@ -9,7 +9,7 @@
 //! Privacy: `input_data` of an on-chain `request_execution` is public. Synthetic fixtures
 //! are fine there; a real proof set goes over OutLayer's HTTPS path or sealed to the
 //! worker key. See docs/outlayer.md.
-use bookerbob_core::{quote, referee, Claim, ProofSet, RefereeOutcome, Schedule};
+use bookerbob_core::{quote_in_cohort, referee, Claim, ProofSet, RefereeOutcome, Schedule};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
 
@@ -26,13 +26,17 @@ pub struct WorkerInput {
     pub revealed: Vec<String>,
     pub claims: Vec<Claim>,
     pub proofs: ProofSet,
+    /// Cohort size for the schedule's cohort predicate in this context (from the contract's
+    /// `cohort_size` view). 0 when there is no cohort.
+    #[serde(default)]
+    pub cohort_k: u32,
 }
 
 pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
     if input.v != 0 {
         return Err("unsupported input version".into());
     }
-    let q = quote(&input.schedule, &input.revealed);
+    let q = quote_in_cohort(&input.schedule, &input.revealed, |_| input.cohort_k);
     let (outcome, detail) = match referee(&input.proofs, &input.revealed, &q, &input.claims) {
         RefereeOutcome::Receipt { receipt_hash } => ("receipt", receipt_hash),
         RefereeOutcome::Refused { reason } => ("refused", reason.chars().take(120).collect()),
@@ -73,9 +77,10 @@ mod tests {
             verdict_digest: "aa".repeat(32),
             nullifier: "bb".repeat(32),
             merchant: "m01.bookerbob.testnet".into(),
-            schedule: Schedule { base_price: 48_000_000, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 500 }], cap_bps: 2000 },
+            schedule: Schedule { base_price: 48_000_000, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 500 }], cap_bps: 2000, cohort: None },
             revealed: vec!["airbnb_frequent".into()],
             claims,
+            cohort_k: 0,
             proofs: ProofSet { facts: vec![Fact { id: "F1".into(), platform: "airbnb".into(), field: "trips_12m".into(), value: 7, proof_ref: "cc".repeat(32) }] },
         }
     }

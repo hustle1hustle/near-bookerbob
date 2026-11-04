@@ -30,3 +30,6 @@ E2EE v2 yet, so this does not answer the E2EE question (open check B1) on its ow
 In this run the model ignored the injected product text and cited only real facts, so
 both runs got a receipt. The refusal path is covered deterministically by
 `fixtures/claims-cheat.json` (`F9 not in proof set`) in `make verify`.
+
+Note: the live run predates the group unlock (2026-11-04, later the same day), so its
+board prices are the pre-cohort ones. Prices never come from that file.

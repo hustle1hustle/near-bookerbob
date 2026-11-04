@@ -2,7 +2,7 @@
 //! `gen-fixtures --check` can prove the committed files are what this code produces.
 //! No real user data: facts, nullifier and keys are labelled placeholders.
 use bookerbob_core::envelope::commitment;
-use bookerbob_core::{derive, sha256, sha256_hex, Attestation, Claim, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict};
+use bookerbob_core::{derive, sha256, sha256_hex, Attestation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +27,8 @@ pub struct MerchantFixture {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Expected {
     pub derived_predicates: Vec<String>,
+    pub price_locked: String,
+    pub cohort_k: u32,
     pub tier: String,
     pub revealed: Vec<String>,
     pub winner: String,
@@ -107,13 +109,14 @@ pub fn merchants() -> Vec<MerchantFixture> {
                 base_price: 48_000_000,
                 rules: vec![r("claude_spender", 1000), r("world_id_human", 800), r("airbnb_frequent", 500)],
                 cap_bps: 2000,
+                cohort: Some(CohortRule { predicate: "world_id_human".into(), k_min: 5, bps: 500 }),
             },
         },
         MerchantFixture {
             account: "m02.bookerbob.testnet".into(),
             label: "low base, booking only".into(),
             category: "hoodie".into(),
-            schedule: Schedule { base_price: 42_000_000, rules: vec![r("booking_genius", 1500)], cap_bps: 1500 },
+            schedule: Schedule { base_price: 42_000_000, rules: vec![r("booking_genius", 1500)], cap_bps: 1500, cohort: None },
         },
         MerchantFixture {
             account: "m03.bookerbob.testnet".into(),
@@ -122,7 +125,7 @@ pub fn merchants() -> Vec<MerchantFixture> {
             schedule: Schedule {
                 base_price: 50_000_000,
                 rules: vec![r("airbnb_frequent", 1200), r("world_id_human", 800)],
-                cap_bps: 2500,
+                cap_bps: 2500, cohort: None,
             },
         },
     ]
@@ -170,6 +173,24 @@ pub fn envelope(agent: &str) -> Envelope {
     }
 }
 
+pub const COHORT_PEERS: usize = 5;
+
+/// Five other buyers in the same context who revealed `world_id_human`. Synthetic.
+pub fn cohort_verdicts() -> Vec<SignedVerdict> {
+    (1..=COHORT_PEERS)
+        .map(|i| {
+            let preds = vec!["world_id_human".to_string()];
+            let mut e = envelope(&format!("peer{i}.bookerbob.testnet"));
+            e.nullifier = nullifier(&format!("fixture-peer-{i}"));
+            e.commitment = commitment(&label_hash(&format!("bookerbob fixture peer salt {i}")), &preds);
+            e.proof_hash = sha256_hex(format!("synthetic peer proof set {i}").as_bytes());
+            e.predicates = preds;
+            e.tier = "silver".into();
+            sign_ed(e)
+        })
+        .collect()
+}
+
 pub fn sign_ed(e: Envelope) -> SignedVerdict {
     let k = ed_issuer();
     let digest = e.digest();
@@ -200,12 +221,18 @@ pub fn all() -> Vec<(&'static str, String)> {
     let pretty = |v: &dyn erased::Ser| v.to_pretty();
     let mut p256_env = envelope(AGENT);
     p256_env.nullifier = nullifier("fixture-account-2");
+    // Own context, so the p256 path does not count toward the hoodie cohort.
+    p256_env.context = "bookerbob:v0:demo-p256".into();
     let ms = merchants();
     let t = derive(&proofs());
     let winner = &ms[0];
-    let q = bookerbob_core::quote(&winner.schedule, &revealed());
+    let locked = bookerbob_core::quote(&winner.schedule, &revealed());
+    let k = (COHORT_PEERS + 1) as u32;
+    let q = bookerbob_core::quote_in_cohort(&winner.schedule, &revealed(), |p| if p == "world_id_human" { k } else { 0 });
     let expected = Expected {
         derived_predicates: t.predicates(),
+        price_locked: locked.price.to_string(),
+        cohort_k: k,
         tier: t.tier.as_str().into(),
         revealed: revealed(),
         winner: winner.account.clone(),
@@ -229,6 +256,7 @@ pub fn all() -> Vec<(&'static str, String)> {
         ("verdict-ed25519.json", pretty(&sign_ed(envelope(AGENT)))),
         ("verdict-p256.json", pretty(&sign_p256(p256_env))),
         ("verdict-replay.json", pretty(&sign_ed(envelope(WALLET2)))),
+        ("verdicts-cohort.json", pretty(&cohort_verdicts())),
         ("expected.json", pretty(&expected)),
     ]
 }

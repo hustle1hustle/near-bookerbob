@@ -5,6 +5,24 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
 
 pub const BPS_DENOM: u128 = 10_000;
+/// Smallest cohort that unlocks a group price (k-anonymity floor).
+pub const K_MIN: u32 = 5;
+
+/// Group unlock: once `k_min` or more verdicts in the same context reveal `predicate`,
+/// the merchant adds `bps` on top of its capped stack.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+pub struct CohortRule {
+    pub predicate: String,
+    pub k_min: u32,
+    pub bps: u16,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CohortLine {
+    pub predicate: String,
+    pub k: u32,
+    pub bps: u16,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 pub struct Rule {
@@ -19,6 +37,8 @@ pub struct Schedule {
     pub base_price: u128,
     pub rules: Vec<Rule>,
     pub cap_bps: u16,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cohort: Option<CohortRule>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,7 +53,10 @@ pub struct Quote {
     pub base_price: u128,
     /// Lines that matched a revealed predicate, in schedule order, before the cap.
     pub lines: Vec<DiscountLine>,
-    /// Sum of line bps, capped at `cap_bps`.
+    /// Group unlock line, present only when the cohort is at or above `k_min`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cohort: Option<CohortLine>,
+    /// Sum of line bps capped at `cap_bps`, plus the cohort bps when unlocked (at most 100%).
     pub discount_bps: u16,
     #[serde(with = "crate::u128_str")]
     pub price: u128,
@@ -61,12 +84,29 @@ impl Schedule {
                 return Err("duplicate predicate in schedule");
             }
         }
+        if let Some(c) = &self.cohort {
+            if !crate::is_known_predicate(&c.predicate) {
+                return Err("unknown predicate in cohort rule");
+            }
+            if c.k_min < K_MIN {
+                return Err("cohort k_min below 5");
+            }
+            if c.bps as u128 > BPS_DENOM {
+                return Err("cohort over 100%");
+            }
+        }
         Ok(())
     }
 }
 
-/// Price for a buyer who revealed `revealed` predicates.
+/// Price for a buyer who revealed `revealed` predicates, with no cohort.
 pub fn quote(schedule: &Schedule, revealed: &[String]) -> Quote {
+    quote_in_cohort(schedule, revealed, |_| 0)
+}
+
+/// Price with the group unlock: `cohort_size(p)` is how many verdicts in this context
+/// revealed predicate `p` (the buyer's own included).
+pub fn quote_in_cohort(schedule: &Schedule, revealed: &[String], cohort_size: impl Fn(&str) -> u32) -> Quote {
     let lines: Vec<DiscountLine> = schedule
         .rules
         .iter()
@@ -74,11 +114,17 @@ pub fn quote(schedule: &Schedule, revealed: &[String]) -> Quote {
         .map(|r| DiscountLine { predicate: r.predicate.clone(), bps: r.bps })
         .collect();
     let sum: u32 = lines.iter().map(|l| l.bps as u32).sum();
-    let discount_bps = sum.min(schedule.cap_bps as u32) as u16;
+    let cohort = schedule.cohort.as_ref().and_then(|c| {
+        let k = cohort_size(&c.predicate);
+        (revealed.iter().any(|p| p == &c.predicate) && k >= c.k_min).then(|| CohortLine { predicate: c.predicate.clone(), k, bps: c.bps })
+    });
+    let capped = sum.min(schedule.cap_bps as u32);
+    let discount_bps = (capped + cohort.as_ref().map_or(0, |c| c.bps as u32)).min(BPS_DENOM as u32) as u16;
     let discount = schedule.base_price * discount_bps as u128 / BPS_DENOM;
     Quote {
         base_price: schedule.base_price,
         lines,
+        cohort,
         discount_bps,
         price: schedule.base_price - discount,
     }
@@ -98,6 +144,7 @@ mod tests {
                 Rule { predicate: "claude_spender".into(), bps: 900 },
             ],
             cap_bps: 2500,
+            cohort: None,
         }
     }
 
@@ -127,7 +174,7 @@ mod tests {
 
     #[test]
     fn discount_rounds_down() {
-        let s = Schedule { base_price: 999, rules: vec![Rule { predicate: "uber_regular".into(), bps: 333 }], cap_bps: 10_000 };
+        let s = Schedule { base_price: 999, rules: vec![Rule { predicate: "uber_regular".into(), bps: 333 }], cap_bps: 10_000, cohort: None };
         // 999 * 333 / 10000 = 33.26 -> 33
         assert_eq!(quote(&s, &["uber_regular".into()]).price, 966);
     }
@@ -144,5 +191,42 @@ mod tests {
         s.rules.push(Rule { predicate: "airbnb_frequent".into(), bps: 100 });
         assert_eq!(s.validate(), Err("duplicate predicate in schedule"));
         assert!(sched().validate().is_ok());
+        let mut s = sched();
+        s.cohort = Some(CohortRule { predicate: "world_id_human".into(), k_min: 4, bps: 500 });
+        assert_eq!(s.validate(), Err("cohort k_min below 5"));
+    }
+
+    fn cohort_sched() -> Schedule {
+        let mut s = sched();
+        s.cohort = Some(CohortRule { predicate: "world_id_human".into(), k_min: 5, bps: 500 });
+        s
+    }
+
+    #[test]
+    fn cohort_below_k_min_stays_locked() {
+        let q = quote_in_cohort(&cohort_sched(), &["world_id_human".into()], |_| 4);
+        assert_eq!(q.cohort, None);
+        assert_eq!(q.discount_bps, 800);
+    }
+
+    #[test]
+    fn group_unlock_opens_at_k6_on_top_of_the_cap() {
+        let all = ["airbnb_frequent", "world_id_human", "claude_spender"].map(String::from);
+        let q = quote_in_cohort(&cohort_sched(), &all, |p| if p == "world_id_human" { 6 } else { 0 });
+        assert_eq!(q.cohort, Some(CohortLine { predicate: "world_id_human".into(), k: 6, bps: 500 }));
+        assert_eq!(q.discount_bps, 3000);
+        assert_eq!(q.price, 132_300_000);
+    }
+
+    #[test]
+    fn cohort_needs_the_predicate_revealed() {
+        let q = quote_in_cohort(&cohort_sched(), &["airbnb_frequent".into()], |_| 9);
+        assert_eq!(q.cohort, None);
+    }
+
+    #[test]
+    fn schedule_without_cohort_serializes_as_before() {
+        let j = serde_json::to_string(&sched()).unwrap();
+        assert!(!j.contains("cohort"));
     }
 }

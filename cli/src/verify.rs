@@ -98,6 +98,7 @@ pub fn run(dir: &Path) -> ExitCode {
     let v_ed: SignedVerdict = load(dir, "verdict-ed25519.json");
     let v_p256: SignedVerdict = load(dir, "verdict-p256.json");
     let v_replay: SignedVerdict = load(dir, "verdict-replay.json");
+    let peers: Vec<SignedVerdict> = load(dir, "verdicts-cohort.json");
     let exp: Expected = load(dir, "expected.json");
     let e = &v_ed.envelope;
     println!("bookerbob verify: {} (synthetic fixtures, offline)", dir.display());
@@ -161,13 +162,31 @@ pub fn run(dir: &Path) -> ExitCode {
     let offchain_ok = merchants.iter().all(|m| quote(&m.schedule, &e.predicates) == c.quote(acc(&m.account), e.nullifier.clone()));
     r.check(offchain_ok, "on-chain quotes equal the core library, every merchant", "");
     r.check(
-        best.merchant.as_str() == exp.winner && best.quote.price.to_string() == exp.price && best.quote.discount_bps == exp.discount_bps,
-        "winner and price are code-computed",
+        best.merchant.as_str() == exp.winner && best.quote.price.to_string() == exp.price_locked && best.quote.cohort.is_none(),
+        "winner and price are code-computed, group price locked at k=1",
         format!("{} at {} after {} bps", best.merchant, best.quote.price, best.quote.discount_bps),
+    );
+
+    // --- group unlock ---
+    for p in &peers {
+        as_caller(&p.envelope.cnf, Some(RECORD_DEPOSIT));
+        let _ = call(|| c.submit_verdict(p.clone()));
+    }
+    let k = c.cohort_size(e.context.clone(), "world_id_human".into());
+    let best = c.best_quote(e.nullifier.clone(), Some("hoodie".into())).expect("a quote");
+    r.check(
+        k == exp.cohort_k
+            && best.merchant.as_str() == exp.winner
+            && best.quote.cohort.as_ref().is_some_and(|x| x.k == exp.cohort_k)
+            && best.quote.price.to_string() == exp.price
+            && best.quote.discount_bps == exp.discount_bps,
+        "group unlock: 5 more verdicts reveal world_id_human, cohort price opens",
+        format!("k={k}, {} at {} after {} bps", best.merchant, best.quote.price, best.quote.discount_bps),
     );
 
     // --- referee, as the OutLayer worker would run it ---
     let winner = merchants.iter().find(|m| m.account == best.merchant.as_str()).expect("winner in fixtures");
+    let cohort_k = winner.schedule.cohort.as_ref().map_or(0, |co| c.cohort_size(e.context.clone(), co.predicate.clone()));
     let worker = |claims: &[Claim]| -> Result<bookerbob_core::WorkerResult, String> {
         let input = WorkerInput {
             v: 0,
@@ -178,6 +197,7 @@ pub fn run(dir: &Path) -> ExitCode {
             revealed: e.predicates.clone(),
             claims: claims.to_vec(),
             proofs: proofs.clone(),
+            cohort_k,
         };
         let stdout = run_worker(&input, &worker_key)?;
         serde_json::from_str(&stdout).map_err(|x| x.to_string())

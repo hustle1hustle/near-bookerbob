@@ -88,7 +88,7 @@ fn schedule() -> Schedule {
             Rule { predicate: "airbnb_frequent".into(), bps: 1200 },
             Rule { predicate: "world_id_human".into(), bps: 800 },
         ],
-        cap_bps: 2500,
+        cap_bps: 2500, cohort: None,
     }
 }
 
@@ -119,6 +119,7 @@ fn referee_result(e: &Envelope, claims: Vec<Claim>, key: &SigningKey) -> WorkerR
         revealed: e.predicates.clone(),
         claims,
         proofs: proofs(),
+        cohort_k: 0,
     };
     serde_json::from_str(&run_referee(&input, key).unwrap()).unwrap()
 }
@@ -305,8 +306,7 @@ fn settle_over_cap_is_rejected() {
 #[should_panic(expected = "amount differs from quote")]
 fn settle_with_wrong_amount_is_rejected() {
     let mut c = setup();
-    set("agent.testnet");
-    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
     let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "order-1".into(), U128(100));
 }
 
@@ -387,9 +387,9 @@ fn merchant_cannot_price_an_invented_predicate() {
 fn best_quote_picks_lowest_price() {
     let mut c = setup();
     set("m02.bazaar.testnet");
-    c.register_merchant(Schedule { base_price: 160_000_000, rules: vec![], cap_bps: 0 }, "hoodie".into(), None);
+    c.register_merchant(Schedule { base_price: 160_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hoodie".into(), None);
     set("h01.bazaar.testnet");
-    c.register_merchant(Schedule { base_price: 90_000_000, rules: vec![], cap_bps: 0 }, "hotel-lisbon-2n".into(), None);
+    c.register_merchant(Schedule { base_price: 90_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hotel-lisbon-2n".into(), None);
     set("agent.testnet");
     c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
     let best = c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into())).unwrap();
@@ -503,4 +503,59 @@ fn outlayer_callback_accepts_worker_stdout() {
     );
     assert!(c.on_referee_result());
     assert!(c.verdict(e.nullifier).unwrap().receipt.is_some());
+}
+
+fn cohort_schedule() -> Schedule {
+    let mut s = schedule();
+    s.cohort = Some(bookerbob_core::CohortRule { predicate: "world_id_human".into(), k_min: 5, bps: 500 });
+    s
+}
+
+/// Five other agents in the same context reveal world_id_human.
+fn join_cohort(c: &mut Bazaar, n: u8) {
+    for i in 0..n {
+        let agent = format!("peer{i}.testnet");
+        set(&agent);
+        c.submit_verdict(sign_ed(envelope(100 + i, &agent)));
+    }
+}
+
+#[test]
+fn cohort_size_counts_verdicts_per_context_and_predicate() {
+    let mut c = setup();
+    join_cohort(&mut c, 3);
+    assert_eq!(c.cohort_size("bookerbob:v0:test".into(), "world_id_human".into()), 3);
+    assert_eq!(c.cohort_size("bookerbob:v0:other".into(), "world_id_human".into()), 0);
+}
+
+#[test]
+fn group_unlock_opens_at_k6() {
+    let mut c = setup();
+    set("m02.bazaar.testnet");
+    c.register_merchant(cohort_schedule(), "hoodie".into(), None);
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let n = hex::encode([1u8; 32]);
+    let locked = c.quote(acc("m02.bazaar.testnet"), n.clone());
+    assert_eq!((locked.cohort.is_none(), locked.discount_bps), (true, 2000));
+    join_cohort(&mut c, 5);
+    let open = c.quote(acc("m02.bazaar.testnet"), n);
+    assert_eq!(open.cohort.as_ref().map(|x| x.k), Some(6));
+    assert_eq!(open.discount_bps, 2500);
+    assert_eq!(open.price, 141_750_000);
+}
+
+#[test]
+fn receipt_price_holds_when_the_cohort_grows_later() {
+    let mut c = setup();
+    set("m01.bazaar.testnet");
+    c.register_merchant(cohort_schedule(), "hoodie".into(), None);
+    let e = envelope(1, "agent.testnet");
+    submit_with_receipt(&mut c, e.clone());
+    join_cohort(&mut c, 5);
+    // The quote dropped, but the agent pays the receipt price it was refereed at.
+    assert!(c.quote(acc("m01.bazaar.testnet"), e.nullifier.clone()).price < 151_200_000);
+    set("agent.testnet");
+    let _ = c.settle(e.nullifier.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
+    assert_eq!(c.nullifier_status(e.nullifier), NullifierStatus::Spent);
 }

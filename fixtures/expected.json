@@ -5,6 +5,8 @@
     "claude_spender",
     "world_id_human"
   ],
+  "price_locked": "38400000",
+  "cohort_k": 6,
   "tier": "gold",
   "revealed": [
     "airbnb_frequent",
@@ -12,9 +14,9 @@
     "world_id_human"
   ],
   "winner": "m01.bookerbob.testnet",
-  "price": "38400000",
-  "discount_bps": 2000,
-  "escrow_after": "11600000",
+  "price": "36000000",
+  "discount_bps": 2500,
+  "escrow_after": "14000000",
   "cheat_refusal": "F9 not in proof set",
   "replay_error": "nullifier spent"
 }

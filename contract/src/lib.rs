@@ -5,7 +5,7 @@
 //! The chain's job: a global spent-set for nullifiers, signature checks with host
 //! functions, a code-computed price, and payout atomic with the nullifier burn.
 
-use bookerbob_core::{quote as price_quote, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult};
+use bookerbob_core::{quote_in_cohort, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult};
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
 use near_sdk::{
@@ -107,6 +107,8 @@ pub struct Bazaar {
     /// Registered referee worker keys (hex ed25519) to labels.
     referees: IterableMap<String, String>,
     outlayer: Option<AccountId>,
+    /// `context|predicate` to the number of verdicts in that context revealing it.
+    cohorts: LookupMap<String, u32>,
 }
 
 fn emit(event: &str, data: serde_json::Value) {
@@ -166,7 +168,22 @@ impl Bazaar {
             spent_count: 0,
             referees: IterableMap::new(b"r"),
             outlayer: None,
+            cohorts: LookupMap::new(b"k"),
         }
+    }
+
+    fn cohort_key(context: &str, predicate: &str) -> String {
+        format!("{context}|{predicate}")
+    }
+
+    /// Code-computed quote including the group unlock for the verdict's context.
+    fn quote_for(&self, schedule: &Schedule, record: &VerdictRecord) -> Quote {
+        quote_in_cohort(schedule, &record.predicates, |p| *self.cohorts.get(&Self::cohort_key(&record.context, p)).unwrap_or(&0))
+    }
+
+    /// How many verdicts in `context` revealed `predicate`. Only the count is public.
+    pub fn cohort_size(&self, context: String, predicate: String) -> u32 {
+        *self.cohorts.get(&Self::cohort_key(&context, &predicate)).unwrap_or(&0)
     }
 
     fn assert_owner(&self) {
@@ -267,6 +284,11 @@ impl Bazaar {
             receipt: None,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
+        for p in &e.predicates {
+            let k = Self::cohort_key(&e.context, p);
+            let n = *self.cohorts.get(&k).unwrap_or(&0);
+            self.cohorts.insert(k, n + 1);
+        }
         emit(
             "verdict_submitted",
             serde_json::json!({
@@ -277,6 +299,7 @@ impl Bazaar {
             }),
         );
         self.verdicts.flush();
+        self.cohorts.flush();
         charge_storage(before);
     }
 
@@ -302,7 +325,7 @@ impl Bazaar {
     pub fn quote(&self, merchant: AccountId, nullifier: String) -> Quote {
         let m = self.merchants.get(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
         let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
-        price_quote(&m.schedule, &v.predicates)
+        self.quote_for(&m.schedule, v)
     }
 
     /// Lowest price across merchants in `category` (all when None); ties go to the
@@ -314,7 +337,7 @@ impl Bazaar {
             if category.as_ref().is_some_and(|c| c != &m.category) {
                 continue;
             }
-            let q = price_quote(&m.schedule, &v.predicates);
+            let q = self.quote_for(&m.schedule, v);
             if best.as_ref().map_or(true, |b| q.price < b.quote.price) {
                 best = Some(MerchantQuote { merchant: id.clone(), quote: q });
             }
@@ -428,10 +451,11 @@ impl Bazaar {
         require!(env::ed25519_verify(&sig, b.signing_message(), &pk), "bad referee signature");
         let merchant: AccountId = b.merchant.parse().unwrap_or_else(|_| env::panic_str("bad merchant"));
         let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
-        let record = self.verdicts.get_mut(&b.nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        let current = self.verdicts.get(&b.nullifier).cloned().unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        let q = self.quote_for(&m.schedule, &current);
+        let record = self.verdicts.get_mut(&b.nullifier).expect("checked above");
         require!(!record.spent, "nullifier spent");
         require!(record.digest == b.verdict_digest, "referee result is for another verdict");
-        let q = price_quote(&m.schedule, &record.predicates);
         require!(q.price == b.price, "referee price differs from quote");
         match b.outcome.as_str() {
             "receipt" => {
@@ -469,16 +493,16 @@ impl Bazaar {
         require!(!record.spent, "nullifier spent");
         require!(record.agent == agent, "agent mismatch");
         require!(env::block_timestamp_ms() < record.expires_at_ms, "verdict expired");
-        let q = price_quote(&m.schedule, &record.predicates);
-        require!(amount.0 == q.price, "amount differs from quote");
-        require!(
-            record.receipt.as_ref().is_some_and(|r| r.merchant == merchant && r.price.0 == q.price),
-            "no referee receipt for this quote"
-        );
-        require!(q.price <= record.max_spend.0, "over verdict cap");
+        // The receipt fixes the price: a cohort that grows after the receipt cannot change it.
+        let price = match &record.receipt {
+            Some(r) if r.merchant == merchant => r.price.0,
+            _ => env::panic_str("no referee receipt for this quote"),
+        };
+        require!(amount.0 == price, "amount differs from quote");
+        require!(price <= record.max_spend.0, "over verdict cap");
         let bal = self.escrow.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
-        require!(*bal >= q.price, "insufficient escrow");
-        *bal -= q.price;
+        require!(*bal >= price, "insufficient escrow");
+        *bal -= price;
         record.spent = true;
         record.checkout_ref = Some(checkout_ref.clone());
         self.spent_count += 1;
@@ -488,19 +512,18 @@ impl Bazaar {
                 "nullifier": nullifier,
                 "merchant": merchant,
                 "payout": m.payout,
-                "amount": U128(q.price),
-                "discount_bps": q.discount_bps,
+                "amount": U128(price),
                 "checkout_ref": checkout_ref,
             }),
         );
         ext_ft::ext(self.usdc.clone())
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(m.payout.clone(), U128(q.price), Some(format!("bookerbob:{checkout_ref}")))
+            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
             .then(
                 Self::ext(env::current_account_id())
                     .with_static_gas(GAS_SETTLE_CALLBACK)
-                    .on_settle_transfer(nullifier, agent, U128(q.price)),
+                    .on_settle_transfer(nullifier, agent, U128(price)),
             )
     }
 

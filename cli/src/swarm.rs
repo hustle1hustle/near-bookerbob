@@ -4,7 +4,8 @@
 //! json(schedule) || salt)`. Nobody sees a schedule. Round 2 (reveal): schedules are
 //! opened and checked against the commitments, registered in the `bazaar` contract
 //! (MockedBlockchain), and the contract quotes every merchant for the buyer's revealed
-//! predicates. The buyer column shows only the verdict commitment and the cohort size.
+//! predicates. The buyer column shows only the verdict commitment and the cohort size k.
+//! Peer verdicts in `verdicts-cohort.json` (same context) drive the group unlock.
 //! Prices come from code; no model output is read here.
 use std::collections::BTreeMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -12,7 +13,7 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use bookerbob_bazaar::{Bazaar, RECORD_DEPOSIT};
-use bookerbob_core::{sha256_hex, Schedule, SignedVerdict};
+use bookerbob_core::{sha256_hex, Schedule, SignedVerdict, K_MIN};
 use near_sdk::test_utils::VMContextBuilder;
 use near_sdk::{testing_env, AccountId};
 use serde::{Deserialize, Serialize};
@@ -20,8 +21,6 @@ use serde::{Deserialize, Serialize};
 use crate::fixtures::{NOW_MS, OWNER, USDC};
 
 pub const BID_TAG: &[u8] = b"bookerbob/bid/v0\x00";
-/// Group unlock threshold (k-anonymity of the cohort).
-pub const K_MIN: usize = 5;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SwarmMerchant {
@@ -63,7 +62,7 @@ pub struct Board {
 pub struct BuyerColumn {
     pub verdict_commitment: String,
     pub revealed_bits: usize,
-    pub cohort_k: usize,
+    pub cohort_k: u32,
     pub group_unlock: String,
 }
 
@@ -95,7 +94,7 @@ fn usdc(v: u128) -> String {
     format!("{}.{:02}", v / 1_000_000, (v % 1_000_000) / 10_000)
 }
 
-pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict) -> Result<Board, String> {
+pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict, peers: &[SignedVerdict]) -> Result<Board, String> {
     // Round 1: blind commitments.
     let commits: Vec<String> = merchants.iter().map(|m| bid_commitment(&m.account, &m.schedule, &bid_salt(&m.account))).collect();
     // Round 2: reveal, check, register, quote on the contract.
@@ -112,7 +111,13 @@ pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict) -> Result<Boa
     }
     as_caller(&verdict.envelope.cnf);
     catch_unwind(AssertUnwindSafe(|| c.submit_verdict(verdict.clone()))).map_err(|_| "verdict rejected".to_string())?;
+    for p in peers {
+        as_caller(&p.envelope.cnf);
+        catch_unwind(AssertUnwindSafe(|| c.submit_verdict(p.clone()))).map_err(|_| "peer verdict rejected".to_string())?;
+    }
     let n = verdict.envelope.nullifier.clone();
+    let ctx = verdict.envelope.context.clone();
+    let cohort_k = verdict.envelope.predicates.iter().map(|p| c.cohort_size(ctx.clone(), p.clone())).max().unwrap_or(0);
 
     let mut by_cat: BTreeMap<String, Vec<BoardRow>> = BTreeMap::new();
     for (m, commit) in merchants.iter().zip(&commits) {
@@ -123,7 +128,12 @@ pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict) -> Result<Boa
             persona: m.persona.clone(),
             bid_commitment: commit.clone(),
             base_price: q.base_price.to_string(),
-            lines: q.lines.iter().map(|l| format!("-{}bps {}", l.bps, l.predicate)).collect(),
+            lines: q
+                .lines
+                .iter()
+                .map(|l| format!("-{}bps {}", l.bps, l.predicate))
+                .chain(q.cohort.iter().map(|co| format!("-{}bps group k={} {}", co.bps, co.k, co.predicate)))
+                .collect(),
             discount_bps: q.discount_bps,
             price: q.price.to_string(),
         });
@@ -147,8 +157,8 @@ pub fn build(merchants: &[SwarmMerchant], verdict: &SignedVerdict) -> Result<Boa
         buyer: BuyerColumn {
             verdict_commitment: verdict.envelope.commitment.clone(),
             revealed_bits: verdict.envelope.predicates.len(),
-            cohort_k: 1,
-            group_unlock: format!("locked (k=1, needs k>={K_MIN})"),
+            cohort_k,
+            group_unlock: if cohort_k >= K_MIN { format!("unlocked (k={cohort_k})") } else { format!("locked (k={cohort_k}, needs k>={K_MIN})") },
         },
         categories,
     })
@@ -158,7 +168,10 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     std::panic::set_hook(Box::new(|_| {}));
     let merchants: Vec<SwarmMerchant> = serde_json::from_str(&std::fs::read_to_string(merchants_path).expect("read merchants")).expect("parse merchants");
     let verdict: SignedVerdict = serde_json::from_str(&std::fs::read_to_string(verdict_path).expect("read verdict")).expect("parse verdict");
-    let board = match build(&merchants, &verdict) {
+    // Peer verdicts for the group unlock sit next to the buyer's verdict, if present.
+    let peers_path = verdict_path.with_file_name("verdicts-cohort.json");
+    let peers: Vec<SignedVerdict> = std::fs::read_to_string(&peers_path).ok().map(|s| serde_json::from_str(&s).expect("parse peers")).unwrap_or_default();
+    let board = match build(&merchants, &verdict, &peers) {
         Ok(b) => b,
         Err(e) => {
             println!("FAIL  swarm  ({e})");

@@ -19,7 +19,12 @@
           "bps": 500
         }
       ],
-      "cap_bps": 2000
+      "cap_bps": 2000,
+      "cohort": {
+        "predicate": "world_id_human",
+        "k_min": 5,
+        "bps": 500
+      }
     }
   },
   {
