@@ -24,7 +24,7 @@ const m = {
   review_round_ms: 300000,
   merchants_approved: 30,
   testers: done.map((r) => ({ tester: r.tester, merchant: c.merchant, nullifier: r.nullifier, price: String(r.price), cohort_k: r.cohort_k ?? 0, shopify_order: r.shopify?.name ?? null, txs: r.txs })),
-  unfinished: recs.filter((r) => !(r.txs?.settle && r.txs?.replay)).map((r) => ({ tester: r.tester, reason: r.txs?.verdict ? "stopped before settle (see docs/testnet.md)" : "stopped before the verdict" })),
+  unfinished: recs.filter((r) => !(r.txs?.settle && r.txs?.replay) && !r.txs?.settle_group && !r.txs?.intent).map((r) => ({ tester: r.tester, reason: r.txs?.verdict ? "stopped before settle (see docs/testnet.md)" : "stopped before the verdict" })),
   fc_key_check: fck ? { tester: fck.tester, add_key_tx: fck.add_key_tx, refusals: fck.results.map((x) => ({ method: x.method, deposit: x.deposit, error: (x.error.match(/InvalidAccessKeyError":(\{[^}]*\}|"[A-Za-z]+")/) ?? [])[1] ?? x.error.slice(0, 80) })) } : null,
   reviews: rounds.at(-1) ?? null,
   review_rounds: rounds,
@@ -33,6 +33,12 @@ const m = {
   open_round: prev.open_round ?? null,
   dao: prev.dao ?? null,
   blind_round: prev.blind_round ?? null,
+  groups: (() => {
+    const f = join(c.testersDir, "group-state.json");
+    if (!existsSync(f)) return prev.groups ?? [];
+    const g = JSON.parse(readFileSync(f, "utf8"));
+    return [{ group: g.group, offer_tx: g.offer_tx, offer: g.offer, members: g.members.map((x) => ({ tester: x.tester, nullifier: x.nullifier, receipt_price: String(x.receipt_price), paid: String(x.paid), txs: { intent: x.txs.intent, settle_group: x.txs.settle_group, verdict: x.txs.verdict } })) }];
+  })(),
 };
 writeFileSync("fixtures/live/testnet-manifest.json", JSON.stringify(m, null, 2) + "\n");
 console.log(`manifest: ${m.testers.length} testers, reviews ${m.reviews ? m.reviews.ratings : "not published yet"}`);

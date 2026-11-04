@@ -212,5 +212,13 @@ if (m.blind_round) {
     });
   }
 }
+for (const g of m.groups ?? []) {
+  await attempt(`buying group ${g.group.slice(0, 10)}..: ${g.members.length} World-bound buyers with one revealed set, the 10% tier, each paid ${Number(g.offer.price) / 1e6}`, async () => {
+    const [grp, ...txs] = await Promise.all([view(m.bazaar, "buying_group", { group: g.group }), ...g.members.map((x) => tx(x.txs.settle_group, m.treasury))]);
+    const settled = txs.map((t) => events(t.logs).find((e) => e.event === "settled")?.data?.[0]);
+    const same = settled.every((e) => e?.amount === g.offer.price && e?.path === "group" && e?.token === "demo");
+    return [grp.persons >= 5 && grp.offer?.[1] === 1000 && txs.every((t) => t.ok && t.delegated) && same, `${grp.members.length} members, ${grp.persons} persons, offer ${grp.offer?.[0]?.split(".")[0]} at tier ${grp.offer?.[1] / 100}%; every settled amount ${Number(g.offer.price) / 1e6}`];
+  });
+}
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);

@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-04T22:01:12.961Z",
+  "when": "2026-11-04T22:14:42.423Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
@@ -67,6 +67,13 @@
       "linked": false,
       "note": "none: facts never left the buyer side in tx args",
       "anonymity_set": 6
+    },
+    {
+      "rule": "L6 amount oracle",
+      "what": "settled amounts of 11 buyers: 38.4 x3, 36 x3, 32.4 x5",
+      "linked": true,
+      "note": "single buyers: smallest set sharing an amount 3; buying-group members: 5 (one fixed-tier amount for the whole group)",
+      "anonymity_set": 3
     }
   ],
   "rating_to_buyer_linked": false

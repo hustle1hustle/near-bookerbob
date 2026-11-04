@@ -293,11 +293,21 @@
     "evidence": []
   },
   {
+    "feature": "buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount",
+    "tracks": "swarms, privacy, social",
+    "where": "`contract/src/lib.rs` (`post_intent`, `offer_group`, `settle_group_demo`), `scripts/demo-tester.mjs group`",
+    "status": "live",
+    "detail": "one group of 5 on testnet paid the 10% tier; 8 contract tests",
+    "evidence": [
+      "groups.0"
+    ]
+  },
+  {
     "feature": "NEAR INTENTS / 1Click top-up from any chain",
     "tracks": "realworld, agents",
     "where": "`docs/`",
     "status": "planned",
-    "detail": "mainnet only; not attempted on testnet",
+    "detail": "mainnet only; not attempted on testnet. A buying group's escrow is the natural NEAR Intents target: on mainnet, members would top up through 1Click from any chain into the group's escrow",
     "evidence": []
   }
 ]

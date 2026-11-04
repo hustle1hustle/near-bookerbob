@@ -102,6 +102,17 @@ for (const h of hashes) {
 }
 links.push({ rule: "L5 plaintext facts", what: `the proof set's fields and proof refs in the args of ${scanned} tester txs`, linked: hits.length > 0, note: hits.length ? `found in ${hits.length} places: ${hits.slice(0, 3).map((x) => x.tx.slice(0, 8)).join(", ")}` : "none: facts never left the buyer side in tx args", anonymity_set: hits.length ? 1 : buyers.length });
 
+// L6: the amount oracle. A settled amount is public; an exact price can reveal which
+// discount lines (and so which predicates) a buyer had. Anonymity set per buyer: the buyers
+// who paid the same amount. Buying-group members (fixed tiers) are included when present.
+const paid = buyers.map((b) => ({ who: b.tester, amount: String(b.price) }));
+for (const g of m.groups ?? []) for (const x of g.members) paid.push({ who: x.tester, amount: String(x.paid), group: true });
+const byAmount = new Map();
+for (const p of paid) byAmount.set(p.amount, (byAmount.get(p.amount) ?? 0) + 1);
+const minOf = (xs) => (xs.length ? Math.min(...xs.map((p) => byAmount.get(p.amount))) : null);
+const singles = minOf(paid.filter((p) => !p.group)), grouped = minOf(paid.filter((p) => p.group));
+links.push({ rule: "L6 amount oracle", what: `settled amounts of ${paid.length} buyers: ${[...byAmount].map(([a, n]) => `${Number(a) / 1e6} x${n}`).join(", ")}`, linked: singles < 5, note: `single buyers: smallest set sharing an amount ${singles}${grouped != null ? `; buying-group members: ${grouped} (one fixed-tier amount for the whole group)` : ""}`, anonymity_set: singles });
+
 const ratingToBuyer = links.find((l) => l.rule.startsWith("L2")).linked;
 console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${round.round})\n`);
 for (const l of links) console.log(`${l.linked ? "LINKED  " : "unlinked"}  ${l.rule.padEnd(16)} ${l.what}  (anonymity set ${l.anonymity_set}${l.correct !== undefined ? `, ${l.correct}/${l.of} right` : ""}${l.note ? `; ${l.note}` : ""})`);

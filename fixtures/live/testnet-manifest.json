@@ -511,5 +511,73 @@
         "reveal_tx": "5RxMyiyfycKgrYFH7qhgrqGVAfacBfymbyW71EMr8VDd"
       }
     }
-  }
+  },
+  "groups": [
+    {
+      "group": "e2c8d23ba724b290cf7fb8437d7f07c36e4b0ae3110e7edc52dc29903b6421de",
+      "offer_tx": "92eXe9eF83fKVp526p2dJu71VGx4gKiM8T2JSaJuvetL",
+      "offer": {
+        "merchant": "m01.bookerbob.testnet",
+        "bps": 1000,
+        "price": "32400000"
+      },
+      "members": [
+        {
+          "tester": "t-56c1fd.bookerbob-demo.testnet",
+          "nullifier": "98800bf37ac53e334bf0306a2402a891dee229a7c6453d4e6feb4b12a9807877",
+          "receipt_price": "36000000",
+          "paid": "32400000",
+          "txs": {
+            "intent": "5TLVmWM6BA6HLsyD8JkDmniuWjggPVPMNm69GQHwb57y",
+            "settle_group": "6Fdav19gzszNCg8WgoR7VJ7VLL5dza59xW6Efhfe3D3p",
+            "verdict": "3Y6LpXFFnr1o71RbbGuuLTdooM6y1GUnrZh2Kg9F21L3"
+          }
+        },
+        {
+          "tester": "t-823cb3.bookerbob-demo.testnet",
+          "nullifier": "562e6dcfdad1d968676e2ea982acccf58006a5c711903330a306eccd6ce15875",
+          "receipt_price": "36000000",
+          "paid": "32400000",
+          "txs": {
+            "intent": "V9C9gSRpXNdnLyF8xZYRCBnJcb736Y5qfQqP9BL9jaT",
+            "settle_group": "DgWpvrdxYEuxJRv1onknqwm3tzg6WAcwE794AxzEW4h7",
+            "verdict": "7KA829E6846sEN4jiv9NQpR6Vz5HhhgJpfw2vMHjpSJo"
+          }
+        },
+        {
+          "tester": "t-565d86.bookerbob-demo.testnet",
+          "nullifier": "a3ea0b836eb8a9770d25cfb0142a7478b8eb6a0ed8f7b86c3146c2e38cc91051",
+          "receipt_price": "36000000",
+          "paid": "32400000",
+          "txs": {
+            "intent": "3dTrsc9rj4h7892K89HX95LgTbEiAqoz3fqiJxYUft7c",
+            "settle_group": "F6tU9gsDQyPjxieaPFm5f8TKUWfm7KbSKpovG8gfwdiz",
+            "verdict": "46X8FLByr5kinqzmphC1nM7hD2Te54T83pFt1fyjDggH"
+          }
+        },
+        {
+          "tester": "t-fb6278.bookerbob-demo.testnet",
+          "nullifier": "0d8dbce3bc8dfb0aa048a820a09e15f3aa96e20ebbfe19866747d88e347c8cf6",
+          "receipt_price": "36000000",
+          "paid": "32400000",
+          "txs": {
+            "intent": "2aNAfBNbKHcQjS9HQBWFjoWmpnVvdbC29S174WEUnthD",
+            "settle_group": "AvwxiquCPZvN4WhVEEf9ZY6yFYF8wyzG3iCWHCnfXSGh",
+            "verdict": "DuC1KLnfDXaNzNHE2FxG78vYuYMVyGUAKrMgki6zzNXt"
+          }
+        },
+        {
+          "tester": "t-730490.bookerbob-demo.testnet",
+          "nullifier": "39dd98486cc6b3c97fd41c1bf8f5c5c602e11ec614a907c840c09258ef6d608e",
+          "receipt_price": "36000000",
+          "paid": "32400000",
+          "txs": {
+            "intent": "EJKhgnU1YaZDRU5SBN2nLR9jy89v2Eis6PvwHFCWZhQk",
+            "settle_group": "BfUHEC6V3paHQryVkM9SX5TqgrhMntnoxmohnDFg3Emh",
+            "verdict": "58FKddiF2K2MS7eoQYkobFwA3fe6WW8SSQxysuDLXf6p"
+          }
+        }
+      ]
+    }
+  ]
 }

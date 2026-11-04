@@ -321,6 +321,28 @@ Every commit and reveal tx is in `fixtures/live/testnet-manifest.json` (`blind_r
 `make verify-live` checks both rounds and a sample of the txs. The merchants revealed their
 current schedules (synthetic, from `agents/merchants.json`).
 
+## A buying group on sealed intents (2026-11-05)
+
+Contract with buying groups: [DiGy4kYk…](https://testnet.nearblocks.io/txns/DiGy4kYkPFpier72n4QCkLBrJWReeaqcNXWJRPdtxAV2). Five new testers, each its own
+World-bound person, each with a verdict revealing the same predicates, posted sealed intents
+(budget committed, not shown) and landed in one group, `e2c8d23ba724…`. At 5 distinct
+persons the group reached the first fixed tier; m01 offered it ([92eXe9eF…](https://testnet.nearblocks.io/txns/92eXe9eF83fKVp526p2dJu71VGx4gKiM8T2JSaJuvetL)), and each
+member paid the receipt price minus 10%, gasless through the relayer:
+
+| member | intent | receipt price | paid | settle_group_demo |
+|---|---|---|---|---|
+| `t-56c1fd` | [5TLVmWM6…](https://testnet.nearblocks.io/txns/5TLVmWM6BA6HLsyD8JkDmniuWjggPVPMNm69GQHwb57y) | 36.00 | 32.40 | [6Fdav19g…](https://testnet.nearblocks.io/txns/6Fdav19gzszNCg8WgoR7VJ7VLL5dza59xW6Efhfe3D3p) |
+| `t-823cb3` | [V9C9gSRp…](https://testnet.nearblocks.io/txns/V9C9gSRpXNdnLyF8xZYRCBnJcb736Y5qfQqP9BL9jaT) | 36.00 | 32.40 | [DgWpvrdx…](https://testnet.nearblocks.io/txns/DgWpvrdxYEuxJRv1onknqwm3tzg6WAcwE794AxzEW4h7) |
+| `t-565d86` | [3dTrsc9r…](https://testnet.nearblocks.io/txns/3dTrsc9rj4h7892K89HX95LgTbEiAqoz3fqiJxYUft7c) | 36.00 | 32.40 | [F6tU9gsD…](https://testnet.nearblocks.io/txns/F6tU9gsDQyPjxieaPFm5f8TKUWfm7KbSKpovG8gfwdiz) |
+| `t-fb6278` | [2aNAfBNb…](https://testnet.nearblocks.io/txns/2aNAfBNbKHcQjS9HQBWFjoWmpnVvdbC29S174WEUnthD) | 36.00 | 32.40 | [AvwxiquC…](https://testnet.nearblocks.io/txns/AvwxiquCPZvN4WhVEEf9ZY6yFYF8wyzG3iCWHCnfXSGh) |
+| `t-730490` | [EJKhgnU1…](https://testnet.nearblocks.io/txns/EJKhgnU1YaZDRU5SBN2nLR9jy89v2Eis6PvwHFCWZhQk) | 36.00 | 32.40 | [BfUHEC6V…](https://testnet.nearblocks.io/txns/BfUHEC6V3paHQryVkM9SX5TqgrhMntnoxmohnDFg3Emh) |
+
+`make leak` L6 (the amount oracle): before, the six single buyers split into two amounts, 3
+each, so an amount narrowed a buyer to 3 people; the five group members share one amount
+(32.40), so an amount narrows a member only to the group (5). Single buyers are unchanged.
+Not built: a DAO sub-account holding the group's escrow (each member pays from its own
+escrow today), and the 20% tier has not been reached live.
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`

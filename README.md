@@ -215,7 +215,8 @@ interface exists with a test double; `planned` means not built yet.
 | `min_tcb`: a verdict below the TDX TCB floor (UpToDate by default) is never quoted or paid | security, privacy | `core/src/envelope.rs` `tcb_meets`, `contract/src/lib.rs` | **live**: deployed; every testnet verdict is the synthetic `fixture` status, which passes only on a `.testnet` bazaar |
 | open market: an outside merchant is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal | swarms, agents, open | `contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md | **live**: a fresh agent with only AGENTS.md won round `open-1` |
 | `make market-eval`: 1,000 simulated rounds, no disclosure vs BookerBob vs full disclosure | swarms | `scripts/market-eval.mjs`, `docs/market-eval.md` | **built**: (a model, assumptions stated) |
-| NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | **planned**: mainnet only; not attempted on testnet |
+| buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount | swarms, privacy, social | `contract/src/lib.rs` (`post_intent`, `offer_group`, `settle_group_demo`), `scripts/demo-tester.mjs group` | **live**: one group of 5 on testnet paid the 10% tier; 8 contract tests |
+| NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | **planned**: mainnet only; not attempted on testnet. A buying group's escrow is the natural NEAR Intents target: on mainnet, members would top up through 1Click from any chain into the group's escrow |
 <!-- status:end -->
 
 ## Repository layout

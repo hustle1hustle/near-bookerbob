@@ -55,6 +55,14 @@ hashes, the receipt a price and hashes, never a fact. The one call that would ca
 `request_referee`, now refuses anything but input sealed to the worker's X25519 key
 (`worker/src/sealed.rs`; `bookerbob referee-pub`, `bookerbob seal-input`).
 
+## L6: the amount oracle (added 2026-11-05)
+
+A settled amount is public, and an exact price can reveal which discount lines a buyer had.
+Before (6 single buyers): 38.40 x3 and 36.00 x3, so the smallest set of buyers sharing an
+amount was 3, under the k floor. After a live buying group of 5 on one fixed tier: the 5
+members all paid 32.40, a set of 5; the single buyers stay at 3. Fixed tiers (10%, 20%) are
+what keep a group's amount from saying more than the tier.
+
 ## Still open, stated plainly
 
 - L1: one demo account per purchase links that purchase's verdict, settle and review-group
