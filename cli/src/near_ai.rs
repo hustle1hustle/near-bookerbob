@@ -243,6 +243,38 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
     (passed, checks.len())
 }
 
+/// One fresh bazaar on the mocked chain: owner registers the model attestation with
+/// `registered_nonce`, the agent binds its World ID, then submits the NEAR AI verdict.
+fn chain_case(e: Envelope, p: bookerbob_core::near_ai::NearAiProof, registered_nonce: String, report_hash: String, tcb: String) -> Result<String, String> {
+    use bookerbob_bazaar::{Bazaar, ModelAttestation, RECORD_DEPOSIT};
+    use near_sdk::test_utils::VMContextBuilder;
+    use near_sdk::testing_env;
+    std::panic::set_hook(Box::new(|_| {}));
+    let acc = |s: &str| s.parse::<near_sdk::AccountId>().unwrap();
+    let at = |who: &str| {
+        let mut b = VMContextBuilder::new();
+        b.current_account_id(acc(crate::fixtures::OWNER))
+            .predecessor_account_id(acc(who))
+            .block_timestamp(crate::fixtures::NOW_MS * 1_000_000)
+            .attached_deposit(RECORD_DEPOSIT);
+        testing_env!(b.build());
+    };
+    at(crate::fixtures::OWNER);
+    let mut c = Bazaar::new(acc(crate::fixtures::OWNER), acc(crate::fixtures::USDC));
+    let w = crate::fixtures::world_attestation(&e.cnf, "fixture-person-1");
+    c.register_world_verifier(w.verifier_key.clone(), w.body.action.clone(), "fixture".into());
+    c.register_model_attestation(
+        p.signing_key.clone(),
+        ModelAttestation { model: e.attestation.model.clone(), nonce: registered_nonce, report_hash, tcb_status: tcb },
+    );
+    at(&e.cnf);
+    c.attest_human(w);
+    let n = e.nullifier.clone();
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.submit_near_ai_verdict(e, p)))
+        .map_err(|x| x.downcast_ref::<String>().cloned().or_else(|| x.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())?;
+    c.verdict(n.clone()).map(|_| n).ok_or_else(|| "no record".to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::{Path, PathBuf};
@@ -310,36 +342,4 @@ mod tests {
         let (p, t) = super::check_dir(&d, &proofs(), false);
         assert!(p <= t - 3, "open, predicates and binding all fail");
     }
-}
-
-/// One fresh bazaar on the mocked chain: owner registers the model attestation with
-/// `registered_nonce`, the agent binds its World ID, then submits the NEAR AI verdict.
-fn chain_case(e: Envelope, p: bookerbob_core::near_ai::NearAiProof, registered_nonce: String, report_hash: String, tcb: String) -> Result<String, String> {
-    use bookerbob_bazaar::{Bazaar, ModelAttestation, RECORD_DEPOSIT};
-    use near_sdk::test_utils::VMContextBuilder;
-    use near_sdk::testing_env;
-    std::panic::set_hook(Box::new(|_| {}));
-    let acc = |s: &str| s.parse::<near_sdk::AccountId>().unwrap();
-    let at = |who: &str| {
-        let mut b = VMContextBuilder::new();
-        b.current_account_id(acc(crate::fixtures::OWNER))
-            .predecessor_account_id(acc(who))
-            .block_timestamp(crate::fixtures::NOW_MS * 1_000_000)
-            .attached_deposit(RECORD_DEPOSIT);
-        testing_env!(b.build());
-    };
-    at(crate::fixtures::OWNER);
-    let mut c = Bazaar::new(acc(crate::fixtures::OWNER), acc(crate::fixtures::USDC));
-    let w = crate::fixtures::world_attestation(&e.cnf, "fixture-person-1");
-    c.register_world_verifier(w.verifier_key.clone(), w.body.action.clone(), "fixture".into());
-    c.register_model_attestation(
-        p.signing_key.clone(),
-        ModelAttestation { model: e.attestation.model.clone(), nonce: registered_nonce, report_hash, tcb_status: tcb },
-    );
-    at(&e.cnf);
-    c.attest_human(w);
-    let n = e.nullifier.clone();
-    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.submit_near_ai_verdict(e, p)))
-        .map_err(|x| x.downcast_ref::<String>().cloned().or_else(|| x.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())?;
-    c.verdict(n.clone()).map(|_| n).ok_or_else(|| "no record".to_string())
 }
