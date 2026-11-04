@@ -6,7 +6,14 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
-const RPCS = [process.env.NEAR_RPC, "https://test.rpc.fastnear.com", "https://rpc.testnet.pagoda.co", "https://neart.lava.build"].filter(Boolean);
+// Public testnet RPCs that answer as of 2026-11-05 (rpc.testnet.near.org and pagoda are
+// deprecated, lava discontinued). The archival host also serves old txs.
+const RPCS = [process.env.NEAR_RPC, "https://test.rpc.fastnear.com", "https://archival-rpc.testnet.fastnear.com"].filter(Boolean);
+// At most 4 requests in flight: the public RPC rate-limits bursts (HTTP 429).
+let inflight = 0;
+const waiters = [];
+const slot = async () => { while (inflight >= 4) await new Promise((ok) => waiters.push(ok)); inflight++; };
+const release = () => { inflight--; waiters.shift()?.(); };
 const manifest = JSON.parse(readFileSync(new URL("../fixtures/live/testnet-manifest.json", import.meta.url)));
 
 // Snapshot mode, for judges without network:
@@ -37,21 +44,27 @@ async function rpc(method, params) {
 }
 
 async function rpcLive(method, params) {
-  let last;
-  for (const url of RPCS) {
-    for (let i = 0; i < 3; i++) {
+  await slot();
+  try {
+    let last;
+    for (let i = 0; i < 6; i++) {
+      const url = RPCS[i % RPCS.length];
       try {
-        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "verify-live", method, params }) });
-        if (r.status === 429 || r.status >= 500) { last = `${url} ${r.status}`; await new Promise((s) => setTimeout(s, 1000 * (i + 1))); continue; }
-        const j = await r.json();
-        if (j.error && /UNKNOWN_TRANSACTION|TIMEOUT/.test(JSON.stringify(j.error)) && i < 2) { last = JSON.stringify(j.error); await new Promise((s) => setTimeout(s, 1000)); continue; }
+        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "verify-live", method, params }), signal: AbortSignal.timeout(20000) });
+        const j = await r.json().catch(() => null);
+        const limited = r.status === 429 || r.status >= 500 || j?.error?.code === -429 || /Too Many|TIMEOUT|DEPRECATED/i.test(JSON.stringify(j?.error ?? ""));
+        if (limited || !j) { last = `${url} ${r.status} ${JSON.stringify(j?.error ?? "").slice(0, 80)}`; await new Promise((s) => setTimeout(s, 800 * (i + 1))); continue; }
+        if (j.error && /UNKNOWN_TRANSACTION/.test(JSON.stringify(j.error)) && i < 5) { last = JSON.stringify(j.error); continue; }
         return j;
       } catch (e) {
         last = `${url} ${e.message}`;
+        await new Promise((s) => setTimeout(s, 800 * (i + 1)));
       }
     }
+    throw new Error(`RPC failed: ${last}`);
+  } finally {
+    release();
   }
-  throw new Error(`RPC failed: ${last}`);
 }
 
 const view = async (account_id, method_name, args = {}) => {

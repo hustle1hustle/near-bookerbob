@@ -25,7 +25,7 @@ console.log("make judge: fast path (Node only; deep path: make verify, make zk-v
 // No network (a sandboxed judge): SKIP the live checks, replay the committed RPC snapshot,
 // and check the snapshot's sha256. With network: the live checks, one retry for flaky RPC.
 // JUDGE_OFFLINE=1 forces the snapshot path (to test it); otherwise a 6 s probe decides.
-const online = process.env.JUDGE_OFFLINE !== "1" && await fetch(process.env.NEAR_RPC || "https://test.rpc.fastnear.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "status", params: [] }), signal: AbortSignal.timeout(6000) }).then((r) => r.ok, () => false);
+const online = process.env.JUDGE_OFFLINE !== "1" && await fetch(process.env.NEAR_RPC || "https://test.rpc.fastnear.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "status", params: [] }), signal: AbortSignal.timeout(6000) }).then(() => true, () => false); // any HTTP answer, even a 429, means there is a network
 if (!online) {
   const snapFile = `${root}fixtures/live/rpc-snapshot/snapshot.json`;
   const want = readFileSync(`${root}fixtures/live/rpc-snapshot/SHA256`, "utf8").split(" ")[0];
