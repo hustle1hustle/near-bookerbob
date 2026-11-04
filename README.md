@@ -95,7 +95,7 @@ committed; `make verify` then re-checks it offline.
 
 ## Try it
 
-**Fastest (15 to 30 s, Node 22 only, no keys, no build):** `make judge`. It re-derives every
+**Fastest (about a minute, Node 22 only, no keys, no build; under a second offline):** `make judge`. It re-derives every
 testnet claim over public RPC (`make verify-live`), checks the six committed Jolt proofs'
 outputs and program hashes, and runs the JS suites. With no network it prints SKIP for the
 live checks and re-derives the same claims from a committed RPC snapshot

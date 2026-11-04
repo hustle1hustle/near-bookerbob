@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// `make judge`: the fast path, under a minute from a clean clone, Node 22 only (no cargo,
+// `make judge`: the fast path, about a minute from a clean clone (the public RPC rate-limits), Node 22 only (no cargo,
 // no npm install, no keys). It checks what is committed and what is on testnet:
 //   1. every testnet claim, re-derived over public RPC (scripts/verify-live.mjs)
 //   2. the committed Jolt proofs' outputs equal the committed inputs' expected values, and
@@ -37,11 +37,11 @@ if (!online) {
   line(rep.status === 0, `testnet snapshot: every claim re-derived from the snapshot taken ${taken}`, `${(rep.stdout.match(/^PASS /gm) ?? []).length} checks; rerun with network for the live chain`);
 }
 // Public testnet RPC can drop a request under load: one retry, and the failures are printed.
-let live = online ? spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 }) : { status: 0, stdout: "" };
+let live = online ? spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 240_000 }) : { status: 0, stdout: "" };
 if (live.status !== 0) {
   console.log("      (verify-live failed once; retrying, public RPC can be flaky)");
   console.log(live.stdout.split("\n").filter((l) => l.startsWith("FAIL")).join("\n"));
-  live = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  live = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 240_000 });
 }
 const passes = (live.stdout.match(/^PASS /gm) ?? []).length;
 const fails = (live.stdout.match(/^FAIL /gm) ?? []).length;
