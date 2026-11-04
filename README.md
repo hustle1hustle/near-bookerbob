@@ -303,7 +303,7 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 ## Deployments
 
 **Testnet, 2026-11-04.** The `bazaar` contract is live at
-[`bookerbob.testnet`](https://testnet.nearblocks.io/address/bookerbob.testnet) (wasm 567 KB,
+[`bookerbob.testnet`](https://testnet.nearblocks.io/address/bookerbob.testnet) (wasm 600 KB,
 sha256 in the build output), with 30 merchant sub-accounts registered and approved, the
 trust-anchor keys registered and USDC storage paid. 139 transactions, every hash in
 [docs/testnet.md](docs/testnet.md). Key ones:
@@ -314,6 +314,9 @@ trust-anchor keys registered and USDC storage paid. 139 transactions, every hash
 | deploy and `new` | [2Dc63333…](https://testnet.nearblocks.io/txns/2Dc63333QfYaP7zdnzoUnWBrz9B8M1trBN8LkSnYu1cy) |
 | `register_issuer` | [95mbs6KG…](https://testnet.nearblocks.io/txns/95mbs6KGPHfNYU4RHa5ZQ6jgGq6vNZw7qhXTmA3yyUoG) |
 | first Chain Signatures `sign`, domain 1 (Ed25519), path `stellar-1` (from the archived Stellar leg): the 64-byte signature verifies over the payload with the derived key `ed25519:Hni3RKAy…` (`fixtures/live/mpc-sign.txt`) | [2yHrL9YW…](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
+| redeploy with the EVM payout leg (600 KB wasm) | [2L63k3jZ…](https://testnet.nearblocks.io/txns/2L63k3jZYSXT3AUhukjQyxsbkhqefs7f12Njspte3JfF) |
+| Jolt standing program registered (`set_graph_program c780ceab…`) | [BRH8KVo1…](https://testnet.nearblocks.io/txns/BRH8KVo1hURxDDaHCN8ttZpngnv2ek4vnJVGuygS8HaR) |
+| worker-signed standing update for the live hire graph (root `782a6b09…`, proved in 1.74 s), accepted; empty score list until a paid purchase seeds the graph | [4nHqu5TW…](https://testnet.nearblocks.io/txns/4nHqu5TWinE2sXpeVkStL3N4mHJSQGm2r7Tgt2dXbGZp) |
 
 `make demo-live` ran on testnet up to escrow: the agent's settle-only function-call key, its
 World ID binding, the verdict ([86XFzy3P…](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw)) and the referee receipt
