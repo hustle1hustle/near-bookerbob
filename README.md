@@ -96,9 +96,9 @@ interface exists with a test double; `planned` means not built yet.
 | `core/` | `bookerbob-core`: verdict envelope v0, tier, price and discount stack, referee. Shared by contract and CLI |
 | `cli/` | `bookerbob` CLI: offline end-to-end on fixtures, fixture generator, swarm, referee, evals |
 | `worker/` | referee as an OutLayer worker (stdin in, signed result out) |
+| `scripts/spikes/` | live testnet and NEAR AI spikes, results in `fixtures/live/` |
 | `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
 | `ucp/` | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
-| UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
 | `x402/` | x402 v2 resource server for paid verdict reads |
 | `mcp/` | MCP server wrapping the contract views (`nullifier_status`, `verdict`, `quote`, `best_quote`, `merchants`) |
 | `fixtures/` | synthetic, deterministic inputs and expected outputs |
