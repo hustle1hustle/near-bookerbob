@@ -10,6 +10,7 @@ BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 verify:
 	$(BOOKERBOB) verify fixtures
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
+	$(BOOKERBOB) evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
 
 swarm:
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json

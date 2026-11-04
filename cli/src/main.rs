@@ -3,11 +3,14 @@
 //!   bookerbob verify <fixtures-dir>         offline end-to-end, PASS/FAIL per link
 //!   bookerbob gen-fixtures <dir> [--check]  write (or check) deterministic fixtures
 //!   bookerbob swarm <merchants.json> <verdict.json> <board.json> [--check]
+//!   bookerbob referee <proofs.json> <verdict.json> <merchants.json> <merchant> <claims.json>
+//!   bookerbob evals <evals.json> <proofs.json> <verdict.json> <merchants.json>
 //!
 //! `verify` runs the real `bazaar` contract code natively against near-sdk's
 //! MockedBlockchain, which executes host functions (ed25519_verify, p256_verify, sha256)
 //! through nearcore's VM logic. No network, no keys.
 
+mod evals;
 mod fixtures;
 mod swarm;
 mod verify;
@@ -77,6 +80,7 @@ fn main() -> ExitCode {
             None => usage(),
         },
         Some("referee") if args.len() >= 6 => referee_cmd(&args[1..6]),
+        Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
         Some("swarm") if args.len() >= 4 => {
             swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check"))
         }
