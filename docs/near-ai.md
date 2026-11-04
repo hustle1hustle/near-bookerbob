@@ -88,11 +88,16 @@ off chain, not inside the contract.
 
 ## What a valid TDX quote does not prove here
 
-- **No measurement is pinned yet.** `make verify` checks that the quote verifies to Intel's
-  root (dcap-qvl, committed PCS collateral) and that its report_data holds the signing key and
-  our nonce. It does not yet compare MRTD, RTMR0 to RTMR3 or the compose digest against
-  NEAR AI's published values, so it proves "some TDX guest with this key", not "this model
-  server image".
+- **Measurements are pinned to what we observed, not yet to NEAR AI's published build.**
+  `make verify` (N3 to N5) checks that the quote's MRTD and RTMR0 to RTMR3 equal the report's
+  `tcb_info`, that replaying the 33-event log reproduces all four RTMRs (RTMR3 events are
+  recomputed from their payloads, so a payload cannot differ from what was measured), that the
+  compose file hashes to `compose_hash` and that hash is extended into RTMR3, and that MRTD,
+  RTMR0 to RTMR2 and the compose hash equal `fixtures/live/near-ai/measurements.json`. A new
+  image fails until that file is updated on purpose. The pinned values are the ones in our
+  2026-11-04 capture; comparing them with NEAR AI's published reproducible-build values is
+  not done. The pin runs off chain, before `register_model_attestation`; the contract does not
+  store the measurement.
 - **The GPU is not attested.** The NVIDIA evidence in the report is not checked.
 - **`tcb_status` on chain is written by the owner** when it registers the model attestation
   (`register_model_attestation`), after the off-chain check. The contract enforces the floor

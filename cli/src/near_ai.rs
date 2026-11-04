@@ -95,6 +95,75 @@ pub fn run(dir: &Path, proofs_path: &Path) -> ExitCode {
 }
 
 /// Runs every check; returns (passed, total). Prints when `print`.
+/// RTMR replay as dstack extends it: rtmr = sha384(rtmr || digest). Boot measurements
+/// (RTMR0-2) carry only a digest. Runtime events (RTMR3) are recomputed from their payload,
+/// sha384(event_type u32 LE || ":" || event || ":" || payload), and a logged digest must equal
+/// it, so a payload (the compose hash, the app id) cannot differ from what was measured.
+/// None when a logged RTMR3 digest disagrees with its payload.
+fn replay_rtmr(events: &[serde_json::Value], imr: u64) -> Option<[u8; 48]> {
+    use sha2::{Digest, Sha384};
+    let mut acc = [0u8; 48];
+    for e in events.iter().filter(|e| e["imr"].as_u64() == Some(imr)) {
+        let logged = e["digest"].as_str().filter(|d| !d.is_empty()).map(|d| hex::decode(d).unwrap_or_default());
+        let digest: Vec<u8> = if imr == 3 {
+            let p = e["event_payload"].as_str().unwrap_or_default();
+            let payload = hex::decode(p).unwrap_or_else(|_| p.as_bytes().to_vec());
+            let mut h = Sha384::new();
+            h.update((e["event_type"].as_u64().unwrap_or(0) as u32).to_le_bytes());
+            h.update(b":");
+            h.update(e["event"].as_str().unwrap_or_default().as_bytes());
+            h.update(b":");
+            h.update(&payload);
+            let d = h.finalize().to_vec();
+            if logged.as_ref().is_some_and(|l| *l != d) {
+                return None;
+            }
+            d
+        } else {
+            logged?
+        };
+        let mut h = Sha384::new();
+        h.update(acc);
+        h.update(&digest);
+        acc = h.finalize().into();
+    }
+    Some(acc)
+}
+
+fn measurements_match(ti: &serde_json::Value, mrtd: &[u8; 48], rtmr: &[[u8; 48]; 4]) -> Result<String, String> {
+    if ti["mrtd"].as_str() != Some(hex::encode(mrtd).as_str()) {
+        return Err("MRTD in the quote differs from the report".into());
+    }
+    let events: Vec<serde_json::Value> = ti["event_log"].as_array().cloned().unwrap_or_default();
+    for (i, r) in rtmr.iter().enumerate() {
+        if ti[format!("rtmr{i}")].as_str() != Some(hex::encode(r).as_str()) {
+            return Err(format!("RTMR{i} in the quote differs from the report"));
+        }
+        if replay_rtmr(&events, i as u64) != Some(*r) {
+            return Err(format!("RTMR{i} does not replay from the event log"));
+        }
+    }
+    Ok(format!("{} events replay to all four RTMRs", events.len()))
+}
+
+fn compose_bound(ti: &serde_json::Value) -> Result<String, String> {
+    use sha2::{Digest, Sha256};
+    let compose = ti["app_compose"].as_str().ok_or("no app_compose")?;
+    let h = hex::encode(Sha256::digest(compose.as_bytes()));
+    if ti["compose_hash"].as_str() != Some(h.as_str()) {
+        return Err("app_compose does not hash to compose_hash".into());
+    }
+    let in_rtmr3 = ti["event_log"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .any(|e| e["imr"].as_u64() == Some(3) && e["event"] == "compose-hash" && e["event_payload"].as_str() == Some(h.as_str()));
+    if !in_rtmr3 {
+        return Err("compose hash is not in the RTMR3 event log".into());
+    }
+    Ok(format!("compose {}..", &h[..12]))
+}
+
 pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) {
     let read = |n: &str| std::fs::read(dir.join(n)).unwrap_or_else(|e| panic!("read {n}: {e}"));
     let cap: Capture = serde_json::from_slice(&read("capture.json")).expect("parse capture");
@@ -127,6 +196,41 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
                     Ok(format!("key {}.., nonce {}..", &cap.signing_address[..12], &cap.nonce[..12]))
                 } else {
                     Err("report_data does not match key and nonce".into())
+                }
+            }
+            None => Err("no TD report".into()),
+        },
+    );
+    // 2b. The quote's measurements: equal to what the report claims, reproduced by replaying
+    // the event log (RTMR extend with sha384), the compose file hashing to compose_hash and
+    // extended into RTMR3, and pinned against fixtures/live/near-ai/measurements.json.
+    let td = verified.as_ref().ok().and_then(|v| v.report.as_td10()).map(|t| (t.mr_td, [t.rt_mr0, t.rt_mr1, t.rt_mr2, t.rt_mr3]));
+    let ti = &ma["info"]["tcb_info"];
+    check(
+        "the quote's MRTD and RTMR0-3 equal the report's tcb_info and replay from its event log",
+        match &td {
+            Some((mrtd, rtmr)) => measurements_match(ti, mrtd, rtmr),
+            None => Err("no TD report".into()),
+        },
+    );
+    check("the compose file hashes to compose_hash, which is extended into RTMR3", compose_bound(ti));
+    let pin: serde_json::Value = serde_json::from_slice(&read("measurements.json")).unwrap_or_default();
+    check(
+        "measurements pinned (MRTD, RTMR0-2, compose hash): an unknown image is refused",
+        match &td {
+            Some((mrtd, rtmr)) => {
+                let want = |k: &str| pin[k].as_str().unwrap_or_default().to_string();
+                let got = [
+                    hex::encode(mrtd),
+                    hex::encode(rtmr[0]),
+                    hex::encode(rtmr[1]),
+                    hex::encode(rtmr[2]),
+                    ti["compose_hash"].as_str().unwrap_or_default().to_string(),
+                ];
+                let keys = ["mrtd", "rtmr0", "rtmr1", "rtmr2", "compose_hash"];
+                match keys.iter().zip(got.iter()).find(|(k, g)| want(k) != **g) {
+                    None => Ok(format!("mrtd {}.., compose {}.. (observed values, not yet NEAR AI's published build)", &got[0][..12], &got[4][..12])),
+                    Some((k, _)) => Err(format!("{k} differs from the pinned value")),
                 }
             }
             None => Err("no TD report".into()),
@@ -341,5 +445,49 @@ mod tests {
         std::fs::write(d.join("capture.json"), serde_json::to_vec(&c).unwrap()).unwrap();
         let (p, t) = super::check_dir(&d, &proofs(), false);
         assert!(p <= t - 3, "open, predicates and binding all fail");
+    }
+}
+
+#[cfg(test)]
+mod measurement_tests {
+    use super::*;
+
+    fn tcb() -> serde_json::Value {
+        let r: serde_json::Value = serde_json::from_str(include_str!("../../fixtures/live/near-ai/report.json")).unwrap();
+        r["model_attestations"][0]["info"]["tcb_info"].clone()
+    }
+
+    fn parts(ti: &serde_json::Value) -> ([u8; 48], [[u8; 48]; 4]) {
+        let h = |k: &str| -> [u8; 48] { hex::decode(ti[k].as_str().unwrap()).unwrap().try_into().unwrap() };
+        (h("mrtd"), [h("rtmr0"), h("rtmr1"), h("rtmr2"), h("rtmr3")])
+    }
+
+    #[test]
+    fn the_capture_replays_and_binds_its_compose_file() {
+        let ti = tcb();
+        let (m, r) = parts(&ti);
+        assert!(measurements_match(&ti, &m, &r).is_ok());
+        assert!(compose_bound(&ti).is_ok());
+    }
+
+    #[test]
+    fn a_changed_measurement_or_event_is_refused() {
+        let ti = tcb();
+        let (mut m, r) = parts(&ti);
+        m[0] ^= 1;
+        assert!(measurements_match(&ti, &m, &r).unwrap_err().contains("MRTD"));
+        let mut t2 = ti.clone();
+        let ev = t2["event_log"].as_array_mut().unwrap();
+        let i = ev.iter().position(|e| e["imr"] == 3).unwrap();
+        ev[i]["event_payload"] = serde_json::json!("00");
+        let (m, r) = parts(&ti);
+        assert!(measurements_match(&t2, &m, &r).unwrap_err().contains("does not replay"));
+    }
+
+    #[test]
+    fn a_changed_compose_file_is_refused() {
+        let mut ti = tcb();
+        ti["app_compose"] = serde_json::json!(ti["app_compose"].as_str().unwrap().replace("manifest_version", "manifest_versioN"));
+        assert!(compose_bound(&ti).unwrap_err().contains("does not hash"));
     }
 }
