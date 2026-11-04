@@ -297,8 +297,14 @@ is a founder decision.
 | c1 votes: 1 of 3, nothing happens (issuers = []) | [DVBbBHVv…](https://testnet.nearblocks.io/txns/DVBbBHVvaUXdQ2dUHHGACBgeZwboww82xowSLLTpzhLS) |
 | c2 votes: 2 of 3, the proposal executes, the issuer is registered | [HZsZ5cHK…](https://testnet.nearblocks.io/txns/HZsZ5cHKHSNtK6xrq2SSjC2EuNfxZ2h7gu2vECQuPNVP) |
 
-Not built: a timelock (Sputnik executes as soon as the threshold is met) and the cohort DAO
-at k >= 5 from the panel's action 9.
+Timelock on trust anchors (contract-side, redeployed [6Ccwrhbp…](https://testnet.nearblocks.io/txns/6Ccwrhbp6kWzcXhUsmU8PcJjv3Quv7pvNbUkpDRXcboC)): the DAO set a 5 min
+delay ([9acjdDhG…](https://testnet.nearblocks.io/txns/9acjdDhG8mZmMzKzJoCh6us2d52Gm8hoTP3dx3nWovNL)); a council-approved `register_referee` then only queued
+([67bo8acd…](https://testnet.nearblocks.io/txns/67bo8acd3xekTUVJwnoKmZNhz1Gd1mjJjhivscTjj8td), public `anchor_queued` event); `execute_anchor` before the delay was
+refused, "timelock: not ready yet" ([75Fpspqo…](https://testnet.nearblocks.io/txns/75FpspqoyPWw4fDzD31fFLB8oYuWx1NrDijRkRCwn7RN)); after it, anyone executed it
+([65emi7CK…](https://testnet.nearblocks.io/txns/65emi7CKxmByEPhjhFJpEzka2hTNBDZF4mEU5dsY2mPZ)). A watcher has the whole delay to object; the owner can cancel. The live
+bazaar runs the same code with no delay set.
+
+Not built: the cohort DAO at k >= 5 from the panel's action 9.
 
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 

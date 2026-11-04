@@ -327,6 +327,13 @@
     "attacker": "c1.bookerbob-dao-ops.testnet",
     "vote1_tx": "DVBbBHVvaUXdQ2dUHHGACBgeZwboww82xowSLLTpzhLS",
     "vote2_tx": "HZsZ5cHKHSNtK6xrq2SSjC2EuNfxZ2h7gu2vECQuPNVP",
-    "issuer": "ed25519:abababababababababababababababababababababababababababababababab"
+    "issuer": "ed25519:abababababababababababababababababababababababababababababababab",
+    "timelock": {
+      "early_tx": "75FpspqoyPWw4fDzD31fFLB8oYuWx1NrDijRkRCwn7RN",
+      "early_sender": "c1.bookerbob-dao-ops.testnet",
+      "execute_tx": "65emi7CKxmByEPhjhFJpEzka2hTNBDZF4mEU5dsY2mPZ",
+      "execute_sender": "c2.bookerbob-dao-ops.testnet",
+      "referee": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+    }
   }
 }

@@ -167,5 +167,12 @@ if (m.dao) {
     return [!att.ok && /owner only/.test(att.error) && registered && viaDao && council.length === 3 && pol.default_vote_policy.threshold.join("/") === "1/2", `council ${council.length}, threshold 1/2; a single council key refused (owner only); the 2nd vote's tx executed register_issuer from the DAO`];
   });
 }
+if (m.dao?.timelock) {
+  const t = m.dao.timelock;
+  await attempt("the DAO bazaar's trust anchors are timelocked: an early execute was refused, a later one applied", async () => {
+    const [e, x, refs, delay] = await Promise.all([tx(t.early_tx, t.early_sender), tx(t.execute_tx, t.execute_sender), view(m.dao.bazaar, "referees"), view(m.dao.bazaar, "anchor_delay")]);
+    return [!e.ok && /not ready yet/.test(e.error) && x.ok && refs.some(([k]) => k === t.referee) && delay > 0, `delay ${delay / 60000} min; early refused, executed after`];
+  });
+}
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);
