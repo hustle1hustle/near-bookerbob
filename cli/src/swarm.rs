@@ -259,7 +259,7 @@ pub fn build(
         for (i, r) in rows.iter_mut().enumerate() {
             r.rank = i + 1;
         }
-        let onchain = c.best_quote(n.clone(), Some(cat.clone()), None, None).ok_or("no quote")?;
+        let onchain = c.best_quote(n.clone(), Some(cat.clone()), None, None, None).ok_or("no quote")?;
         if onchain.merchant.as_str() != rows[0].merchant {
             return Err(format!("contract best_quote {} differs from board winner {}", onchain.merchant, rows[0].merchant));
         }

@@ -797,20 +797,44 @@ impl Bazaar {
     /// `from_index .. from_index + limit` of the registry (default 50, at most
     /// `MAX_QUOTE_PAGE`). Ties go to the merchant registered first. A client with more
     /// merchants than one page asks page by page and keeps the lowest.
-    pub fn best_quote(&self, nullifier: String, category: Option<String>, from_index: Option<u32>, limit: Option<u32>) -> Option<MerchantQuote> {
+    ///
+    /// Agents choose agents: on an equal price the merchant with the higher sealed-review
+    /// score wins, and `min_score` (score times 100, see `merchant_score`) drops merchants
+    /// below it. A merchant with no released ratings scores the neutral 3.00.
+    pub fn best_quote(
+        &self,
+        nullifier: String,
+        category: Option<String>,
+        from_index: Option<u32>,
+        limit: Option<u32>,
+        min_score: Option<u64>,
+    ) -> Option<MerchantQuote> {
         let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         let limit = limit.unwrap_or(50).min(MAX_QUOTE_PAGE) as usize;
-        let mut best: Option<MerchantQuote> = None;
+        let mut best: Option<(MerchantQuote, u64)> = None;
         for (id, m) in self.merchants.iter().skip(from_index.unwrap_or(0) as usize).take(limit) {
             if !m.approved || category.as_ref().is_some_and(|c| c != &m.category) {
                 continue;
             }
+            let score = self.score_x100(id);
+            if min_score.is_some_and(|min| score < min) {
+                continue;
+            }
             let q = self.quote_for(&m.schedule, v);
-            if best.as_ref().is_none_or(|b| q.price < b.quote.price) {
-                best = Some(MerchantQuote { merchant: id.clone(), quote: q });
+            let better = match &best {
+                None => true,
+                Some((b, bs)) => q.price < b.quote.price || (q.price == b.quote.price && score > *bs),
+            };
+            if better {
+                best = Some((MerchantQuote { merchant: id.clone(), quote: q }, score));
             }
         }
-        best
+        best.map(|(q, _)| q)
+    }
+
+    fn score_x100(&self, merchant: &AccountId) -> u64 {
+        let (n, sum, _) = self.review_totals.get(merchant).copied().unwrap_or((0, 0, 0));
+        (sum * 100 + REVIEW_PRIOR_WEIGHT * 300) / (n + REVIEW_PRIOR_WEIGHT)
     }
 
     // ---------- escrow (NEP-141 receiver) ----------

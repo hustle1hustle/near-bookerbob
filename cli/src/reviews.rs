@@ -107,7 +107,14 @@ pub fn run(dir: &Path) -> ExitCode {
     c.register_referee(hex::encode(referee.verifying_key().to_bytes()), "fixture referee".into());
     let w0 = fixtures::world_attestation(fixtures::AGENT, "fixture-person-1");
     c.register_world_verifier(w0.verifier_key.clone(), w0.body.action.clone(), "fixture world verifier".into());
-    for m in [m01, m02] {
+    // m03 sells the same hoodie on m01's schedule and registered first: the prices tie.
+    let m03 = fixtures::MerchantFixture {
+        account: "m03copy.bookerbob.testnet".into(),
+        label: "same schedule as m01".into(),
+        category: m01.category.clone(),
+        schedule: m01.schedule.clone(),
+    };
+    for m in [&m03, m01, m02] {
         at(&m.account, NOW_MS);
         c.register_merchant(m.schedule.clone(), m.category.clone(), None);
         at(OWNER, NOW_MS);
@@ -202,6 +209,18 @@ pub fn run(dir: &Path) -> ExitCode {
             Ok(format!("mean {:.2}, delivered {}%, score {:.2}", s.mean_x100 as f64 / 100.0, s.delivered_pct, s.score_x100 as f64 / 100.0))
         } else {
             Err("not released".into())
+        },
+    ));
+    // Agents choose agents: on the tie, the reviewed merchant wins; a floor filters.
+    let n0 = issuer.envelope.nullifier.clone();
+    let pick = |c: &Bazaar, min: Option<u64>| c.best_quote(n0.clone(), Some(m01.category.clone()), None, None, min).map(|q| q.merchant.to_string());
+    let (tie, floor) = (pick(&c, None), pick(&c, Some(350)));
+    out.push((
+        "best_quote: equal price goes to the better-reviewed merchant; min_score filters".into(),
+        if tie.as_deref() == Some(m01.account.as_str()) && floor.as_deref() != Some(m01.account.as_str()) && floor.as_deref() != Some(m03.account.as_str()) {
+            Ok(format!("tie -> {}, min 3.50 -> {}", m01.account, floor.unwrap_or_else(|| "none".into())))
+        } else {
+            Err(format!("tie -> {tie:?}, min 3.50 -> {floor:?}"))
         },
     ));
     let held = call(|| c.publish_reviews(acc(&m02.account), round)).unwrap_or(true);

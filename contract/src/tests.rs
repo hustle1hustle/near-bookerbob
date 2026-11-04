@@ -432,10 +432,10 @@ fn best_quote_picks_lowest_price() {
     approve(&mut c, "h01.bazaar.testnet");
     set("agent.testnet");
     c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
-    let best = c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into()), None, None).unwrap();
+    let best = c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into()), None, None, None).unwrap();
     assert_eq!(best.merchant, acc("m01.bazaar.testnet"));
     assert_eq!(best.quote.price, 151_200_000);
-    let hotel = c.best_quote(hex::encode([1u8; 32]), Some("hotel-lisbon".into()), None, None).unwrap();
+    let hotel = c.best_quote(hex::encode([1u8; 32]), Some("hotel-lisbon".into()), None, None, None).unwrap();
     assert_eq!(hotel.merchant, acc("h01.bazaar.testnet"));
 }
 
@@ -448,12 +448,12 @@ fn unapproved_merchant_is_never_quoted() {
     set("agent.testnet");
     c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
     let n = hex::encode([1u8; 32]);
-    assert_eq!(c.best_quote(n.clone(), Some("hoodie".into()), None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
+    assert_eq!(c.best_quote(n.clone(), Some("hoodie".into()), None, None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
     approve(&mut c, "spam.testnet");
-    assert_eq!(c.best_quote(n.clone(), Some("hoodie".into()), None, None).unwrap().merchant, acc("spam.testnet"));
+    assert_eq!(c.best_quote(n.clone(), Some("hoodie".into()), None, None, None).unwrap().merchant, acc("spam.testnet"));
     set_no_deposit("owner.testnet");
     c.revoke_merchant(acc("spam.testnet"));
-    assert_eq!(c.best_quote(n, Some("hoodie".into()), None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
+    assert_eq!(c.best_quote(n, Some("hoodie".into()), None, None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
 }
 
 #[test]
@@ -490,7 +490,7 @@ fn best_quote_is_paginated_and_capped() {
     set("agent.testnet");
     c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
     let n = hex::encode([1u8; 32]);
-    let page = |c: &Bazaar, from, limit| c.best_quote(n.clone(), Some("hoodie".into()), Some(from), Some(limit)).map(|q| q.merchant.to_string());
+    let page = |c: &Bazaar, from, limit| c.best_quote(n.clone(), Some("hoodie".into()), Some(from), Some(limit), None).map(|q| q.merchant.to_string());
     assert_eq!(page(&c, 0, 1).as_deref(), Some("m01.bazaar.testnet"));
     assert_eq!(page(&c, 0, 2).as_deref(), Some("m02.bazaar.testnet"));
     assert_eq!(page(&c, 2, 2).as_deref(), Some("m04.bazaar.testnet"));
@@ -982,7 +982,7 @@ fn blind_round_picks_the_lowest_revealed_bid_after_the_deadline() {
     at("m02.bazaar.testnet", NOW_MS);
     c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
     // The board shows only hashes until the commit deadline; m02's public schedule is flat.
-    assert_eq!(c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into()), None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
+    assert_eq!(c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into()), None, None, None).unwrap().merchant, acc("m01.bazaar.testnet"));
     at("m01.bazaar.testnet", COMMIT_UNTIL);
     c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
     at("m02.bazaar.testnet", COMMIT_UNTIL + 1);
@@ -1403,4 +1403,33 @@ mod reviews {
         at("buyer0.testnet", T);
         c.join_review_group(n, j(GROUP)["members"][0].as_str().unwrap().into());
     }
+}
+
+#[test]
+fn equal_price_goes_to_the_better_reviewed_merchant_and_min_score_filters() {
+    let mut c = setup();
+    // m02 has the same schedule as m01 and registered second, so a plain tie goes to m01.
+    set("m02.bazaar.testnet");
+    c.register_merchant(schedule(), "hoodie".into(), None);
+    approve(&mut c, "m02.bazaar.testnet");
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let n = hex::encode([1u8; 32]);
+    let best = |c: &Bazaar, min| c.best_quote(n.clone(), Some("hoodie".into()), None, None, min).map(|q| q.merchant.to_string());
+    assert_eq!(best(&c, None).as_deref(), Some("m01.bazaar.testnet"));
+    // Released ratings: m02 has six 5s, m01 six 2s.
+    c.review_totals.insert(acc("m02.bazaar.testnet"), (6, 30, 6));
+    c.review_totals.insert(acc("m01.bazaar.testnet"), (6, 12, 6));
+    assert_eq!(best(&c, None).as_deref(), Some("m02.bazaar.testnet"));
+    assert_eq!(c.merchant_score(acc("m02.bazaar.testnet")).score_x100, (3000 + 1500) / 11);
+    // A buyer that wants at least 3.00 drops m01 (2.45); m02 (4.09) stays.
+    assert_eq!(best(&c, Some(300)).as_deref(), Some("m02.bazaar.testnet"));
+    assert_eq!(best(&c, Some(500)), None);
+}
+
+#[test]
+fn a_merchant_without_released_ratings_scores_neutral() {
+    let c = setup();
+    let s = c.merchant_score(acc("m01.bazaar.testnet"));
+    assert_eq!((s.ratings, s.score_x100), (0, 300));
 }

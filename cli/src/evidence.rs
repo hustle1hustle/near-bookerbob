@@ -116,7 +116,7 @@ pub fn collect() -> (Vec<Row>, std::time::Duration) {
     at(AGENT, t, z);
     measure(&mut c, &mut rows, "submit_referee_result", "agent, from the record reserve prepaid at submit", |c| assert!(c.submit_referee_result(result)));
     at(AGENT, t, z);
-    measure(&mut c, &mut rows, "best_quote (view, 1 merchant)", "free (view)", |c| drop(c.best_quote(e.nullifier.clone(), None, None, None)));
+    measure(&mut c, &mut rows, "best_quote (view, 1 merchant)", "free (view)", |c| drop(c.best_quote(e.nullifier.clone(), None, None, None, None)));
     at(AGENT, t, z);
     measure(&mut c, &mut rows, "settle (+ ft_transfer receipt)", "agent (gas; bytes from the record reserve)", |c| {
         drop(c.settle(e.nullifier.clone(), acc(&m.account), "evidence-1".into(), U128(q.price)))
