@@ -34,6 +34,26 @@ fn usage() -> ExitCode {
     ExitCode::from(2)
 }
 
+/// The Base Sepolia USDC payout: the hash the MPC signs, or the signed raw tx assembled from
+/// the MPC answer (`{"big_r":{"affine_point":"02.."},"s":{"scalar":".."},"recovery_id":0}`).
+fn evm_payout(a: &[String]) -> Result<String, String> {
+    use bookerbob_core::evm;
+    let to = evm::parse_address(&a[1]).ok_or("bad address")?;
+    let amount: u128 = a[2].parse().map_err(|_| "bad amount")?;
+    let nonce: u64 = a[3].parse().map_err(|_| "bad nonce")?;
+    match a[0].as_str() {
+        "hash" => Ok(hex::encode(evm::payout_hash(&to, amount, nonce))),
+        "raw" if a.len() >= 5 => {
+            let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&a[4]).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+            let big_r: [u8; 33] = v["big_r"]["affine_point"].as_str().and_then(|h| hex::decode(h).ok()).and_then(|b| b.try_into().ok()).ok_or("bad big_r")?;
+            let s: [u8; 32] = v["s"]["scalar"].as_str().and_then(|h| hex::decode(h).ok()).and_then(|b| b.try_into().ok()).ok_or("bad s")?;
+            let rid = v["recovery_id"].as_u64().ok_or("bad recovery_id")? as u8;
+            Ok(format!("0x{}", hex::encode(evm::signed_payout(&to, amount, nonce, &big_r, &s, rid))))
+        }
+        _ => Err("evm-payout hash|raw ...".into()),
+    }
+}
+
 fn gen_fixtures(dir: &Path, check: bool) -> ExitCode {
     let mut stale = Vec::new();
     for (name, body) in fixtures::all() {
@@ -143,6 +163,17 @@ fn main() -> ExitCode {
         // graph-input <onchain-root-hex> <out.json> <agent>:<sub> ...: the standing guest's input
         // for a live graph, refused unless the events hash to the root read from chain.
         // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
+        // evm-payout hash <to> <amount> <nonce> | evm-payout raw <to> <amount> <nonce> <mpc-answer.json>
+        Some("evm-payout") if args.len() >= 5 => match evm_payout(&args[1..]) {
+            Ok(s) => {
+                println!("{s}");
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                ExitCode::FAILURE
+            }
+        },
         Some("graph-sign") if args.len() >= 5 => match keys::graph_sign(Path::new(&args[1]), &args[2], Path::new(&args[3]), Path::new(&args[4])) {
             Ok(root) => {
                 println!("signed score update for root {}.. with the referee key; wrote {}", &root[..16], args[4]);

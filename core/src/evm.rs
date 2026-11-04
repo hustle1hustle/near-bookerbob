@@ -151,6 +151,22 @@ mod tests {
         }
     }
 
+    /// The live MPC answer (testnet tx 4AN6Ytp4..) assembles into the committed raw payout,
+    /// which ethers recovers to the MPC-derived payer 0x56AaAf0e...DF78.
+    #[test]
+    fn live_mpc_answer_assembles_the_committed_raw_payout() {
+        let v: serde_json::Value = serde_json::from_str(include_str!("../../fixtures/live/evm-sign.json")).unwrap();
+        let p = &v["payout"];
+        let to = parse_address(p["to"].as_str().unwrap()).unwrap();
+        let amount: u128 = p["amount"].as_str().unwrap().parse().unwrap();
+        let nonce = p["nonce"].as_u64().unwrap();
+        assert_eq!(hex::encode(payout_hash(&to, amount, nonce)), v["payload"].as_str().unwrap());
+        let big_r: [u8; 33] = hex::decode(v["big_r"]["affine_point"].as_str().unwrap()).unwrap().try_into().unwrap();
+        let sig_s: [u8; 32] = hex::decode(v["s"]["scalar"].as_str().unwrap()).unwrap().try_into().unwrap();
+        let raw = signed_payout(&to, amount, nonce, &big_r, &sig_s, v["recovery_id"].as_u64().unwrap() as u8);
+        assert_eq!(format!("0x{}\n", hex::encode(raw)), include_str!("../../fixtures/live/evm-payout-raw.txt"));
+    }
+
     #[test]
     fn bad_addresses_are_refused() {
         assert!(parse_address("0x1234").is_none());

@@ -192,3 +192,27 @@ The contract logged `graph_scores` with `merchants: 0`. The live graph has hire 
 seed yet: seeds come from released reviews, which need a paid purchase, which waits on testnet
 USDC. So this update binds the proven root and an empty score list. Once a purchase settles and
 reviews release, the same commands carry nonzero standing.
+
+## Chain Signatures EVM payout leg (2026-11-04)
+
+One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`, the path
+`settle_evm` uses, over the hash of an EIP-1559 USDC `transfer` on Base Sepolia (chain 84532):
+38.40 USDC (the testnet receipt price) to m01's address, nonce 0.
+
+| step | account | tx |
+|---|---|---|
+| mpc sign domain 0, path evm-1 | bookerbob.testnet | [4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM](https://testnet.nearblocks.io/txns/4AN6Ytp4PX1Gep9fccybexDTFiL7rMxfZvU4ajthFJBM) |
+
+- Payer, derived by the MPC for (bookerbob.testnet, evm-1, domain 0): `0x56AaAf0eCcd17c7D57d6A7dC3d6B5C213d40DF78`.
+- Merchant m01, derived for (m01.bookerbob.testnet, evm-1, domain 0): `0x910721608E44b775E43cE180912421Ad03888E58`.
+- The answer is in `fixtures/live/evm-sign.json`. `bookerbob evm-payout raw ...` assembles the
+  signed raw tx in `fixtures/live/evm-payout-raw.txt`; ethers recovers its sender as the payer
+  above (Base Sepolia tx hash once broadcast: `0xaa295c74eee041bffe822eaa0aabbe1aeaafb09de7229a7755a3d02f496fb7a0`).
+  A core test pins the assembly byte for byte.
+- Not broadcast. The payer holds 0 ETH and 0 USDC on Base Sepolia. Funding it with about 0.001
+  Base Sepolia ETH and 38.40 Base Sepolia USDC (faucet.circle.com) lets anyone broadcast the
+  committed raw tx unchanged (`eth_sendRawTransaction`, nonce 0).
+- What this run shows and what it does not: the request was signed directly by the
+  bookerbob.testnet account, so the MPC derived the same key `settle_evm` would. The full
+  `settle_evm` path (escrowed USDC on NEAR, the double-pay guard, the callback storing the
+  signature) is covered by the contract tests and waits on testnet USDC for a live run.
