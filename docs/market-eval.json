@@ -1,0 +1,71 @@
+{
+  "assumptions": {
+    "rounds": 1000,
+    "buyers_per_round": 20,
+    "max_bits": 3,
+    "predicates": {
+      "world_id_human": {
+        "share": 0.6,
+        "ltv": 4
+      },
+      "claude_spender": {
+        "share": 0.25,
+        "ltv": 12
+      },
+      "airbnb_frequent": {
+        "share": 0.3,
+        "ltv": 10
+      },
+      "booking_genius": {
+        "share": 0.2,
+        "ltv": 9
+      },
+      "uber_regular": {
+        "share": 0.35,
+        "ltv": 6
+      },
+      "steam_veteran": {
+        "share": 0.15,
+        "ltv": 3
+      }
+    },
+    "cost": "0.55 x base",
+    "floor": "0.62 x base",
+    "seed": 7
+  },
+  "rows": [
+    {
+      "regime": "none",
+      "rounds": 1000,
+      "sales": 20000,
+      "avg_price": 41,
+      "avg_saving_vs_lowest_base": 0,
+      "avg_bits_revealed": 0,
+      "avg_anonymity_set": 2000,
+      "merchant_profit_total": 369000,
+      "winners": "m22:20000"
+    },
+    {
+      "regime": "bookerbob",
+      "rounds": 1000,
+      "sales": 20000,
+      "avg_price": 29.26,
+      "avg_saving_vs_lowest_base": 11.74,
+      "avg_bits_revealed": 1.57,
+      "avg_anonymity_set": 562,
+      "merchant_profit_total": 161597,
+      "winners": "m01:226 m02:2666 m03:73 m04:1712 m05:2945 m06:49 m07:15 m08:979 m09:2140 m10:29 m11:51 m12:38 m13:158 m14:34 m15:17 m16:2678 m17:61 m18:415 m19:1565 m20:15 m21:1972 m22:2162"
+    },
+    {
+      "regime": "full",
+      "rounds": 1000,
+      "sales": 20000,
+      "avg_price": 29.26,
+      "avg_saving_vs_lowest_base": 11.74,
+      "avg_bits_revealed": 1.88,
+      "avg_anonymity_set": 1,
+      "merchant_profit_total": 168576,
+      "winners": "m01:231 m02:2655 m03:69 m04:1673 m05:3014 m06:48 m07:18 m08:946 m09:2122 m10:33 m11:53 m12:38 m13:175 m14:34 m15:20 m16:2826 m17:64 m18:430 m19:1511 m20:19 m21:1888 m22:2133"
+    }
+  ]
+}

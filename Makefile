@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -43,6 +43,10 @@ judge:
 # An outside merchant agent joins the open market on testnet (bond, no owner step).
 join-merchant:
 	node scripts/join-merchant.mjs join $(NAME) $(BASE) $(DISCOUNT)
+
+# Disclosure regimes compared over 1,000 simulated rounds (docs/market-eval.md).
+market-eval:
+	node scripts/market-eval.mjs
 
 verify-live:
 	node scripts/verify-live.mjs
