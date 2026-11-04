@@ -5,7 +5,8 @@
 //! The chain's job: a global spent-set for nullifiers, signature checks with host
 //! functions, a code-computed price, and payout atomic with the nullifier burn.
 
-use bookerbob_core::{quote_in_cohort, DisputeDecision, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult, WorldAttestation};
+use bookerbob_core::near_ai::NearAiProof;
+use bookerbob_core::{quote_in_cohort, DisputeDecision, Envelope, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult, WorldAttestation};
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
 use near_sdk::{env, ext_contract, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseOrValue};
@@ -140,6 +141,20 @@ pub struct Bazaar {
     arbiters: IterableMap<String, String>,
     /// Blind bid rounds by id.
     rounds: LookupMap<String, Round>,
+    /// NEAR AI model signing key (hex) to the attestation the owner checked for it.
+    model_attestations: LookupMap<String, ModelAttestation>,
+}
+
+/// A NEAR AI model key whose attestation the owner checked off chain (TDX quote to Intel's
+/// root, report_data = key || nonce; `make verify` repeats that check on the committed
+/// report). Verdicts signed with this key must name the same nonce.
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct ModelAttestation {
+    pub model: String,
+    pub nonce: String,
+    pub report_hash: String,
+    pub tcb_status: String,
 }
 
 fn emit(event: &str, data: serde_json::Value) {
@@ -206,6 +221,7 @@ impl Bazaar {
             humans: LookupMap::new(b"h"),
             arbiters: IterableMap::new(b"d"),
             rounds: LookupMap::new(b"b"),
+            model_attestations: LookupMap::new(b"n"),
         }
     }
 
@@ -347,6 +363,7 @@ impl Bazaar {
         self.humans.flush();
         self.arbiters.flush();
         self.rounds.flush();
+        self.model_attestations.flush();
         env::state_write(self);
     }
 
@@ -447,13 +464,58 @@ impl Bazaar {
     #[payable]
     pub fn submit_verdict(&mut self, verdict: SignedVerdict) {
         let before = env::storage_usage();
-        let e = &verdict.envelope;
-        if let Err(msg) = e.validate() {
+        if let Err(msg) = verdict.envelope.validate() {
             env::panic_str(msg);
         }
         let key_id = verdict.key_id();
         require!(self.issuers.contains_key(&key_id), "unknown enclave key");
         require!(verify_signature(&verdict), "bad signature");
+        self.accept_verdict(&verdict.envelope, key_id);
+        charge_storage(before);
+    }
+
+    /// Owner registers a NEAR AI model key after checking its attestation report off chain.
+    pub fn register_model_attestation(&mut self, signing_key: String, attestation: ModelAttestation) {
+        self.assert_owner();
+        require!(bookerbob_core::is_hex32(&signing_key) && bookerbob_core::is_hex32(&attestation.nonce), "bad key or nonce");
+        self.model_attestations.insert(signing_key.clone(), attestation.clone());
+        emit(
+            "model_attestation_registered",
+            serde_json::json!({ "signing_key": signing_key, "model": attestation.model, "nonce": attestation.nonce, "tcb_status": attestation.tcb_status }),
+        );
+    }
+
+    pub fn model_attestation(&self, signing_key: String) -> Option<ModelAttestation> {
+        self.model_attestations.get(&signing_key).cloned()
+    }
+
+    /// A verdict issued by a NEAR AI model under E2EE v2. Accepted only with the proof: a
+    /// registered model key with the same attestation nonce, the TEE signature over
+    /// `model:request_sha256:sha256(response)`, and a sealed answer that opens with the
+    /// disclosed key, echoes this envelope's binding and lists every revealed predicate.
+    #[payable]
+    pub fn submit_near_ai_verdict(&mut self, envelope: Envelope, proof: NearAiProof) {
+        let before = env::storage_usage();
+        if let Err(msg) = envelope.validate() {
+            env::panic_str(msg);
+        }
+        let att = self.model_attestations.get(&proof.signing_key).cloned().unwrap_or_else(|| env::panic_str("unregistered model key"));
+        require!(att.nonce == proof.nonce, "attestation nonce mismatch");
+        require!(envelope.attestation.model == att.model && envelope.attestation.report_hash == att.report_hash, "envelope names another attestation");
+        require!(envelope.attestation.tcb_status == att.tcb_status, "envelope tcb_status differs from the attestation");
+        let sig: [u8; 64] = decode(&proof.signature, "TEE signature");
+        let pk: [u8; 32] = decode(&proof.signing_key, "model key");
+        require!(env::ed25519_verify(&sig, proof.signed_text(&att.model).as_bytes(), &pk), "bad TEE signature");
+        if let Err(msg) = bookerbob_core::near_ai::check_binding(&envelope, &proof) {
+            env::panic_str(msg);
+        }
+        self.accept_verdict(&envelope, format!("near-ai:{}", proof.signing_key));
+        emit("near_ai_verdict", serde_json::json!({ "nullifier": envelope.nullifier, "chat_id": proof.chat_id, "signing_key": proof.signing_key }));
+        charge_storage(before);
+    }
+
+    /// Checks shared by every issuer path, then the record and the cohort counters.
+    fn accept_verdict(&mut self, e: &Envelope, key_id: String) {
         require!(env::block_timestamp_ms() < e.expires_at_ms, "verdict expired");
         require!(env::predecessor_account_id().as_str() == e.cnf, "agent mismatch");
         if let Some(existing) = self.verdicts.get(&e.nullifier) {
@@ -496,7 +558,6 @@ impl Bazaar {
         );
         self.verdicts.flush();
         self.cohorts.flush();
-        charge_storage(before);
     }
 
     pub fn nullifier_status(&self, nullifier: String) -> NullifierStatus {

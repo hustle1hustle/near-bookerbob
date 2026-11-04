@@ -1062,3 +1062,98 @@ fn one_sealed_bid_per_merchant() {
     c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
     c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &schedule(), 2));
 }
+
+// ---------- NEAR AI verdicts (live capture in fixtures/live/near-ai/) ----------
+
+mod near_ai {
+    use super::*;
+    use bookerbob_core::near_ai::NearAiProof;
+
+    const CAPTURE: &str = include_str!("../../fixtures/live/near-ai/capture.json");
+    const PROOF: &str = include_str!("../../fixtures/live/near-ai/proof.json");
+    const REPORT: &[u8] = include_bytes!("../../fixtures/live/near-ai/report.json");
+
+    fn captured() -> (Envelope, NearAiProof) {
+        let c: serde_json::Value = serde_json::from_str(CAPTURE).unwrap();
+        (serde_json::from_value(c["envelope"].clone()).unwrap(), serde_json::from_str(PROOF).unwrap())
+    }
+
+    /// A bazaar with the model attestation registered and the envelope's agent bound to a person.
+    fn chain() -> (Bazaar, Envelope, NearAiProof) {
+        let (e, p) = captured();
+        set("owner.testnet");
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        c.register_world_verifier(hex::encode(world_key().verifying_key().to_bytes()), WORLD_ACTION.into(), "fixture".into());
+        let att = ModelAttestation {
+            model: e.attestation.model.clone(),
+            nonce: p.nonce.clone(),
+            report_hash: bookerbob_core::sha256_hex(REPORT),
+            tcb_status: e.attestation.tcb_status.clone(),
+        };
+        c.register_model_attestation(p.signing_key.clone(), att);
+        attest(&mut c, &e.cnf, 9);
+        set(&e.cnf);
+        (c, e, p)
+    }
+
+    #[test]
+    fn verdict_issued_by_near_ai_is_accepted_with_its_proof() {
+        let (mut c, e, p) = chain();
+        c.submit_near_ai_verdict(e.clone(), p.clone());
+        let r = c.verdict(e.nullifier.clone()).unwrap();
+        assert_eq!(r.issuer, format!("near-ai:{}", p.signing_key));
+        assert_eq!(r.tcb_status, "UpToDate");
+        assert!(get_logs().iter().any(|l| l.contains("\"event\":\"near_ai_verdict\"") && l.contains(&p.chat_id)));
+    }
+
+    #[test]
+    #[should_panic(expected = "unregistered model key")]
+    fn shared_model_key_without_a_registered_attestation_is_refused() {
+        let (e, p) = captured();
+        set("owner.testnet");
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        set(&e.cnf);
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "answer is about another envelope")]
+    fn a_valid_model_signature_for_another_envelope_is_refused() {
+        // Every user of the model shares its key: the signature is real, the binding is not ours.
+        let (mut c, mut e, p) = chain();
+        e.nullifier = "77".repeat(32);
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "envelope tcb_status differs from the attestation")]
+    fn a_rewritten_tcb_status_is_refused() {
+        let (mut c, mut e, p) = chain();
+        e.attestation.tcb_status = "OutOfDate".into();
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "envelope reveals a predicate the model did not attest")]
+    fn revealing_a_predicate_the_model_did_not_attest_is_refused() {
+        let (mut c, mut e, p) = chain();
+        e.predicates = vec!["airbnb_frequent".into(), "claude_spender".into(), "steam_veteran".into(), "world_id_human".into()];
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "bad TEE signature")]
+    fn an_edited_response_is_refused() {
+        let (mut c, e, mut p) = chain();
+        p.response.push(' ');
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "nullifier pending")]
+    fn the_same_near_ai_verdict_cannot_be_submitted_twice() {
+        let (mut c, e, p) = chain();
+        c.submit_near_ai_verdict(e.clone(), p.clone());
+        c.submit_near_ai_verdict(e, p);
+    }
+}

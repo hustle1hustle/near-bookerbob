@@ -4,6 +4,7 @@
 pub mod bid;
 pub mod disclosure;
 pub mod envelope;
+pub mod near_ai;
 pub mod price;
 pub mod referee;
 pub mod referee_result;
