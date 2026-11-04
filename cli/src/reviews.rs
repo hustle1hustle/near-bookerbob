@@ -120,7 +120,7 @@ pub(crate) fn confirm_payout(c: &mut Bazaar, nullifier: &str, agent: &str, amoun
         Default::default(),
         vec![near_sdk::PromiseResult::Successful(vec![])]
     );
-    if call(|| c.on_settle_transfer(nullifier.into(), acc(agent), U128(amount)))? {
+    if call(|| c.on_settle_transfer(nullifier.into(), acc(agent), U128(amount), None))? {
         Ok(())
     } else {
         Err("payout not confirmed".into())

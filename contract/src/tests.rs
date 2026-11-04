@@ -398,7 +398,7 @@ fn failed_payout_restores_escrow_and_nullifier() {
         Default::default(),
         vec![PromiseResult::Failed],
     );
-    assert!(!c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000)));
+    assert!(!c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000), None));
     assert_eq!(c.nullifier_status(n), NullifierStatus::Pending);
     assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
 }
@@ -822,7 +822,7 @@ fn failed_withdraw_restores_escrow() {
         Default::default(),
         vec![PromiseResult::Failed],
     );
-    assert!(!c.on_withdraw(acc("agent.testnet"), U128(50_000_000)));
+    assert!(!c.on_withdraw(acc("agent.testnet"), U128(50_000_000), None));
     assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
 }
 
@@ -1573,7 +1573,7 @@ fn a_purchase_joins_the_review_group_only_after_the_payout_succeeded() {
         Default::default(),
         vec![PromiseResult::Successful(vec![])],
     );
-    assert!(c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000)));
+    assert!(c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000), None));
     assert!(c.verdict(n.clone()).unwrap().paid);
     set("agent.testnet");
     c.join_review_group(n, "1".into());
@@ -1815,5 +1815,249 @@ mod evm {
         let _ = c.settle_evm(n.clone(), acc("m01.bazaar.testnet"), "order-1".into(), U128(151_200_000));
         assert_eq!(c.evm_payout(n).unwrap().nonce, 0);
         assert_eq!(super::super::evm_nonce(), 1);
+    }
+}
+
+/// Testnet demo mode: the free-mint demo token beside USDC, its own escrow, never on mainnet.
+mod demo {
+    use super::*;
+    const DUSDC: &str = "dusdc.bazaar.testnet";
+
+    fn demo_setup() -> Bazaar {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(DUSDC));
+        // The agent's escrow entry exists (USDC); a second deposit opens the demo entry.
+        let mut b = ctx("agent.testnet");
+        b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
+        testing_env!(b.build());
+        c.storage_deposit(None);
+        set(DUSDC);
+        assert_eq!(refund(c.ft_on_transfer(acc("agent.testnet"), U128(200_000_000), String::new())), 0);
+        c
+    }
+
+    fn refund(r: PromiseOrValue<U128>) -> u128 {
+        match r {
+            PromiseOrValue::Value(v) => v.0,
+            PromiseOrValue::Promise(_) => u128::MAX,
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "only USDC is accepted")]
+    fn demo_token_is_refused_before_it_is_set() {
+        let mut c = setup();
+        set(DUSDC);
+        let _ = c.ft_on_transfer(acc("agent.testnet"), U128(5), String::new());
+    }
+
+    #[test]
+    #[should_panic(expected = "demo token is testnet only")]
+    fn set_demo_token_is_refused_on_mainnet() {
+        set("owner.near");
+        let mut b = ctx("owner.near");
+        b.current_account_id(acc("bazaar.near"));
+        testing_env!(b.build());
+        let mut c = Bazaar::new(acc("owner.near"), acc(USDC));
+        c.set_demo_token(acc(DUSDC));
+    }
+
+    #[test]
+    #[should_panic(expected = "only USDC is accepted")]
+    fn a_stored_demo_token_is_still_refused_on_mainnet() {
+        // A testnet bazaar's state under a mainnet account id (the second check): refused.
+        let mut c = demo_setup();
+        let mut b = ctx(DUSDC);
+        b.current_account_id(acc("bazaar.near"));
+        testing_env!(b.build());
+        assert_eq!(c.demo_token(), None);
+        let _ = c.ft_on_transfer(acc("agent.testnet"), U128(5), String::new());
+    }
+
+    #[test]
+    #[should_panic(expected = "owner only")]
+    fn only_owner_sets_the_demo_token() {
+        let mut c = setup();
+        set_no_deposit("agent.testnet");
+        c.set_demo_token(acc(DUSDC));
+    }
+
+    #[test]
+    #[should_panic(expected = "demo token must be a .testnet account other than USDC")]
+    fn usdc_cannot_be_the_demo_token() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(USDC));
+    }
+
+    #[test]
+    fn demo_deposit_credits_demo_escrow_only() {
+        let c = demo_setup();
+        assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)), "USDC escrow unchanged");
+        assert!(get_logs().iter().any(|l| l.contains("escrow_deposit") && l.contains("\"token\":\"demo\"")));
+    }
+
+    #[test]
+    fn demo_deposit_without_a_demo_entry_is_refunded() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(DUSDC));
+        set(DUSDC);
+        assert_eq!(refund(c.ft_on_transfer(acc("agent.testnet"), U128(7), String::new())), 7);
+    }
+
+    #[test]
+    fn settle_demo_pays_the_demo_token_never_usdc() {
+        let mut c = demo_setup();
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle_demo(n.clone(), acc("m01.bazaar.testnet"), "demo-1".into(), U128(151_200_000));
+        assert_eq!(c.nullifier_status(n.clone()), NullifierStatus::Spent);
+        assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(48_800_000)));
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert_eq!(c.paid_in(n), Some("demo".into()));
+        let receipts = near_sdk::test_utils::get_created_receipts();
+        assert!(receipts.iter().any(|r| r.receiver_id.as_str() == DUSDC));
+        assert!(!receipts.iter().any(|r| r.receiver_id.as_str() == USDC));
+        assert!(get_logs().iter().any(|l| l.contains("\"event\":\"settled\"") && l.contains("\"token\":\"demo\"")));
+    }
+
+    #[test]
+    #[should_panic(expected = "nullifier spent")]
+    fn a_record_paid_in_demo_cannot_pay_again_in_usdc() {
+        let mut c = demo_setup();
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle_demo(n.clone(), acc("m01.bazaar.testnet"), "demo-1".into(), U128(151_200_000));
+        set("agent.testnet");
+        let _ = c.settle(n, acc("m01.bazaar.testnet"), "demo-2".into(), U128(151_200_000));
+    }
+
+    #[test]
+    #[should_panic(expected = "insufficient escrow")]
+    fn usdc_escrow_never_pays_a_demo_settle() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(DUSDC));
+        let mut b = ctx("agent.testnet");
+        b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
+        testing_env!(b.build());
+        c.storage_deposit(None);
+        // 200 USDC in escrow, 0 dUSDC.
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle_demo(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "demo-1".into(), U128(151_200_000));
+    }
+
+    #[test]
+    #[should_panic(expected = "insufficient escrow")]
+    fn demo_escrow_never_pays_a_usdc_settle() {
+        let mut c = demo_setup();
+        // Drain the USDC side first, keep dUSDC.
+        set("agent.testnet");
+        let mut b = ctx("agent.testnet");
+        b.attached_deposit(NearToken::from_yoctonear(1));
+        testing_env!(b.build());
+        let _ = c.withdraw(U128(200_000_000));
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "x".into(), U128(151_200_000));
+    }
+
+    #[test]
+    fn failed_demo_payout_credits_the_demo_escrow_back() {
+        let mut c = demo_setup();
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle_demo(n.clone(), acc("m01.bazaar.testnet"), "demo-1".into(), U128(151_200_000));
+        testing_env!(
+            ctx("bazaar.testnet").build(),
+            near_sdk::test_vm_config(),
+            near_sdk::RuntimeFeesConfig::test(),
+            Default::default(),
+            vec![PromiseResult::Failed],
+        );
+        assert!(!c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000), Some(true)));
+        assert_eq!(c.nullifier_status(n.clone()), NullifierStatus::Pending);
+        assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert_eq!(c.paid_in(n), None);
+    }
+
+    #[test]
+    fn demo_settle_confirmed_marks_paid_for_reviews() {
+        let mut c = demo_setup();
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let _ = c.settle_demo(n.clone(), acc("m01.bazaar.testnet"), "demo-1".into(), U128(151_200_000));
+        testing_env!(
+            ctx("bazaar.testnet").build(),
+            near_sdk::test_vm_config(),
+            near_sdk::RuntimeFeesConfig::test(),
+            Default::default(),
+            vec![PromiseResult::Successful(vec![])],
+        );
+        assert!(c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(151_200_000), Some(true)));
+        assert!(c.verdict(n).unwrap().paid);
+    }
+
+    #[test]
+    fn withdraw_demo_pays_the_demo_token_and_reverts_on_failure() {
+        let mut c = demo_setup();
+        let mut b = ctx("agent.testnet");
+        b.attached_deposit(NearToken::from_yoctonear(1));
+        testing_env!(b.build());
+        let _ = c.withdraw_demo(U128(50_000_000));
+        assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(150_000_000)));
+        assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == DUSDC));
+        testing_env!(
+            ctx("bazaar.testnet").build(),
+            near_sdk::test_vm_config(),
+            near_sdk::RuntimeFeesConfig::test(),
+            Default::default(),
+            vec![PromiseResult::Failed],
+        );
+        assert!(!c.on_withdraw(acc("agent.testnet"), U128(50_000_000), Some(true)));
+        assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+        assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)));
+    }
+
+    #[test]
+    fn one_storage_deposit_opens_both_entries_and_a_repeat_is_refunded() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(DUSDC));
+        let mut b = ctx("new.testnet");
+        b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
+        testing_env!(b.build());
+        c.storage_deposit(None);
+        assert_eq!((c.escrow_of(acc("new.testnet")), c.demo_escrow_of(acc("new.testnet"))), (Some(U128(0)), Some(U128(0))));
+        let mut b = ctx("new.testnet");
+        b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
+        testing_env!(b.build());
+        c.storage_deposit(None);
+        assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == "new.testnet"), "repeat refunded");
+    }
+
+    #[test]
+    fn review_rounds_shorten_on_testnet_only() {
+        let mut c = setup();
+        assert_eq!(c.review_round_ms(), REVIEW_ROUND_MS);
+        set_no_deposit("owner.testnet");
+        c.set_review_round_ms(600_000);
+        assert_eq!(c.review_round_ms(), 600_000);
+        assert_eq!(c.review_round_now(), NOW_MS / 600_000);
+        let mut b = ctx("owner.testnet");
+        b.current_account_id(acc("bazaar.near"));
+        testing_env!(b.build());
+        assert_eq!(c.review_round_ms(), REVIEW_ROUND_MS, "a stored value is ignored off testnet");
+    }
+
+    #[test]
+    #[should_panic(expected = "round under one minute")]
+    fn review_round_has_a_floor() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_review_round_ms(59_999);
     }
 }

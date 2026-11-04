@@ -336,6 +336,40 @@ fn evm_nonce() -> u64 {
     env::storage_read(b"evm_nonce").map(|b| u64::from_le_bytes(b.try_into().expect("u64"))).unwrap_or(0)
 }
 
+// ---------- testnet demo mode, see docs/demo-mode-plan.md ----------
+
+/// Demo mode exists only on a `.testnet` bazaar. Checked when it is switched on and again
+/// on every use, so a mainnet deploy refuses the demo token even with one stored.
+fn is_testnet() -> bool {
+    env::current_account_id().as_str().ends_with(".testnet")
+}
+
+/// The free-mint demo token (dUSDC), if the owner set one. None off testnet.
+fn demo_token() -> Option<AccountId> {
+    if !is_testnet() {
+        return None;
+    }
+    env::storage_read(b"demo_token").and_then(|b| String::from_utf8(b).ok()).and_then(|s| s.parse().ok())
+}
+
+/// Demo-token escrow, kept apart from USDC escrow: a balance in one never pays in the other.
+fn demo_escrow() -> LookupMap<AccountId, u128> {
+    LookupMap::new(b"D")
+}
+
+/// Records paid in the demo token (absent means USDC).
+fn demo_paid() -> LookupMap<String, bool> {
+    LookupMap::new(b"T")
+}
+
+/// Review round length: 24 h, or a shorter testnet-only value for the demo.
+fn review_round_ms() -> u64 {
+    if !is_testnet() {
+        return REVIEW_ROUND_MS;
+    }
+    env::storage_read(b"review_round_ms").map(|b| u64::from_le_bytes(b.try_into().expect("u64"))).unwrap_or(REVIEW_ROUND_MS)
+}
+
 #[near]
 impl Bazaar {
     #[init]
@@ -563,7 +597,45 @@ impl Bazaar {
     }
 
     pub fn review_round_now(&self) -> u64 {
-        env::block_timestamp_ms() / REVIEW_ROUND_MS
+        env::block_timestamp_ms() / review_round_ms()
+    }
+
+    pub fn review_round_ms(&self) -> u64 {
+        review_round_ms()
+    }
+
+    /// Owner, testnet only: shorter review rounds so a demo can seal, reveal and release in
+    /// minutes. At least one minute. Mainnet keeps 24 h whatever is stored.
+    pub fn set_review_round_ms(&mut self, ms: u64) {
+        self.assert_owner();
+        require!(is_testnet(), "demo settings are testnet only");
+        require!(ms >= 60_000, "round under one minute");
+        env::storage_write(b"review_round_ms", &ms.to_le_bytes());
+        emit("review_round_set", serde_json::json!({ "ms": ms }));
+    }
+
+    /// Owner, testnet only: accept `token` (the free-mint dUSDC) next to USDC, in its own
+    /// escrow. Refused on any bazaar whose account is not `.testnet`.
+    pub fn set_demo_token(&mut self, token: AccountId) {
+        self.assert_owner();
+        require!(is_testnet(), "demo token is testnet only");
+        require!(token.as_str().ends_with(".testnet") && token != self.usdc, "demo token must be a .testnet account other than USDC");
+        env::storage_write(b"demo_token", token.as_bytes());
+        emit("demo_token_set", serde_json::json!({ "token": token }));
+    }
+
+    pub fn demo_token(&self) -> Option<AccountId> {
+        demo_token()
+    }
+
+    pub fn demo_escrow_of(&self, account_id: AccountId) -> Option<U128> {
+        demo_escrow().get(&account_id).map(|b| U128(*b))
+    }
+
+    /// "demo" for a record paid in the demo token, "usdc" for one paid in USDC, None unpaid.
+    pub fn paid_in(&self, nullifier: String) -> Option<String> {
+        let r = self.verdicts.get(&nullifier)?;
+        r.spent.then(|| if demo_paid().contains_key(&nullifier) { "demo" } else { "usdc" }.to_string())
     }
 
     /// A sealed rating with a Semaphore proof of membership in the merchant's group. The
@@ -659,6 +731,8 @@ impl Bazaar {
         let (count, sealed) = (rr.revealed.len(), rr.sealed.len());
         self.review_rounds.insert(rk, rr);
         self.review_totals.insert(merchant.clone(), (n, sum, del));
+        // Released ratings seed standing on the graph: the merchant's running totals.
+        self.push_graph_event(bookerbob_graph::Event::Seed { merchant: merchant.to_string(), ratings: n, sum });
         emit("reviews_published", serde_json::json!({ "merchant": merchant, "round": round, "ratings": count, "sealed": sealed, "members": members }));
         true
     }
@@ -1073,7 +1147,9 @@ impl Bazaar {
     #[payable]
     pub fn storage_deposit(&mut self, account_id: Option<AccountId>) {
         let account = account_id.unwrap_or_else(env::predecessor_account_id);
-        if self.escrow.contains_key(&account) {
+        let mut demo = demo_escrow();
+        let open_demo = demo_token().is_some() && !demo.contains_key(&account);
+        if self.escrow.contains_key(&account) && !open_demo {
             // Already open: refund the whole deposit instead of keeping it (audit A8).
             let d = env::attached_deposit();
             if !d.is_zero() {
@@ -1081,8 +1157,15 @@ impl Bazaar {
             }
             return;
         }
+        // One deposit covers both entries (USDC and, on a testnet with a demo token, dUSDC).
         require!(env::attached_deposit() >= ESCROW_STORAGE_DEPOSIT, "attach at least 0.01 NEAR");
-        self.escrow.insert(account, 0);
+        if open_demo {
+            demo.insert(account.clone(), 0);
+            demo.flush();
+        }
+        if !self.escrow.contains_key(&account) {
+            self.escrow.insert(account, 0);
+        }
     }
 
     pub fn escrow_of(&self, account_id: AccountId) -> Option<U128> {
@@ -1093,8 +1176,18 @@ impl Bazaar {
     /// an open escrow entry; otherwise returns the full amount (the token refunds it).
     pub fn ft_on_transfer(&mut self, sender_id: AccountId, amount: U128, msg: String) -> PromiseOrValue<U128> {
         let _ = msg;
-        if env::predecessor_account_id() != self.usdc {
-            env::panic_str("only USDC is accepted");
+        let token = env::predecessor_account_id();
+        if token != self.usdc {
+            // The demo token, on a testnet bazaar only (demo_token() is None elsewhere).
+            if demo_token().as_ref() != Some(&token) {
+                env::panic_str("only USDC is accepted");
+            }
+            let mut demo = demo_escrow();
+            let Some(bal) = demo.get_mut(&sender_id) else { return PromiseOrValue::Value(amount) };
+            *bal += amount.0;
+            demo.flush();
+            emit("escrow_deposit", serde_json::json!({ "account": sender_id, "amount": amount, "token": "demo" }));
+            return PromiseOrValue::Value(U128(0));
         }
         match self.escrow.get_mut(&sender_id) {
             None => PromiseOrValue::Value(amount),
@@ -1281,17 +1374,34 @@ impl Bazaar {
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
             .ft_transfer(account.clone(), amount, Some("bookerbob:withdraw".into()))
-            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_withdraw(account, amount))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_withdraw(account, amount, None))
+    }
+
+    /// `withdraw` for the demo token's escrow.
+    #[payable]
+    pub fn withdraw_demo(&mut self, amount: U128) -> Promise {
+        near_sdk::assert_one_yocto();
+        let token = demo_token().unwrap_or_else(|| env::panic_str("no demo token"));
+        let account = env::predecessor_account_id();
+        let mut demo = demo_escrow();
+        let bal = demo.get_mut(&account).unwrap_or_else(|| env::panic_str("no escrow"));
+        require!(amount.0 > 0 && *bal >= amount.0, "insufficient escrow");
+        *bal -= amount.0;
+        demo.flush();
+        emit("escrow_withdraw", serde_json::json!({ "account": account, "amount": amount, "token": "demo" }));
+        ext_ft::ext(token)
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(account.clone(), amount, Some("bookerbob:withdraw".into()))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_withdraw(account, amount, Some(true)))
     }
 
     #[private]
-    pub fn on_withdraw(&mut self, account: AccountId, amount: U128) -> bool {
+    pub fn on_withdraw(&mut self, account: AccountId, amount: U128, demo: Option<bool>) -> bool {
         if env::promise_result_checked(0, 64).is_ok() {
             return true;
         }
-        if let Some(bal) = self.escrow.get_mut(&account) {
-            *bal += amount.0;
-        }
+        self.credit(&account, amount.0, demo.unwrap_or(false));
         emit("withdraw_reverted", serde_json::json!({ "account": account, "amount": amount }));
         false
     }
@@ -1306,18 +1416,42 @@ impl Bazaar {
     /// `ft_transfer` to the merchant payout is scheduled. If the transfer fails, the
     /// callback restores escrow and the nullifier.
     pub fn settle(&mut self, nullifier: String, merchant: AccountId, checkout_ref: String, amount: U128) -> Promise {
-        let (m, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "near");
+        let (m, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "near", false);
         ext_ft::ext(self.usdc.clone())
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
             .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
-            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price)))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), None))
+    }
+
+    /// `settle` paid from the demo-token escrow, in the demo token (testnet only). Same
+    /// checks, same receipt, same nullifier burn: a record pays once, in one token.
+    pub fn settle_demo(&mut self, nullifier: String, merchant: AccountId, checkout_ref: String, amount: U128) -> Promise {
+        let token = demo_token().unwrap_or_else(|| env::panic_str("no demo token"));
+        let (m, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "near", true);
+        ext_ft::ext(token)
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), Some(true)))
+    }
+
+    fn credit(&mut self, account: &AccountId, amount: u128, demo: bool) {
+        if demo {
+            let mut d = demo_escrow();
+            if let Some(bal) = d.get_mut(account) {
+                *bal += amount;
+            }
+            d.flush();
+        } else if let Some(bal) = self.escrow.get_mut(account) {
+            *bal += amount;
+        }
     }
 
     /// Every check a payout needs, then the escrow debit and the nullifier burn, in one
     /// place for both paths. One payout per receipt: a spent record cannot pay again,
     /// whichever path paid it.
-    fn take_payment(&mut self, nullifier: &str, merchant: &AccountId, checkout_ref: &str, amount: U128, path: &str) -> (Merchant, u128, AccountId) {
+    fn take_payment(&mut self, nullifier: &str, merchant: &AccountId, checkout_ref: &str, amount: U128, path: &str, demo: bool) -> (Merchant, u128, AccountId) {
         require!(!checkout_ref.is_empty() && checkout_ref.len() <= 128, "bad checkout_ref");
         let agent = env::predecessor_account_id();
         let m = self.merchants.get(merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
@@ -1333,9 +1467,20 @@ impl Bazaar {
         };
         require!(amount.0 == price, "amount differs from quote");
         require!(price <= record.max_spend.0, "over verdict cap");
-        let bal = self.escrow.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
-        require!(*bal >= price, "insufficient escrow");
-        *bal -= price;
+        if demo {
+            let mut d = demo_escrow();
+            let bal = d.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
+            require!(*bal >= price, "insufficient escrow");
+            *bal -= price;
+            d.flush();
+            let mut t = demo_paid();
+            t.insert(nullifier.to_string(), true);
+            t.flush();
+        } else {
+            let bal = self.escrow.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
+            require!(*bal >= price, "insufficient escrow");
+            *bal -= price;
+        }
         self.verdicts.flush();
         let before = env::storage_usage();
         let record = self.verdicts.get_mut(nullifier).expect("checked above");
@@ -1352,6 +1497,7 @@ impl Bazaar {
                 "amount": U128(price),
                 "checkout_ref": checkout_ref,
                 "path": path,
+                "token": if demo { "demo" } else { "usdc" },
             }),
         );
         (m, price, agent)
@@ -1387,7 +1533,7 @@ impl Bazaar {
     pub fn settle_evm(&mut self, nullifier: String, merchant: AccountId, checkout_ref: String, amount: U128) -> Promise {
         let to_hex = evm_addresses().get(&merchant).cloned().unwrap_or_else(|| env::panic_str("merchant has no EVM payout address"));
         let to = bookerbob_core::evm::parse_address(&to_hex).expect("stored address is valid");
-        let (_, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "evm");
+        let (_, price, agent) = self.take_payment(&nullifier, &merchant, &checkout_ref, amount, "evm", false);
         let nonce = evm_nonce();
         env::storage_write(b"evm_nonce", &(nonce + 1).to_le_bytes());
         let hash = bookerbob_core::evm::payout_hash(&to, price, nonce);
@@ -1429,27 +1575,30 @@ impl Bazaar {
             None => {
                 payouts.remove(&nullifier);
                 payouts.flush();
-                self.on_settle_rollback(&nullifier, &agent, amount);
+                self.on_settle_rollback(&nullifier, &agent, amount, false);
                 false
             }
         }
     }
 
     #[private]
-    pub fn on_settle_transfer(&mut self, nullifier: String, agent: AccountId, amount: U128) -> bool {
+    pub fn on_settle_transfer(&mut self, nullifier: String, agent: AccountId, amount: U128, demo: Option<bool>) -> bool {
         if env::promise_result_checked(0, 64).is_ok() {
             if let Some(r) = self.verdicts.get_mut(&nullifier) {
                 r.paid = true;
             }
             return true;
         }
-        self.on_settle_rollback(&nullifier, &agent, amount);
+        self.on_settle_rollback(&nullifier, &agent, amount, demo.unwrap_or(false));
         false
     }
 
-    fn on_settle_rollback(&mut self, nullifier: &str, agent: &AccountId, amount: U128) {
-        if let Some(bal) = self.escrow.get_mut(agent) {
-            *bal += amount.0;
+    fn on_settle_rollback(&mut self, nullifier: &str, agent: &AccountId, amount: U128, demo: bool) {
+        self.credit(agent, amount.0, demo);
+        if demo {
+            let mut t = demo_paid();
+            t.remove(nullifier);
+            t.flush();
         }
         if let Some(r) = self.verdicts.get_mut(nullifier) {
             r.spent = false;
