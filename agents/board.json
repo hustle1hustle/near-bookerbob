@@ -15,6 +15,7 @@
           "rank": 1,
           "merchant": "m01.bookerbob.testnet",
           "persona": "shopify test store via UCP (the store the demo buys from)",
+          "source": "shopify-ucp",
           "bid_commitment": "db10d8a372669dda7b70cb5ff9335aff291c8de429dfbfc15528e051e20edea2",
           "base_price": "48000000",
           "lines": [
@@ -30,6 +31,7 @@
           "rank": 2,
           "merchant": "m08.bookerbob.testnet",
           "persona": "verified humans only discount",
+          "source": "config",
           "bid_commitment": "215a60bf7cccab178d331ce9e20e867967a7aaa4fe27c16657e8e450da9b1c28",
           "base_price": "47000000",
           "lines": [
@@ -42,6 +44,7 @@
           "rank": 3,
           "merchant": "m03.bookerbob.testnet",
           "persona": "travel bundle, likes frequent flyers",
+          "source": "config",
           "bid_commitment": "98449475025917a0ad8f419852ce241af862d8051d9bba68b1f8d20fce8fdd07",
           "base_price": "50000000",
           "lines": [
@@ -55,6 +58,7 @@
           "rank": 4,
           "merchant": "m19.bookerbob.testnet",
           "persona": "conference merch",
+          "source": "config",
           "bid_commitment": "99217cd3d65de4c0084c4094b1ea8a4cf6641c78d37caca2bb054742cd1fa5b4",
           "base_price": "46500000",
           "lines": [
@@ -68,6 +72,7 @@
           "rank": 5,
           "merchant": "m09.bookerbob.testnet",
           "persona": "flat small stack",
+          "source": "config",
           "bid_commitment": "ee6567952efef01c51e59a9701435513183e70540efbc5509cb6d99f381db55e",
           "base_price": "45000000",
           "lines": [
@@ -82,6 +87,7 @@
           "rank": 6,
           "merchant": "m22.bookerbob.testnet",
           "persona": "second-hand vintage",
+          "source": "config",
           "bid_commitment": "d3d5714eb27843ae37cd5f3724243797cec121e9123cb5827096caf2aa6b7851",
           "base_price": "41000000",
           "lines": [],
@@ -92,6 +98,7 @@
           "rank": 7,
           "merchant": "m06.bookerbob.testnet",
           "persona": "ai lab swag, loves claude spenders",
+          "source": "config",
           "bid_commitment": "b6f1fc4abbeaf85d9ba8b0addf04e5fff407abea01fca602fe90af28c686cb14",
           "base_price": "52000000",
           "lines": [
@@ -105,6 +112,7 @@
           "rank": 8,
           "merchant": "m13.bookerbob.testnet",
           "persona": "eco brand, humans first",
+          "source": "config",
           "bid_commitment": "4daa4dfc4909d03ef7f1eacdae66945c312df1696c4d07aae4b0fa41a46b3480",
           "base_price": "48500000",
           "lines": [
@@ -118,6 +126,7 @@
           "rank": 9,
           "merchant": "m02.bookerbob.testnet",
           "persona": "budget basics, booking travellers only",
+          "source": "config",
           "bid_commitment": "7a4faccc4236332af4ca96503573628055f6f10833e0c4f4e94715c571ce58f6",
           "base_price": "42000000",
           "lines": [],
@@ -128,6 +137,7 @@
           "rank": 10,
           "merchant": "m18.bookerbob.testnet",
           "persona": "boutique, cap 10%",
+          "source": "config",
           "bid_commitment": "1d703a8c5cf98950e243178a6725e38d816a8bd10a0fcc42e8ac35a208f2052d",
           "base_price": "47500000",
           "lines": [
@@ -140,6 +150,7 @@
           "rank": 11,
           "merchant": "m16.bookerbob.testnet",
           "persona": "discount warehouse",
+          "source": "config",
           "bid_commitment": "a4925614f3c7714d5532c8b2bd00a5a61b4b69bf9a84f116dbf31368a5e59783",
           "base_price": "43500000",
           "lines": [],
@@ -150,6 +161,7 @@
           "rank": 12,
           "merchant": "m17.bookerbob.testnet",
           "persona": "loyalty club, rewards everything a little",
+          "source": "config",
           "bid_commitment": "af85bd08b951e9d1c6bde62c3cf8a5fcb5a4cd289e36fdbf960157f353341501",
           "base_price": "49500000",
           "lines": [
@@ -164,6 +176,7 @@
           "rank": 13,
           "merchant": "m05.bookerbob.testnet",
           "persona": "commuter wear, rewards uber regulars",
+          "source": "config",
           "bid_commitment": "f64fde8cd174f089dce3f64222239a9546a385226f078c4d5888fa9c13ac157c",
           "base_price": "44000000",
           "lines": [],
@@ -174,6 +187,7 @@
           "rank": 14,
           "merchant": "m11.bookerbob.testnet",
           "persona": "nomad outfitter",
+          "source": "config",
           "bid_commitment": "aa524dcfdfaf861550ed68c869c3c8495f513f9c60524701f81b1d041f9ab1c7",
           "base_price": "49000000",
           "lines": [
@@ -186,6 +200,7 @@
           "rank": 15,
           "merchant": "m14.bookerbob.testnet",
           "persona": "developer hoodie co",
+          "source": "config",
           "bid_commitment": "e31e35456bc174e8e52e2a311994d0aa805d7c1351e102a68c016a39718c21e0",
           "base_price": "50500000",
           "lines": [
@@ -198,6 +213,7 @@
           "rank": 16,
           "merchant": "m10.bookerbob.testnet",
           "persona": "high base, deep stack, tight cap",
+          "source": "config",
           "bid_commitment": "12ac2a133e6b712c8659745a7368afae9e89c951eed0d7eeb567815d8c086709",
           "base_price": "60000000",
           "lines": [
@@ -212,6 +228,7 @@
           "rank": 17,
           "merchant": "m21.bookerbob.testnet",
           "persona": "late night pop-up",
+          "source": "config",
           "bid_commitment": "11e1120ae6ea0f3c713a38831ca6bc194e80ced875427018247236dc33ac8e06",
           "base_price": "45500000",
           "lines": [],
@@ -222,6 +239,7 @@
           "rank": 18,
           "merchant": "m04.bookerbob.testnet",
           "persona": "gamer merch, rewards long steam accounts",
+          "source": "config",
           "bid_commitment": "46e4f4e96d6fb91723a1117892890577e5892cd50c02ffe451f31184201b6740",
           "base_price": "46000000",
           "lines": [],
@@ -232,6 +250,7 @@
           "rank": 19,
           "merchant": "m20.bookerbob.testnet",
           "persona": "outdoor gear",
+          "source": "config",
           "bid_commitment": "69524aeb1829aba53a8ed21ffea109944db72cd6c0a68f4ec829d04bd16507b0",
           "base_price": "54000000",
           "lines": [
@@ -244,6 +263,7 @@
           "rank": 20,
           "merchant": "m15.bookerbob.testnet",
           "persona": "airport kiosk",
+          "source": "config",
           "bid_commitment": "66a44890c6ce4cd1ee70ba008e14379a97fe719ef7e480822e65fbc2aa50b7ad",
           "base_price": "53000000",
           "lines": [
@@ -256,6 +276,7 @@
           "rank": 21,
           "merchant": "m12.bookerbob.testnet",
           "persona": "streetwear drop",
+          "source": "config",
           "bid_commitment": "b671f839dac3924780534579410f3ba141ea0567dcf13572d2d23945aea3fdfa",
           "base_price": "51000000",
           "lines": [],
@@ -266,6 +287,7 @@
           "rank": 22,
           "merchant": "m07.bookerbob.testnet",
           "persona": "premium cotton, no discounts",
+          "source": "config",
           "bid_commitment": "90e4890afad2631005e5669d7c41ecd5ae538d65e14c17065e02cd407487d21a",
           "base_price": "55000000",
           "lines": [],
@@ -276,107 +298,163 @@
       "winner": "m01.bookerbob.testnet"
     },
     {
-      "category": "hotel-lisbon-2n",
+      "category": "hotel-lisbon",
       "rows": [
         {
           "rank": 1,
-          "merchant": "h05.bookerbob.testnet",
-          "persona": "hostel private room",
-          "bid_commitment": "6eda23e5b677c22788b4fdaf73d0b4ecec32779ba593eaf69331ff4916a44a5b",
-          "base_price": "120000000",
-          "lines": [],
-          "discount_bps": 0,
-          "price": "120000000"
-        },
-        {
-          "rank": 2,
           "merchant": "h08.bookerbob.testnet",
-          "persona": "verified-guest rate",
-          "bid_commitment": "324cb1a787b27a1d54af05ac61a058b87d1ed59b8af766ea0674f41fbf933174",
-          "base_price": "185000000",
+          "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Daily Breakfast",
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)",
+            "USD100 Hotel Credit"
+          ],
+          "bid_commitment": "76b3f82288b2736c95f80504d801b7f72f5154fa4275cca088f2985565ae971e",
+          "base_price": "669000000",
           "lines": [
             "-1500bps world_id_human",
             "-500bps airbnb_frequent",
             "-700bps group k=6 world_id_human"
           ],
           "discount_bps": 2700,
-          "price": "135050000"
+          "price": "488370000"
+        },
+        {
+          "rank": 2,
+          "merchant": "h05.bookerbob.testnet",
+          "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Daily Breakfast",
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)",
+            "Welcome Amenity",
+            "USD100 Hotel Credit"
+          ],
+          "bid_commitment": "846d1efc2d0fba4b807c00fb745cbd40e10f702ffa6d894260d6237777ff9543",
+          "base_price": "510000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "510000000"
         },
         {
           "rank": 3,
+          "merchant": "h07.bookerbob.testnet",
+          "persona": "The One Palacio Da Anunciada, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 277/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Daily Breakfast",
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)",
+            "USD100 Hotel Credit"
+          ],
+          "bid_commitment": "345f12bb434ac55dd042919ad1fc9129e1c488ad1e2f098e518f2308aeb8f0ae",
+          "base_price": "831000000",
+          "lines": [
+            "-500bps airbnb_frequent"
+          ],
+          "discount_bps": 500,
+          "price": "789450000"
+        },
+        {
+          "rank": 4,
+          "merchant": "h02.bookerbob.testnet",
+          "persona": "Memmo Principe Real, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 336/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Daily Breakfast",
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)",
+            "Suite Benefit"
+          ],
+          "bid_commitment": "a4c4bac11de4ad1ad98820bec3839f8f7eaca6cae005565738c8842b8d221600",
+          "base_price": "1008000000",
+          "lines": [
+            "-800bps airbnb_frequent"
+          ],
+          "discount_bps": 800,
+          "price": "927360000"
+        },
+        {
+          "rank": 5,
           "merchant": "h06.bookerbob.testnet",
-          "persona": "riverside apartments",
-          "bid_commitment": "1b9cdab23f3f2fd188350cb4197c8b794462768e9727fb8edcae12c9932673da",
-          "base_price": "175000000",
+          "persona": "Pestana Palace Lisboa, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 435/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Daily Breakfast",
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)"
+          ],
+          "bid_commitment": "41b2a955082ff9be407ad714e1e5326a04817cdd7ece7515e275fa4e3fbc05c5",
+          "base_price": "1305000000",
           "lines": [
             "-1500bps airbnb_frequent",
             "-500bps world_id_human"
           ],
           "discount_bps": 1800,
-          "price": "143500000"
-        },
-        {
-          "rank": 4,
-          "merchant": "h02.bookerbob.testnet",
-          "persona": "alfama guesthouse",
-          "bid_commitment": "39bec2e83f63e35449425991d989722ec4f4634da2464fca680c40a4751ed608",
-          "base_price": "165000000",
-          "lines": [
-            "-800bps airbnb_frequent"
-          ],
-          "discount_bps": 800,
-          "price": "151800000"
-        },
-        {
-          "rank": 5,
-          "merchant": "h01.bookerbob.testnet",
-          "persona": "jmpr hotel desk (stub: bids from hotel_search / hotel_room_rate rates only, never books)",
-          "bid_commitment": "4c8a41ff0a41128f52dc1c2c465d19fb2f1b6680412ac47940b8e59f662dad3b",
-          "base_price": "180000000",
-          "lines": [
-            "-1000bps airbnb_frequent",
-            "-500bps world_id_human"
-          ],
-          "discount_bps": 1500,
-          "price": "153000000"
+          "price": "1070100000"
         },
         {
           "rank": 6,
-          "merchant": "h07.bookerbob.testnet",
-          "persona": "chain hotel, small stack",
-          "bid_commitment": "6e5d32a7ce766edf987ce31bdb659be9f5d157387398fcf9d0d0d65d1c9c7ba1",
-          "base_price": "190000000",
-          "lines": [
-            "-500bps airbnb_frequent"
+          "merchant": "h03.bookerbob.testnet",
+          "persona": "Olissippo Lapa Palace, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 373/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Welcome Amenity",
+            "USD100 Restaurant Credit"
           ],
-          "discount_bps": 500,
-          "price": "180500000"
+          "bid_commitment": "f5f6e5ece92a896e475a6ed861a49a3a2c1ac22f5b5f6cae8b6f6a07b0d5998b",
+          "base_price": "1119000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "1119000000"
         },
         {
           "rank": 7,
           "merchant": "h04.bookerbob.testnet",
-          "persona": "design hotel",
-          "bid_commitment": "33b0672b36e24348821ea9dfad97f47ba176dbfb6bab0b1ec8ca6759b0ddc9b2",
-          "base_price": "230000000",
+          "persona": "Valverde Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. elite 484/night x 3, before tax (no base rate)",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)",
+            "Free pick up and drop off service"
+          ],
+          "bid_commitment": "0ac78a3c1a23a3e4e6572b3b627f2237590be86fb3814bd8443fffc5f6a30cef",
+          "base_price": "1452000000",
           "lines": [
             "-1000bps claude_spender",
             "-1000bps world_id_human"
           ],
           "discount_bps": 2000,
-          "price": "184000000"
+          "price": "1161600000"
         },
         {
           "rank": 8,
-          "merchant": "h03.bookerbob.testnet",
-          "persona": "business hotel, rewards booking genius",
-          "bid_commitment": "b9e38397de2f22c2ca9a8d2378a0d0c271863f9a8001b7feaccdde75f52a7527",
-          "base_price": "210000000",
-          "lines": [],
-          "discount_bps": 0,
-          "price": "210000000"
+          "merchant": "h01.bookerbob.testnet",
+          "persona": "Bairro Alto Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 531/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "USD100 Restaurant Credit"
+          ],
+          "bid_commitment": "5cdb810ed3d9248a77e227c31c20a41579ec190bc90578ad63365e308c5ab452",
+          "base_price": "1593000000",
+          "lines": [
+            "-1000bps airbnb_frequent",
+            "-500bps world_id_human"
+          ],
+          "discount_bps": 1500,
+          "price": "1354050000"
         }
       ],
-      "winner": "h05.bookerbob.testnet"
+      "winner": "h08.bookerbob.testnet"
     }
   ],
   "disclosure": {
@@ -406,6 +484,61 @@
     "price": "36000000",
     "saved": "12000000"
   },
+  "disclosures": [
+    {
+      "category": "hoodie",
+      "max_bits": 3,
+      "plan": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "per_bit": [
+        {
+          "predicate": "airbnb_frequent",
+          "saved": "960000"
+        },
+        {
+          "predicate": "claude_spender",
+          "saved": "3360000"
+        },
+        {
+          "predicate": "world_id_human",
+          "saved": "4800000"
+        }
+      ],
+      "revealed_bits": 3,
+      "base_price": "48000000",
+      "price": "36000000",
+      "saved": "12000000"
+    },
+    {
+      "category": "hotel-lisbon",
+      "max_bits": 3,
+      "plan": [
+        "airbnb_frequent",
+        "world_id_human"
+      ],
+      "per_bit": [
+        {
+          "predicate": "airbnb_frequent",
+          "saved": "21630000"
+        },
+        {
+          "predicate": "claude_spender",
+          "saved": "0"
+        },
+        {
+          "predicate": "world_id_human",
+          "saved": "21630000"
+        }
+      ],
+      "revealed_bits": 3,
+      "base_price": "669000000",
+      "price": "488370000",
+      "saved": "180630000"
+    }
+  ],
   "receipts": [
     {
       "label": "honest claims",

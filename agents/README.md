@@ -14,9 +14,11 @@
 - Merchants see only revealed predicate names. Facts go only to the buyer's agent.
 - Round 1 is blind: `sha256("bookerbob/bid/v0\0" || account || 0 || json(schedule) || salt)`. Round 2 reveals and the contract rejects a schedule that does not validate.
 
-## JMPR (`h01`) and real hotel rates
+## JMPR and real hotel rates
 
-Today the hotel base prices are config, labelled `jmpr-stub`. To use real rates: in a
+Since 2026-11-04 the hotel base prices come from **JMPR rates, 2026-11-04, comparison
+prices** (`fixtures/live/jmpr-lisbon-rates.json`, applied with the converter below). To
+refresh them: in a
 session that has the JMPR MCP, call `hotel_search` for one city and dates and
 `hotel_room_rate` for up to 8 hotels (read-only; never `prebook_hotel` or `book_hotel`),
 save `fixtures/live/jmpr-rates.json` in the shape documented in

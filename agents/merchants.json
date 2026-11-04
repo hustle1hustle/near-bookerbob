@@ -436,11 +436,11 @@
   },
   {
     "account": "h01.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "jmpr hotel desk (stub: bids from hotel_search / hotel_room_rate rates only, never books)",
-    "source": "jmpr-stub",
+    "category": "hotel-lisbon",
+    "persona": "Bairro Alto Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 531/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "180000000",
+      "base_price": "1593000000",
       "rules": [
         {
           "predicate": "airbnb_frequent",
@@ -456,15 +456,18 @@
         }
       ],
       "cap_bps": 2000
-    }
+    },
+    "perks": [
+      "USD100 Restaurant Credit"
+    ]
   },
   {
     "account": "h02.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "alfama guesthouse",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "Memmo Principe Real, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 336/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "165000000",
+      "base_price": "1008000000",
       "rules": [
         {
           "predicate": "airbnb_frequent",
@@ -472,15 +475,22 @@
         }
       ],
       "cap_bps": 800
-    }
+    },
+    "perks": [
+      "Daily Breakfast",
+      "Room upgrade (subject to availability)",
+      "Early Check In (subject to availability)",
+      "Late Check Out (subject to availability)",
+      "Suite Benefit"
+    ]
   },
   {
     "account": "h03.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "business hotel, rewards booking genius",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "Olissippo Lapa Palace, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 373/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "210000000",
+      "base_price": "1119000000",
       "rules": [
         {
           "predicate": "booking_genius",
@@ -492,15 +502,19 @@
         }
       ],
       "cap_bps": 2000
-    }
+    },
+    "perks": [
+      "Welcome Amenity",
+      "USD100 Restaurant Credit"
+    ]
   },
   {
     "account": "h04.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "design hotel",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "Valverde Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. elite 484/night x 3, before tax (no base rate)",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "230000000",
+      "base_price": "1452000000",
       "rules": [
         {
           "predicate": "claude_spender",
@@ -512,26 +526,40 @@
         }
       ],
       "cap_bps": 2000
-    }
+    },
+    "perks": [
+      "Room upgrade (subject to availability)",
+      "Early Check In (subject to availability)",
+      "Late Check Out (subject to availability)",
+      "Free pick up and drop off service"
+    ]
   },
   {
     "account": "h05.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "hostel private room",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "120000000",
+      "base_price": "510000000",
       "rules": [],
       "cap_bps": 0
-    }
+    },
+    "perks": [
+      "Daily Breakfast",
+      "Room upgrade (subject to availability)",
+      "Early Check In (subject to availability)",
+      "Late Check Out (subject to availability)",
+      "Welcome Amenity",
+      "USD100 Hotel Credit"
+    ]
   },
   {
     "account": "h06.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "riverside apartments",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "Pestana Palace Lisboa, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 435/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "175000000",
+      "base_price": "1305000000",
       "rules": [
         {
           "predicate": "airbnb_frequent",
@@ -543,15 +571,21 @@
         }
       ],
       "cap_bps": 1800
-    }
+    },
+    "perks": [
+      "Daily Breakfast",
+      "Room upgrade (subject to availability)",
+      "Early Check In (subject to availability)",
+      "Late Check Out (subject to availability)"
+    ]
   },
   {
     "account": "h07.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "chain hotel, small stack",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "The One Palacio Da Anunciada, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 277/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "190000000",
+      "base_price": "831000000",
       "rules": [
         {
           "predicate": "booking_genius",
@@ -567,15 +601,22 @@
         }
       ],
       "cap_bps": 1500
-    }
+    },
+    "perks": [
+      "Daily Breakfast",
+      "Room upgrade (subject to availability)",
+      "Early Check In (subject to availability)",
+      "Late Check Out (subject to availability)",
+      "USD100 Hotel Credit"
+    ]
   },
   {
     "account": "h08.bookerbob.testnet",
-    "category": "hotel-lisbon-2n",
-    "persona": "verified-guest rate",
-    "source": "config",
+    "category": "hotel-lisbon",
+    "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
+    "source": "JMPR rates, 2026-11-04, comparison prices",
     "schedule": {
-      "base_price": "185000000",
+      "base_price": "669000000",
       "rules": [
         {
           "predicate": "world_id_human",
@@ -592,6 +633,13 @@
         "k_min": 5,
         "bps": 700
       }
-    }
+    },
+    "perks": [
+      "Daily Breakfast",
+      "Room upgrade (subject to availability)",
+      "Early Check In (subject to availability)",
+      "Late Check Out (subject to availability)",
+      "USD100 Hotel Credit"
+    ]
   }
 ]

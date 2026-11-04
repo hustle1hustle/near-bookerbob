@@ -106,13 +106,22 @@ const usd = (s) => "$" + (Number(BigInt(s) / 10000n) / 100).toFixed(2);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 async function load(p) { try { const r = await fetch(p); return r.ok ? r.json() : null; } catch { return null; } }
 
+let BOARD = null;
+function counter(category) {
+  const d = (BOARD.disclosures ?? []).find((x) => x.category === category) ?? BOARD.disclosure;
+  const el = document.getElementById("counter");
+  if (!d || !el) return;
+  el.innerHTML = `<div class="big">revealed ${d.revealed_bits} bits, saved ${usd(d.saved)}</div><div class="tag">${esc(d.category)}: ${usd(d.base_price)} base, pays ${usd(d.price)}${d.max_bits ? `, budget ${d.max_bits} bits` : ""}</div>
+      ${(d.per_bit ?? []).length ? `<div class="bits">${d.per_bit.map((b) => `<div><span>${esc(b.predicate)}</span><span>${usd(b.saved)}</span></div>`).join("")}<div class="tag">what each bit saved against the best price without it</div></div>` : ""}`;
+}
 function bids(cat, pitches) {
+  if (BOARD) counter(cat.category);
   document.getElementById("title").textContent = `bids, ${cat.category}, ${cat.rows.length} agents`;
   document.getElementById("bids").innerHTML =
     `<tr><th>#</th><th>merchant agent</th><th class="num">base</th><th class="num">disc</th><th class="num">price</th><th>discount lines (code)</th></tr>` +
     cat.rows.slice(0, 10).map((r) => `<tr class="${r.rank === 1 ? "win" : ""}">
       <td class="rank">${r.rank}</td>
-      <td class="agent"><span class="who">${esc(r.merchant.split(".")[0])}</span> <span class="bid">bid ${esc(r.bid_commitment.slice(0, 12))}</span><div class="pitch">${esc(pitches[r.merchant] || r.persona)}</div></td>
+      <td class="agent"><span class="who">${esc(r.merchant.split(".")[0])}</span> <span class="bid">bid ${esc(r.bid_commitment.slice(0, 12))}</span><div class="pitch">${esc((r.source === "config" && pitches[r.merchant]) || r.persona)}</div>${r.perks?.length ? `<div class="pitch">perks: ${esc(r.perks.join(", "))}</div>` : ""}${r.source.startsWith("JMPR") ? `<div class="bid">${esc(r.source)}</div>` : ""}</td>
       <td class="num">${usd(r.base_price)}</td>
       <td class="num">${(r.discount_bps / 100).toFixed(1)}%</td>
       <td class="num price">${usd(r.price)}</td>
@@ -122,10 +131,12 @@ function bids(cat, pitches) {
 
 (async () => {
   const board = await load("board.json");
+  BOARD = board;
   const live = await load("out/live-run.json");
   if (!board) { document.getElementById("buyer").textContent = "board.json not found. run make swarm"; return; }
   const pitches = live?.pitches ?? {};
   const tabs = document.getElementById("tabs");
+  if (location.hash.startsWith("#tab-")) board.disclosure = { category: decodeURIComponent(location.hash.slice(5)) };
   board.categories.forEach((c, i) => {
     const b = document.createElement("button");
     b.textContent = c.category;
@@ -133,15 +144,15 @@ function bids(cat, pitches) {
     if (i === 0) b.classList.add("on");
     tabs.appendChild(b);
   });
-  bids(board.categories.find((c) => c.category === board.disclosure?.category) ?? board.categories[0], pitches);
-
-  const b = board.buyer, d = board.disclosure;
+  const b = board.buyer;
   document.getElementById("buyer").innerHTML = `
     <div class="slot"><b>no name, no history</b>merchants see a commitment<br>and the bits revealed for a discount</div>
     <div class="k">k=${b.cohort_k}<small>${esc(b.group_unlock)}: buyers in this cohort</small></div>
-    ${d ? `<div class="counter"><div class="big">revealed ${d.revealed_bits} bits, saved ${usd(d.saved)}</div><div class="tag">${usd(d.base_price)} base, pays ${usd(d.price)}${d.max_bits ? `, budget ${d.max_bits} bits` : ""}</div>
-      ${(d.per_bit ?? []).length ? `<div class="bits">${d.per_bit.map((b) => `<div><span>${esc(b.predicate)}</span><span>${usd(b.saved)}</span></div>`).join("")}<div class="tag">what each bit saved against the best price without it</div></div>` : ""}</div>` : ""}
+    <div class="counter" id="counter"></div>
     <div class="kv">commitment<br>${esc(b.verdict_commitment)}</div>`;
+  const first = board.categories.find((c) => c.category === board.disclosure?.category) ?? board.categories[0];
+  [...tabs.children].forEach((x) => x.classList.toggle("on", x.textContent === first.category));
+  bids(first, pitches);
 
   document.getElementById("asks").innerHTML = (board.asks ?? []).map((a) => `<div class="ask">
       <div class="q">${esc(a.merchant.split(".")[0])}: "${esc(a.text)}"</div>

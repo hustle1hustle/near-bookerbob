@@ -29,6 +29,9 @@ pub struct SwarmMerchant {
     pub persona: String,
     pub source: String,
     pub schedule: Schedule,
+    /// Perks as text (JMPR elite perks); shown, never priced.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub perks: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -36,6 +39,9 @@ pub struct BoardRow {
     pub rank: usize,
     pub merchant: String,
     pub persona: String,
+    pub source: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub perks: Vec<String>,
     pub bid_commitment: String,
     pub base_price: String,
     pub lines: Vec<String>,
@@ -58,6 +64,9 @@ pub struct Board {
     pub categories: Vec<CategoryBoard>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub disclosure: Option<Disclosure>,
+    /// The same counter for every category (the purchase is `disclosure`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub disclosures: Vec<Disclosure>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub receipts: Vec<ReceiptRow>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -197,6 +206,8 @@ pub fn build(
             rank: 0,
             merchant: m.account.clone(),
             persona: m.persona.clone(),
+            source: m.source.clone(),
+            perks: m.perks.clone(),
             bid_commitment: commit.clone(),
             base_price: q.base_price.to_string(),
             lines: q
@@ -226,7 +237,7 @@ pub fn build(
     let buy = categories.iter().find(|c| c.category == "hoodie").or(categories.first());
     let derived: Vec<String> = extras.proofs.as_ref().map(|p| bookerbob_core::derive(p).predicates()).unwrap_or_default();
     let others = |p: &str| peers.iter().filter(|v| v.envelope.context == ctx && v.envelope.predicates.iter().any(|q| q == p)).count() as u32;
-    let disclosure = buy.map(|cat| {
+    let disclose = |cat: &CategoryBoard| {
         let w = &cat.rows[0];
         let (base, price): (u128, u128) = (w.base_price.parse().unwrap(), w.price.parse().unwrap());
         let in_cat: Vec<(String, Schedule)> = merchants.iter().filter(|m| m.category == cat.category).map(|m| (m.account.clone(), m.schedule.clone())).collect();
@@ -235,13 +246,26 @@ pub fn build(
             category: cat.category.clone(),
             max_bits: extras.policy.map(|p| p.max_bits),
             plan: plan.as_ref().map(|p| p.revealed.clone()).unwrap_or_default(),
-            per_bit: plan.map(|p| p.per_bit).unwrap_or_default(),
+            // What each actually revealed bit saved in this category.
+            per_bit: {
+                let rev = &verdict.envelope.predicates;
+                let with = bookerbob_core::disclosure::best_price(&in_cat, rev, &others).map(|x| x.1).unwrap_or(0);
+                rev.iter()
+                    .map(|p| {
+                        let without: Vec<String> = rev.iter().filter(|q| *q != p).cloned().collect();
+                        let w = bookerbob_core::disclosure::best_price(&in_cat, &without, &others).map(|x| x.1).unwrap_or(0);
+                        bookerbob_core::disclosure::BitSaving { predicate: p.clone(), saved: w.saturating_sub(with) }
+                    })
+                    .collect()
+            },
             revealed_bits: verdict.envelope.predicates.len(),
             base_price: base.to_string(),
             price: price.to_string(),
             saved: (base - price).to_string(),
         }
-    });
+    };
+    let disclosure = buy.map(disclose);
+    let disclosures: Vec<Disclosure> = categories.iter().map(disclose).collect();
     if let (Some(d), Some(_)) = (&disclosure, &extras.policy) {
         if d.plan != verdict.envelope.predicates {
             return Err(format!("budget plan {:?} differs from the verdict's revealed bits {:?}", d.plan, verdict.envelope.predicates));
@@ -277,6 +301,7 @@ pub fn build(
         },
         categories,
         disclosure,
+        disclosures,
         receipts,
         asks,
     })
@@ -309,12 +334,12 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     };
     println!("board: {} merchant agents, blind commit then reveal", board.merchants);
     println!("buyer: commitment {}..  revealed {} bits  {}", &board.buyer.verdict_commitment[..12], board.buyer.revealed_bits, board.buyer.group_unlock);
-    if let Some(d) = &board.disclosure {
-        println!("disclosure: revealed {} bits, saved {} USDC on {}", d.revealed_bits, usdc(d.saved.parse().unwrap()), d.category);
+    for d in &board.disclosures {
+        println!("disclosure: revealed {} bits, saved {} USDC on {} ({} to {})", d.revealed_bits, usdc(d.saved.parse().unwrap()), d.category, usdc(d.base_price.parse().unwrap()), usdc(d.price.parse().unwrap()));
     }
-    if let Some(d) = &board.disclosure {
+    for d in &board.disclosures {
         for b in &d.per_bit {
-            println!("  bit {}: saved {} USDC", b.predicate, usdc(b.saved));
+            println!("  {} bit {}: saved {} USDC", d.category, b.predicate, usdc(b.saved));
         }
     }
     for a in &board.asks {

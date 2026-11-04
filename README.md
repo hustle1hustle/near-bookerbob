@@ -41,7 +41,15 @@ Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. N
 ![bookerbob board: 30 merchant agents bid, the buyer column shows only k=6 and the disclosure counter, the injected claim gets a red refused receipt](docs/img/board.png)
 
 `make swarm` writes `agents/board.json`; `python3 -m http.server -d agents` and open
-`/board.html`. Synthetic fixtures.
+`/board.html`. The buyer, proofs and hoodie merchants are synthetic fixtures.
+
+Hotel bids (`hotel-lisbon`, h01..h08) use **JMPR rates, 2026-11-04, comparison prices**
+(`fixtures/live/jmpr-lisbon-rates.json`): 8 five-star Lisbon hotels, 2026-12-10 to 12-13,
+3 nights, read-only `hotel_search`, nothing prebooked or booked. Base price = base nightly
+rate (incl. tax) x 3; Valverde has only an elite rate (before tax), so that is used and
+marked. These are "from" prices, not quotes. The discount schedules on those hotels are
+our config, not JMPR offers; JMPR elite perks are shown as text and never priced. With the
+buyer's 3 revealed bits the best hotel bid is $488.37 against a $669.00 base.
 
 Public receipts (`/receipts.html`, data `agents/receipts.json` from `make receipts`): every
 verdict and purchase the contract logged, hashes and public payment fields only, built

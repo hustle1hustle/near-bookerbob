@@ -25,6 +25,12 @@ as a service or pinned as a versioned dependency, and named here.
 | HackMeridian Proof of Stay Soroban contract (Oct 2026) | Semaphore-based Stellar contract | not used; `stellar/` is a new, much smaller contract written in the window | none |
 | REP iOS app (NearTrust / NearSeal) | on-device proofs and enclave check | closed client in the demo | not in this repo |
 
+## External data
+
+| source | what | how |
+|---|---|---|
+| JMPR (hotel partner, early conversations) | 8 Lisbon hotel "from" rates and elite perks, 2026-12-10 to 12-13, queried 2026-11-04 | read-only `hotel_search`; nothing prebooked or booked; stored in `fixtures/live/jmpr-lisbon-rates.json` as comparison prices, hotel names and prices only |
+
 ## Open source dependencies
 
 | dependency | license | use |

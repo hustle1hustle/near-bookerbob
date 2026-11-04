@@ -1,0 +1,109 @@
+{
+  "label": "JMPR rates, 2026-11-04, comparison prices",
+  "source": "JMPR hotel_search, read-only, no prebook/book",
+  "queried": "2026-11-04",
+  "city": "Lisbon",
+  "checkin": "2026-12-10",
+  "checkout": "2026-12-13",
+  "nights": 3,
+  "currency": "USD",
+  "note": "nightly 'from' prices for comparison, not quotes; elite_rate before tax, base_rate incl. tax",
+  "hotels": [
+    {
+      "name": "Bairro Alto Hotel",
+      "stars": 5,
+      "base_nightly": 531,
+      "elite_nightly": 574,
+      "elite_perks": [
+        "USD100 Restaurant Credit"
+      ]
+    },
+    {
+      "name": "Memmo Principe Real",
+      "stars": 5,
+      "base_nightly": 336,
+      "elite_nightly": 316,
+      "elite_perks": [
+        "Daily Breakfast",
+        "Room upgrade (subject to availability)",
+        "Early Check In (subject to availability)",
+        "Late Check Out (subject to availability)",
+        "Suite Benefit"
+      ]
+    },
+    {
+      "name": "Olissippo Lapa Palace",
+      "stars": 5,
+      "base_nightly": 373,
+      "elite_nightly": 428,
+      "elite_perks": [
+        "Welcome Amenity",
+        "USD100 Restaurant Credit"
+      ]
+    },
+    {
+      "name": "Valverde Hotel",
+      "stars": 5,
+      "base_nightly": null,
+      "elite_nightly": 484,
+      "elite_perks": [
+        "Room upgrade (subject to availability)",
+        "Early Check In (subject to availability)",
+        "Late Check Out (subject to availability)",
+        "Free pick up and drop off service"
+      ]
+    },
+    {
+      "name": "Intercontinental Lisbon",
+      "stars": 5,
+      "base_nightly": 170,
+      "elite_nightly": 197,
+      "elite_perks": [
+        "Daily Breakfast",
+        "Room upgrade (subject to availability)",
+        "Early Check In (subject to availability)",
+        "Late Check Out (subject to availability)",
+        "Welcome Amenity",
+        "USD100 Hotel Credit"
+      ]
+    },
+    {
+      "name": "Pestana Palace Lisboa",
+      "stars": 5,
+      "base_nightly": 435,
+      "elite_nightly": 501,
+      "elite_perks": [
+        "Daily Breakfast",
+        "Room upgrade (subject to availability)",
+        "Early Check In (subject to availability)",
+        "Late Check Out (subject to availability)"
+      ]
+    },
+    {
+      "name": "The One Palacio Da Anunciada",
+      "stars": 5,
+      "base_nightly": 277,
+      "elite_nightly": 351,
+      "elite_perks": [
+        "Daily Breakfast",
+        "Room upgrade (subject to availability)",
+        "Early Check In (subject to availability)",
+        "Late Check Out (subject to availability)",
+        "USD100 Hotel Credit"
+      ]
+    },
+    {
+      "name": "Myriad By Sana",
+      "stars": 5,
+      "base_nightly": 223,
+      "elite_nightly": 295,
+      "elite_perks": [
+        "Daily Breakfast",
+        "Room upgrade (subject to availability)",
+        "Early Check In (subject to availability)",
+        "Late Check Out (subject to availability)",
+        "USD100 Hotel Credit"
+      ]
+    }
+  ]
+}
