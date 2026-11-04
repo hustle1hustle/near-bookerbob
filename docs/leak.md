@@ -26,6 +26,36 @@ account through the relayer.
 
 Verdict: a leak. Ratings were not anonymous in practice, though every proof was valid.
 
-## Fix and after
+## Fix
 
-See the "after" section once the fix has run on testnet.
+- The demo funds each rating's one-time account in one random order and sends the ratings
+  in another (crypto randomness), independent of the order buyers joined
+  (`scripts/demo-reviews.mjs`).
+- The manifest lists rating senders sorted, so the published data never pairs a rating with
+  a buyer; `make leak` scores its guesses against the demo operator's local state only.
+- The k floor counts distinct World-bound persons (`review_persons`), not purchases: one
+  person buying twice is one member for release. `join_review_group` needs a World binding.
+  Redeployed: [9jYWreQZ…](https://testnet.nearblocks.io/txns/9jYWreQZN16Q2CWuymWa55swScHTn2yPuSRNqeVGcaFg).
+
+## After (2026-11-05, round 5979416, `docs/leak-report-5979416.json`)
+
+Same 6 buyers, a new round: 6 sealed ratings, revealed, released by
+[BnC8mMa4…](https://testnet.nearblocks.io/txns/BnC8mMa4t6RaPpxbptTLzrpDDN7nXhJbtvW2EFHoH59F) (m01 now 12 ratings, score 4.00).
+
+- L2: the order adversary gets 1 of 6 right, what a random guess gets. Unlinked; the
+  anonymity set is back to the group.
+- L1, L3, L4 unchanged (see Before).
+
+## Still open, stated plainly
+
+- L1: one demo account per purchase links that purchase's verdict, settle and review-group
+  join. Two purchases by the same agent account would be linked; demo mode makes a new
+  account per purchase, a real agent would need a one-time cnf key and account per purchase
+  (planned).
+- L3: one relayer funds every one-time account and every buyer, so a rating is narrowed to
+  the relayer's buyers (6 here). More buyers per relayer, or several relayers, widen it.
+- Timing across rounds: a buyer who joins and the group's next rating round are still close
+  in time when the group is small. The k floor (5 persons) bounds what that reveals.
+- World binding per context: the World nullifier is one per person across contexts, so the
+  same person's agents in two contexts share it on chain. A per-context World action fixes
+  this (planned).

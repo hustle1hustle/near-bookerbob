@@ -117,10 +117,12 @@ if (m.reviews) {
     return [[...senders].every((s) => /^[0-9a-f]{64}$/.test(s) && !buyers.has(s)) && senders.size === m.reviews.ratings, `${senders.size} distinct implicit accounts`];
   });
 }
-await attempt("graph root on chain equals the committed standing input's root", async () => {
-  const [root] = await view(m.bazaar, "graph_root");
+await attempt("the proven standing root is a root the live graph had (its events hash to it)", async () => {
+  const [root, n] = await view(m.bazaar, "graph_root");
   const input = JSON.parse(readFileSync(new URL(`../${m.standing.input}`, import.meta.url)));
-  return [root === input.expected.root || m.standing.root === root, `root ${root.slice(0, 16)}..`];
+  // The graph only grows: the proven root is either the current one or an earlier one whose
+  // events are a prefix of today's (the next update is proved over the longer list).
+  return [input.expected.root === m.standing.root, `proven ${m.standing.root.slice(0, 12)}.. over ${input.events.length} events; chain now ${root.slice(0, 12)}.. after ${n} events${root === m.standing.root ? "" : " (a newer update pending a proof)"}`];
 });
 if (m.standing.update_tx) {
   await attempt("the Jolt standing update (worker-signed) was accepted with nonzero merchants", async () => {

@@ -1,0 +1,66 @@
+{
+  "when": "2026-11-04T20:50:22.825Z",
+  "bazaar": "bookerbob.testnet",
+  "round": 5979416,
+  "links": [
+    {
+      "rule": "L1 same account",
+      "what": "t-4fdc17: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-22c72f: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-744ca5: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-1a2121: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-0a1423: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-e29071: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L2 timing order",
+      "what": "each sealed rating to the buyer who joined in the same position",
+      "linked": false,
+      "correct": 1,
+      "of": 6,
+      "anonymity_set": 5
+    },
+    {
+      "rule": "L3 funding",
+      "what": "review senders and buyers share one funder (the relayer)",
+      "linked": false,
+      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 6 here",
+      "anonymity_set": 6
+    },
+    {
+      "rule": "L4 reveal",
+      "what": "a revealed rating to its one-time sender",
+      "linked": true,
+      "note": "by design: the sender is fresh, so this only matters combined with L2",
+      "anonymity_set": 1
+    }
+  ],
+  "rating_to_buyer_linked": false
+}
