@@ -18,7 +18,6 @@ Needs Rust stable and Node 22. From the repo root:
 | every feature in one run | `make scenario` | 8 stages on one chain, one `PASS  scenario` line |
 | the story in one screen | `make demo-offline` | the hoodie board, then the PASS lines for World ID, group unlock, cheat refused, settle, replay; ends `ALL PASS (26 checks)` |
 | unit tests | `make test` | cargo workspace (contract, core, worker, cli) and node tests (ucp, mcp, x402, sdk, scripts), all ok |
-| Stellar contract tests | `make test-stellar` | all ok (own workspace, `stellar/`) |
 | fixtures are reproducible | `make fixtures-check` | `fixtures up to date` |
 | rebuild the board | `make swarm` | writes `agents/board.json` |
 | rebuild receipts data | `make receipts` | rewrites `agents/receipts.json` from contract events |
@@ -30,7 +29,7 @@ Needs Rust stable and Node 22. From the repo root:
 | contract wasm | `make wasm` | needs cargo-near |
 | pages | `python3 -m http.server -d agents` | `/board.html`, `/receipts.html` |
 
-CI (`.github/workflows/ci.yml`) runs `make test`, `make test-stellar`, `make fixtures-check`
+CI (`.github/workflows/ci.yml`) runs `make test`, `make fixtures-check`
 and `make verify` on every push. `JOBS=2` keeps cargo light on a laptop.
 
 ## Layout
@@ -44,9 +43,8 @@ and `make verify` on every push. `JOBS=2` keeps cargo light on a laptop.
 | `fixtures/` | synthetic deterministic inputs and expected outputs; `fixtures/live/` holds captured live data |
 | `agents/` | 30 merchant agents (`merchants.json`), board and receipts pages, the live NEAR AI run (`why.mjs`, `out/`) |
 | `ucp/`, `x402/`, `mcp/`, `sdk/` | UCP payment handler, x402 v2 paid verdict read, MCP server over contract views, merchant SDK |
-| `stellar/` | Soroban contract driven only by the Chain Signatures key |
 | `scripts/` | `deploy-testnet.sh`, `demo-live.mjs`, `jmpr-rates-to-merchants.mjs`, `capture.sh`, `spikes/` |
-| `docs/` | envelope spec, NEAR AI, OutLayer, Stellar, Agent Market, demo storyboard, X thread draft |
+| `docs/` | envelope spec, NEAR AI, OutLayer, Agent Market, demo storyboard, X thread draft |
 
 ## What is real and what is fixture
 
@@ -60,7 +58,7 @@ Real, and checked by code in this repo:
   signatures verified against the exact bytes. `fixtures/live/e2ee-signature.json`: under
   E2EE v2 the signature covers the ciphertext.
 - Testnet views (`fixtures/live/views.json`): the Chain Signatures derived key for
-  `bookerbob.testnet` and its Stellar address, OutLayer's cost estimate, USDC metadata.
+  `bookerbob.testnet`, OutLayer's cost estimate, USDC metadata.
 - Hotel base prices (`h01..h08`): JMPR rates, 2026-11-04, comparison prices
   (`fixtures/live/jmpr-lisbon-rates.json`), read-only, nothing booked.
 
@@ -73,8 +71,7 @@ Fixture or synthetic:
 - World ID: a placeholder action and a fixture verifier key.
 - The USDC payout in `make verify` is a scheduled receipt, not an executed transfer.
 
-Not built: function-call keys for agents, NVIDIA GPU evidence checks, a TDX quote check inside the contract (the owner checks it before registering the model key), the NEAR side of the
-Stellar payout, 1Click. See `README.md` "NEAR features used" and `RESUME.md`.
+Not built: function-call keys for agents, NVIDIA GPU evidence checks, a TDX quote check inside the contract (the owner checks it before registering the model key), 1Click. See `README.md` "NEAR features used" and `RESUME.md`.
 
 ## Rules for changes
 

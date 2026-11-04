@@ -20,8 +20,6 @@ jobs:
         run: cargo clippy --workspace --all-targets -j 4 -- -D warnings
       - name: unit tests
         run: make test JOBS=4
-      - name: stellar contract tests
-        run: make test-stellar JOBS=4
       - name: fixtures are reproducible
         run: make fixtures-check JOBS=4
       - name: offline end-to-end

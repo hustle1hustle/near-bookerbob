@@ -59,7 +59,6 @@ Also tested offline (`make test`): the NEP-366 relayer policy for gasless rating
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
 - The Jolt zkVM prover is not built yet: the graph root and the signed-update check are on
   chain and tested, but no Jolt proof exists (`docs/jolt.md`).
-- The Stellar leg is unreachable today (see `RESUME.md`).
 - Prior work is listed in `PRIOR_WORK.md`.
 
 Deeper reading: `docs/near-ai.md`, `docs/semaphore.md`, `docs/outlayer.md`, and the threat

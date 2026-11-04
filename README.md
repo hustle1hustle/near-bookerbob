@@ -30,7 +30,7 @@ and committed; `make verify` then re-checks it offline.
 | NEAR AI Cloud: 30 merchant pitches and 3 buyer "why" runs, 33/33 response signatures verified | `agents/out/live-run.json` |
 | NEAR AI E2EE v2: one verdict issued in the enclave, its attestation report and TEE signature | `fixtures/live/near-ai/` |
 | Intel PCS collateral for that TDX quote (status UpToDate) | `fixtures/live/near-ai/collateral.json` |
-| NEAR testnet views (no transactions): the Chain Signatures derived key and its Stellar address, OutLayer's cost estimate, USDC metadata | `fixtures/live/views.json` |
+| NEAR testnet views (no transactions): the Chain Signatures derived key, OutLayer's cost estimate, USDC metadata | `fixtures/live/views.json` |
 | JMPR hotel rates (read-only search, nothing booked) | `fixtures/live/jmpr-lisbon-rates.json` |
 
 | offline: real code, mocked chain or synthetic inputs | where |
@@ -147,7 +147,6 @@ interface exists with a test double; `planned` means not built yet.
 | x402 v2 paid verdict read (`exact`, USDC on `near:testnet`, verify and settle through an explicit x402 facilitator) | agents, realworld | `x402/verdict-read.mjs` | built (7 tests on synthetic payments); no facilitator wired, testnet config only |
 | MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | built (2 tests on a fake RPC); points at testnet once deployed |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
-| Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `scripts/spikes/views.mjs`, `fixtures/live/views.json`, `stellar/`, `docs/stellar.md` | partial: live `derived_public_key` and its Stellar G-address; Soroban contract that only the Chain Signatures key can drive (4 tests); first `sign` and the NEAR signing method not done |
 | merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | SDK built (cross-checked against the Rust board); not listed, Agent Market is mainnet only |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | planned (mainnet only) |
 
@@ -162,7 +161,6 @@ interface exists with a test double; `planned` means not built yet.
 | `scripts/spikes/` | live testnet and NEAR AI spikes, results in `fixtures/live/` |
 | `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
 | `ucp/` | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
-| `stellar/` | Soroban contract for the Stellar leg (own workspace, `make test-stellar`) |
 | `sdk/` | merchant SDK stub (JS, no dependencies) |
 | `x402/` | x402 v2 resource server for paid verdict reads |
 | `mcp/` | MCP server wrapping the contract views (`nullifier_status`, `verdict`, `quote`, `best_quote`, `merchants`) |
@@ -315,7 +313,7 @@ trust-anchor keys registered and USDC storage paid. 139 transactions, every hash
 | account (faucet) | [373gAmQ3…](https://testnet.nearblocks.io/txns/373gAmQ3hLM8snr1xQeY11YVL5Q5Nbaw1CDu7dwgYnbZ) |
 | deploy and `new` | [2Dc63333…](https://testnet.nearblocks.io/txns/2Dc63333QfYaP7zdnzoUnWBrz9B8M1trBN8LkSnYu1cy) |
 | `register_issuer` | [95mbs6KG…](https://testnet.nearblocks.io/txns/95mbs6KGPHfNYU4RHa5ZQ6jgGq6vNZw7qhXTmA3yyUoG) |
-| first Chain Signatures `sign`, domain 1 (Ed25519), path `stellar-1`: the 64-byte signature verifies over the payload with the derived key `ed25519:Hni3RKAy…` (`fixtures/live/mpc-sign.txt`) | [2yHrL9YW…](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
+| first Chain Signatures `sign`, domain 1 (Ed25519), path `stellar-1` (from the archived Stellar leg): the 64-byte signature verifies over the payload with the derived key `ed25519:Hni3RKAy…` (`fixtures/live/mpc-sign.txt`) | [2yHrL9YW…](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
 
 `make demo-live` ran on testnet up to escrow: the agent's settle-only function-call key, its
 World ID binding, the verdict ([86XFzy3P…](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw)) and the referee receipt
