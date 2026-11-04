@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -15,6 +15,7 @@ verify:
 	$(BOOKERBOB) reviews fixtures agents/reviews.json --check
 	$(BOOKERBOB) scenario fixtures
 	$(BOOKERBOB) zk-inputs fixtures --check
+	$(BOOKERBOB) zk-results fixtures zk/out
 
 # The story in one screen: contract logs (stderr) hidden, PASS/FAIL lines only.
 demo-offline:
@@ -28,6 +29,11 @@ demo-offline:
 # Refuses mainnet. DRY_RUN=1 prints every step and which ones need tools.
 demo-live:
 	@node scripts/demo-live.mjs
+
+# The Jolt proofs themselves, verified offline from the committed files (needs the Jolt
+# build in zk/: cargo build --release). make verify checks the outputs natively instead.
+zk-verify:
+	cd zk && for g in standing price referee cohort; do ./target/release/bookerbob-zk verify $$g ../fixtures/zk/$$g-input.json out/$$g || exit 1; done
 
 # Inputs for the Jolt guests (zk/), from the contract's own data.
 zk-inputs:

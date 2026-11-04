@@ -1,22 +1,18 @@
-
-thread 'main' (1744816) panicked at /home/builder01/.cargo/git/checkouts/jolt-bc4943ecdf5f6930/997c154/jolt-core/src/host/program.rs:221:17:
-Built ELF not found at expected location: /tmp/bookerbob-jolt-guest-targets/standing-guest-standing/riscv64imac-unknown-none-elf/release/standing-guest
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-        4.30 real         1.61 user         0.35 sys
-           248971264  maximum resident set size
+       12.39 real        53.77 user         1.87 sys
+          1392508928  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-              111085  page reclaims
-                4183  page faults
+              128458  page reclaims
+                 760  page faults
                    0  swaps
                    0  block input operations
                    0  block output operations
                    0  messages sent
                    0  messages received
-                   8  signals received
-                1031  voluntary context switches
-                4648  involuntary context switches
-            31245860  instructions retired
-            20936869  cycles elapsed
-             1409336  peak memory footprint
+                   2  signals received
+                  18  voluntary context switches
+              184446  involuntary context switches
+        543095170517  instructions retired
+        171674521990  cycles elapsed
+          1258931640  peak memory footprint

@@ -1,9 +1,20 @@
 # Jolt zkVM for BookerBob (status 2026-11-04)
 
-Status: **all four guests and the host are written; none is compiled, built or proven
-yet** (the Jolt dependency is not fetched, so the guest crates have never compiled). Fetching and compiling the Jolt git dependency (a16z/jolt) was blocked by
-the build session's permission check as external code. The command for the founder is in
-`RESUME.md` ("Blocked"). Nothing below claims a proof that has not been made.
+Status: **all four guests are proven and verified** (2026-11-04).
+
+Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), Jolt a16z@997c1543e; peak RAM from `/usr/bin/time -l`. Proved and verified in the founder-approved build session; the committed files are in `zk/out/<guest>/`.
+
+| guest | prove (s) | verify (ms) | proof (bytes) | peak RAM (MB) | wall incl. guest build (s) | verifier preprocessing (bytes) | program hash |
+|---|---|---|---|---|---|---|---|
+| `standing` | 4.69 | 68 | 88,300 | 1,393 | 12.4 | 4,180,340 | `c780ceabae4decfa..` |
+| `price` | 1.27 | 59 | 80,380 | 375 | 3.4 | 3,284,109 | `6a35b5c3a8c1fe69..` |
+| `referee` | 2.34 | 61 | 84,796 | 729 | 5.8 | 4,652,009 | `a66f1c29e3b7199a..` |
+| `cohort` | 2.91 | 63 | 84,724 | 560 | 5.0 | 2,876,057 | `50eb77d3d5c13c68..` |
+
+`make verify` checks natively that each committed output equals what the contract's code
+computes and that each program hash is the sha256 of its committed verifier
+preprocessing (`bookerbob zk-results`). `make zk-verify` verifies the proofs themselves
+offline from the committed files (needs the Jolt build in `zk/`).
 
 ## Why Jolt here
 
@@ -15,10 +26,10 @@ and OutLayer's output is capped at 900 bytes. Jolt proves an arbitrary Rust comp
 
 | guest | proves | status |
 |---|---|---|
-| `standing` ("verifiable PageRank for agents") | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | source written (`zk/guests/standing`), **not built** |
-| `price` | `price = f(schedule, revealed, cohort size)` with `bookerbob-zkcore::price`, the contract's own function; output (price, discount_bps, input hash), so a receipt can carry the proof hash next to its price | source written, **not built** |
-| `referee` | the structured-claim check with `bookerbob-zkcore::referee`, as a second path beside the TEE worker; output (receipt?, input hash); a refusal proves too | source written, **not built** |
-| `cohort` | the answer came from a committed cohort of at least 5 distinct members: the hash chain over their nullifiers equals the contract's `cohort_root`; output (root, k); below 5 no proof exists | source written, **not built** |
+| `standing` ("verifiable PageRank for agents") | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | proved and verified (`zk/out/standing`) |
+| `price` | `price = f(schedule, revealed, cohort size)` with `bookerbob-zkcore::price`, the contract's own function; output (price, discount_bps, input hash), so a receipt can carry the proof hash next to its price | proved and verified |
+| `referee` | the structured-claim check with `bookerbob-zkcore::referee`, as a second path beside the TEE worker; output (receipt?, input hash); a refusal proves too | proved and verified |
+| `cohort` | the answer came from a committed cohort of at least 5 distinct members: the hash chain over their nullifiers equals the contract's `cohort_root`; output (root, k); below 5 no proof exists | proved and verified |
 
 Shared no_std code, unit-tested natively without Jolt: `bookerbob-graph` (standing) and
 `bookerbob-zkcore` (price, referee, cohort). `bookerbob-core` and the contract call the same
@@ -44,7 +55,7 @@ price input reproduces the contract's quote (36 USDC), the cohort input reproduc
   scores_hash)`. The proof stays off chain. 5 contract tests: accepted, tampered score,
   stale root, other program, unregistered worker.
 
-## The flow once Jolt builds
+## The flow (reproduce)
 
 1. Rebuild the events from the contract's `graph_event` logs.
 2. In `zk/`: `cargo run --release -- prove <guest> ../fixtures/zk/<guest>-input.json

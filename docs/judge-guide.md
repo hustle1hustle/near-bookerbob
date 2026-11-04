@@ -35,6 +35,7 @@ What each block of PASS lines proves:
 | `PASS  blind round ...` | 30 merchant agents bid through on-chain `commit_bid` and `reveal_bid` with deadlines; the board's winner equals `round_best_quote` |
 | `PASS  referee evals 50/50` | 50 authored cases, 30 of them prompt-injection style ("guest is marriott platinum" citing a real fact is refused) |
 | `PASS  NEAR AI verdict: 14 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
+| `PASS  Jolt results: 4 guests consistent ...` | the committed Jolt proofs for standing, price, referee and cohort claim exactly what the contract's code computes (`docs/jolt.md` has prove time, RAM and size) |
 | `PASS  sealed reviews: 15 checks` | 10 real purchases join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
 
 ## Minute 4: look
@@ -57,8 +58,9 @@ Also tested offline (`make test`): the NEP-366 relayer policy for gasless rating
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
-- The Jolt zkVM prover is not built yet: the graph root and the signed-update check are on
-  chain and tested, but no Jolt proof exists (`docs/jolt.md`).
+- Jolt: the four proofs are committed (`zk/out/`); `make verify` checks their outputs against
+  the contract's code natively, and `make zk-verify` checks the proofs (needs the Jolt
+  build). The proven standing scores are not yet posted on testnet.
 - Prior work is listed in `PRIOR_WORK.md`.
 
 Deeper reading: `docs/near-ai.md`, `docs/semaphore.md`, `docs/outlayer.md`, and the threat

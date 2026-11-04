@@ -63,6 +63,20 @@ console.log(`${r.calls.length} calls, ${ok}/${r.calls.length} signatures valid, 
   echo "|---|---|---|"
   echo "$reviewgas"
   echo
+  echo "## Jolt zkVM guests"
+  echo
+  echo "From zk/out/<guest>/result.json and the /usr/bin/time -l logs (this Mac, cargo -j4, AC)."
+  echo
+  python3 - <<'PYJ'
+import json, re
+print("| guest | prove (s) | verify (ms) | proof (bytes) | peak RAM (MB) |")
+print("|---|---|---|---|---|")
+for g in ["standing", "price", "referee", "cohort"]:
+    r = json.load(open(f"zk/out/{g}/result.json"))
+    rss = int(re.search(r"(\d+)\s+maximum resident set size", open(f"zk/out/{g}.time.txt").read()).group(1))
+    print(f"| {g} | {r['prove_seconds']:.2f} | {r['verify_ms']} | {r['proof_bytes']:,} | {rss/1e6:,.0f} |")
+PYJ
+  echo
   echo "## Who pays"
   echo
   echo "- Agent: its verdict record plus a 512-byte reserve for that record's referee receipt"

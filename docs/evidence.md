@@ -4,7 +4,7 @@ Written by `scripts/evidence.sh` on 2026-11-04 (arm64, 11 cores). Rerun it to re
 
 | what | measured |
 |---|---|
-| `make verify`, warm build | 9.7 s |
+| `make verify`, warm build | 10.5 s |
 | chain checks (contract code on MockedBlockchain) | ALL PASS (26 checks) |
 | referee evals | referee evals 50/50 (39 cheats refused, 11 honest receipts) |
 | NEAR AI verdict, offline checks | NEAR AI verdict: 14 checks |
@@ -36,9 +36,9 @@ first verdict in a context also creates its cohort counters, so it costs more.
 | `submit_verdict (p256, same context)` | agent | 559 | 0.00559 | 2.776 |
 | `submit_referee_result` | agent, from the record reserve prepaid at submit | 245 | 0.00245 | 0.729 |
 | `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.231 |
-| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.836 |
+| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.840 |
 
-per verdict: 1174 bytes (0.01174 NEAR) plus a 512 byte reserve for its receipt and settle (0.00512 NEAR), paid by the agent from its 0.05 NEAR deposit, rest refunded; referee worker run: 276 us (native)
+per verdict: 1174 bytes (0.01174 NEAR) plus a 512 byte reserve for its receipt and settle (0.00512 NEAR), paid by the agent from its 0.05 NEAR deposit, rest refunded; referee worker run: 252 us (native)
 
 ## Sealed reviews gas
 
@@ -53,6 +53,17 @@ counted. Treat both as floors until the testnet deploy.
 | `publish_reviews (6 ratings)` | 0.81 | 1 |
 | `reveal_review` | 0.60 | 6 |
 | `submit_review (Groth16 on alt_bn128)` | 33.19 | 10 |
+
+## Jolt zkVM guests
+
+From zk/out/<guest>/result.json and the /usr/bin/time -l logs (this Mac, cargo -j4, AC).
+
+| guest | prove (s) | verify (ms) | proof (bytes) | peak RAM (MB) |
+|---|---|---|---|---|
+| standing | 4.69 | 68 | 88,300 | 1,393 |
+| price | 1.27 | 59 | 80,380 | 375 |
+| referee | 2.34 | 61 | 84,796 | 729 |
+| cohort | 2.91 | 63 | 84,724 | 560 |
 
 ## Who pays
 

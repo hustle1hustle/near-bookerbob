@@ -24,6 +24,7 @@ mod scenario;
 mod swarm;
 mod verify;
 mod zk_inputs;
+mod zk_results;
 
 use std::path::Path;
 use std::process::ExitCode;
@@ -139,6 +140,7 @@ fn main() -> ExitCode {
             }
         }
         Some("evidence") => evidence::run(),
+        Some("zk-results") if args.len() >= 3 => zk_results::run(Path::new(&args[1]), Path::new(&args[2])),
         Some("zk-inputs") if args.len() >= 2 => zk_inputs::run(Path::new(&args[1]), args.iter().any(|a| a == "--check")),
         Some("scenario") if args.len() >= 2 => scenario::run(Path::new(&args[1])),
         Some("reviews") if args.len() >= 2 => {
