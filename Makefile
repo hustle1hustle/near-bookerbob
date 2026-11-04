@@ -12,6 +12,7 @@ verify:
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
 	$(BOOKERBOB) evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
 	$(BOOKERBOB) near-ai fixtures/live/near-ai fixtures/proofs.json
+	$(BOOKERBOB) reviews fixtures
 
 # The story in one screen: contract logs (stderr) hidden, PASS/FAIL lines only.
 demo-offline:
