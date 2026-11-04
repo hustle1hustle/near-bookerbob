@@ -36,10 +36,10 @@
       "rules": [
         {
           "predicate": "booking_genius",
-          "bps": 1500
+          "bps": 1000
         }
       ],
-      "cap_bps": 1500
+      "cap_bps": 1000
     }
   },
   {

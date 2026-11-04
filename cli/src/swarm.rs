@@ -60,12 +60,21 @@ pub struct Board {
     pub disclosure: Option<Disclosure>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub receipts: Vec<ReceiptRow>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub asks: Vec<AskRow>,
 }
 
 /// What revealing bits bought: the winner's base price against what the buyer pays.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Disclosure {
     pub category: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_bits: Option<usize>,
+    /// The bits the budget plan picks; must equal the verdict's revealed predicates.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub plan: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub per_bit: Vec<bookerbob_core::disclosure::BitSaving>,
     pub revealed_bits: usize,
     pub base_price: String,
     pub price: String,
@@ -81,11 +90,29 @@ pub struct ReceiptRow {
     pub detail: String,
 }
 
-/// Claim sets and proofs that sit next to the verdict, if present.
+/// A merchant's ask and the buyer agent's rule-based answer.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AskRow {
+    pub merchant: String,
+    pub text: String,
+    pub ask: bookerbob_core::disclosure::Ask,
+    pub answer: bookerbob_core::disclosure::Answer,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AskIn {
+    pub merchant: String,
+    pub text: String,
+    pub ask: bookerbob_core::disclosure::Ask,
+}
+
+/// Claim sets, proofs, policy and asks that sit next to the verdict, if present.
 #[derive(Default)]
 pub struct Extras {
     pub proofs: Option<bookerbob_core::ProofSet>,
     pub claim_sets: Vec<(String, Vec<bookerbob_core::Claim>)>,
+    pub policy: Option<bookerbob_core::disclosure::Policy>,
+    pub asks: Vec<AskIn>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -197,11 +224,37 @@ pub fn build(
     }
     // The purchase is in the first category (the verdict's context names a hoodie).
     let buy = categories.iter().find(|c| c.category == "hoodie").or(categories.first());
+    let derived: Vec<String> = extras.proofs.as_ref().map(|p| bookerbob_core::derive(p).predicates()).unwrap_or_default();
+    let others = |p: &str| peers.iter().filter(|v| v.envelope.context == ctx && v.envelope.predicates.iter().any(|q| q == p)).count() as u32;
     let disclosure = buy.map(|cat| {
         let w = &cat.rows[0];
         let (base, price): (u128, u128) = (w.base_price.parse().unwrap(), w.price.parse().unwrap());
-        Disclosure { category: cat.category.clone(), revealed_bits: verdict.envelope.predicates.len(), base_price: base.to_string(), price: price.to_string(), saved: (base - price).to_string() }
+        let in_cat: Vec<(String, Schedule)> = merchants.iter().filter(|m| m.category == cat.category).map(|m| (m.account.clone(), m.schedule.clone())).collect();
+        let plan = extras.policy.as_ref().and_then(|pol| bookerbob_core::disclosure::plan(pol, &derived, &in_cat, &others));
+        Disclosure {
+            category: cat.category.clone(),
+            max_bits: extras.policy.map(|p| p.max_bits),
+            plan: plan.as_ref().map(|p| p.revealed.clone()).unwrap_or_default(),
+            per_bit: plan.map(|p| p.per_bit).unwrap_or_default(),
+            revealed_bits: verdict.envelope.predicates.len(),
+            base_price: base.to_string(),
+            price: price.to_string(),
+            saved: (base - price).to_string(),
+        }
     });
+    if let (Some(d), Some(_)) = (&disclosure, &extras.policy) {
+        if d.plan != verdict.envelope.predicates {
+            return Err(format!("budget plan {:?} differs from the verdict's revealed bits {:?}", d.plan, verdict.envelope.predicates));
+        }
+    }
+    let asks: Vec<AskRow> = match &extras.policy {
+        Some(pol) => extras
+            .asks
+            .iter()
+            .map(|a| AskRow { merchant: a.merchant.clone(), text: a.text.clone(), ask: a.ask.clone(), answer: bookerbob_core::disclosure::answer(pol, &derived, &verdict.envelope.predicates, &a.ask) })
+            .collect(),
+        None => vec![],
+    };
     let mut receipts = Vec::new();
     if let (Some(proofs), Some(cat)) = (&extras.proofs, buy) {
         let q = c.quote(acc(&cat.winner), n.clone());
@@ -225,6 +278,7 @@ pub fn build(
         categories,
         disclosure,
         receipts,
+        asks,
     })
 }
 
@@ -238,12 +292,14 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     let worlds_path = verdict_path.with_file_name("world-attestations.json");
     let worlds: Vec<bookerbob_core::WorldAttestation> = std::fs::read_to_string(&worlds_path).ok().map(|s| serde_json::from_str(&s).expect("parse world attestations")).unwrap_or_default();
     let near = |name: &str| std::fs::read_to_string(verdict_path.with_file_name(name)).ok();
-    let mut extras = Extras { proofs: near("proofs.json").map(|s| serde_json::from_str(&s).expect("parse proofs")), claim_sets: vec![] };
+    let mut extras = Extras { proofs: near("proofs.json").map(|s| serde_json::from_str(&s).expect("parse proofs")), claim_sets: vec![], ..Default::default() };
     for (label, file) in [("honest claims", "claims-honest.json"), ("claims after a prompt injection", "claims-cheat.json")] {
         if let Some(s) = near(file) {
             extras.claim_sets.push((label.into(), serde_json::from_str(&s).expect("parse claims")));
         }
     }
+    extras.policy = near("disclosure-policy.json").map(|s| serde_json::from_str(&s).expect("parse policy"));
+    extras.asks = near("merchant-asks.json").map(|s| serde_json::from_str(&s).expect("parse asks")).unwrap_or_default();
     let board = match build(&merchants, &verdict, &peers, &worlds, &extras) {
         Ok(b) => b,
         Err(e) => {
@@ -255,6 +311,19 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     println!("buyer: commitment {}..  revealed {} bits  {}", &board.buyer.verdict_commitment[..12], board.buyer.revealed_bits, board.buyer.group_unlock);
     if let Some(d) = &board.disclosure {
         println!("disclosure: revealed {} bits, saved {} USDC on {}", d.revealed_bits, usdc(d.saved.parse().unwrap()), d.category);
+    }
+    if let Some(d) = &board.disclosure {
+        for b in &d.per_bit {
+            println!("  bit {}: saved {} USDC", b.predicate, usdc(b.saved));
+        }
+    }
+    for a in &board.asks {
+        let ans = match &a.answer {
+            bookerbob_core::disclosure::Answer::Declined { reason } => format!("declined: {reason}"),
+            bookerbob_core::disclosure::Answer::Revealed { predicate } => format!("revealed {predicate}"),
+            bookerbob_core::disclosure::Answer::AlreadyRevealed { predicate } => format!("already revealed {predicate}"),
+        };
+        println!("ask: {} \"{}\": {ans}", a.merchant.split('.').next().unwrap_or(""), a.text);
     }
     for r in &board.receipts {
         println!("receipt: {}: {} ({})", r.label, r.outcome, if r.outcome == "receipt" { &r.detail[..12] } else { &r.detail });

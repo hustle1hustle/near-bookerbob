@@ -82,6 +82,7 @@ interface exists with a test double; `planned` means not built yet.
 | NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | built; payout rollback in `on_settle_transfer` |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | built |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built |
+| disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | built; `make verify` checks 04 and 05 |
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | built; `make verify` shows `k=6` |
 | SUB-ACCOUNTS: 30 merchant agents, one sub-account each, blind commit then reveal | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | built as config and offline board; accounts not created on testnet yet |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
@@ -114,8 +115,8 @@ interface exists with a test double; `planned` means not built yet.
 
 ## What `make verify` checks, and what is mocked
 
-`cli/src/verify.rs` runs 23 checks in order: proof set hash, tier from proven fields,
-revealed subset, commitment opening, envelope shape, ed25519 and p256 signatures
+`cli/src/verify.rs` runs 25 checks in order: proof set hash, tier from proven fields,
+revealed subset, the disclosure budget plan, merchant asks declined by rule, commitment opening, envelope shape, ed25519 and p256 signatures
 off-chain, then the real `bazaar` contract code against near-sdk's MockedBlockchain
 (host functions run through nearcore's VM logic): enclave and referee keys, merchants,
 escrow, World ID attestations (and a second agent of the same person blocked), verdict submission with both signature schemes, code-computed quotes, the

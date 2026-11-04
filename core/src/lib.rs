@@ -1,6 +1,7 @@
 //! bookerbob-core: everything that must be deterministic and shared by the contract and
 //! the off-chain tools. No randomness, no clock, no network, no floating point.
 
+pub mod disclosure;
 pub mod envelope;
 pub mod price;
 pub mod referee;

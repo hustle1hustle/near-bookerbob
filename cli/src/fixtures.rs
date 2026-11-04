@@ -117,7 +117,7 @@ pub fn merchants() -> Vec<MerchantFixture> {
             account: "m02.bookerbob.testnet".into(),
             label: "low base, booking only".into(),
             category: "hoodie".into(),
-            schedule: Schedule { base_price: 42_000_000, rules: vec![r("booking_genius", 1500)], cap_bps: 1500, cohort: None },
+            schedule: Schedule { base_price: 42_000_000, rules: vec![r("booking_genius", 1000)], cap_bps: 1000, cohort: None },
         },
         MerchantFixture {
             account: "m03.bookerbob.testnet".into(),

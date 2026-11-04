@@ -1,0 +1,33 @@
+[
+  {
+    "merchant": "m03.bookerbob.testnet",
+    "ask": {
+      "kind": "raw_history",
+      "platform": "airbnb"
+    },
+    "text": "send the full airbnb trip history and we add 5%"
+  },
+  {
+    "merchant": "m06.bookerbob.testnet",
+    "ask": {
+      "kind": "identity"
+    },
+    "text": "share your email for a loyalty account"
+  },
+  {
+    "merchant": "m04.bookerbob.testnet",
+    "ask": {
+      "kind": "predicate",
+      "predicate": "steam_veteran"
+    },
+    "text": "prove a 5 year steam account"
+  },
+  {
+    "merchant": "m02.bookerbob.testnet",
+    "ask": {
+      "kind": "predicate",
+      "predicate": "booking_genius"
+    },
+    "text": "reveal booking genius for our rate"
+  }
+]

@@ -55,6 +55,13 @@
   .receipt.no .claim.bad, .receipt.no .claim.bad .cite { color: var(--red); }
   .verdict { margin-top: 10px; font-size: 13px; }
   .receipt.no .verdict { color: var(--red); }
+  .asks { padding: 6px 16px 14px; }
+  .ask { padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .ask:last-child { border-bottom: none; }
+  .ask .q { color: var(--fg); }
+  .ask .a { color: var(--red); margin-top: 2px; }
+  .bits { margin-top: 8px; font-size: 12px; color: var(--dim); }
+  .bits div { display: flex; justify-content: space-between; }
   footer { color: var(--faint); font-size: 12px; margin-top: 24px; }
   .tabs { display: flex; gap: 6px; }
   .tabs button { background: none; border: 1px solid var(--line); color: var(--dim); font: inherit; font-size: 12px; padding: 2px 8px; border-radius: 4px; cursor: pointer; }
@@ -72,9 +79,15 @@
       <h2><span id="title">bids</span><span class="tabs" id="tabs"></span></h2>
       <div class="wrap"><table id="bids"></table></div>
     </section>
-    <aside class="panel">
-      <h2><span>buyer</span><span>hidden</span></h2>
-      <div class="buyer" id="buyer">loading board.json ...</div>
+    <aside>
+      <div class="panel">
+        <h2><span>buyer</span><span>hidden</span></h2>
+        <div class="buyer" id="buyer">loading board.json ...</div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2><span>merchant asks</span><span>answered by rule</span></h2>
+        <div class="asks" id="asks"></div>
+      </div>
     </aside>
   </div>
   <div class="receipts" id="receipts"></div>
@@ -118,9 +131,13 @@ function bids(cat, pitches) {
   document.getElementById("buyer").innerHTML = `
     <div class="slot"><b>no name, no history</b>merchants see a commitment<br>and the bits revealed for a discount</div>
     <div class="k">k=${b.cohort_k}<small>${esc(b.group_unlock)}: buyers in this cohort</small></div>
-    ${d ? `<div class="counter"><div class="big">revealed ${d.revealed_bits} bits, saved ${usd(d.saved)}</div><div class="tag">${usd(d.base_price)} base, pays ${usd(d.price)}</div></div>` : ""}
+    ${d ? `<div class="counter"><div class="big">revealed ${d.revealed_bits} bits, saved ${usd(d.saved)}</div><div class="tag">${usd(d.base_price)} base, pays ${usd(d.price)}${d.max_bits ? `, budget ${d.max_bits} bits` : ""}</div>
+      ${(d.per_bit ?? []).length ? `<div class="bits">${d.per_bit.map((b) => `<div><span>${esc(b.predicate)}</span><span>${usd(b.saved)}</span></div>`).join("")}<div class="tag">what each bit saved against the best price without it</div></div>` : ""}</div>` : ""}
     <div class="kv">commitment<br>${esc(b.verdict_commitment)}</div>`;
 
+  document.getElementById("asks").innerHTML = (board.asks ?? []).map((a) => `<div class="ask">
+      <div class="q">${esc(a.merchant.split(".")[0])}: "${esc(a.text)}"</div>
+      <div class="a">${a.answer.answer === "declined" ? `declined: ${esc(a.answer.reason)}` : esc(a.answer.answer + " " + (a.answer.predicate ?? ""))}</div></div>`).join("") || `<div class="ask tag">no asks</div>`;
   document.getElementById("receipts").innerHTML = (board.receipts ?? []).map((r) => {
     const ok = r.outcome === "receipt";
     const bad = ok ? null : (r.detail.match(/^([Ff]\d+)/) || [])[0];

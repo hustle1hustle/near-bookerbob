@@ -118,7 +118,7 @@
           "rank": 9,
           "merchant": "m02.bookerbob.testnet",
           "persona": "budget basics, booking travellers only",
-          "bid_commitment": "cd9e3d60ed85afa088b59446f61819893e4f6fb79dfb56bf484b884e86ddc330",
+          "bid_commitment": "7a4faccc4236332af4ca96503573628055f6f10833e0c4f4e94715c571ce58f6",
           "base_price": "42000000",
           "lines": [],
           "discount_bps": 0,
@@ -381,6 +381,26 @@
   ],
   "disclosure": {
     "category": "hoodie",
+    "max_bits": 3,
+    "plan": [
+      "airbnb_frequent",
+      "claude_spender",
+      "world_id_human"
+    ],
+    "per_bit": [
+      {
+        "predicate": "airbnb_frequent",
+        "saved": "960000"
+      },
+      {
+        "predicate": "claude_spender",
+        "saved": "3360000"
+      },
+      {
+        "predicate": "world_id_human",
+        "saved": "4800000"
+      }
+    ],
     "revealed_bits": 3,
     "base_price": "48000000",
     "price": "36000000",
@@ -449,6 +469,55 @@
       ],
       "outcome": "refused",
       "detail": "F9 not in proof set"
+    }
+  ],
+  "asks": [
+    {
+      "merchant": "m03.bookerbob.testnet",
+      "text": "send the full airbnb trip history and we add 5%",
+      "ask": {
+        "kind": "raw_history",
+        "platform": "airbnb"
+      },
+      "answer": {
+        "answer": "declined",
+        "reason": "raw history never leaves the enclave"
+      }
+    },
+    {
+      "merchant": "m06.bookerbob.testnet",
+      "text": "share your email for a loyalty account",
+      "ask": {
+        "kind": "identity"
+      },
+      "answer": {
+        "answer": "declined",
+        "reason": "identity is never disclosed"
+      }
+    },
+    {
+      "merchant": "m04.bookerbob.testnet",
+      "text": "prove a 5 year steam account",
+      "ask": {
+        "kind": "predicate",
+        "predicate": "steam_veteran"
+      },
+      "answer": {
+        "answer": "declined",
+        "reason": "steam_veteran is not proven"
+      }
+    },
+    {
+      "merchant": "m02.bookerbob.testnet",
+      "text": "reveal booking genius for our rate",
+      "ask": {
+        "kind": "predicate",
+        "predicate": "booking_genius"
+      },
+      "answer": {
+        "answer": "declined",
+        "reason": "disclosure budget of 3 bits is used"
+      }
     }
   ]
 }

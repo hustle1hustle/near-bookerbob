@@ -100,6 +100,8 @@ pub fn run(dir: &Path) -> ExitCode {
     let v_replay: SignedVerdict = load(dir, "verdict-replay.json");
     let peers: Vec<SignedVerdict> = load(dir, "verdicts-cohort.json");
     let worlds: Vec<bookerbob_core::WorldAttestation> = load(dir, "world-attestations.json");
+    let policy: bookerbob_core::disclosure::Policy = load(dir, "disclosure-policy.json");
+    let asks: Vec<crate::swarm::AskIn> = load(dir, "merchant-asks.json");
     let second_agent: bookerbob_core::WorldAttestation = load(dir, "world-attestation-second-agent.json");
     let exp: Expected = load(dir, "expected.json");
     let e = &v_ed.envelope;
@@ -119,6 +121,26 @@ pub fn run(dir: &Path) -> ExitCode {
         "revealed predicates are a subset of derived",
         format!("revealed {} of {}", e.predicates.len(), t.derived.len()),
     );
+    // --- disclosure: budget plan and merchant asks (buyer agent, by rule) ---
+    {
+        use bookerbob_core::disclosure::{answer, plan, Answer, Ask};
+        let others = |p: &str| peers.iter().filter(|v| v.envelope.context == e.context && v.envelope.predicates.iter().any(|q| q == p)).count() as u32;
+        let ms: Vec<(String, bookerbob_core::Schedule)> = merchants.iter().map(|m| (m.account.clone(), m.schedule.clone())).collect();
+        let pl = plan(&policy, &t.predicates(), &ms, &others);
+        r.check(
+            pl.as_ref().is_some_and(|p| p.revealed == e.predicates && p.revealed.len() <= policy.max_bits && p.winner == exp.winner),
+            "disclosure budget: the plan under the cap picks exactly the revealed bits",
+            pl.as_ref().map(|p| format!("max {} bits, {}", policy.max_bits, p.per_bit.iter().map(|b| format!("{} saves {}", b.predicate, b.saved)).collect::<Vec<_>>().join(", "))).unwrap_or_default(),
+        );
+        let raw = asks.iter().find(|a| matches!(a.ask, Ask::RawHistory { .. })).expect("a raw history ask in fixtures");
+        let raw_ans = answer(&policy, &t.predicates(), &e.predicates, &raw.ask);
+        let all_declined = asks.iter().all(|a| matches!(answer(&policy, &t.predicates(), &e.predicates, &a.ask), Answer::Declined { .. }));
+        r.check(
+            raw_ans == Answer::Declined { reason: "raw history never leaves the enclave".into() } && all_declined,
+            "merchant asks for raw history: declined; identity, unproven and over-budget asks too",
+            format!("{} asks declined", asks.len()),
+        );
+    }
     let salt: [u8; 32] = hex::decode(&opening.salt).unwrap().try_into().unwrap();
     r.check(commitment(&salt, &t.predicates()) == e.commitment, "commitment opens to the derived set", "");
 
