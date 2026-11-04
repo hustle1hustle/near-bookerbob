@@ -214,7 +214,9 @@ fn main() -> ExitCode {
             println!("{}", e.near_ai_bind());
             ExitCode::SUCCESS
         }
-        Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1]), args.get(2).map(Path::new), args.get(3).and_then(|k| k.parse().ok()).unwrap_or(0)),
+        Some("worker-input") if args.len() >= 2 => {
+            worker_input(Path::new(&args[1]), args.get(2).map(Path::new), args.get(3).and_then(|k| k.parse().ok()).unwrap_or(0))
+        }
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
         Some("swarm") if args.len() >= 4 => swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check")),
         _ => usage(),
