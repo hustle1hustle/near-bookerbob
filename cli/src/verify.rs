@@ -129,7 +129,7 @@ pub fn run(dir: &Path) -> ExitCode {
     c.register_issuer(v_p256.key_id(), "fixture p256 issuer".into());
     for m in &merchants {
         as_caller(&m.account, None);
-        c.register_merchant(m.schedule.clone(), None);
+        c.register_merchant(m.schedule.clone(), m.category.clone(), None);
     }
     as_caller(&e.cnf, Some(ESCROW_STORAGE_DEPOSIT));
     c.storage_deposit(None);
@@ -153,7 +153,7 @@ pub fn run(dir: &Path) -> ExitCode {
     r.check(sub.is_ok(), "contract accepts p256 verdict (env::p256_verify, low-S)", sub.err().unwrap_or_default());
 
     // --- quotes ---
-    let best = c.best_quote(e.nullifier.clone()).expect("a quote");
+    let best = c.best_quote(e.nullifier.clone(), Some("hoodie".into())).expect("a quote");
     let offchain_ok = merchants.iter().all(|m| quote(&m.schedule, &e.predicates) == c.quote(acc(&m.account), e.nullifier.clone()));
     r.check(offchain_ok, "on-chain quotes equal the core library, every merchant", "");
     r.check(

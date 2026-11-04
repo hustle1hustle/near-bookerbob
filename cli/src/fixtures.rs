@@ -20,6 +20,7 @@ pub const MAX_SPEND: u128 = 45_000_000;
 pub struct MerchantFixture {
     pub account: String,
     pub label: String,
+    pub category: String,
     pub schedule: Schedule,
 }
 
@@ -96,6 +97,7 @@ pub fn merchants() -> Vec<MerchantFixture> {
         MerchantFixture {
             account: "m01.bookerbob.testnet".into(),
             label: "shopify test store (UCP)".into(),
+            category: "hoodie".into(),
             schedule: Schedule {
                 base_price: 48_000_000,
                 rules: vec![r("claude_spender", 1000), r("world_id_human", 800), r("airbnb_frequent", 500)],
@@ -105,11 +107,13 @@ pub fn merchants() -> Vec<MerchantFixture> {
         MerchantFixture {
             account: "m02.bookerbob.testnet".into(),
             label: "low base, booking only".into(),
+            category: "hoodie".into(),
             schedule: Schedule { base_price: 42_000_000, rules: vec![r("booking_genius", 1500)], cap_bps: 1500 },
         },
         MerchantFixture {
             account: "m03.bookerbob.testnet".into(),
             label: "travel bundle".into(),
+            category: "hoodie".into(),
             schedule: Schedule {
                 base_price: 50_000_000,
                 rules: vec![r("airbnb_frequent", 1200), r("world_id_human", 800)],

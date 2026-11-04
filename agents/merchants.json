@@ -1,0 +1,587 @@
+[
+  {
+    "account": "m01.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "shopify test store via UCP (the store the demo buys from)",
+    "source": "shopify-ucp",
+    "schedule": {
+      "base_price": "48000000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1000
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 800
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "m02.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "budget basics, booking travellers only",
+    "source": "config",
+    "schedule": {
+      "base_price": "42000000",
+      "rules": [
+        {
+          "predicate": "booking_genius",
+          "bps": 1500
+        }
+      ],
+      "cap_bps": 1500
+    }
+  },
+  {
+    "account": "m03.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "travel bundle, likes frequent flyers",
+    "source": "config",
+    "schedule": {
+      "base_price": "50000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1200
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 800
+        }
+      ],
+      "cap_bps": 2500
+    }
+  },
+  {
+    "account": "m04.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "gamer merch, rewards long steam accounts",
+    "source": "config",
+    "schedule": {
+      "base_price": "46000000",
+      "rules": [
+        {
+          "predicate": "steam_veteran",
+          "bps": 1800
+        }
+      ],
+      "cap_bps": 1800
+    }
+  },
+  {
+    "account": "m05.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "commuter wear, rewards uber regulars",
+    "source": "config",
+    "schedule": {
+      "base_price": "44000000",
+      "rules": [
+        {
+          "predicate": "uber_regular",
+          "bps": 1200
+        }
+      ],
+      "cap_bps": 1200
+    }
+  },
+  {
+    "account": "m06.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "ai lab swag, loves claude spenders",
+    "source": "config",
+    "schedule": {
+      "base_price": "52000000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1500
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "m07.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "premium cotton, no discounts",
+    "source": "config",
+    "schedule": {
+      "base_price": "55000000",
+      "rules": [],
+      "cap_bps": 0
+    }
+  },
+  {
+    "account": "m08.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "verified humans only discount",
+    "source": "config",
+    "schedule": {
+      "base_price": "47000000",
+      "rules": [
+        {
+          "predicate": "world_id_human",
+          "bps": 1500
+        }
+      ],
+      "cap_bps": 1500
+    }
+  },
+  {
+    "account": "m09.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "flat small stack",
+    "source": "config",
+    "schedule": {
+      "base_price": "45000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 300
+        },
+        {
+          "predicate": "claude_spender",
+          "bps": 300
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 300
+        }
+      ],
+      "cap_bps": 900
+    }
+  },
+  {
+    "account": "m10.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "high base, deep stack, tight cap",
+    "source": "config",
+    "schedule": {
+      "base_price": "60000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1500
+        },
+        {
+          "predicate": "claude_spender",
+          "bps": 1500
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 1500
+        }
+      ],
+      "cap_bps": 2500
+    }
+  },
+  {
+    "account": "m11.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "nomad outfitter",
+    "source": "config",
+    "schedule": {
+      "base_price": "49000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1000
+        },
+        {
+          "predicate": "booking_genius",
+          "bps": 1000
+        }
+      ],
+      "cap_bps": 1500
+    }
+  },
+  {
+    "account": "m12.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "streetwear drop",
+    "source": "config",
+    "schedule": {
+      "base_price": "51000000",
+      "rules": [
+        {
+          "predicate": "steam_veteran",
+          "bps": 800
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 800
+        }
+      ],
+      "cap_bps": 1600
+    }
+  },
+  {
+    "account": "m13.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "eco brand, humans first",
+    "source": "config",
+    "schedule": {
+      "base_price": "48500000",
+      "rules": [
+        {
+          "predicate": "world_id_human",
+          "bps": 1000
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 400
+        }
+      ],
+      "cap_bps": 1400
+    }
+  },
+  {
+    "account": "m14.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "developer hoodie co",
+    "source": "config",
+    "schedule": {
+      "base_price": "50500000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1200
+        },
+        {
+          "predicate": "steam_veteran",
+          "bps": 600
+        }
+      ],
+      "cap_bps": 1800
+    }
+  },
+  {
+    "account": "m15.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "airport kiosk",
+    "source": "config",
+    "schedule": {
+      "base_price": "53000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 900
+        },
+        {
+          "predicate": "booking_genius",
+          "bps": 900
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 900
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "m16.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "discount warehouse",
+    "source": "config",
+    "schedule": {
+      "base_price": "43500000",
+      "rules": [
+        {
+          "predicate": "uber_regular",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 500
+    }
+  },
+  {
+    "account": "m17.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "loyalty club, rewards everything a little",
+    "source": "config",
+    "schedule": {
+      "base_price": "49500000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 400
+        },
+        {
+          "predicate": "booking_genius",
+          "bps": 400
+        },
+        {
+          "predicate": "claude_spender",
+          "bps": 400
+        },
+        {
+          "predicate": "steam_veteran",
+          "bps": 400
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 400
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 400
+        }
+      ],
+      "cap_bps": 2400
+    }
+  },
+  {
+    "account": "m18.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "boutique, cap 10%",
+    "source": "config",
+    "schedule": {
+      "base_price": "47500000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1000
+        }
+      ],
+      "cap_bps": 1000
+    }
+  },
+  {
+    "account": "m19.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "conference merch",
+    "source": "config",
+    "schedule": {
+      "base_price": "46500000",
+      "rules": [
+        {
+          "predicate": "world_id_human",
+          "bps": 600
+        },
+        {
+          "predicate": "claude_spender",
+          "bps": 600
+        }
+      ],
+      "cap_bps": 1200
+    }
+  },
+  {
+    "account": "m20.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "outdoor gear",
+    "source": "config",
+    "schedule": {
+      "base_price": "54000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1400
+        },
+        {
+          "predicate": "booking_genius",
+          "bps": 600
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "m21.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "late night pop-up",
+    "source": "config",
+    "schedule": {
+      "base_price": "45500000",
+      "rules": [
+        {
+          "predicate": "uber_regular",
+          "bps": 1000
+        },
+        {
+          "predicate": "steam_veteran",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 1500
+    }
+  },
+  {
+    "account": "m22.bookerbob.testnet",
+    "category": "hoodie",
+    "persona": "second-hand vintage",
+    "source": "config",
+    "schedule": {
+      "base_price": "41000000",
+      "rules": [],
+      "cap_bps": 0
+    }
+  },
+  {
+    "account": "h01.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "jmpr hotel desk (stub: bids from hotel_search / hotel_room_rate rates only, never books)",
+    "source": "jmpr-stub",
+    "schedule": {
+      "base_price": "180000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1000
+        },
+        {
+          "predicate": "booking_genius",
+          "bps": 800
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "h02.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "alfama guesthouse",
+    "source": "config",
+    "schedule": {
+      "base_price": "165000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 800
+        }
+      ],
+      "cap_bps": 800
+    }
+  },
+  {
+    "account": "h03.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "business hotel, rewards booking genius",
+    "source": "config",
+    "schedule": {
+      "base_price": "210000000",
+      "rules": [
+        {
+          "predicate": "booking_genius",
+          "bps": 1500
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "h04.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "design hotel",
+    "source": "config",
+    "schedule": {
+      "base_price": "230000000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1000
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 1000
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "h05.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "hostel private room",
+    "source": "config",
+    "schedule": {
+      "base_price": "120000000",
+      "rules": [],
+      "cap_bps": 0
+    }
+  },
+  {
+    "account": "h06.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "riverside apartments",
+    "source": "config",
+    "schedule": {
+      "base_price": "175000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1500
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 1800
+    }
+  },
+  {
+    "account": "h07.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "chain hotel, small stack",
+    "source": "config",
+    "schedule": {
+      "base_price": "190000000",
+      "rules": [
+        {
+          "predicate": "booking_genius",
+          "bps": 500
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 1500
+    }
+  },
+  {
+    "account": "h08.bookerbob.testnet",
+    "category": "hotel-lisbon-2n",
+    "persona": "verified-guest rate",
+    "source": "config",
+    "schedule": {
+      "base_price": "185000000",
+      "rules": [
+        {
+          "predicate": "world_id_human",
+          "bps": 1500
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  }
+]

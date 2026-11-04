@@ -48,6 +48,8 @@ pub struct VerdictRecord {
 #[derive(Clone, Debug)]
 pub struct Merchant {
     pub payout: AccountId,
+    /// What the merchant sells, e.g. `hoodie` or `hotel-lisbon-2n`. Quotes compare within a category.
+    pub category: String,
     pub schedule: Schedule,
 }
 
@@ -150,14 +152,18 @@ impl Bazaar {
     /// A merchant agent registers its own account (usually `mNN.<bazaar>`) with a discount
     /// schedule. The payout account must already be registered with the USDC contract
     /// (`storage_deposit` there), or the payout fails and `settle` rolls back.
-    pub fn register_merchant(&mut self, schedule: Schedule, payout: Option<AccountId>) {
+    pub fn register_merchant(&mut self, schedule: Schedule, category: String, payout: Option<AccountId>) {
         if let Err(e) = schedule.validate() {
             env::panic_str(e);
         }
+        require!(
+            !category.is_empty() && category.len() <= 32 && category.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-'),
+            "bad category"
+        );
         let merchant = env::predecessor_account_id();
         let payout = payout.unwrap_or_else(|| merchant.clone());
-        self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), schedule });
-        emit("merchant_registered", serde_json::json!({ "merchant": merchant, "payout": payout }));
+        self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), category: category.clone(), schedule });
+        emit("merchant_registered", serde_json::json!({ "merchant": merchant, "category": category, "payout": payout }));
     }
 
     pub fn merchant(&self, merchant: AccountId) -> Option<Merchant> {
@@ -242,11 +248,15 @@ impl Bazaar {
         price_quote(&m.schedule, &v.predicates)
     }
 
-    /// Lowest price across merchants; ties go to the merchant registered first.
-    pub fn best_quote(&self, nullifier: String) -> Option<MerchantQuote> {
+    /// Lowest price across merchants in `category` (all when None); ties go to the
+    /// merchant registered first.
+    pub fn best_quote(&self, nullifier: String, category: Option<String>) -> Option<MerchantQuote> {
         let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         let mut best: Option<MerchantQuote> = None;
         for (id, m) in self.merchants.iter() {
+            if category.as_ref().is_some_and(|c| c != &m.category) {
+                continue;
+            }
             let q = price_quote(&m.schedule, &v.predicates);
             if best.as_ref().map_or(true, |b| q.price < b.quote.price) {
                 best = Some(MerchantQuote { merchant: id.clone(), quote: q });

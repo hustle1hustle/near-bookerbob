@@ -95,7 +95,7 @@ fn setup() -> Bazaar {
     c.register_issuer(ed.key_id(), "fixture ed25519 issuer".into());
     c.register_issuer(p.key_id(), "fixture p256 issuer".into());
     set("m01.bazaar.testnet");
-    c.register_merchant(schedule(), None);
+    c.register_merchant(schedule(), "hoodie".into(), None);
     let mut b = ctx("agent.testnet");
     b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
     testing_env!(b.build());
@@ -275,7 +275,7 @@ fn settle_without_enough_escrow_is_rejected() {
     let v = sign_ed(envelope(1, "agent.testnet"));
     c.register_issuer(v.key_id(), "x".into());
     set("m01.bazaar.testnet");
-    c.register_merchant(schedule(), None);
+    c.register_merchant(schedule(), "hoodie".into(), None);
     let mut b = ctx("agent.testnet");
     b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
     testing_env!(b.build());
@@ -338,17 +338,29 @@ fn merchant_cannot_price_an_invented_predicate() {
     let mut s = schedule();
     s.rules.push(Rule { predicate: "marriott_platinum".into(), bps: 500 });
     set("m02.bazaar.testnet");
-    c.register_merchant(s, None);
+    c.register_merchant(s, "hoodie".into(), None);
 }
 
 #[test]
 fn best_quote_picks_lowest_price() {
     let mut c = setup();
     set("m02.bazaar.testnet");
-    c.register_merchant(Schedule { base_price: 160_000_000, rules: vec![], cap_bps: 0 }, None);
+    c.register_merchant(Schedule { base_price: 160_000_000, rules: vec![], cap_bps: 0 }, "hoodie".into(), None);
+    set("h01.bazaar.testnet");
+    c.register_merchant(Schedule { base_price: 90_000_000, rules: vec![], cap_bps: 0 }, "hotel-lisbon-2n".into(), None);
     set("agent.testnet");
     c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
-    let best = c.best_quote(hex::encode([1u8; 32])).unwrap();
+    let best = c.best_quote(hex::encode([1u8; 32]), Some("hoodie".into())).unwrap();
     assert_eq!(best.merchant, acc("m01.bazaar.testnet"));
     assert_eq!(best.quote.price, 151_200_000);
+    let hotel = c.best_quote(hex::encode([1u8; 32]), Some("hotel-lisbon-2n".into())).unwrap();
+    assert_eq!(hotel.merchant, acc("h01.bazaar.testnet"));
+}
+
+#[test]
+#[should_panic(expected = "bad category")]
+fn merchant_category_is_validated() {
+    let mut c = setup();
+    set("m02.bazaar.testnet");
+    c.register_merchant(schedule(), "Hoodie Store!".into(), None);
 }

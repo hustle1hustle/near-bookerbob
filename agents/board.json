@@ -1,0 +1,380 @@
+{
+  "note": "synthetic fixtures; prices computed by bookerbob-core inside the bazaar contract",
+  "merchants": 30,
+  "buyer": {
+    "verdict_commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
+    "revealed_bits": 3,
+    "cohort_k": 1,
+    "group_unlock": "locked (k=1, needs k>=5)"
+  },
+  "categories": [
+    {
+      "category": "hoodie",
+      "rows": [
+        {
+          "rank": 1,
+          "merchant": "m01.bookerbob.testnet",
+          "persona": "shopify test store via UCP (the store the demo buys from)",
+          "bid_commitment": "96775bddecc4f7e8aa8470c8414134d4ba9ecaf388df1329c60aef49fefcb9c0",
+          "base_price": "48000000",
+          "lines": [
+            "-1000bps claude_spender",
+            "-800bps world_id_human",
+            "-500bps airbnb_frequent"
+          ],
+          "discount_bps": 2000,
+          "price": "38400000"
+        },
+        {
+          "rank": 2,
+          "merchant": "m08.bookerbob.testnet",
+          "persona": "verified humans only discount",
+          "bid_commitment": "215a60bf7cccab178d331ce9e20e867967a7aaa4fe27c16657e8e450da9b1c28",
+          "base_price": "47000000",
+          "lines": [
+            "-1500bps world_id_human"
+          ],
+          "discount_bps": 1500,
+          "price": "39950000"
+        },
+        {
+          "rank": 3,
+          "merchant": "m03.bookerbob.testnet",
+          "persona": "travel bundle, likes frequent flyers",
+          "bid_commitment": "98449475025917a0ad8f419852ce241af862d8051d9bba68b1f8d20fce8fdd07",
+          "base_price": "50000000",
+          "lines": [
+            "-1200bps airbnb_frequent",
+            "-800bps world_id_human"
+          ],
+          "discount_bps": 2000,
+          "price": "40000000"
+        },
+        {
+          "rank": 4,
+          "merchant": "m19.bookerbob.testnet",
+          "persona": "conference merch",
+          "bid_commitment": "99217cd3d65de4c0084c4094b1ea8a4cf6641c78d37caca2bb054742cd1fa5b4",
+          "base_price": "46500000",
+          "lines": [
+            "-600bps world_id_human",
+            "-600bps claude_spender"
+          ],
+          "discount_bps": 1200,
+          "price": "40920000"
+        },
+        {
+          "rank": 5,
+          "merchant": "m09.bookerbob.testnet",
+          "persona": "flat small stack",
+          "bid_commitment": "ee6567952efef01c51e59a9701435513183e70540efbc5509cb6d99f381db55e",
+          "base_price": "45000000",
+          "lines": [
+            "-300bps airbnb_frequent",
+            "-300bps claude_spender",
+            "-300bps world_id_human"
+          ],
+          "discount_bps": 900,
+          "price": "40950000"
+        },
+        {
+          "rank": 6,
+          "merchant": "m22.bookerbob.testnet",
+          "persona": "second-hand vintage",
+          "bid_commitment": "d3d5714eb27843ae37cd5f3724243797cec121e9123cb5827096caf2aa6b7851",
+          "base_price": "41000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "41000000"
+        },
+        {
+          "rank": 7,
+          "merchant": "m06.bookerbob.testnet",
+          "persona": "ai lab swag, loves claude spenders",
+          "bid_commitment": "b6f1fc4abbeaf85d9ba8b0addf04e5fff407abea01fca602fe90af28c686cb14",
+          "base_price": "52000000",
+          "lines": [
+            "-1500bps claude_spender",
+            "-500bps world_id_human"
+          ],
+          "discount_bps": 2000,
+          "price": "41600000"
+        },
+        {
+          "rank": 8,
+          "merchant": "m13.bookerbob.testnet",
+          "persona": "eco brand, humans first",
+          "bid_commitment": "4daa4dfc4909d03ef7f1eacdae66945c312df1696c4d07aae4b0fa41a46b3480",
+          "base_price": "48500000",
+          "lines": [
+            "-1000bps world_id_human",
+            "-400bps airbnb_frequent"
+          ],
+          "discount_bps": 1400,
+          "price": "41710000"
+        },
+        {
+          "rank": 9,
+          "merchant": "m02.bookerbob.testnet",
+          "persona": "budget basics, booking travellers only",
+          "bid_commitment": "cd9e3d60ed85afa088b59446f61819893e4f6fb79dfb56bf484b884e86ddc330",
+          "base_price": "42000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "42000000"
+        },
+        {
+          "rank": 10,
+          "merchant": "m18.bookerbob.testnet",
+          "persona": "boutique, cap 10%",
+          "bid_commitment": "1d703a8c5cf98950e243178a6725e38d816a8bd10a0fcc42e8ac35a208f2052d",
+          "base_price": "47500000",
+          "lines": [
+            "-1000bps claude_spender"
+          ],
+          "discount_bps": 1000,
+          "price": "42750000"
+        },
+        {
+          "rank": 11,
+          "merchant": "m16.bookerbob.testnet",
+          "persona": "discount warehouse",
+          "bid_commitment": "a4925614f3c7714d5532c8b2bd00a5a61b4b69bf9a84f116dbf31368a5e59783",
+          "base_price": "43500000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "43500000"
+        },
+        {
+          "rank": 12,
+          "merchant": "m17.bookerbob.testnet",
+          "persona": "loyalty club, rewards everything a little",
+          "bid_commitment": "af85bd08b951e9d1c6bde62c3cf8a5fcb5a4cd289e36fdbf960157f353341501",
+          "base_price": "49500000",
+          "lines": [
+            "-400bps airbnb_frequent",
+            "-400bps claude_spender",
+            "-400bps world_id_human"
+          ],
+          "discount_bps": 1200,
+          "price": "43560000"
+        },
+        {
+          "rank": 13,
+          "merchant": "m05.bookerbob.testnet",
+          "persona": "commuter wear, rewards uber regulars",
+          "bid_commitment": "f64fde8cd174f089dce3f64222239a9546a385226f078c4d5888fa9c13ac157c",
+          "base_price": "44000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "44000000"
+        },
+        {
+          "rank": 14,
+          "merchant": "m11.bookerbob.testnet",
+          "persona": "nomad outfitter",
+          "bid_commitment": "aa524dcfdfaf861550ed68c869c3c8495f513f9c60524701f81b1d041f9ab1c7",
+          "base_price": "49000000",
+          "lines": [
+            "-1000bps airbnb_frequent"
+          ],
+          "discount_bps": 1000,
+          "price": "44100000"
+        },
+        {
+          "rank": 15,
+          "merchant": "m14.bookerbob.testnet",
+          "persona": "developer hoodie co",
+          "bid_commitment": "e31e35456bc174e8e52e2a311994d0aa805d7c1351e102a68c016a39718c21e0",
+          "base_price": "50500000",
+          "lines": [
+            "-1200bps claude_spender"
+          ],
+          "discount_bps": 1200,
+          "price": "44440000"
+        },
+        {
+          "rank": 16,
+          "merchant": "m10.bookerbob.testnet",
+          "persona": "high base, deep stack, tight cap",
+          "bid_commitment": "12ac2a133e6b712c8659745a7368afae9e89c951eed0d7eeb567815d8c086709",
+          "base_price": "60000000",
+          "lines": [
+            "-1500bps airbnb_frequent",
+            "-1500bps claude_spender",
+            "-1500bps world_id_human"
+          ],
+          "discount_bps": 2500,
+          "price": "45000000"
+        },
+        {
+          "rank": 17,
+          "merchant": "m21.bookerbob.testnet",
+          "persona": "late night pop-up",
+          "bid_commitment": "11e1120ae6ea0f3c713a38831ca6bc194e80ced875427018247236dc33ac8e06",
+          "base_price": "45500000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "45500000"
+        },
+        {
+          "rank": 18,
+          "merchant": "m04.bookerbob.testnet",
+          "persona": "gamer merch, rewards long steam accounts",
+          "bid_commitment": "46e4f4e96d6fb91723a1117892890577e5892cd50c02ffe451f31184201b6740",
+          "base_price": "46000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "46000000"
+        },
+        {
+          "rank": 19,
+          "merchant": "m20.bookerbob.testnet",
+          "persona": "outdoor gear",
+          "bid_commitment": "69524aeb1829aba53a8ed21ffea109944db72cd6c0a68f4ec829d04bd16507b0",
+          "base_price": "54000000",
+          "lines": [
+            "-1400bps airbnb_frequent"
+          ],
+          "discount_bps": 1400,
+          "price": "46440000"
+        },
+        {
+          "rank": 20,
+          "merchant": "m15.bookerbob.testnet",
+          "persona": "airport kiosk",
+          "bid_commitment": "66a44890c6ce4cd1ee70ba008e14379a97fe719ef7e480822e65fbc2aa50b7ad",
+          "base_price": "53000000",
+          "lines": [
+            "-900bps airbnb_frequent"
+          ],
+          "discount_bps": 900,
+          "price": "48230000"
+        },
+        {
+          "rank": 21,
+          "merchant": "m12.bookerbob.testnet",
+          "persona": "streetwear drop",
+          "bid_commitment": "b671f839dac3924780534579410f3ba141ea0567dcf13572d2d23945aea3fdfa",
+          "base_price": "51000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "51000000"
+        },
+        {
+          "rank": 22,
+          "merchant": "m07.bookerbob.testnet",
+          "persona": "premium cotton, no discounts",
+          "bid_commitment": "90e4890afad2631005e5669d7c41ecd5ae538d65e14c17065e02cd407487d21a",
+          "base_price": "55000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "55000000"
+        }
+      ],
+      "winner": "m01.bookerbob.testnet"
+    },
+    {
+      "category": "hotel-lisbon-2n",
+      "rows": [
+        {
+          "rank": 1,
+          "merchant": "h05.bookerbob.testnet",
+          "persona": "hostel private room",
+          "bid_commitment": "6eda23e5b677c22788b4fdaf73d0b4ecec32779ba593eaf69331ff4916a44a5b",
+          "base_price": "120000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "120000000"
+        },
+        {
+          "rank": 2,
+          "merchant": "h06.bookerbob.testnet",
+          "persona": "riverside apartments",
+          "bid_commitment": "1b9cdab23f3f2fd188350cb4197c8b794462768e9727fb8edcae12c9932673da",
+          "base_price": "175000000",
+          "lines": [
+            "-1500bps airbnb_frequent",
+            "-500bps world_id_human"
+          ],
+          "discount_bps": 1800,
+          "price": "143500000"
+        },
+        {
+          "rank": 3,
+          "merchant": "h08.bookerbob.testnet",
+          "persona": "verified-guest rate",
+          "bid_commitment": "30f72e5f25beaa11c374bcfe5f8a15f7c6936425d1a6f8c58c0f23fbf1e88c5f",
+          "base_price": "185000000",
+          "lines": [
+            "-1500bps world_id_human",
+            "-500bps airbnb_frequent"
+          ],
+          "discount_bps": 2000,
+          "price": "148000000"
+        },
+        {
+          "rank": 4,
+          "merchant": "h02.bookerbob.testnet",
+          "persona": "alfama guesthouse",
+          "bid_commitment": "39bec2e83f63e35449425991d989722ec4f4634da2464fca680c40a4751ed608",
+          "base_price": "165000000",
+          "lines": [
+            "-800bps airbnb_frequent"
+          ],
+          "discount_bps": 800,
+          "price": "151800000"
+        },
+        {
+          "rank": 5,
+          "merchant": "h01.bookerbob.testnet",
+          "persona": "jmpr hotel desk (stub: bids from hotel_search / hotel_room_rate rates only, never books)",
+          "bid_commitment": "4c8a41ff0a41128f52dc1c2c465d19fb2f1b6680412ac47940b8e59f662dad3b",
+          "base_price": "180000000",
+          "lines": [
+            "-1000bps airbnb_frequent",
+            "-500bps world_id_human"
+          ],
+          "discount_bps": 1500,
+          "price": "153000000"
+        },
+        {
+          "rank": 6,
+          "merchant": "h07.bookerbob.testnet",
+          "persona": "chain hotel, small stack",
+          "bid_commitment": "6e5d32a7ce766edf987ce31bdb659be9f5d157387398fcf9d0d0d65d1c9c7ba1",
+          "base_price": "190000000",
+          "lines": [
+            "-500bps airbnb_frequent"
+          ],
+          "discount_bps": 500,
+          "price": "180500000"
+        },
+        {
+          "rank": 7,
+          "merchant": "h04.bookerbob.testnet",
+          "persona": "design hotel",
+          "bid_commitment": "33b0672b36e24348821ea9dfad97f47ba176dbfb6bab0b1ec8ca6759b0ddc9b2",
+          "base_price": "230000000",
+          "lines": [
+            "-1000bps claude_spender",
+            "-1000bps world_id_human"
+          ],
+          "discount_bps": 2000,
+          "price": "184000000"
+        },
+        {
+          "rank": 8,
+          "merchant": "h03.bookerbob.testnet",
+          "persona": "business hotel, rewards booking genius",
+          "bid_commitment": "b9e38397de2f22c2ca9a8d2378a0d0c271863f9a8001b7feaccdde75f52a7527",
+          "base_price": "210000000",
+          "lines": [],
+          "discount_bps": 0,
+          "price": "210000000"
+        }
+      ],
+      "winner": "h05.bookerbob.testnet"
+    }
+  ]
+}

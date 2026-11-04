@@ -24,7 +24,8 @@ Needs Rust (stable, 1.93 or newer) and `make`. No network, no keys.
 
 1. Run `make verify`.
    See one line per link of the chain, each `PASS` or `FAIL`, ending in `nullifier spent`
-   for the replayed proof and `ALL PASS`.
+   for the replayed proof and `ALL PASS`, then the 30-agent board and
+   `PASS  swarm board matches agents/board.json and contract best_quote per category`.
 2. Run `make test`.
    See the contract and core unit tests, named by behaviour
    (`replayed_nullifier_is_rejected`, `uncited_fact_refuses_receipt`, ...).
@@ -68,8 +69,8 @@ interface exists with a test double; `planned` means not built yet.
 | NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | built; payout rollback in `on_settle_transfer` |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | built |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built (19 tests) |
-| SUB-ACCOUNTS: one merchant agent per sub-account | swarms | `agents/` | planned |
-| NEAR AI Cloud private inference and attestation (TEE ATTESTATION) | privacy | `agents/` | planned |
+| SUB-ACCOUNTS: 30 merchant agents, one sub-account each, blind commit then reveal | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | built as config and offline board; accounts not created on testnet yet |
+| NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS); E2EE v2 and attestation check planned |
 | OutLayer TDX worker as referee and verification node | security, privacy | `docs/` | planned |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `fixtures/` | planned |
@@ -82,7 +83,7 @@ interface exists with a test double; `planned` means not built yet.
 | `contract/` | `bazaar` contract, near-sdk 5.29.1 |
 | `core/` | `bookerbob-core`: verdict envelope v0, tier, price and discount stack, referee. Shared by contract and CLI |
 | `cli/` | `bookerbob` CLI: offline end-to-end on fixtures, fixture generator |
-| `agents/` | merchant swarm and board |
+| `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
 | `ucp/` | UCP payment handler `xyz.r3p.near_usdc` |
 | `fixtures/` | synthetic, deterministic inputs and expected outputs |
 | `docs/` | envelope spec, ideas, design notes |

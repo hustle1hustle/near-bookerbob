@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BookerBob board</title>
+<style>
+  :root { --bg: #0A0A0F; --fg: #E8E8F0; --dim: #8A8AA0; --blue: #3B5BFF; --line: #1C1C28; --red: #FF4D5E; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--dim); margin-bottom: 24px; }
+  .buyer { border: 1px solid var(--blue); padding: 12px 14px; margin-bottom: 24px; }
+  .buyer b { color: var(--blue); }
+  h2 { font-size: 15px; margin: 28px 0 8px; color: var(--blue); }
+  .wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: normal; }
+  td.num { text-align: right; white-space: nowrap; }
+  tr.win td { color: #fff; }
+  tr.win td:first-child { color: var(--blue); }
+  .pitch { color: var(--dim); font-size: 12px; }
+  .commit { color: var(--dim); font-size: 12px; }
+  .ref { border: 1px solid var(--line); padding: 12px 14px; margin-top: 12px; }
+  .ok { color: var(--blue); }
+  .no { color: var(--red); }
+  code { color: var(--fg); }
+</style>
+</head>
+<body>
+<main>
+  <h1>bookerbob board</h1>
+  <div class="sub">merchants compete for you. none of them learns who you are. serve this folder and open board.html: <code>python3 -m http.server -d agents</code></div>
+  <div id="buyer" class="buyer">loading board.json ...</div>
+  <div id="cats"></div>
+  <h2>referee</h2>
+  <div id="ref"></div>
+</main>
+<script>
+const usdc = (s) => (Number(BigInt(s) / 10000n) / 100).toFixed(2);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+async function load(p) { try { const r = await fetch(p); return r.ok ? r.json() : null; } catch { return null; } }
+(async () => {
+  const board = await load("board.json");
+  const live = await load("out/live-run.json");
+  if (!board) { document.getElementById("buyer").textContent = "board.json not found. run make swarm"; return; }
+  const b = board.buyer;
+  document.getElementById("buyer").innerHTML =
+    `<b>buyer</b> commitment ${esc(b.verdict_commitment.slice(0, 16))}...  revealed ${b.revealed_bits} bits  ${esc(b.group_unlock)}<br>` +
+    `<span class="commit">${board.merchants} merchant agents. bids were committed blind, then revealed. prices are computed by code in the contract.</span>`;
+  const pitches = live?.pitches ?? {};
+  document.getElementById("cats").innerHTML = board.categories.map((c) => `
+    <h2>${esc(c.category)}</h2>
+    <div class="wrap"><table>
+      <tr><th>#</th><th>merchant</th><th class="num">base</th><th class="num">disc</th><th class="num">price</th><th>lines</th></tr>
+      ${c.rows.map((r) => `<tr class="${r.rank === 1 ? "win" : ""}">
+        <td>${r.rank}</td>
+        <td>${esc(r.merchant)}<div class="pitch">${esc(pitches[r.merchant] ?? r.persona)}</div><div class="commit">bid ${esc(r.bid_commitment.slice(0, 12))}</div></td>
+        <td class="num">${usdc(r.base_price)}</td>
+        <td class="num">${(r.discount_bps / 100).toFixed(1)}%</td>
+        <td class="num">${usdc(r.price)}</td>
+        <td>${esc(r.lines.join(", "))}</td></tr>`).join("")}
+    </table></div>`).join("");
+  if (!live) { document.getElementById("ref").textContent = "no live run yet (node agents/why.mjs)"; return; }
+  const show = (k, v) => {
+    const r = v.referee;
+    const tag = r.outcome === "receipt" ? `<span class="ok">receipt ${esc(r.receipt_hash.slice(0, 12))}</span>` : `<span class="no">refused: ${esc(r.reason)}</span>`;
+    return `<div class="ref"><b>${k}</b> ${tag}<br>${v.claims.map((c) => `${esc(c.line)} [${esc(c.citations.join(","))}] ${esc(c.text)}`).join("<br>")}</div>`;
+  };
+  const sigs = live.calls.filter((c) => c.signature_valid && c.request_hash_matches && c.response_hash_matches).length;
+  document.getElementById("ref").innerHTML =
+    show("honest why", live.buyer_why.honest) + show("why with injected product text", live.buyer_why.injected) +
+    `<div class="ref">near ai ${esc(live.model)}: ${sigs}/${live.calls.length} responses carry a valid ed25519 signature over sha256(request) and sha256(response). cost $${live.total_cost_usd}</div>`;
+})();
+</script>
+</body>
+</html>

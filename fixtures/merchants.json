@@ -2,6 +2,7 @@
   {
     "account": "m01.bookerbob.testnet",
     "label": "shopify test store (UCP)",
+    "category": "hoodie",
     "schedule": {
       "base_price": "48000000",
       "rules": [
@@ -24,6 +25,7 @@
   {
     "account": "m02.bookerbob.testnet",
     "label": "low base, booking only",
+    "category": "hoodie",
     "schedule": {
       "base_price": "42000000",
       "rules": [
@@ -38,6 +40,7 @@
   {
     "account": "m03.bookerbob.testnet",
     "label": "travel bundle",
+    "category": "hoodie",
     "schedule": {
       "base_price": "50000000",
       "rules": [
