@@ -926,5 +926,7 @@ impl Bazaar {
     }
 }
 
+pub mod groth16;
+
 #[cfg(test)]
 mod tests;
