@@ -1,0 +1,101 @@
+{
+  "note": "built from the bazaar contract's NEP-297 events in the offline make verify run (synthetic fixtures); near_tx is filled once purchases run on testnet",
+  "receipts": [
+    {
+      "nullifier": "1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e",
+      "commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
+      "status": "settled",
+      "receipt_hash": "5ac409fec473646ed4a1f43a19899177db1aba84453d022f9172957774b51de8",
+      "merchant": "m01.bookerbob.testnet",
+      "amount": "36000000",
+      "checkout_ref": "fixture-order-1",
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted",
+        "receipt_refused",
+        "referee_receipt",
+        "dispute_overturned",
+        "referee_receipt",
+        "settled"
+      ]
+    },
+    {
+      "nullifier": "a0cc6f6f335248fd3a1fdb3f2f28da4b634434003d29e85fa316e5c3cda6319a",
+      "commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
+      "status": "pending",
+      "receipt_hash": null,
+      "merchant": null,
+      "amount": null,
+      "checkout_ref": null,
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted"
+      ]
+    },
+    {
+      "nullifier": "0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180",
+      "commitment": "8282c8d109e30932f0ad282e0cc645096664c4b9bcf686ff9931549b1294c103",
+      "status": "pending",
+      "receipt_hash": null,
+      "merchant": null,
+      "amount": null,
+      "checkout_ref": null,
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted"
+      ]
+    },
+    {
+      "nullifier": "45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550",
+      "commitment": "bd496da21f18c4d6eea94c662d073aab86f01f275f0755d177880d3ea53f6b08",
+      "status": "pending",
+      "receipt_hash": null,
+      "merchant": null,
+      "amount": null,
+      "checkout_ref": null,
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted"
+      ]
+    },
+    {
+      "nullifier": "41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000",
+      "commitment": "d4195a4ce3909f965c7a6cff2baf87f5e9e9a26dd7be7e2dcf5ab1b85f888221",
+      "status": "pending",
+      "receipt_hash": null,
+      "merchant": null,
+      "amount": null,
+      "checkout_ref": null,
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted"
+      ]
+    },
+    {
+      "nullifier": "55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f",
+      "commitment": "183efecb0cc8bd98daeab1e25d4d0a325da465f56421d51b06c2850119dc10e1",
+      "status": "pending",
+      "receipt_hash": null,
+      "merchant": null,
+      "amount": null,
+      "checkout_ref": null,
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted"
+      ]
+    },
+    {
+      "nullifier": "35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32",
+      "commitment": "cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1",
+      "status": "pending",
+      "receipt_hash": null,
+      "merchant": null,
+      "amount": null,
+      "checkout_ref": null,
+      "near_tx": null,
+      "timeline": [
+        "verdict_submitted"
+      ]
+    }
+  ]
+}

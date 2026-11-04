@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BookerBob receipts</title>
+<style>
+  :root { --bg: #0A0A0F; --panel: #10101A; --fg: #E6E6EF; --dim: #7C7C94; --faint: #3A3A4E; --line: #1C1C2A; --blue: #3B5BFF; --red: #FF4D5E; --green: #5BE3A0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--dim); margin-bottom: 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: normal; font-size: 12px; }
+  td.num { text-align: right; white-space: nowrap; }
+  .h { color: var(--dim); }
+  .st { font-size: 12px; }
+  .st.settled { color: var(--green); }
+  .st.receipt { color: var(--blue); }
+  .st.pending { color: var(--faint); }
+  .chip { display: inline-block; font-size: 11px; padding: 0 6px; margin: 0 4px 4px 0; border: 1px solid var(--line); border-radius: 3px; color: var(--dim); }
+  .chip.receipt_refused, .chip.dispute_overturned { color: var(--red); border-color: rgba(255, 77, 94, 0.4); }
+  .chip.settled { color: var(--green); border-color: rgba(91, 227, 160, 0.4); }
+  .chip.referee_receipt { color: var(--blue); border-color: rgba(59, 91, 255, 0.4); }
+  footer { color: var(--faint); font-size: 12px; margin-top: 16px; }
+  .filter { margin-bottom: 12px; color: var(--dim); }
+  .filter label { cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>bookerbob receipts</h1>
+  <div class="sub">every verdict and purchase the bazaar contract logged. hashes and public payment fields only: no buyer, no predicates, no history.</div>
+  <div class="filter"><label><input type="checkbox" id="only"> settled only</label></div>
+  <div class="panel"><table id="t"></table></div>
+  <footer id="foot"></footer>
+</main>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const short = (h) => (h ? `${h.slice(0, 10)}..${h.slice(-6)}` : "");
+const usd = (s) => (s ? "$" + (Number(BigInt(s) / 10000n) / 100).toFixed(2) : "");
+let data = null;
+function render() {
+  const only = document.getElementById("only").checked;
+  const rows = data.receipts.filter((r) => !only || r.status === "settled").sort((a, b) => (a.status === "settled" ? -1 : 0) - (b.status === "settled" ? -1 : 0));
+  document.getElementById("t").innerHTML =
+    `<tr><th>nullifier</th><th>verdict commitment</th><th>status</th><th>referee receipt</th><th>merchant</th><th class="num">paid</th><th>events</th><th>near tx</th></tr>` +
+    rows.map((r) => `<tr>
+      <td class="h" title="${esc(r.nullifier)}">${short(r.nullifier)}</td>
+      <td class="h" title="${esc(r.commitment)}">${short(r.commitment)}</td>
+      <td><span class="st ${esc(r.status)}">${esc(r.status)}</span></td>
+      <td class="h" title="${esc(r.receipt_hash)}">${short(r.receipt_hash)}</td>
+      <td>${esc((r.merchant ?? "").split(".")[0])}</td>
+      <td class="num">${usd(r.amount)}</td>
+      <td>${r.timeline.map((e) => `<span class="chip ${esc(e)}">${esc(e.replace(/_/g, " "))}</span>`).join("")}</td>
+      <td class="h">${r.near_tx ? `<a href="https://testnet.nearblocks.io/txns/${esc(r.near_tx)}">${short(r.near_tx)}</a>` : "offline run"}</td></tr>`).join("");
+}
+(async () => {
+  try { data = await (await fetch("receipts.json")).json(); } catch { document.getElementById("t").innerHTML = "<tr><td>receipts.json not found. run make receipts</td></tr>"; return; }
+  document.getElementById("only").onchange = render;
+  render();
+  const settled = data.receipts.filter((r) => r.status === "settled").length;
+  document.getElementById("foot").textContent = `${data.receipts.length} verdicts, ${settled} settled. ${data.note}.`;
+})();
+</script>
+</body>
+</html>

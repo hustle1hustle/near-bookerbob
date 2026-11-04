@@ -27,7 +27,9 @@ Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. N
    for the replayed proof and `ALL PASS`, then the 30-agent board and
    `PASS  swarm board matches agents/board.json and contract best_quote per category`.
    The `EVENT_JSON:` lines on stderr are the contract's own NEP-297 logs.
-   `make demo-offline` prints the same story on one screen without them.
+   `make demo-offline` prints the same story on one screen without them. The last line,
+   `PASS  public receipts page data matches agents/receipts.json`, checks the public
+   receipts page against the contract's events.
 2. Run `make test`.
    See the contract and core unit tests, named by behaviour
    (`replayed_nullifier_is_rejected`, `uncited_fact_refuses_receipt`, ...).
@@ -40,6 +42,12 @@ Needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. N
 
 `make swarm` writes `agents/board.json`; `python3 -m http.server -d agents` and open
 `/board.html`. Synthetic fixtures.
+
+Public receipts (`/receipts.html`, data `agents/receipts.json` from `make receipts`): every
+verdict and purchase the contract logged, hashes and public payment fields only, built
+from the contract's own NEP-297 events in the `make verify` run and checked there.
+
+![receipts page: nullifier, commitment, status, referee receipt, merchant, amount, event chips](docs/img/receipts.png)
 
 ## How one purchase works
 

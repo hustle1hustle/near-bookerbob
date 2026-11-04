@@ -48,7 +48,22 @@ fn acc(s: &str) -> AccountId {
     s.parse().expect("account id")
 }
 
+thread_local! {
+    /// Every NEP-297 event the contract logged during the run, in order.
+    static EVENTS: std::cell::RefCell<Vec<serde_json::Value>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// Move the current call's contract logs into EVENTS (the next testing_env resets them).
+fn harvest() {
+    for l in get_logs() {
+        if let Some(j) = l.strip_prefix("EVENT_JSON:").and_then(|j| serde_json::from_str(j).ok()) {
+            EVENTS.with(|e| e.borrow_mut().push(j));
+        }
+    }
+}
+
 fn as_caller(predecessor: &str, deposit: Option<near_sdk::NearToken>) {
+    harvest();
     let mut b = VMContextBuilder::new();
     b.current_account_id(acc(OWNER)).predecessor_account_id(acc(predecessor)).block_timestamp(NOW_MS * 1_000_000);
     if let Some(d) = deposit {
@@ -83,6 +98,76 @@ fn verify_offchain(v: &SignedVerdict) -> bool {
             k.verify_prehash(&digest, &s).is_ok()
         }
     }
+}
+
+/// Public receipts: per nullifier, hashes and the settled payment, nothing about the buyer.
+fn receipts_from(events: &[serde_json::Value]) -> serde_json::Value {
+    use serde_json::{json, Value};
+    let mut rows: Vec<(String, serde_json::Map<String, Value>)> = Vec::new();
+    for ev in events {
+        let name = ev["event"].as_str().unwrap_or("");
+        let d = &ev["data"][0];
+        let Some(n) = d["nullifier"].as_str() else { continue };
+        let idx = match rows.iter().position(|(k, _)| k == n) {
+            Some(i) => i,
+            None => {
+                rows.push((n.to_string(), serde_json::Map::new()));
+                rows.len() - 1
+            }
+        };
+        let row = &mut rows[idx].1;
+        let mut push = |field: &str, v: Value| row.entry(field.to_string()).or_insert_with(|| json!([])).as_array_mut().unwrap().push(v);
+        match name {
+            "verdict_submitted" => push("timeline", json!({ "event": name, "commitment": d["commitment"] })),
+            "referee_receipt" => push("timeline", json!({ "event": name, "receipt_hash": d["receipt_hash"] })),
+            "receipt_refused" | "dispute_overturned" => push("timeline", json!({ "event": name })),
+            "settled" => push("timeline", json!({ "event": name, "merchant": d["merchant"], "amount": d["amount"], "checkout_ref": d["checkout_ref"] })),
+            _ => {}
+        }
+    }
+    let list: Vec<Value> = rows
+        .into_iter()
+        .filter_map(|(n, row)| {
+            let tl = row.get("timeline")?.as_array()?.clone();
+            let settled = tl.iter().find(|x| x["event"] == "settled").cloned();
+            let receipt = tl.iter().rev().find(|x| x["event"] == "referee_receipt").map(|x| x["receipt_hash"].clone());
+            let commitment = tl.iter().find(|x| x["event"] == "verdict_submitted").map(|x| x["commitment"].clone());
+            Some(json!({
+                "nullifier": n,
+                "commitment": commitment,
+                "status": if settled.is_some() { "settled" } else if receipt.is_some() { "receipt" } else { "pending" },
+                "receipt_hash": receipt,
+                "merchant": settled.as_ref().map(|x| x["merchant"].clone()),
+                "amount": settled.as_ref().map(|x| x["amount"].clone()),
+                "checkout_ref": settled.as_ref().map(|x| x["checkout_ref"].clone()),
+                "near_tx": null,
+                "timeline": tl.iter().map(|x| x["event"].clone()).collect::<Vec<_>>(),
+            }))
+        })
+        .collect();
+    json!({
+        "note": "built from the bazaar contract's NEP-297 events in the offline make verify run (synthetic fixtures); near_tx is filled once purchases run on testnet",
+        "receipts": list,
+    })
+}
+
+pub fn run_with_receipts(dir: &Path, receipts: Option<(&Path, bool)>) -> ExitCode {
+    let code = run(dir);
+    harvest();
+    let Some((path, check)) = receipts else { return code };
+    let mut body = serde_json::to_string_pretty(&EVENTS.with(|e| receipts_from(&e.borrow()))).unwrap();
+    body.push('\n');
+    if check {
+        let same = std::fs::read_to_string(path).ok().as_deref() == Some(body.as_str());
+        println!("{}  public receipts page data matches {}", if same { "PASS" } else { "FAIL" }, path.display());
+        if !same {
+            return ExitCode::FAILURE;
+        }
+    } else {
+        std::fs::write(path, body).expect("write receipts");
+        println!("wrote {}", path.display());
+    }
+    code
 }
 
 pub fn run(dir: &Path) -> ExitCode {

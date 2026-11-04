@@ -1,6 +1,6 @@
 //! `bookerbob` CLI.
 //!
-//!   bookerbob verify <fixtures-dir>         offline end-to-end, PASS/FAIL per link
+//!   bookerbob verify <fixtures-dir> [--receipts <json> [--check]]  offline end-to-end, PASS/FAIL per link
 //!   bookerbob gen-fixtures <dir> [--check]  write (or check) deterministic fixtures
 //!   bookerbob swarm <merchants.json> <verdict.json> <board.json> [--check]
 //!   bookerbob referee <proofs.json> <verdict.json> <merchants.json> <merchant> <claims.json>
@@ -72,7 +72,10 @@ fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
         Some("verify") => match args.get(1) {
-            Some(d) => verify::run(Path::new(d)),
+            Some(d) => {
+                let receipts = args.iter().position(|a| a == "--receipts").and_then(|i| args.get(i + 1));
+                verify::run_with_receipts(Path::new(d), receipts.map(|p| (Path::new(p.as_str()), args.iter().any(|a| a == "--check"))))
+            }
             None => usage(),
         },
         Some("gen-fixtures") => match args.get(1) {

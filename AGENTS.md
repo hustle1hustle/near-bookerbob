@@ -8,6 +8,7 @@ Instructions for AI agents (Claude Code, Codex) working in or judging this repo.
 |---|---|---|
 | offline end-to-end check | `make verify` | 26 chain checks `ALL PASS`, swarm board `PASS`, `referee evals 20/20` |
 | unit tests | `make test` | all tests pass |
+| rebuild the public receipts data | `make receipts` | rewrites `agents/receipts.json` from the contract events |
 | regenerate fixtures | `make fixtures` | rewrites `fixtures/*.json` byte-identically (deterministic seeds) |
 | check fixtures are reproducible | `make fixtures-check` | `fixtures up to date` |
 | build contract wasm | `make wasm` | `target/near/bazaar.wasm` (needs cargo-near) |
