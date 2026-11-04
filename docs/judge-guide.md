@@ -55,8 +55,9 @@ Also tested offline (`make test`): the NEP-366 relayer policy for gasless rating
 
 ## Minute 5: check what is not claimed
 
-- Testnet only; no USDC has moved (escrow and settle wait on testnet USDC); no real zkTLS
-  proof (the facts are synthetic).
+- Testnet only. Payments ran in dUSDC, a testnet demo token with no value (production uses
+  Circle USDC): 6 settles, all re-derived by `make verify-live`. No real zkTLS proof (the facts
+  are synthetic).
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.

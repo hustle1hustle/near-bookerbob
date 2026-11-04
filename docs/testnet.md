@@ -146,7 +146,7 @@ Written by `scripts/deploy-testnet.sh`. Network: testnet. Explorer: testnet.near
 
 ## make demo-live (2026-11-04)
 
-Stops at escrow: the agent holds no testnet USDC yet (faucet.circle.com, a web form).
+The first live run, with Circle USDC, stopped at escrow (no testnet USDC on the agent). Demo mode below replaces it with dUSDC.
 
 | step | account | tx |
 |---|---|---|
@@ -192,6 +192,53 @@ The contract logged `graph_scores` with `merchants: 0`. The live graph has hire 
 seed yet: seeds come from released reviews, which need a paid purchase, which waits on testnet
 USDC. So this update binds the proven root and an empty score list. Once a purchase settles and
 reviews release, the same commands carry nonzero standing.
+
+## Demo mode on testnet: dUSDC purchases, sealed reviews, live standing (2026-11-05)
+
+dUSDC is a testnet demo token with no value; production uses Circle USDC (docs/demo-mode.md).
+Every tester call below is a NEP-366 delegate action signed by the tester and sent, and paid
+for, by the relayer (`bookerbob-demo.testnet`). `make verify-live` re-derives all of it.
+
+Setup: dUSDC deploy [D6Y38TjV…](https://testnet.nearblocks.io/txns/D6Y38TjVUGW9Go5FNsBhZDWDKSopbfULokRxvkAQfaL9),
+bazaar redeploy [bTgMeiM1…](https://testnet.nearblocks.io/txns/bTgMeiM1LKs64LDsALzUwg8MEiVUZ6Fq6epXSDZv9fa),
+`set_demo_token` [DbLZTAw1…](https://testnet.nearblocks.io/txns/DbLZTAw1fth1QoqmyaXUUVB39JW2zjfYZ9AABDpbDePK),
+`set_review_round_ms` 5 min [HeNHfNam…](https://testnet.nearblocks.io/txns/HeNHfNamSVAZPgLJbHDAGUp9yqxavqi5X3RXKt7oLEes).
+
+| tester | paid (dUSDC) | verdict | receipt | escrow | settle_demo | replay refused | review join | Shopify |
+|---|---|---|---|---|---|---|---|---|
+| `t-4fdc17` | 38.40 | [CvBKR3NE…](https://testnet.nearblocks.io/txns/CvBKR3NEMR8qPqgVcaiGVddSxFzgvPTJVFuQz1fdeaFA) | [EaWZM5ux…](https://testnet.nearblocks.io/txns/EaWZM5uxTg4JUc4brVNsrojYArzf8ZuMNRsWmaauW4mR) | [5Fjy9SVu…](https://testnet.nearblocks.io/txns/5Fjy9SVu5ZUmRcyd8c2h29HYMiYaZMHUphV2egRikrPJ) | [BUjaQmrh…](https://testnet.nearblocks.io/txns/BUjaQmrhZYJ879FK1vjSzKac8ViogwAtQXch91K1iSca) | [8C8mmgTh…](https://testnet.nearblocks.io/txns/8C8mmgThjkZ67nCYZQvHggnRqMzNiq59GfvbpBrWeJ6z) | [4Nbam5EG…](https://testnet.nearblocks.io/txns/4Nbam5EGEaTXAWz2StXJsuP1MSztWRtCAiUbgKvzgnVz) | #1055 |
+| `t-22c72f` | 38.40 | [4BqkD175…](https://testnet.nearblocks.io/txns/4BqkD1755tqeJgZGSUJahvLKFsYsfau6dBmtx3iQLdRt) | [CEffxYEU…](https://testnet.nearblocks.io/txns/CEffxYEUUAtqckQQF5LeoUKeMcD7uH8mVNMsjXAnYtzY) | [3nqXDvKU…](https://testnet.nearblocks.io/txns/3nqXDvKUihrGJ9iRbi3NfKEDt5kkRZx2bEsjcF4kKixT) | [EawcSzjM…](https://testnet.nearblocks.io/txns/EawcSzjMUL7RGZS5RUXcnkQ7Rq63hrGuPGZeRxb3u3Yi) | [Hd8rgJf6…](https://testnet.nearblocks.io/txns/Hd8rgJf6sihm3q7D7tj8LWtH8AZhQdFzPDZn1Pw2u3jx) | [EpW6dL7u…](https://testnet.nearblocks.io/txns/EpW6dL7uwU6174qrr9tgfr8y18srtbUCirB585ZWjutc) | #1056 |
+| `t-744ca5` | 38.40 | [CsZky1yG…](https://testnet.nearblocks.io/txns/CsZky1yGUYAhyAEQzLJtKvidkCiEEtx2Dt3pmFHRuNWQ) | [4diH4LXr…](https://testnet.nearblocks.io/txns/4diH4LXrLguVs5ZULHaPH3vT2djN7FmrXSBgXPjGfr3d) | [HPADbG11…](https://testnet.nearblocks.io/txns/HPADbG11A7rHzfP6ijFABMqyCHtLDj5LAJBDwNjoAKJH) | [FrXdUS46…](https://testnet.nearblocks.io/txns/FrXdUS467fCx96QkbH5BBi6xDmv1omYuyJ4KNiWY8ngu) | [2Z4DcyGZ…](https://testnet.nearblocks.io/txns/2Z4DcyGZnGtVfP84hvqfwntNcyp2XEM8ReprmqvfUN6e) | [GB3Jm4GU…](https://testnet.nearblocks.io/txns/GB3Jm4GUzy1UHMu7HxdCnTBMC3CiHxeWsqMpnUXNJA8p) | #1057 |
+| `t-1a2121` | 36.00 (k=7) | [CKp9wzuJ…](https://testnet.nearblocks.io/txns/CKp9wzuJXgCez2W5JfSUTfBjkLb3kGyWsNvczQpfSpF5) | [A3R1gqbk…](https://testnet.nearblocks.io/txns/A3R1gqbkGoH3Z2fL9Jh5MiecJymXdVTUCrCwr26Wh6fB) | [3J2Vbfi6…](https://testnet.nearblocks.io/txns/3J2Vbfi6gdh6jXZx9w4u7mk2rZD1fkYJGfr1FBuX5Ava) | [47jRpLQT…](https://testnet.nearblocks.io/txns/47jRpLQT2x9BvjswUNMuNU1EA2zohgjb8Qkj3Qcotm9z) | [2zqBwqoi…](https://testnet.nearblocks.io/txns/2zqBwqoiyk47KjGaczQqHFjXUz8HVBx4ZWZDkmvbqbzc) | [5xGHtzZi…](https://testnet.nearblocks.io/txns/5xGHtzZiXLT7xnnioAthFJWBWHTYJfgUvV4Uh3AQn8HL) | #1058 |
+| `t-0a1423` | 36.00 (k=8) | [4Ef8EDnS…](https://testnet.nearblocks.io/txns/4Ef8EDnSTnZNVLyLX39VYBpuVMuD4hYFyPn1FxnMbvtf) | [6Z6fVQzL…](https://testnet.nearblocks.io/txns/6Z6fVQzLD1AaDc9cEjWSpYqsuzwPD3hiMzCLxEotwaMN) | [C5X39nbW…](https://testnet.nearblocks.io/txns/C5X39nbWSK3NwFKFtecZrQsBwMWMdYEo4WwNbvxHho6b) | [5pG4BGQm…](https://testnet.nearblocks.io/txns/5pG4BGQmbvo8kgAYFP82fAwLS2dvYh1vjDdKiBrnzU1s) | [CGieM8A1…](https://testnet.nearblocks.io/txns/CGieM8A1sp2ro1HdGD6SDqBCanxDTSHF53qnm6CU93jW) | [4NjWUtq4…](https://testnet.nearblocks.io/txns/4NjWUtq4AZXYTgT3cvXhVJTG7YTnRRUnaTE9nbwsMxsS) | #1059 |
+| `t-e29071` | 36.00 (k=9) | [4cz1yDhg…](https://testnet.nearblocks.io/txns/4cz1yDhgz61acMUrgKWR65A58pHYkf7Wdcyec5BNCk94) | [GAXg3dpY…](https://testnet.nearblocks.io/txns/GAXg3dpYpPzqpVFDNfScoKiqX2c8H77WAgihBch651Rh) | [Eo6iwQpp…](https://testnet.nearblocks.io/txns/Eo6iwQppJmx3xBsc4xZkZ3Pj4DPYQEqV3dnBwmZhFsXe) | [BUbUim6v…](https://testnet.nearblocks.io/txns/BUbUim6vGt9rvWPBt1ph6aohuWtqcCxDZ975L2HDh6R8) | [DeWNzpSP…](https://testnet.nearblocks.io/txns/DeWNzpSPM1AkQtRiJMc7UaS4ZxYzQLZmqoyXRt4YJiSN) | [9A9NakCi…](https://testnet.nearblocks.io/txns/9A9NakCixzTFQct6fyTey1eQ2f6bQ5LbTxMhQLYrQfzH) | #1060 |
+
+The group price unlocked on testnet: once k >= 5 verdicts in the context revealed
+`world_id_human`, m01's quote fell from 38.40 to 36.00. One tester's receipt was refused by
+the contract ("referee price differs from quote") because the referee still priced with k = 0;
+fixed (the referee now takes the live k). Two testers stopped before settle (that refusal, and
+one run stopped by hand); their verdicts are on chain and count toward the cohort.
+
+Settle-only function-call key: AddKey [46GQSpiN…](https://testnet.nearblocks.io/txns/46GQSpiNW6Lzq8q2hDbNrVoqpKGchVx9MnGaPeZt7vXD) limits a key to
+`settle_demo`; `withdraw_demo` and `withdraw` under it are refused by NEAR before execution
+(`DepositWithFunctionCall`, `MethodNameMismatch`), so the refusals have no tx hash
+(`fixtures/live/fc-key-check.json`).
+
+Sealed reviews for m01, round 5979413: 6 ratings, each a Semaphore proof checked on
+`alt_bn128`, each from a fresh one-time implicit account through the relayer:
+[CJ6HXyNh…](https://testnet.nearblocks.io/txns/CJ6HXyNh3qqC6zi3Z6jb9MHW2H5P9znmWnYzerUDVVRb), [HLnFc2mY…](https://testnet.nearblocks.io/txns/HLnFc2mYNmShj5KsMRrWaApCddyxVFe5gw86EeZTzLKF), [9xscQ6G8…](https://testnet.nearblocks.io/txns/9xscQ6G85f93ezSrAEnUqpbU2hx2TzX97TwChPENqyXT), [FYsGxi13…](https://testnet.nearblocks.io/txns/FYsGxi13U9fmkP26dbiaqSbNVf6SAS6YQ3YD4ZZnjiPf), [2vdcLhoM…](https://testnet.nearblocks.io/txns/2vdcLhoMnV3JLSdCd2g5auoQrEiYkHxtnbfRpsc2Jm1S), [55X7ocwB…](https://testnet.nearblocks.io/txns/55X7ocwBPJmySUmFhxjWt8WNNaRZ66giipYtte9M7SJq). Revealed after the round:
+[BaArfhRu…](https://testnet.nearblocks.io/txns/BaArfhRu5GdEGPg4eEwjqJeLcPUjZd7BAtCytzHSmfmt), [J9QWLP1X…](https://testnet.nearblocks.io/txns/J9QWLP1XFAGtH8szYyyNRdnDDYXjMctn7smYMykAiu7e), [CDQcUf2N…](https://testnet.nearblocks.io/txns/CDQcUf2Nvf7XMjFdRktMaCPvPBDGgttwmns5aSC9bXJF), [F6L7Hgsg…](https://testnet.nearblocks.io/txns/F6L7Hgsgbjrj4r7q3k9Ji7uKchjrmCSQb9iQYARdFcM8), [7aT1kKhg…](https://testnet.nearblocks.io/txns/7aT1kKhgoE62x3bmEpFUkzmU6NEpye2jGV1j3ZDGNcDn), [29GEhm2R…](https://testnet.nearblocks.io/txns/29GEhm2RLRFJ8oDHW5Skj4MMgMEGswyRYwosY4x2nFU9). Released together at k >= 5 by
+`publish_reviews` [5Fe4Qrat…](https://testnet.nearblocks.io/txns/5Fe4Qrat6GoKb3n7jJzHfjZfXBPargF2UKDVqFeoaGCZ): mean 4.33, score 3.72; the contract pushed the Seed
+graph event.
+
+Standing on the live graph (3 hires + 1 seed, root `ad42980d…`): a Jolt proof (coordinating session:
+prove 3.32 s, verify 66 ms, proof 84,796 B, peak RSS 998 MB, `zk/out/standing-testnet`),
+signed by the worker key and accepted by `submit_graph_scores`
+[5Us18yJb…](https://testnet.nearblocks.io/txns/5Us18yJbi7Z19wgnyaWpgpk2Dt3eSxt4jzo2EoGPx1PJ) with 1 merchant
+(m01, 6 ratings, score 3.72) and standing m02 4.0, m03 2.0 (conserved: at most one seed in total).
+
+Leak check (`make leak`, docs/leak.md): on this run a passive observer links all 6 ratings to
+their buyers by order alone. Stated as found; the fix is in progress.
 
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 

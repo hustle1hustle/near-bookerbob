@@ -202,6 +202,10 @@
     ]
   },
   "standing": {
-    "input": "fixtures/zk/standing-testnet-input.json"
+    "input": "fixtures/zk/standing-testnet-input.json",
+    "root": "ad42980dafd34038b63552ea229024f827ea968159d2369943a405b9d1e72326",
+    "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+    "update_tx": "5Us18yJbi7Z19wgnyaWpgpk2Dt3eSxt4jzo2EoGPx1PJ",
+    "proof": "zk/out/standing-testnet"
   }
 }

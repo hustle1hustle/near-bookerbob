@@ -51,7 +51,8 @@ and `make verify` on every push. `JOBS=2` keeps cargo light on a laptop.
 Real, and checked by code in this repo:
 - The `bazaar` contract code. `make verify` runs it against near-sdk's MockedBlockchain
   (nearcore VM logic for host functions such as `ed25519_verify` and `p256_verify`). It is
-  not deployed yet.
+  also live on testnet at `bookerbob.testnet`: `make verify-live` re-derives the testnet
+  claims (6 dUSDC settles, 6 sealed reviews, a standing update) over public RPC.
 - Prices: always `core/src/price.rs`. No model sets a price.
 - NEAR AI verdict: `fixtures/live/near-ai/` is a live E2EE v2 capture (synthetic facts); `make verify` checks its TDX quote, report_data, TEE signature, sealed answer and envelope binding offline.
 - NEAR AI Cloud: `agents/out/live-run.json` is a recorded live run, 32 of 32 response

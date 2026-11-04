@@ -42,8 +42,10 @@ to parties that do not trust us or each other:
 ## What is live and what is offline
 
 Exact as of 2026-11-04. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
-tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. No USDC has moved yet:
-escrow and settle wait on testnet USDC. "Live" means captured once from the real service and
+tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 6 purchases
+settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 6 sealed
+reviews were released and a standing update from a Jolt proof was accepted; `make verify-live`
+re-derives all of it over public RPC. "Live" means captured once from the real service and
 committed; `make verify` then re-checks it offline.
 
 | live, captured from the real service | where |
@@ -148,14 +150,14 @@ interface exists with a test double; `planned` means not built yet.
 
 | feature | track ids | where | status |
 |---|---|---|---|
-| near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | built (unit tests, `make verify`), not deployed |
+| near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | built (unit tests, `make verify`), live on testnet (`bookerbob.testnet`) |
 | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | built |
-| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | built; payout rollback in `on_settle_transfer` |
+| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | built; payout rollback in `on_settle_transfer`; on testnet the same path ran 6 times in dUSDC (`settle_demo`, own escrow, testnet only) |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | built |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | built; `make verify` checks 04 and 05 |
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | built; `make verify` shows `k=6` |
-| blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline); 30 merchant agents bid through it | swarms | `contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs` | built: 8 contract tests, and the `make verify` board runs both rounds on the contract code (MockedBlockchain); not deployed; merchant sub-accounts are not created yet |
+| blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline); 30 merchant agents bid through it | swarms | `contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs` | built: 8 contract tests, and the `make verify` board runs both rounds on the contract code (MockedBlockchain); the 30 merchant sub-accounts are registered and approved on testnet; no blind round has run on testnet yet |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
 | NEAR AI issues the verdict under E2EE v2: the facts go sealed to the attested model key, the model derives the predicates and echoes a binding of the envelope, and `make verify` checks the TDX quote (dcap-qvl, Intel root, committed PCS collateral), report_data (signing key and our nonce), the TEE signature over the exact wire bytes, the sealed answer (opened with a disclosed one-time key), predicates equal to the code's, and the binding | privacy, security | `scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md` | built, one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate). On chain, `submit_near_ai_verdict` accepts it only with a registered model attestation (same nonce), the TEE signature over the exact response bytes, and a sealed answer that opens with the disclosed key and echoes this envelope's binding; `make verify` runs the contract on it and on 4 refusals. The quote check itself happens before `register_model_attestation`, not in the contract; NVIDIA GPU evidence is not checked |
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
@@ -372,11 +374,11 @@ Where testnet stands, as of 2026-11-04:
   and the referee receipt
   ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
   38.40 USDC: one buyer on testnet, so no group price), three hire edges and a standing update for them (a Jolt proof, signed by a worker).
-- Waiting on testnet USDC for the agent: escrow, settle, the replay refusal, sealed reviews
-  and, through them, nonzero standing scores.
+- Done in demo mode (dUSDC): 6 settles, 6 replays refused, a settle-only function-call key
+  that cannot withdraw, 6 sealed reviews released at k >= 5, the group price at k >= 5, a
+  standing update with nonzero merchants, 6 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee, the NEP-366 relayer sending.
-- Proposed, not built: a testnet demo mode with a free-mint demo token
-  ([docs/demo-mode-plan.md](docs/demo-mode-plan.md)).
+- Demo mode: [docs/demo-mode.md](docs/demo-mode.md), `make demo-tester`.
 - Mainnet only on an explicit go.
 
 ### Deploy to testnet (one command)
