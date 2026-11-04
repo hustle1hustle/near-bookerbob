@@ -154,6 +154,17 @@ else
     network-config "$NETWORK" sign-with-keychain send
 fi
 
+# ---------- 2b. testnet demo mode (docs/demo-mode.md) ----------
+say "2b. demo mode: dUSDC accepted, short review rounds"
+DUSDC="${DUSDC_CONTRACT_ID:-bookerbob-dusdc.testnet}"
+DEMO_ROUND_MS="${DEMO_ROUND_MS:-300000}"
+if [ "$(view "$BAZAAR" demo_token '{}' 2>/dev/null)" = "\"$DUSDC\"" ]; then skip "demo token is $DUSDC"
+else call "set_demo_token" "$BAZAAR" "$BAZAAR" set_demo_token "{\"token\":\"$DUSDC\"}" '0 NEAR'
+fi
+if [ "$(view "$BAZAAR" review_round_ms '{}' 2>/dev/null)" = "$DEMO_ROUND_MS" ]; then skip "review rounds are $DEMO_ROUND_MS ms"
+else call "set_review_round_ms" "$BAZAAR" "$BAZAAR" set_review_round_ms "{\"ms\":$DEMO_ROUND_MS}" '0 NEAR'
+fi
+
 # ---------- 3. trust anchors ----------
 say "3. trust-anchor keys"
 has() { view "$BAZAAR" "$1" '{}' 2>/dev/null | grep -q "$2"; }

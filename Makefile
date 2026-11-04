@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -27,6 +27,10 @@ demo-offline:
 
 # The same story against a deployed testnet bazaar, driven by env (.env.example).
 # Refuses mainnet. DRY_RUN=1 prints every step and which ones need tools.
+# Testnet demo mode: a fresh, funded, gasless tester purchase in dUSDC (docs/demo-mode.md).
+demo-tester:
+	node scripts/demo-tester.mjs run
+
 demo-live:
 	@node scripts/demo-live.mjs
 
@@ -56,7 +60,7 @@ test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
 
 test-ucp:
-	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/demo-live.test.mjs relayer/relay.test.mjs
+	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs relayer/relay.test.mjs relayer/near.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures
