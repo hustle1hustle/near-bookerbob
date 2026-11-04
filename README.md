@@ -71,10 +71,10 @@ interface exists with a test double; `planned` means not built yet.
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built (19 tests) |
 | SUB-ACCOUNTS: 30 merchant agents, one sub-account each, blind commit then reveal | swarms | `agents/merchants.json`, `cli/src/swarm.rs` | built as config and offline board; accounts not created on testnet yet |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS); E2EE v2 and attestation check planned |
-| OutLayer TDX worker as referee and verification node | security, privacy | `docs/` | planned |
+| OutLayer TDX worker as referee and verification node | security, privacy | `fixtures/live/views.json` | planned; live `estimate_execution_cost` on `outlayer.testnet` = 0.0070001 NEAR |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, writes `near_tx` to the order | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
-| Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `fixtures/` | planned |
+| Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `scripts/spikes/views.mjs`, `fixtures/live/views.json` | partial: live `derived_public_key` on `v1.signer-prod.testnet` and its Stellar G-address (checked with `stellar strkey decode`); first `sign` not done |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | planned (mainnet only) |
 
 ## Repository layout
