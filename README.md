@@ -73,8 +73,8 @@ testnet claim over public RPC (`make verify-live`), checks the six committed Jol
 outputs and program hashes, and runs the JS suites.
 
 The deep path needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
-Measured on 2026-11-04 on an 11-core Apple M3 Pro: `make verify` takes 40 s from a cold
-build (crates already downloaded; a first run also fetches them from crates.io) and 2 s
+Measured on an 11-core Apple M3 Pro: `make verify` takes 53 s from a fresh clone (2026-11-05,
+cold build (crates already downloaded; a first run also fetches them from crates.io) and 2 s
 warm. After the first build it needs no network.
 
 1. Run `make verify`.
