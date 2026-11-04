@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: verify test fixtures fixtures-check swarm wasm clean
+.PHONY: verify test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -15,8 +15,11 @@ verify:
 swarm:
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json
 
-test:
+test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
+
+test-ucp:
+	node --test ucp/test/near-usdc.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures

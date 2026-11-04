@@ -73,6 +73,7 @@ interface exists with a test double; `planned` means not built yet.
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS); E2EE v2 and attestation check planned |
 | OutLayer TDX worker as referee and verification node | security, privacy | `docs/` | planned |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
+| UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, writes `near_tx` to the order | realworld, agents | `ucp/src/near-usdc.mjs` | built (11 tests on a synthetic tx); Shopify write-back stubbed |
 | Chain Signatures `domain_id:1` (Ed25519) for a Stellar leg | agents | `fixtures/` | planned |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | planned (mainnet only) |
 
@@ -84,7 +85,7 @@ interface exists with a test double; `planned` means not built yet.
 | `core/` | `bookerbob-core`: verdict envelope v0, tier, price and discount stack, referee. Shared by contract and CLI |
 | `cli/` | `bookerbob` CLI: offline end-to-end on fixtures, fixture generator |
 | `agents/` | 30-agent merchant swarm, board, live NEAR AI layer (see `agents/README.md`) |
-| `ucp/` | UCP payment handler `xyz.r3p.near_usdc` |
+| `ucp/` | UCP payment handler `xyz.r3p.near_usdc` (see `ucp/README.md`) |
 | `fixtures/` | synthetic, deterministic inputs and expected outputs |
 | `docs/` | envelope spec, ideas, design notes |
 

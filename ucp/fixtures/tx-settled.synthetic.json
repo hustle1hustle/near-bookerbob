@@ -1,0 +1,57 @@
+{
+  "_note": "SYNTHETIC. Shaped like a NEAR RPC `tx` result; hashes are placeholders. The settled event is the exact log `make verify` produces. Replace with a real testnet settle once deployed.",
+  "status": {
+    "SuccessValue": ""
+  },
+  "transaction": {
+    "hash": "9fGx1eTvJ1nEKkuy3sXxF6gsmPvWXWJmUb5HpjB2kQwz",
+    "signer_id": "agent.bookerbob.testnet",
+    "receiver_id": "bookerbob.testnet",
+    "actions": [
+      {
+        "FunctionCall": {
+          "method_name": "settle",
+          "args": "",
+          "gas": 100000000000000,
+          "deposit": "0"
+        }
+      }
+    ]
+  },
+  "receipts_outcome": [
+    {
+      "id": "r1",
+      "outcome": {
+        "executor_id": "bookerbob.testnet",
+        "logs": [
+          "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"settled\",\"data\":[{\"nullifier\":\"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e\",\"merchant\":\"m01.bookerbob.testnet\",\"payout\":\"m01.bookerbob.testnet\",\"amount\":\"38400000\",\"discount_bps\":2000,\"checkout_ref\":\"fixture-order-1\"}]}"
+        ],
+        "status": {
+          "SuccessReceiptId": "r2"
+        }
+      }
+    },
+    {
+      "id": "r2",
+      "outcome": {
+        "executor_id": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+        "logs": [
+          "Transfer 38400000 from bookerbob.testnet to m01.bookerbob.testnet"
+        ],
+        "status": {
+          "SuccessValue": ""
+        }
+      }
+    },
+    {
+      "id": "r3",
+      "outcome": {
+        "executor_id": "bookerbob.testnet",
+        "logs": [],
+        "status": {
+          "SuccessValue": "dHJ1ZQ=="
+        }
+      }
+    }
+  ]
+}
