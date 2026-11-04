@@ -7,6 +7,9 @@ use serde::{Deserialize, Serialize};
 pub const BPS_DENOM: u128 = 10_000;
 /// Smallest cohort that unlocks a group price (k-anonymity floor).
 pub const K_MIN: u32 = 5;
+/// Largest base price (token base units): 10^30, far above any real price and far below
+/// u128::MAX / BPS_DENOM, so `base * bps` cannot overflow in a quote (audit finding A7).
+pub const MAX_BASE_PRICE: u128 = 1_000_000_000_000_000_000_000_000_000_000;
 
 /// Group unlock: once `k_min` or more verdicts in the same context reveal `predicate`,
 /// the merchant adds `bps` on top of its capped stack.
@@ -66,6 +69,9 @@ impl Schedule {
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.base_price == 0 {
             return Err("base price is zero");
+        }
+        if self.base_price > MAX_BASE_PRICE {
+            return Err("base price too large");
         }
         if self.cap_bps as u128 > BPS_DENOM {
             return Err("cap over 100%");
@@ -164,6 +170,16 @@ mod tests {
         assert_eq!(q.lines.iter().map(|l| l.bps).sum::<u16>(), 2900);
         assert_eq!(q.discount_bps, 2500);
         assert_eq!(q.price, 141_750_000);
+    }
+
+    #[test]
+    fn a_base_price_that_could_overflow_the_quote_is_refused() {
+        let mut s = sched();
+        s.base_price = MAX_BASE_PRICE;
+        assert!(s.validate().is_ok());
+        assert_eq!(quote(&s, &["airbnb_frequent".into()]).discount_bps, 1200);
+        s.base_price = u128::MAX / 1000;
+        assert_eq!(s.validate(), Err("base price too large"));
     }
 
     #[test]

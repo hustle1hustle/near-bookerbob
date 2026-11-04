@@ -21,6 +21,7 @@ export function schedule({ basePrice, rules = [], capBps, cohort = null }) {
 /** Same checks as `Schedule::validate` in core/src/price.rs. Returns null or the error. */
 export function validate(s) {
   if (BigInt(s.base_price) === 0n) return "base price is zero";
+  if (BigInt(s.base_price) > 10n ** 30n) return "base price too large";
   if (s.cap_bps > 10000) return "cap over 100%";
   if (s.rules.length > KNOWN_PREDICATES.length) return "too many rules";
   const seen = new Set();
