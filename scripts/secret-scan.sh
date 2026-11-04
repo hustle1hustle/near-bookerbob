@@ -18,7 +18,9 @@ check() { # name regex
 }
 # A NEAR secret key is 64 bytes (about 88 base58 chars); a tx signature has the same shape,
 # so near-cli's "Signature:" lines (public) are excluded.
-check "NEAR secret key (ed25519:<88 base58>)" '^[^S]*(private|secret|key)[^S]*ed25519:[1-9A-HJ-NP-Za-km-z]{80,}|^\+ed25519:[1-9A-HJ-NP-Za-km-z]{80,}|"ed25519:[1-9A-HJ-NP-Za-km-z]{80,}"'
+check "NEAR secret key (ed25519:<88 base58>) next to a key-like name" '(private|secret)[_ -]?key["'"'"' ]*[:=][ "'"'"']*ed25519:[1-9A-HJ-NP-Za-km-z]{80,}|^\+ed25519:[1-9A-HJ-NP-Za-km-z]{80,}$'
+# Bare 64-byte ed25519 strings are mostly tx signatures (RPC snapshot, near-cli output); a
+# leaked seed in the keys dir is still caught by the exact-value check below.
 check "PEM private key" 'BEGIN [A-Z ]*PRIVATE KEY'
 check "Shopify token (shpat_, shpss_, shpca_)" 'shp(at|ss|ca|pa)_[0-9a-fA-F]{20,}'
 check "OpenAI-style key (sk-)" '(^|[^a-z])sk-[A-Za-z0-9_-]{20,}'
