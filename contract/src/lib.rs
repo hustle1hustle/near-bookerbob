@@ -550,8 +550,8 @@ impl Bazaar {
         MerchantScore {
             merchant,
             ratings: n,
-            mean_x100: if n == 0 { 0 } else { sum * 100 / n },
-            delivered_pct: if n == 0 { 0 } else { del * 100 / n },
+            mean_x100: (sum * 100).checked_div(n).unwrap_or(0),
+            delivered_pct: (del * 100).checked_div(n).unwrap_or(0),
             score_x100: (sum * 100 + c * 300) / (n + c),
             members,
         }
