@@ -32,6 +32,7 @@ const m = {
   standing_history: prev.standing_history ?? [],
   open_round: prev.open_round ?? null,
   dao: prev.dao ?? null,
+  blind_round: prev.blind_round ?? null,
 };
 writeFileSync("fixtures/live/testnet-manifest.json", JSON.stringify(m, null, 2) + "\n");
 console.log(`manifest: ${m.testers.length} testers, reviews ${m.reviews ? m.reviews.ratings : "not published yet"}`);

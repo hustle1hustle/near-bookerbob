@@ -22,8 +22,22 @@ const line = (ok, what, detail = "") => {
 console.log("make judge: fast path (Node only; deep path: make verify, make zk-verify)\n");
 
 // 1. testnet
+// No network (a sandboxed judge): SKIP the live checks, replay the committed RPC snapshot,
+// and check the snapshot's sha256. With network: the live checks, one retry for flaky RPC.
+// JUDGE_OFFLINE=1 forces the snapshot path (to test it); otherwise a 6 s probe decides.
+const online = process.env.JUDGE_OFFLINE !== "1" && await fetch(process.env.NEAR_RPC || "https://test.rpc.fastnear.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "status", params: [] }), signal: AbortSignal.timeout(6000) }).then((r) => r.ok, () => false);
+if (!online) {
+  const snapFile = `${root}fixtures/live/rpc-snapshot/snapshot.json`;
+  const want = readFileSync(`${root}fixtures/live/rpc-snapshot/SHA256`, "utf8").split(" ")[0];
+  const got = createHash("sha256").update(readFileSync(snapFile)).digest("hex");
+  console.log("SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)");
+  line(got === want, "testnet snapshot: committed RPC responses match their sha256", `${got.slice(0, 12)}..`);
+  const rep = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 60_000, env: { ...process.env, SNAPSHOT_REPLAY: "1" } });
+  const taken = JSON.parse(readFileSync(snapFile, "utf8")).taken_at;
+  line(rep.status === 0, `testnet snapshot: every claim re-derived from the snapshot taken ${taken}`, `${(rep.stdout.match(/^PASS /gm) ?? []).length} checks; rerun with network for the live chain`);
+}
 // Public testnet RPC can drop a request under load: one retry, and the failures are printed.
-let live = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+let live = online ? spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 }) : { status: 0, stdout: "" };
 if (live.status !== 0) {
   console.log("      (verify-live failed once; retrying, public RPC can be flaky)");
   console.log(live.stdout.split("\n").filter((l) => l.startsWith("FAIL")).join("\n"));
@@ -31,7 +45,7 @@ if (live.status !== 0) {
 }
 const passes = (live.stdout.match(/^PASS /gm) ?? []).length;
 const fails = (live.stdout.match(/^FAIL /gm) ?? []).length;
-line(live.status === 0, "testnet: every claim re-derived over public RPC", `${passes} checks passed, ${fails} failed; make verify-live for the list`);
+if (online) line(live.status === 0, "testnet: every claim re-derived over public RPC", `${passes} checks passed, ${fails} failed; make verify-live for the list`);
 if (live.status !== 0) console.log(live.stdout.split("\n").filter((l) => l.startsWith("FAIL")).join("\n"));
 
 // 1b. the README's status table is generated from docs/status.json and every live row has
@@ -62,7 +76,8 @@ for (const [g, input] of [["standing", "standing-input.json"], ["standing-testne
 
 // 3. JS suites
 const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs"].filter((f) => existsSync(root + f));
-const t = spawnSync("node", ["--test", ...suites], { cwd: root, encoding: "utf8", timeout: 60_000 });
+const { NEAR_RPC: _ignored, ...suiteEnv } = process.env;
+const t = spawnSync("node", ["--test", ...suites], { cwd: root, encoding: "utf8", timeout: 60_000, env: suiteEnv });
 const pass = Number(t.stdout.match(/^# pass (\d+)/m)?.[1] ?? 0);
 const fail = Number(t.stdout.match(/^# fail (\d+)/m)?.[1] ?? 1);
 line(t.status === 0 && fail === 0, `JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK`, `${pass} tests passed, ${fail} failed`);

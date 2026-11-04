@@ -4,12 +4,39 @@
 // hashes, expected values) and checks each against chain state and tx outcomes now.
 //   NEAR_RPC=<url> make verify-live     another public testnet RPC (fallback list below)
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const RPCS = [process.env.NEAR_RPC, "https://test.rpc.fastnear.com", "https://rpc.testnet.pagoda.co", "https://neart.lava.build"].filter(Boolean);
 const manifest = JSON.parse(readFileSync(new URL("../fixtures/live/testnet-manifest.json", import.meta.url)));
 
+// Snapshot mode, for judges without network:
+//   SNAPSHOT_RECORD=1  record every response to fixtures/live/rpc-snapshot/snapshot.json
+//   SNAPSHOT_REPLAY=1  answer every request from that file, never touching the network
+const SNAP = new URL("../fixtures/live/rpc-snapshot/snapshot.json", import.meta.url);
+const recording = process.env.SNAPSHOT_RECORD === "1";
+const replaying = process.env.SNAPSHOT_REPLAY === "1";
+const snap = replaying ? JSON.parse(readFileSync(SNAP, "utf8")) : { taken_at: new Date().toISOString(), rpc: RPCS[0], responses: {} };
+const keyOf = (method, params) => `${method} ${JSON.stringify(params)}`;
+process.on("exit", () => {
+  if (!recording) return;
+  mkdirSync(new URL("../fixtures/live/rpc-snapshot/", import.meta.url), { recursive: true });
+  const body = JSON.stringify(snap, null, 1) + "\n";
+  writeFileSync(SNAP, body);
+  writeFileSync(new URL("../fixtures/live/rpc-snapshot/SHA256", import.meta.url), createHash("sha256").update(body).digest("hex") + "  snapshot.json\n");
+});
+
 async function rpc(method, params) {
+  if (replaying) {
+    const r = snap.responses[keyOf(method, params)];
+    if (!r) throw new Error(`not in the snapshot: ${method}`);
+    return r;
+  }
+  const r = await rpcLive(method, params);
+  if (recording) snap.responses[keyOf(method, params)] = r;
+  return r;
+}
+
+async function rpcLive(method, params) {
   let last;
   for (const url of RPCS) {
     for (let i = 0; i < 3; i++) {
@@ -68,7 +95,7 @@ const attempt = async (what, f) => {
 };
 
 const m = manifest;
-console.log(`verify-live: ${m.bazaar} on NEAR testnet, over public RPC (${RPCS[0]})\n`);
+console.log(replaying ? `verify-live: ${m.bazaar}, REPLAYING the committed RPC snapshot taken ${snap.taken_at} (no network)\n` : `verify-live: ${m.bazaar} on NEAR testnet, over public RPC (${RPCS[0]})\n`);
 await attempt("bazaar accepts the demo token, rounds are the demo length", async () => {
   const [dt, ms] = await Promise.all([view(m.bazaar, "demo_token"), view(m.bazaar, "review_round_ms")]);
   return [dt === m.dusdc && ms === m.review_round_ms, `demo_token ${dt}, ${ms / 60000} min rounds`];
@@ -173,6 +200,17 @@ if (m.dao?.timelock) {
     const [e, x, refs, delay] = await Promise.all([tx(t.early_tx, t.early_sender), tx(t.execute_tx, t.execute_sender), view(m.dao.bazaar, "referees"), view(m.dao.bazaar, "anchor_delay")]);
     return [!e.ok && /not ready yet/.test(e.error) && x.ok && refs.some(([k]) => k === t.referee) && delay > 0, `delay ${delay / 60000} min; early refused, executed after`];
   });
+}
+if (m.blind_round) {
+  const b = m.blind_round;
+  for (const [cat, r] of Object.entries(b.rounds)) {
+    await attempt(`blind round ${r.round}: ${r.commits} merchant agents committed sealed bids, all revealed after the deadline, ${r.winner.split(".")[0]} wins`, async () => {
+      const [info, q] = await Promise.all([view(m.bazaar, "round", { round_id: r.round }), view(m.bazaar, "round_best_quote", { round_id: r.round, nullifier: b.buyer_nullifier })]);
+      const sample = Object.entries(b.bids).filter(([, x]) => x.round === r.round).slice(0, 2);
+      const txs = await Promise.all(sample.flatMap(([a, x]) => [tx(x.commit_tx, a), tx(x.reveal_tx, a)]));
+      return [info.category === cat && info.commits.length === r.commits && info.revealed.length === r.revealed && r.commits === r.revealed && q?.merchant === r.winner && q.quote.price === r.price && txs.every((t) => t.ok), `${info.commits.length} commits, ${info.revealed.length} reveals, winner ${q?.merchant?.split(".")[0]} at ${Number(q?.quote?.price) / 1e6}; 2 merchants' commit and reveal txs checked`];
+    });
+  }
 }
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);

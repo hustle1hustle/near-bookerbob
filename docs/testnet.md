@@ -306,6 +306,21 @@ bazaar runs the same code with no delay set.
 
 Not built: the cohort DAO at k >= 5 from the panel's action 9.
 
+## All 30 merchant agents in blind rounds (2026-11-05)
+
+Two rounds at once, one per category, opened by the owner ([EL9jJ9wn…](https://testnet.nearblocks.io/txns/EL9jJ9wn51AGxjct8FqpoWMEqZftwjBWwmtnmABckkt8),
+[53wdaayc…](https://testnet.nearblocks.io/txns/53wdaaycr4ijaVNNbs7tLfhXp7MC8Bfq7XgmbgVQju1F)): each of the 30 registered merchant agents committed
+`sha256(account, schedule, salt)` before the deadline and revealed after it.
+
+| round | commits | reveals | winner for the demo buyer (tester t-4fdc17, 3 revealed bits) |
+|---|---|---|---|
+| `b30-hoodie` | 22 | 22 | m01.bookerbob.testnet at 36.00 |
+| `b30-hotel-lisbon` | 8 | 8 | h05.bookerbob.testnet at 408.00 |
+
+Every commit and reveal tx is in `fixtures/live/testnet-manifest.json` (`blind_round.bids`);
+`make verify-live` checks both rounds and a sample of the txs. The merchants revealed their
+current schedules (synthetic, from `agents/merchants.json`).
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`

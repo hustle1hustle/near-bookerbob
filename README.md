@@ -97,7 +97,9 @@ committed; `make verify` then re-checks it offline.
 
 **Fastest (15 to 30 s, Node 22 only, no keys, no build):** `make judge`. It re-derives every
 testnet claim over public RPC (`make verify-live`), checks the six committed Jolt proofs'
-outputs and program hashes, and runs the JS suites.
+outputs and program hashes, and runs the JS suites. With no network it prints SKIP for the
+live checks and re-derives the same claims from a committed RPC snapshot
+(`fixtures/live/rpc-snapshot/`, sha256-checked); `JUDGE_OFFLINE=1 make judge` forces that path.
 
 The deep path needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
 Measured on an 11-core Apple M3 Pro: `make verify` takes 53 s from a fresh clone on 2026-11-05

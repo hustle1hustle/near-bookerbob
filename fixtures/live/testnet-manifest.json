@@ -335,5 +335,181 @@
       "execute_sender": "c2.bookerbob-dao-ops.testnet",
       "referee": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
     }
+  },
+  "blind_round": {
+    "tag": "b30",
+    "commit_until_ms": 1793828800670,
+    "reveal_until_ms": 1793829340670,
+    "buyer_nullifier": "bdd298215e2c251da1d158056dca625d2d09cdb3a08bda187b85acae93829039",
+    "rounds": {
+      "hoodie": {
+        "round": "b30-hoodie",
+        "open_tx": "EL9jJ9wn51AGxjct8FqpoWMEqZftwjBWwmtnmABckkt8",
+        "commits": 22,
+        "revealed": 22,
+        "winner": "m01.bookerbob.testnet",
+        "price": "36000000"
+      },
+      "hotel-lisbon": {
+        "round": "b30-hotel-lisbon",
+        "open_tx": "53wdaaycr4ijaVNNbs7tLfhXp7MC8Bfq7XgmbgVQju1F",
+        "commits": 8,
+        "revealed": 8,
+        "winner": "h05.bookerbob.testnet",
+        "price": "408000000"
+      }
+    },
+    "bids": {
+      "m01.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "HxTjYprau5CHCM8ocvYzCayTbr2gyNhV8oQ9wShMvW8P",
+        "reveal_tx": "8Kht8v1DgqtEihazMfsizd8FxdhVXQApJJkL59k8ypSd"
+      },
+      "m02.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "58QZtofWKLVKmhGBmUPtGRMvRdPhSef7aaXt96PbZz3i",
+        "reveal_tx": "2vdvRop7ScUoCGKbzxHvEud9Fbak3Dy5aap29ciBcTDk"
+      },
+      "m03.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "2DNSM2YwRid3QJYwXqoQTBv1qtmDechyYWbCdRJeAiUr",
+        "reveal_tx": "ABQgYUK2nxNUvMbfYtUmEe769oCqqrtvraw4udZesCbe"
+      },
+      "m04.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "GSsyczea2o44D3gpWSn26rkkew9si2WPAoDnwk3GnJD5",
+        "reveal_tx": "7vnDQwXtUeUZEp4BDViNJpmXZMrsfkP9TMzESuemCPfK"
+      },
+      "m05.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "6HRgQCyTbiVMMyxNKkyLeVufM7XfMX7tjsQgCiTzND9h",
+        "reveal_tx": "DU5X25NvaDmnD9e5W2M3ADwn5zQYdPajQ1YrzNDUwEX5"
+      },
+      "m06.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "EQvCMUQppFjRbVzuFqp6uQuivXTuPv6fCSAkK7zaMqVu",
+        "reveal_tx": "BUMPDmU3CfKLpjk14aJ3pF3x1bFu6MuBwrVRvu4U38S2"
+      },
+      "m07.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "5WYY9Z12c9tpYkJJ4NN2akenDQtBGYZAa44En5oYPhC9",
+        "reveal_tx": "HTQxjMY15hYFfW6meXxowQdQbRjU8YFhErRz8JdBA3Wr"
+      },
+      "m08.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "9t6j9XcvDQQC2Uj9ipAKmqru5pkcwPcRXNrHg2knzMbs",
+        "reveal_tx": "5woQtpcWq44Qij5qXoJ4rFvXCt4dDAK7hynKixah5f81"
+      },
+      "m09.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "BqfbwiWqd3dwyBLjKJPAjHF4SYqZaC4hinoxQpN4s8gY",
+        "reveal_tx": "4maGyoQoeiCxt4L1SHFSZ52mnmV5R9gA2WKq1gx3XExd"
+      },
+      "m10.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "YerXFMatW9deC7U4KZyFKDPXcGsfFcbpqrSSd8jgTsv",
+        "reveal_tx": "7EAPyaNWaSMPGUjfibgutzakrNX7NYziW9zwvZ1koYYa"
+      },
+      "m11.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "JabWet6CDpX2jL2umEtmpkf8gw9s55GmabK47waCVEL",
+        "reveal_tx": "AJN3xjF4NdpGJYZiM3SPv4r2n3CWApfLEqbNvMk4CzSu"
+      },
+      "m12.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "CX2PbrHVTQbcQWB8oQSMQ8DGzA6V3BZpsL2ZDGu2S9U5",
+        "reveal_tx": "DcJZiG1dwpSKfKMQjQvQeWZKfDJPPbLtgvug2xjTniCJ"
+      },
+      "m13.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "7oBndnvtKv2CWjN6SwB68admYxvFWSzrHe1pJhB5g8c6",
+        "reveal_tx": "Buuqvs6RxAfjzYKCYZ6aJ1kTrx5DXvFXa1ixEobN3d6"
+      },
+      "m14.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "F4jVvwencUsAiYKh5Q8xqjGbhpADbxuYdhv2bjvNiV5e",
+        "reveal_tx": "E4gKShk3etv1tuvbeL7rdGdwmi39HkUcLXk2euaTo2kZ"
+      },
+      "m15.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "B6EVfzK8biZXM4iXh28nTTn5ibQxVNTx6excBDh1TzC2",
+        "reveal_tx": "G4ZSidYCJoCNqdedZ5NddiSfxQUdYueSzd6QxNqQKDVY"
+      },
+      "m16.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "CYfGx7wcfZtfu4tEfkxQZsZ4iP9U4FJR3maX1C2DxjAN",
+        "reveal_tx": "yUo59SmY5kqc1U5n2NmZ2thfuw6Has6km7dAyaTyQFL"
+      },
+      "m17.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "8Fgnpri4G4UHrH39qkhPAUem6Haz2DocAyBDwNDkyosN",
+        "reveal_tx": "HQdbepLTNu5agZpJXR3SFfRpNXfFWJa4sth47HFSWR5E"
+      },
+      "m18.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "4JM6KjvHLp7Rx8Pv7GFUP28cWQH4T7ExdmJEpZxaWi2B",
+        "reveal_tx": "G4kCnYpZesCzgYw8L9hjpLoezJNxkSxML4MU1dcCVt4U"
+      },
+      "m19.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "Fhue4ZqEsSkKDLseAjChuU6VWrQmfYXk5U7kB7ymGzan",
+        "reveal_tx": "1znQ34oNJaojnxX2XtA2tUEzEUd9svNhVZ5m8oFRpnH"
+      },
+      "m20.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "6rd4uZrbfxEp3udu6Z3zDwrGoeJ1rSiqj3SUr9g7nTyK",
+        "reveal_tx": "2BJ8cTKzvh4jdckpfjULnY5ZrQnXK1txPXTtjiXfhWEq"
+      },
+      "m21.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "AHEfuGuxYLTY3VV33RvVRRMnwzn38eRudD3B2G632KGJ",
+        "reveal_tx": "9DpdVQvuxqNmcpYr6SWrjvcDxGC3UpoEUmWcfpSzF2FA"
+      },
+      "m22.bookerbob.testnet": {
+        "round": "b30-hoodie",
+        "commit_tx": "yFBe7RCufGzkVJtjzTuzRmwu6Csj3a8nYxEDAHbt1hK",
+        "reveal_tx": "ajDHTjz2hnewGJRVJpncKFXF9RrWj5nyov9hHGhgK1w"
+      },
+      "h01.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "DpSxfbED2E2UASHw7r4XYXdXN8c6qckkpjx68NUKgkJj",
+        "reveal_tx": "2UnJ17WePWiqeyyXQXSMbL8dem7sMvhJaTYfZXY9dMLD"
+      },
+      "h02.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "69AM2CXVQ5x6F2wMp5B8tXNX1UnWY75STFJUorZusyv1",
+        "reveal_tx": "CVhxowuLJwZuRFSSVXUoW6fMMWdT5UvT4yCLxbocortv"
+      },
+      "h03.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "14KhLxoG9ktT6corMapyES286Me5iib2HgwXq13KxE9k",
+        "reveal_tx": "CYsmAAapHECKdmi9C2ZVcwhvxgz6PmMh5R9WmZ7qubnu"
+      },
+      "h04.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "9975z4d9cVg93xKDjk82um6rKqBfqYgvCmaB3CLsMKZf",
+        "reveal_tx": "E8PtXPqZRAtzJro5xNhkHpm1TE9xGRacexV2qP3jvoBw"
+      },
+      "h05.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "5zLfBMhA53A1P4cyAaZQm5e7GzfUSSBfEnc2FbjZvJya",
+        "reveal_tx": "ABK99otqhF3xV58xf92i2x4oq7NSwQjvz4M7QMZkDs7t"
+      },
+      "h06.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "HzLgmkZtUUcXsuetSKe6aSqrnH1mDKMgHGXTp5BQ3agX",
+        "reveal_tx": "AKoKDKjLpxwh27nmMVytEiTCW47Bt7PEkzGkT7iMye3K"
+      },
+      "h07.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "6AwdxDTgfTfV838unBBj5pYrGy91dYRdpPLjWVAYuZ18",
+        "reveal_tx": "AsqgESRL93WJHnUEtNDSeXSzJBXbsHveGevc16o2zecv"
+      },
+      "h08.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "3gtmA7vKshdpwVJATHbnPeRCpso9vYhzE97L2ETv1HLj",
+        "reveal_tx": "5RxMyiyfycKgrYFH7qhgrqGVAfacBfymbyW71EMr8VDd"
+      }
+    }
   }
 }
