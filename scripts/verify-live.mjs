@@ -156,5 +156,16 @@ if (m.open_round) {
     return [q?.merchant === o.winner && q.quote.price === o.price && r.category === "open" && r.revealed.length >= 2 && mer.approved && approvedByBond, `${o.winner.split(".")[0]} at ${Number(q?.quote?.price) / 1e6} over ${r.revealed.length} revealed bids`];
   });
 }
+if (m.dao) {
+  const d = m.dao;
+  await attempt("a DAO-owned test bazaar: one council key cannot register an issuer, two votes can", async () => {
+    const [att, v2, issuers, pol] = await Promise.all([tx(d.attack_tx, d.attacker), tx(d.vote2_tx, d.council[2]), view(d.bazaar, "issuers"), view(d.dao, "get_policy")]);
+    const council = pol.roles.find((r) => r.name === "council")?.kind?.Group ?? [];
+    const registered = issuers.some(([k]) => k === d.issuer);
+    // The second vote's tx carries the DAO's register_issuer call: the DAO is the owner.
+    const viaDao = v2.ok && v2.logs.some((l) => l.includes("issuer_registered"));
+    return [!att.ok && /owner only/.test(att.error) && registered && viaDao && council.length === 3 && pol.default_vote_policy.threshold.join("/") === "1/2", `council ${council.length}, threshold 1/2; a single council key refused (owner only); the 2nd vote's tx executed register_issuer from the DAO`];
+  });
+}
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);

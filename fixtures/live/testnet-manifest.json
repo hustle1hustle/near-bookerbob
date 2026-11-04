@@ -314,5 +314,19 @@
     ],
     "bond_tx": "4tQyy9rs1HMvSDqqh4Ncq15TWqaN6uqPdFfiyfTu6aLd",
     "bond_sender": "threadline.bookerbob-demo.testnet"
+  },
+  "dao": {
+    "bazaar": "bookerbob-dao-bazaar.testnet",
+    "dao": "bookerbob-gov.sputnikv2.testnet",
+    "council": [
+      "bookerbob-dao-ops.testnet",
+      "c1.bookerbob-dao-ops.testnet",
+      "c2.bookerbob-dao-ops.testnet"
+    ],
+    "attack_tx": "8PKRerTpyuzMn24Tp6vZDELK5MPVii4RnjzrtMEAxQCG",
+    "attacker": "c1.bookerbob-dao-ops.testnet",
+    "vote1_tx": "DVBbBHVvaUXdQ2dUHHGACBgeZwboww82xowSLLTpzhLS",
+    "vote2_tx": "HZsZ5cHKHSNtK6xrq2SSjC2EuNfxZ2h7gu2vECQuPNVP",
+    "issuer": "ed25519:abababababababababababababababababababababababababababababababab"
   }
 }

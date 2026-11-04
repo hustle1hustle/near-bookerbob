@@ -261,8 +261,11 @@ functions only); real gas comes with the testnet deploy.
 Every key the contract trusts is registered by the contract **owner**: verdict issuers
 (enclave keys), the referee worker, the dispute arbiter and the World ID verifier. The
 owner is one account today. A stolen owner key can register a rogue issuer or referee.
-Mitigation path: a multisig or DAO owner, and registering only keys an attestation proves
-(the OutLayer worker's TDX-registered key, the NEAR AI model key). Not built.
+Mitigation path: a DAO owner, and registering only keys an attestation proves (the OutLayer
+worker's TDX-registered key, the NEAR AI model key). The DAO owner runs on a separate test
+bazaar (`bookerbob-dao-bazaar.testnet`, Sputnik, 2 of 3 council votes; one council key is
+refused, docs/testnet.md); the live bazaar's owner is still one key. Attested-key-only
+registration is not built.
 
 | layer | what it proves | what it does not |
 |---|---|---|

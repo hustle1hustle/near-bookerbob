@@ -31,6 +31,7 @@ const m = {
   standing: prev.standing ?? { input: "fixtures/zk/standing-testnet-input.json" },
   standing_history: prev.standing_history ?? [],
   open_round: prev.open_round ?? null,
+  dao: prev.dao ?? null,
 };
 writeFileSync("fixtures/live/testnet-manifest.json", JSON.stringify(m, null, 2) + "\n");
 console.log(`manifest: ${m.testers.length} testers, reviews ${m.reviews ? m.reviews.ratings : "not published yet"}`);

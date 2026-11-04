@@ -280,6 +280,26 @@ AGENTS.md (no other files, no prior context) chose its own name and price and ra
 agent priced at its own stated cost floor because the bids were blind. Both merchants are
 funded by our treasury (demo mode); the outside agent controlled its own key and choices.
 
+## A test bazaar owned by a Sputnik DAO: one key cannot add a trust anchor (2026-11-05)
+
+A second bazaar, `bookerbob-dao-bazaar.testnet`, runs the same contract with its owner set to
+the Sputnik DAO `bookerbob-gov.sputnikv2.testnet` (council of 3, threshold half the council
+weight, so 2 of 3 votes). The live `bookerbob.testnet` keeps its single-key owner; moving it
+is a founder decision.
+
+| step | tx |
+|---|---|
+| council accounts c1, c2 (ops is the third) | [8XuQ9g6w…](https://testnet.nearblocks.io/txns/8XuQ9g6wSEqqoSXvhP9nsxLzcw37tJhASsnz9MEEcStD), [93mKotky…](https://testnet.nearblocks.io/txns/93mKotkyjCmEMw5rDkXu19V2bXz3FaLwQLXSeRKiTjJr) |
+| create the DAO | [GyXjQf87…](https://testnet.nearblocks.io/txns/GyXjQf87RCVAr72gpZqXwtk9paLYmQXLPB7eG5JE1Tcj) |
+| deploy the bazaar, `new(owner = the DAO)` | [6U1VBDBL…](https://testnet.nearblocks.io/txns/6U1VBDBLV4eZdvfK9QuoWBKjCT7vfF9HhEBhF7324RvH) |
+| c1 alone calls `register_issuer` on the bazaar: refused, "owner only" | [8PKRerTp…](https://testnet.nearblocks.io/txns/8PKRerTpyuzMn24Tp6vZDELK5MPVii4RnjzrtMEAxQCG) |
+| c1 proposes `register_issuer` through the DAO | [9srutZwB…](https://testnet.nearblocks.io/txns/9srutZwBAd9wNTHvfQjM8JWZi9Unc8m165RhqidMuwit) |
+| c1 votes: 1 of 3, nothing happens (issuers = []) | [DVBbBHVv…](https://testnet.nearblocks.io/txns/DVBbBHVvaUXdQ2dUHHGACBgeZwboww82xowSLLTpzhLS) |
+| c2 votes: 2 of 3, the proposal executes, the issuer is registered | [HZsZ5cHK…](https://testnet.nearblocks.io/txns/HZsZ5cHKHSNtK6xrq2SSjC2EuNfxZ2h7gu2vECQuPNVP) |
+
+Not built: a timelock (Sputnik executes as soon as the threshold is met) and the cohort DAO
+at k >= 5 from the panel's action 9.
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`
