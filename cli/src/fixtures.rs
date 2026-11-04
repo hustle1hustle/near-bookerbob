@@ -60,6 +60,11 @@ pub fn referee_seed_hex() -> String {
     hex::encode(label_hash("bookerbob fixture referee worker v0"))
 }
 
+/// The dispute arbiter key (a second worker in production).
+pub fn arbiter_seed_hex() -> String {
+    hex::encode(label_hash("bookerbob fixture dispute arbiter v0"))
+}
+
 pub fn p256_issuer() -> p256::ecdsa::SigningKey {
     p256::ecdsa::SigningKey::from_slice(&label_hash("bookerbob fixture issuer p256 v0")).expect("valid scalar")
 }

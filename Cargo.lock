@@ -207,6 +207,7 @@ dependencies = [
  "bookerbob-core",
  "ed25519-dalek",
  "hex",
+ "p256",
  "serde",
  "serde_json",
 ]

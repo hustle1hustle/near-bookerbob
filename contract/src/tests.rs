@@ -1,6 +1,6 @@
 use super::*;
 use bookerbob_core::{Attestation, Claim, Envelope, ProofSet, Fact, Rule, WorldAttestation, WorldBody};
-use bookerbob_referee_worker::{run as run_referee, WorkerInput};
+use bookerbob_referee_worker::{arbitrate, run as run_referee, DisputeInput, WorkerInput};
 use ed25519_dalek::{Signer, SigningKey};
 use near_sdk::test_utils::{get_logs, VMContextBuilder};
 use near_sdk::testing_env;
@@ -619,4 +619,80 @@ fn reattesting_the_same_pair_is_idempotent() {
     let mut c = setup();
     attest(&mut c, "agent.testnet", 200);
     assert!(c.is_human(acc("agent.testnet")));
+}
+
+fn arbiter_key() -> SigningKey {
+    SigningKey::from_bytes(&[11u8; 32])
+}
+
+/// A compromised (registered) referee key signs a receipt for the F9 cheat.
+fn forged_receipt(e: &Envelope) -> (Vec<Claim>, WorkerResult) {
+    let mut cheat = honest_claims();
+    cheat.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec!["F9".into()] });
+    let mut r = referee_result(e, cheat.clone(), &referee_key());
+    r.body.outcome = "receipt".into();
+    r.body.detail = "forged".into();
+    r.signature = hex::encode(referee_key().sign(&r.body.signing_message()).to_bytes());
+    (cheat, r)
+}
+
+fn decide(v: &SignedVerdict, result: &WorkerResult, claims: Vec<Claim>) -> bookerbob_core::DisputeDecision {
+    let d = DisputeInput {
+        v: 0,
+        verdict: v.clone(),
+        result: result.clone(),
+        schedule: schedule(),
+        claims,
+        proofs: proofs(),
+        cohort_k: 0,
+        issuer_keys: vec![v.key_id()],
+        referee_keys: vec![hex::encode(referee_key().verifying_key().to_bytes())],
+    };
+    serde_json::from_str(&arbitrate(&d, &arbiter_key()).unwrap()).unwrap()
+}
+
+#[test]
+fn compromised_referee_receipt_is_overturned_and_settle_is_blocked() {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    assert!(c.submit_referee_result(forged.clone()), "the contract trusts a registered referee key");
+    let decision = decide(&v, &forged, cheat);
+    assert_eq!(decision.body.decision, "overturned");
+    assert!(c.submit_dispute_decision(decision));
+    assert_eq!(c.verdict(e.nullifier.clone()).unwrap().receipt, None);
+    assert!(get_logs().iter().any(|l| l.contains("dispute_overturned")));
+}
+
+#[test]
+fn honest_receipt_is_upheld_and_stays() {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let r = referee_result(&e, honest_claims(), &referee_key());
+    c.submit_referee_result(r.clone());
+    assert!(!c.submit_dispute_decision(decide(&v, &r, honest_claims())));
+    assert!(c.verdict(e.nullifier).unwrap().receipt.is_some());
+}
+
+#[test]
+#[should_panic(expected = "unknown arbiter key")]
+fn decision_from_unknown_arbiter_is_rejected() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    c.submit_referee_result(forged.clone());
+    c.submit_dispute_decision(decide(&v, &forged, cheat));
 }

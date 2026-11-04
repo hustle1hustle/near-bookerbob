@@ -19,3 +19,4 @@ serde = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, features = ["std"] }
 hex = { workspace = true, features = ["std"] }
 ed25519-dalek = { version = "2.2", default-features = false, features = ["std", "fast"] }
+p256 = { version = "0.13", features = ["ecdsa"] }

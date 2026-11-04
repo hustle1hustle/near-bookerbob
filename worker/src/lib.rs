@@ -13,7 +13,9 @@ use bookerbob_core::{quote_in_cohort, referee, Claim, ProofSet, RefereeOutcome, 
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
 
-pub use bookerbob_core::referee_result::{ResultBody, WorkerResult, RESULT_TAG};
+pub use bookerbob_core::referee_result::{DisputeBody, DisputeDecision, ResultBody, WorkerResult, RESULT_TAG};
+use bookerbob_core::{sha256_hex, SigAlg, SignedVerdict};
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 pub const MAX_OUTPUT: usize = 900;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -46,12 +48,105 @@ pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
         verdict_digest: input.verdict_digest.clone(),
         nullifier: input.nullifier.clone(),
         merchant: input.merchant.clone(),
+        claims_sha256: claims_hash(&input.claims),
         price: q.price,
         outcome: outcome.into(),
         detail,
     };
     let signature = hex::encode(key.sign(&body.signing_message()).to_bytes());
     let out = serde_json::to_string(&WorkerResult { body, worker_key: hex::encode(key.verifying_key().to_bytes()), signature }).expect("serializes");
+    if out.len() > MAX_OUTPUT {
+        return Err(format!("output {} bytes over the {MAX_OUTPUT} byte cap", out.len()));
+    }
+    Ok(out)
+}
+
+pub fn claims_hash(claims: &[Claim]) -> String {
+    sha256_hex(&serde_json::to_vec(claims).expect("serializes"))
+}
+
+fn ed_ok(key_hex: &str, sig_hex: &str, msg: &[u8]) -> bool {
+    let (Ok(k), Ok(s)) = (hex::decode(key_hex), hex::decode(sig_hex)) else { return false };
+    let (Ok(k), Ok(s)) = (<[u8; 32]>::try_from(k.as_slice()), <[u8; 64]>::try_from(s.as_slice())) else { return false };
+    VerifyingKey::from_bytes(&k).is_ok_and(|vk| vk.verify(msg, &Signature::from_bytes(&s)).is_ok())
+}
+
+pub fn verdict_signature_ok(v: &SignedVerdict) -> bool {
+    let digest = v.envelope.digest();
+    match v.alg {
+        SigAlg::Ed25519 => ed_ok(&v.issuer_key, &v.signature, &digest),
+        SigAlg::P256 => {
+            use p256::ecdsa::signature::hazmat::PrehashVerifier;
+            let (Ok(k), Ok(s)) = (hex::decode(&v.issuer_key), hex::decode(&v.signature)) else { return false };
+            let (Ok(vk), Ok(sig)) = (p256::ecdsa::VerifyingKey::from_sec1_bytes(&k), p256::ecdsa::Signature::from_slice(&s)) else { return false };
+            sig.normalize_s().is_none() && vk.verify_prehash(&digest, &sig).is_ok()
+        }
+    }
+}
+
+/// Input of a dispute: the verdict, the contested referee result, the material it judged,
+/// and the keys the bazaar registered.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DisputeInput {
+    pub v: u8,
+    pub verdict: SignedVerdict,
+    pub result: WorkerResult,
+    pub schedule: Schedule,
+    pub claims: Vec<Claim>,
+    pub proofs: ProofSet,
+    #[serde(default)]
+    pub cohort_k: u32,
+    pub issuer_keys: Vec<String>,
+    pub referee_keys: Vec<String>,
+}
+
+/// Re-check everything independently and sign `upheld` or `overturned`.
+pub fn arbitrate(d: &DisputeInput, key: &SigningKey) -> Result<String, String> {
+    let r = &d.result.body;
+    let mut reasons = Vec::new();
+    if !d.issuer_keys.contains(&d.verdict.key_id()) {
+        reasons.push("verdict issuer key not registered".to_string());
+    }
+    if !verdict_signature_ok(&d.verdict) {
+        reasons.push("verdict signature invalid".into());
+    }
+    let digest = hex::encode(d.verdict.envelope.digest());
+    if r.verdict_digest != digest || r.nullifier != d.verdict.envelope.nullifier {
+        reasons.push("referee result is for another verdict".into());
+    }
+    if !d.referee_keys.contains(&d.result.worker_key) {
+        reasons.push("referee key not registered".into());
+    }
+    if !ed_ok(&d.result.worker_key, &d.result.signature, &r.signing_message()) {
+        reasons.push("referee signature invalid".into());
+    }
+    if r.claims_sha256 != claims_hash(&d.claims) {
+        reasons.push("claims differ from the ones the referee signed".into());
+    }
+    let revealed = &d.verdict.envelope.predicates;
+    let q = quote_in_cohort(&d.schedule, revealed, |_| d.cohort_k);
+    if q.price != r.price {
+        reasons.push(format!("price {} differs from the code quote {}", r.price, q.price));
+    }
+    let (outcome, detail) = match referee(&d.proofs, revealed, &q, &d.claims) {
+        RefereeOutcome::Receipt { receipt_hash } => ("receipt", receipt_hash),
+        RefereeOutcome::Refused { reason } => ("refused", reason),
+    };
+    if r.outcome != outcome {
+        reasons.push(format!("referee said {}, re-run says {outcome}: {detail}", r.outcome));
+    }
+    reasons.iter_mut().for_each(|x| x.truncate(120));
+    reasons.truncate(4);
+    let body = DisputeBody {
+        v: 0,
+        nullifier: d.verdict.envelope.nullifier.clone(),
+        verdict_digest: digest,
+        referee_result_sha256: sha256_hex(&r.signing_message()),
+        decision: if reasons.is_empty() { "upheld" } else { "overturned" }.into(),
+        reasons,
+    };
+    let signature = hex::encode(key.sign(&body.signing_message()).to_bytes());
+    let out = serde_json::to_string(&DisputeDecision { body, arbiter_key: hex::encode(key.verifying_key().to_bytes()), signature }).expect("serializes");
     if out.len() > MAX_OUTPUT {
         return Err(format!("output {} bytes over the {MAX_OUTPUT} byte cap", out.len()));
     }
@@ -105,6 +200,78 @@ mod tests {
         let out = run(&input(vec![Claim { line: "airbnb_frequent".into(), text: "marriott platinum".into(), citations: vec!["F9".into()] }]), &key()).unwrap();
         let r: WorkerResult = serde_json::from_str(&out).unwrap();
         assert_eq!((r.body.outcome.as_str(), r.body.detail.as_str()), ("refused", "F9 not in proof set"));
+    }
+
+    fn signed_verdict() -> SignedVerdict {
+        use bookerbob_core::{Attestation, Envelope};
+        let e = Envelope {
+            v: 0,
+            context: "c".into(),
+            nullifier: "bb".repeat(32),
+            commitment: "11".repeat(32),
+            proof_hash: "22".repeat(32),
+            predicates: vec!["airbnb_frequent".into()],
+            tier: "silver".into(),
+            attestation: Attestation { model: "m".into(), tcb_status: "fixture".into(), report_hash: "33".repeat(32) },
+            cnf: "agent.testnet".into(),
+            max_spend: 100_000_000,
+            issued_at_ms: 1,
+            expires_at_ms: 2,
+        };
+        let k = SigningKey::from_bytes(&[8u8; 32]);
+        let sig = hex::encode(k.sign(&e.digest()).to_bytes());
+        SignedVerdict { envelope: e, alg: SigAlg::Ed25519, issuer_key: hex::encode(k.verifying_key().to_bytes()), signature: sig }
+    }
+
+    fn dispute(claims_judged: Vec<Claim>, outcome_override: Option<&str>) -> DisputeInput {
+        let v = signed_verdict();
+        let mut inp = input(claims_judged.clone());
+        inp.verdict_digest = hex::encode(v.envelope.digest());
+        let mut result: WorkerResult = serde_json::from_str(&run(&inp, &key()).unwrap()).unwrap();
+        if let Some(o) = outcome_override {
+            // A compromised referee key signs a receipt the claims do not support.
+            result.body.outcome = o.into();
+            result.signature = hex::encode(key().sign(&result.body.signing_message()).to_bytes());
+        }
+        DisputeInput {
+            v: 0,
+            issuer_keys: vec![v.key_id()],
+            verdict: v,
+            result,
+            schedule: inp.schedule,
+            claims: claims_judged,
+            proofs: inp.proofs,
+            cohort_k: 0,
+            referee_keys: vec![hex::encode(key().verifying_key().to_bytes())],
+        }
+    }
+
+    #[test]
+    fn honest_receipt_is_upheld() {
+        let d = dispute(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec!["F1".into()] }], None);
+        let out: DisputeDecision = serde_json::from_str(&arbitrate(&d, &SigningKey::from_bytes(&[9u8; 32])).unwrap()).unwrap();
+        assert_eq!(out.body.decision, "upheld");
+        assert!(out.body.reasons.is_empty());
+    }
+
+    #[test]
+    fn receipt_from_a_compromised_referee_is_overturned() {
+        let cheat = vec![Claim { line: "airbnb_frequent".into(), text: "marriott platinum".into(), citations: vec!["F9".into()] }];
+        let d = dispute(cheat, Some("receipt"));
+        let out = arbitrate(&d, &SigningKey::from_bytes(&[9u8; 32])).unwrap();
+        assert!(out.len() <= MAX_OUTPUT);
+        let out: DisputeDecision = serde_json::from_str(&out).unwrap();
+        assert_eq!(out.body.decision, "overturned");
+        assert!(out.body.reasons[0].contains("F9 not in proof set"), "{:?}", out.body.reasons);
+    }
+
+    #[test]
+    fn swapped_claims_are_caught() {
+        let mut d = dispute(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec!["F1".into()] }], None);
+        d.claims[0].text = "something else".into();
+        let out: DisputeDecision = serde_json::from_str(&arbitrate(&d, &SigningKey::from_bytes(&[9u8; 32])).unwrap()).unwrap();
+        assert_eq!(out.body.decision, "overturned");
+        assert!(out.body.reasons.iter().any(|r| r.contains("claims differ")));
     }
 
     #[test]

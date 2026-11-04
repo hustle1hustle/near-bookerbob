@@ -88,6 +88,7 @@ interface exists with a test double; `planned` means not built yet.
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
 | NEAR AI E2EE v2: the TEE signature covers the ciphertext, so it verifies without decrypting | privacy | `scripts/spikes/e2ee-signature.mjs`, `docs/near-ai.md` | checked live; TDX quote verification planned |
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
+| dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | `worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md` | built; `make verify` check 22 |
 | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | `core/src/world.rs`, `contract/src/lib.rs` `attest_human` | built on offline fixtures (placeholder action); live verifier is the rep-world-verify service, not wired |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | x402 v2 paid verdict read (`exact`, USDC on `near:testnet`, verify and settle through an explicit x402 facilitator) | agents, realworld | `x402/verdict-read.mjs` | built (7 tests on synthetic payments); no facilitator wired, testnet config only |
@@ -115,7 +116,7 @@ interface exists with a test double; `planned` means not built yet.
 
 ## What `make verify` checks, and what is mocked
 
-`cli/src/verify.rs` runs 25 checks in order: proof set hash, tier from proven fields,
+`cli/src/verify.rs` runs 26 checks in order: proof set hash, tier from proven fields,
 revealed subset, the disclosure budget plan, merchant asks declined by rule, commitment opening, envelope shape, ed25519 and p256 signatures
 off-chain, then the real `bazaar` contract code against near-sdk's MockedBlockchain
 (host functions run through nearcore's VM logic): enclave and referee keys, merchants,

@@ -10,6 +10,8 @@ pub struct ResultBody {
     pub verdict_digest: String,
     pub nullifier: String,
     pub merchant: String,
+    /// sha256 of json(claims) the referee judged, so a dispute can re-run exactly them.
+    pub claims_sha256: String,
     #[serde(with = "crate::u128_str")]
     pub price: u128,
     /// `receipt` or `refused`.
@@ -30,6 +32,37 @@ pub struct WorkerResult {
 impl ResultBody {
     pub fn signing_message(&self) -> Vec<u8> {
         let mut m = RESULT_TAG.to_vec();
+        m.extend(serde_json::to_vec(self).expect("serializes"));
+        m
+    }
+}
+
+pub const DISPUTE_TAG: &[u8] = b"bookerbob/dispute/v0\x00";
+
+/// Signed decision of the dispute arbiter. Field order is the signing order.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DisputeBody {
+    pub v: u8,
+    pub nullifier: String,
+    pub verdict_digest: String,
+    /// sha256 of the referee result's signing message: which result is being judged.
+    pub referee_result_sha256: String,
+    /// `upheld` or `overturned`.
+    pub decision: String,
+    /// Every check that failed (empty when upheld).
+    pub reasons: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DisputeDecision {
+    pub body: DisputeBody,
+    pub arbiter_key: String,
+    pub signature: String,
+}
+
+impl DisputeBody {
+    pub fn signing_message(&self) -> Vec<u8> {
+        let mut m = DISPUTE_TAG.to_vec();
         m.extend(serde_json::to_vec(self).expect("serializes"));
         m
     }

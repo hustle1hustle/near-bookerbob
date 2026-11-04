@@ -14,7 +14,7 @@ use serde::de::DeserializeOwned;
 
 use bookerbob_referee_worker::{key_from_seed_hex, run as run_worker, WorkerInput};
 
-use crate::fixtures::{referee_seed_hex, Expected, MerchantFixture, Opening, ESCROW_USDC, NOW_MS, OWNER, USDC};
+use crate::fixtures::{arbiter_seed_hex, referee_seed_hex, Expected, MerchantFixture, Opening, ESCROW_USDC, NOW_MS, OWNER, USDC};
 
 struct Report {
     n: usize,
@@ -156,6 +156,8 @@ pub fn run(dir: &Path) -> ExitCode {
     c.register_issuer(v_p256.key_id(), "fixture p256 issuer".into());
     let worker_key = key_from_seed_hex(&referee_seed_hex()).expect("seed");
     c.register_referee(hex::encode(worker_key.verifying_key().to_bytes()), "fixture referee worker".into());
+    let arbiter_key = key_from_seed_hex(&arbiter_seed_hex()).expect("seed");
+    c.register_arbiter(hex::encode(arbiter_key.verifying_key().to_bytes()), "fixture dispute arbiter".into());
     c.register_world_verifier(worlds[0].verifier_key.clone(), worlds[0].body.action.clone(), "fixture world verifier".into());
     for m in &merchants {
         as_caller(&m.account, Some(RECORD_DEPOSIT));
@@ -272,6 +274,42 @@ pub fn run(dir: &Path) -> ExitCode {
         "settle without a referee receipt is rejected",
         "no proof, no receipt, no payment",
     );
+    // --- dispute: a compromised referee key signs a receipt for the cheat ---
+    {
+        use ed25519_dalek::Signer;
+        let mut forged = cheat_res.clone();
+        forged.body.outcome = "receipt".into();
+        forged.body.detail = "forged".into();
+        forged.signature = hex::encode(worker_key.sign(&forged.body.signing_message()).to_bytes());
+        as_caller(&e.cnf, None);
+        let accepted = call(|| c.submit_referee_result(forged.clone())) == Ok(true);
+        let t0 = std::time::Instant::now();
+        let input = bookerbob_referee_worker::DisputeInput {
+            v: 0,
+            verdict: v_ed.clone(),
+            result: forged.clone(),
+            schedule: winner.schedule.clone(),
+            claims: cheat.clone(),
+            proofs: proofs.clone(),
+            cohort_k,
+            issuer_keys: vec![v_ed.key_id()],
+            referee_keys: vec![forged.worker_key.clone()],
+        };
+        let decision: bookerbob_core::DisputeDecision = serde_json::from_str(&bookerbob_referee_worker::arbitrate(&input, &arbiter_key).expect("arbiter runs")).expect("decision");
+        let took = t0.elapsed();
+        let overturned = call(|| c.submit_dispute_decision(decision.clone())) == Ok(true);
+        let blocked = call(|| drop(c.settle(e.nullifier.clone(), best.merchant.clone(), "fixture-order-1".into(), U128(best.quote.price))));
+        r.check(
+            accepted
+                && decision.body.decision == "overturned"
+                && decision.body.reasons.iter().any(|x| x.contains(&exp.cheat_refusal))
+                && overturned
+                && c.verdict(e.nullifier.clone()).is_some_and(|v| v.receipt.is_none())
+                && blocked.as_ref().err().is_some_and(|m| m.contains("no referee receipt")),
+            "dispute: arbiter re-checks a forged receipt, signs overturned, contract clears it, settle blocked",
+            format!("{}, {} us", decision.body.reasons.first().cloned().unwrap_or_default(), took.as_micros()),
+        );
+    }
     let honest_res = worker(&honest).expect("worker runs");
     let stored = call(|| c.submit_referee_result(honest_res.clone()));
     r.check(

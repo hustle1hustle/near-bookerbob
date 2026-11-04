@@ -44,3 +44,24 @@ worker key. Not built yet.
   callback accepts both; the testnet hello-world decides.
 - Build target: docs show `wasm32-wasip2`; this worker is pure compute and should also
   build for `wasm32-wasip1`. Neither target is installed here yet.
+
+## Disputes (beat 11)
+
+The same worker binary is also the arbiter: an input that carries a contested `result`
+is a dispute (`arbitrate` in `worker/src/lib.rs`). The arbiter re-checks independently:
+the verdict signature and issuer key, the referee key and signature, the binding of the
+result to this verdict (digest, nullifier), that the claims are the ones the referee
+signed (`claims_sha256` in the referee result), the code-computed price, and the
+referee outcome by re-running it over the proofs. It signs `upheld` or `overturned`
+with the reasons, under the same 900 byte cap.
+
+`register_arbiter` (owner) and `submit_dispute_decision` (anyone may relay) in the
+contract: the decision must name the stored receipt (`result_sha256`). Overturned before
+settle clears the receipt, so `settle` is blocked again; overturned after settle marks
+the record `disputed` (refunds are not in v0). `make verify` check 22: a compromised
+referee key signs a receipt for the F9 cheat, the contract accepts it (it trusts the key),
+the arbiter overturns it with `referee said receipt, re-run says refused: F9 not in proof
+set`, the receipt is cleared and settle is blocked.
+
+The arbiter key should be a different worker and operator than the referee, or the
+dispute adds nothing. Today both are fixture seeds.

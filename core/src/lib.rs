@@ -13,7 +13,7 @@ pub mod world;
 pub use envelope::{Attestation, Envelope, SignedVerdict, SigAlg};
 pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN};
 pub use referee::{referee, Citation, Claim, RefereeOutcome};
-pub use referee_result::{ResultBody, WorkerResult};
+pub use referee_result::{DisputeBody, DisputeDecision, ResultBody, WorkerResult};
 pub use world::{WorldAttestation, WorldBody};
 pub use tier::{derive, Derived, Fact, ProofSet, Tier, TierResult};
 

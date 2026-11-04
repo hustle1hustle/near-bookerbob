@@ -5,7 +5,7 @@
 //! The chain's job: a global spent-set for nullifiers, signature checks with host
 //! functions, a code-computed price, and payout atomic with the nullifier burn.
 
-use bookerbob_core::{quote_in_cohort, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult, WorldAttestation};
+use bookerbob_core::{quote_in_cohort, DisputeDecision, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult, WorldAttestation};
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
 use near_sdk::{
@@ -50,6 +50,8 @@ pub struct VerdictRecord {
     pub digest: String,
     /// The referee receipt for one merchant's quote; `settle` requires it.
     pub receipt: Option<RefereeReceipt>,
+    /// Set when an arbiter overturned a receipt after the purchase settled.
+    pub disputed: bool,
 }
 
 #[near(serializers = [borsh, json])]
@@ -59,6 +61,8 @@ pub struct RefereeReceipt {
     pub price: U128,
     pub receipt_hash: String,
     pub referee: String,
+    /// sha256 of the referee result's signing message, what a dispute names.
+    pub result_sha256: String,
 }
 
 #[near(serializers = [borsh, json])]
@@ -117,6 +121,8 @@ pub struct Bazaar {
     world_agents: LookupMap<String, AccountId>,
     /// Agent to its World nullifier.
     humans: LookupMap<AccountId, String>,
+    /// Dispute arbiter keys (hex ed25519) to labels.
+    arbiters: IterableMap<String, String>,
 }
 
 fn emit(event: &str, data: serde_json::Value) {
@@ -181,6 +187,7 @@ impl Bazaar {
             world_action: None,
             world_agents: LookupMap::new(b"a"),
             humans: LookupMap::new(b"h"),
+            arbiters: IterableMap::new(b"d"),
         }
     }
 
@@ -341,6 +348,7 @@ impl Bazaar {
             checkout_ref: None,
             digest: hex::encode(env::sha256_array(e.signing_message())),
             receipt: None,
+            disputed: false,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
         for p in &e.predicates {
@@ -523,6 +531,7 @@ impl Bazaar {
                     price: U128(q.price),
                     receipt_hash: b.detail.clone(),
                     referee: result.worker_key.clone(),
+                    result_sha256: hex::encode(env::sha256_array(b.signing_message())),
                 });
                 emit("referee_receipt", serde_json::json!({ "nullifier": b.nullifier, "merchant": merchant, "receipt_hash": b.detail }));
                 true
@@ -532,6 +541,50 @@ impl Bazaar {
                 false
             }
             _ => env::panic_str("bad referee outcome"),
+        }
+    }
+
+    // ---------- disputes ----------
+
+    /// Register a dispute arbiter key (hex ed25519), e.g. a second OutLayer worker.
+    pub fn register_arbiter(&mut self, key_hex: String, label: String) {
+        self.assert_owner();
+        require!(key_hex.len() == 64 && hex::decode(&key_hex).is_ok(), "bad arbiter key");
+        self.arbiters.insert(key_hex.clone(), label.clone());
+        emit("arbiter_registered", serde_json::json!({ "key": key_hex, "label": label }));
+    }
+
+    /// Apply a signed arbiter decision about the stored referee receipt. Anyone may relay.
+    /// `overturned` before settle clears the receipt, so `settle` is blocked again; after
+    /// settle it marks the record `disputed` (refunds are out of scope for v0).
+    /// Returns true when the receipt was overturned.
+    pub fn submit_dispute_decision(&mut self, decision: DisputeDecision) -> bool {
+        let b = &decision.body;
+        require!(b.v == 0, "unsupported dispute decision");
+        require!(self.arbiters.contains_key(&decision.arbiter_key), "unknown arbiter key");
+        let sig: [u8; 64] = decode(&decision.signature, "arbiter signature");
+        let pk: [u8; 32] = decode(&decision.arbiter_key, "arbiter key");
+        require!(env::ed25519_verify(&sig, b.signing_message(), &pk), "bad arbiter signature");
+        let record = self.verdicts.get_mut(&b.nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        require!(record.digest == b.verdict_digest, "dispute is for another verdict");
+        let receipt = record.receipt.clone().unwrap_or_else(|| env::panic_str("no receipt to dispute"));
+        require!(receipt.result_sha256 == b.referee_result_sha256, "dispute is for another referee result");
+        match b.decision.as_str() {
+            "upheld" => {
+                emit("dispute_upheld", serde_json::json!({ "nullifier": b.nullifier }));
+                false
+            }
+            "overturned" => {
+                if record.spent {
+                    record.disputed = true;
+                    emit("dispute_overturned_after_settle", serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons }));
+                } else {
+                    record.receipt = None;
+                    emit("dispute_overturned", serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons, "referee": receipt.referee }));
+                }
+                true
+            }
+            _ => env::panic_str("bad dispute decision"),
         }
     }
 
