@@ -323,6 +323,17 @@ fn demo_paid() -> LookupMap<String, bool> {
     LookupMap::new(b"T")
 }
 
+/// Distinct World-bound persons per merchant's review group: `merchant|world_nullifier`.
+fn group_persons() -> LookupMap<String, bool> {
+    LookupMap::new(b"P")
+}
+
+/// Per merchant: (distinct persons, joins tracked since person counting began). Members who
+/// joined before (all World-bound demo buyers) count once each: tree size minus tracked.
+fn group_person_counts() -> LookupMap<AccountId, (u64, u64)> {
+    LookupMap::new(b"Q")
+}
+
 /// Review round length: 24 h, or a shorter testnet-only value for the demo.
 fn round_ms() -> u64 {
     if !is_testnet() {
@@ -538,6 +549,22 @@ impl Bazaar {
         require!(!r.review_joined, "this purchase already joined");
         let merchant = r.receipt.as_ref().map(|x| x.merchant.clone()).unwrap_or_else(|| env::panic_str("no receipt"));
         r.review_joined = true;
+        // k counts people, not purchases: one person buying twice is one member for the
+        // release floor (a second membership still joins the tree, it adds no k).
+        let person =
+            self.humans.get(&env::predecessor_account_id()).cloned().unwrap_or_else(|| env::panic_str("only a World-bound buyer joins a review group"));
+        let mut persons = group_persons();
+        let key = format!("{merchant}|{person}");
+        let mut counts = group_person_counts();
+        let (mut distinct, mut tracked) = counts.get(&merchant).copied().unwrap_or((0, 0));
+        tracked += 1;
+        if !persons.contains_key(&key) {
+            persons.insert(key, true);
+            distinct += 1;
+        }
+        counts.insert(merchant.clone(), (distinct, tracked));
+        persons.flush();
+        counts.flush();
         let mut g = self.review_groups.get(&merchant).cloned().unwrap_or_default();
         let root = g.tree.insert(&identity_commitment).unwrap_or_else(|e| env::panic_str(e));
         g.recent_roots.push(root.clone());
@@ -551,6 +578,13 @@ impl Bazaar {
         self.review_groups.flush();
         charge_storage(before);
         root
+    }
+
+    /// Distinct persons in the merchant's review group: what the k floor counts.
+    pub fn review_persons(&self, merchant: AccountId) -> u64 {
+        let size = self.review_groups.get(&merchant).map_or(0, |g| g.tree.size);
+        let (distinct, tracked) = group_person_counts().get(&merchant).copied().unwrap_or((0, 0));
+        distinct + size.saturating_sub(tracked)
     }
 
     pub fn review_group(&self, merchant: AccountId) -> Option<ReviewGroup> {
@@ -645,7 +679,7 @@ impl Bazaar {
         require!(now <= round + 1, "reveal window is over");
         require!((1..=5).contains(&rating), "rating must be 1 to 5");
         require!(bookerbob_core::is_hex32(&reason_hash) && bookerbob_core::is_hex32(&salt), "bad reason hash or salt");
-        let members = self.review_groups.get(&merchant).map_or(0, |g| g.tree.size);
+        let members = self.review_persons(merchant.clone());
         require!(members >= bookerbob_core::K_MIN as u64, "group below k: keep it sealed");
         let sealed = bookerbob_core::semaphore::review_seal(rating, delivered, &reason_hash, &salt);
         let rk = format!("{merchant}|{round}");
@@ -676,7 +710,7 @@ impl Bazaar {
         let rk = format!("{merchant}|{round}");
         let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_else(|| env::panic_str("no ratings for this round"));
         require!(!rr.published, "already published");
-        let members = self.review_groups.get(&merchant).map_or(0, |g| g.tree.size);
+        let members = self.review_persons(merchant.clone());
         if members < bookerbob_core::K_MIN as u64 {
             emit("reviews_held", serde_json::json!({ "merchant": merchant, "round": round, "members": members, "k_min": bookerbob_core::K_MIN }));
             return false;

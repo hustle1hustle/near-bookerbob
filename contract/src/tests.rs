@@ -1264,6 +1264,10 @@ mod reviews {
             paid: true,
         };
         c.verdicts.insert(n.clone(), r);
+        // Each buyer is World-bound to a person of its own (review k counts persons).
+        if !c.humans.contains_key(&acc(agent)) {
+            c.humans.insert(acc(agent), format!("person-{agent}"));
+        }
         n
     }
 
@@ -1953,5 +1957,56 @@ mod demo {
         let mut c = setup();
         set_no_deposit("owner.testnet");
         c.set_review_round_ms(59_999);
+    }
+}
+
+/// The review k floor counts distinct World-bound persons, not purchases.
+mod review_persons {
+    use super::*;
+
+    fn paid_record(c: &mut Bazaar, n: u8, agent: &str) -> String {
+        let id = hex::encode([n; 32]);
+        set(agent);
+        let mut e = envelope(n, agent);
+        e.nullifier = id.clone();
+        if !c.is_human(acc(agent)) {
+            e.predicates = vec!["airbnb_frequent".into()];
+        }
+        c.submit_verdict(sign_ed(e.clone()));
+        let r = c.verdicts.get_mut(&id).unwrap();
+        r.receipt = Some(RefereeReceipt {
+            merchant: acc("m01.bazaar.testnet"),
+            price: U128(1),
+            receipt_hash: "00".repeat(32),
+            referee: "00".repeat(32),
+            result_sha256: "00".repeat(32),
+        });
+        r.spent = true;
+        r.paid = true;
+        id
+    }
+
+    #[test]
+    #[should_panic(expected = "only a World-bound buyer joins a review group")]
+    fn an_unbound_buyer_cannot_join() {
+        let mut c = setup();
+        let n = paid_record(&mut c, 40, "unbound.testnet");
+        set("unbound.testnet");
+        c.join_review_group(n, "1".into());
+    }
+
+    #[test]
+    fn one_person_buying_twice_is_one_member_for_k() {
+        let mut c = setup();
+        // agent.testnet is World-bound (setup); two paid purchases, two memberships.
+        let a = paid_record(&mut c, 41, "agent.testnet");
+        let b = paid_record(&mut c, 42, "agent.testnet");
+        set("agent.testnet");
+        c.join_review_group(a, "11".into());
+        set("agent.testnet");
+        c.join_review_group(b, "12".into());
+        let g = c.review_group(acc("m01.bazaar.testnet")).unwrap();
+        assert_eq!(g.tree.size, 2, "both memberships are in the tree");
+        assert_eq!(c.review_persons(acc("m01.bazaar.testnet")), 1, "but they are one person for the k floor");
     }
 }

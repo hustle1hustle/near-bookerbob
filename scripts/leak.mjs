@@ -9,7 +9,9 @@
 //   L3 funding        a one-time account funded by the same relayer as the buyers
 //   L4 reveal         a revealed rating opens one sealed hash, so it is tied to that sender
 // Prints each link with the anonymity set it leaves, and writes docs/leak-report.json.
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { homedir } from "node:os";
 
 const RPC = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
 const m = JSON.parse(readFileSync(new URL("../fixtures/live/testnet-manifest.json", import.meta.url)));
@@ -33,13 +35,18 @@ async function tx(hash, sender) {
   return { signer: r.transaction.signer_id, actor: inner?.sender_id ?? r.transaction.signer_id, height: await height(r.transaction_outcome.block_hash) };
 }
 
-if (!m.reviews) {
+// LEAK_ROUND picks a released round (default: the latest).
+const round = process.env.LEAK_ROUND ? (m.review_rounds ?? []).find((r) => String(r.round) === process.env.LEAK_ROUND) : m.reviews;
+if (!round) {
   console.error("no published reviews in the manifest yet");
   process.exit(2);
 }
 const buyers = m.testers;
 const joins = await Promise.all(buyers.map(async (b) => ({ buyer: b.tester, ...(await tx(b.txs.review_join, m.treasury)) })));
-const seals = await Promise.all(m.reviews.seal_txs.map(async (h, i) => ({ sender: m.reviews.senders[i], ...(await tx(h, m.treasury)) })));
+const seals = await Promise.all(round.seal_txs.map(async (h) => {
+  const t = (await rpc("tx", { tx_hash: h, sender_account_id: m.treasury, wait_until: "FINAL" })).result;
+  return { sender: t.transaction.receiver_id, signer: t.transaction.signer_id, height: await height(t.transaction_outcome.block_hash) };
+}));
 const links = [];
 
 // L1: every purchase call of one buyer is one actor.
@@ -51,9 +58,13 @@ for (const b of buyers) {
 // L2: order of sealed ratings vs order of joins.
 const joinOrder = [...joins].sort((a, b) => a.height - b.height).map((j) => j.buyer);
 const sealOrder = [...seals].sort((a, b) => a.height - b.height).map((s) => s.sender);
-// The adversary's guess: the k-th rating is the k-th joiner's. We know the truth locally
-// only through the manifest's order (seal i was written for tester i in member order).
-const truth = new Map(m.reviews.senders.map((s, i) => [s, buyers[i]?.tester]));
+// The adversary's guess: the k-th rating is the k-th joiner's. The truth (which tester wrote
+// which rating) is never public: it is read from the demo's local state in KEYS_DIR, only to
+// score the guess. Rounds before the fix sent rating i for member i, in member order.
+const keys = process.env.KEYS_DIR || join(homedir(), ".rep-secrets", "bookerbob-testnet");
+const local = [join(keys, "testers", `reviews-state-${round.round}.json`), join(keys, "testers", "reviews-state.json")].map((p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null)).find((x) => x?.round === round.round);
+if (!local) throw new Error(`no local truth for round ${round.round} in ${keys}: the score needs the demo operator's state`);
+const truth = new Map(local.sealed.map((s) => [s.sender, s.tester]));
 let correct = 0;
 sealOrder.forEach((s, k) => { if (truth.get(s) === joinOrder[k]) correct++; });
 links.push({ rule: "L2 timing order", what: "each sealed rating to the buyer who joined in the same position", linked: correct === sealOrder.length, correct, of: sealOrder.length, anonymity_set: correct === sealOrder.length ? 1 : Math.max(1, sealOrder.length - correct) });
@@ -66,7 +77,7 @@ links.push({ rule: "L3 funding", what: "review senders and buyers share one fund
 links.push({ rule: "L4 reveal", what: "a revealed rating to its one-time sender", linked: true, note: "by design: the sender is fresh, so this only matters combined with L2", anonymity_set: 1 });
 
 const ratingToBuyer = links.find((l) => l.rule.startsWith("L2")).linked;
-console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${m.reviews.round})\n`);
+console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${round.round})\n`);
 for (const l of links) console.log(`${l.linked ? "LINKED  " : "unlinked"}  ${l.rule.padEnd(16)} ${l.what}  (anonymity set ${l.anonymity_set}${l.correct !== undefined ? `, ${l.correct}/${l.of} right` : ""}${l.note ? `; ${l.note}` : ""})`);
 console.log(`\nverdict: ${ratingToBuyer ? "LEAK  a passive observer links every rating to the buyer who wrote it, by order alone" : "ratings are not linked to buyers by order"}`);
-writeFileSync(new URL("../docs/leak-report.json", import.meta.url), JSON.stringify({ when: new Date().toISOString(), bazaar: m.bazaar, round: m.reviews.round, links, rating_to_buyer_linked: ratingToBuyer }, null, 2) + "\n");
+writeFileSync(new URL(`../docs/leak-report-${round.round}.json`, import.meta.url), JSON.stringify({ when: new Date().toISOString(), bazaar: m.bazaar, round: round.round, links, rating_to_buyer_linked: ratingToBuyer }, null, 2) + "\n");

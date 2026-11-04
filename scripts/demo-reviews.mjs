@@ -7,7 +7,7 @@
 //            pushes the Seed graph event that standing flows from
 // Round length on the demo bazaar: review_round_ms (set_review_round_ms, testnet only).
 import { spawnSync } from "node:child_process";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { check as checkReview } from "../relayer/relay.mjs";
@@ -24,6 +24,15 @@ const RATINGS = [
   [4, true, "fine"],
   [5, true, "would buy again"],
 ];
+/** A uniformly random permutation (Fisher-Yates over crypto randomness). */
+export function shuffle(xs) {
+  const a = [...xs];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 const fc = (method_name, args, deposit = 0n, gas = 100n * TGAS) => ({ type: "FunctionCall", method_name, args, gas, deposit });
 
 export function members(d) {
@@ -53,31 +62,35 @@ export async function reviews(d, phase) {
       await new Promise((ok) => setTimeout(ok, left + 15_000));
       return reviews(d, phase);
     }
+    if (st.round != null && st.sealed?.length) writeFileSync(join(c.testersDir, `reviews-state-${st.round}.json`), JSON.stringify(st, null, 2) + "\n", { mode: 0o600 });
     st.round = now;
     st.sealed = [];
-    for (const [i, m] of ms.entries()) {
-      const [rating, delivered, reason] = RATINGS[i % RATINGS.length];
+    delete st.publish_tx;
+    delete st.graph_events;
+    // Leak fix (docs/leak.md, L2): ratings used to follow join order, so the k-th rating was
+    // the k-th joiner's. Now every rater gets a fresh one-time account, the accounts are
+    // funded in one random order and the ratings are sent in another, independent of joins.
+    const raters = ms.map((m, i) => {
+      const [rating, delivered, reason] = RATINGS[randomInt(RATINGS.length)];
       const r = { rating, delivered, reason_hash: sha(reason), salt: randomBytes(32).toString("hex") };
-      const sealed = sha(JSON.stringify([r.rating, r.delivered, r.reason_hash, r.salt]));
-      const secret = readFileSync(join(c.testersDir, m.tester, "semaphore.secret"), "utf8").trim();
-      const q = { secret, members: all, message_hex: sealed, scope_hex: sha(`bookerbob/review/v0|${c.merchant}|${now}`) };
+      return { m, i, r, sealed: sha(JSON.stringify([r.rating, r.delivered, r.reason_hash, r.salt])), key: keyFromSeed(randomBytes(32).toString("hex")) };
+    });
+    for (const x of shuffle(raters)) await d.direct("fund one-time account", c.treasury, d.treasury, x.key.pub, [{ type: "Transfer", deposit: near(0.02) }]);
+    for (const x of shuffle(raters)) {
+      const secret = readFileSync(join(c.testersDir, x.m.tester, "semaphore.secret"), "utf8").trim();
+      const q = { secret, members: all, message_hex: x.sealed, scope_hex: sha(`bookerbob/review/v0|${c.merchant}|${now}`) };
       const out = spawnSync("node", ["identity.mjs", "prove"], { cwd: "semaphore", input: JSON.stringify(q), encoding: "utf8" });
       if (out.status !== 0) throw new Error(`proof: ${out.stderr.slice(-300)}`);
       const proof = JSON.parse(out.stdout);
       if (!g.recent_roots.includes(proof.root_js)) throw new Error("the local group root is not one of the contract's recent roots");
       delete proof.root_js;
-      // A fresh one-time implicit account (its own key), funded by the relayer: no transfer
-      // from the buyer, so the rating is not linked to the tester's account.
-      const seed = randomBytes(32).toString("hex");
-      const k = keyFromSeed(seed);
-      console.log(`${i + 1}. ${m.tester} rates ${rating}/5 from one-time account ${k.pub.slice(0, 12)}..`);
-      await d.direct("fund one-time account", c.treasury, d.treasury, k.pub, [{ type: "Transfer", deposit: near(0.02) }]);
-      const signed = await delegateFor(d.client, { sender_id: k.pub, key: k, receiver_id: c.bazaar, actions: [fc("submit_review", { merchant: c.merchant, sealed, proof }, 10n * MILLI, 150n * TGAS)] });
+      const signed = await delegateFor(d.client, { sender_id: x.key.pub, key: x.key, receiver_id: c.bazaar, actions: [fc("submit_review", { merchant: c.merchant, sealed: x.sealed, proof }, 10n * MILLI, 150n * TGAS)] });
       const h = await d.client.block();
       const ok = checkReview(signed, { bazaar: c.bazaar, block_height: h.height, max_deposit: String(50n * MILLI) });
       if (!ok.ok) throw new Error(`relayer refused submit_review: ${ok.reason}`);
-      const tx = await d.direct("submit_review (relayed)", c.treasury, d.treasury, k.pub, [{ type: "Delegate", ...signed }]);
-      st.sealed.push({ tester: m.tester, sender: k.pub, sealed, ...r, tx: tx.hash });
+      const tx = await d.direct("submit_review (relayed)", c.treasury, d.treasury, x.key.pub, [{ type: "Delegate", ...signed }]);
+      // The tester is kept locally (to reveal), never published: the manifest lists senders only.
+      st.sealed.push({ tester: x.m.tester, sender: x.key.pub, sealed: x.sealed, ...x.r, tx: tx.hash });
       save();
     }
     console.log(`\nsealed ${st.sealed.length} ratings in round ${now}. Reveal after round ${now} closes (${new Date((now + 1) * roundMs).toISOString()}).`);
