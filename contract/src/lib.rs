@@ -560,7 +560,18 @@ impl Bazaar {
 
     /// After the reveal window, release the round's revealed ratings together, sorted by
     /// sealed hash (not by arrival). False, and nothing released, below K_MIN members.
+    /// The caller pays the storage it adds (the merchant's totals entry, audit A9).
+    #[payable]
     pub fn publish_reviews(&mut self, merchant: AccountId, round: u64) -> bool {
+        let before = env::storage_usage();
+        let released = self.publish_reviews_inner(merchant, round);
+        self.review_rounds.flush();
+        self.review_totals.flush();
+        charge_storage(before);
+        released
+    }
+
+    fn publish_reviews_inner(&mut self, merchant: AccountId, round: u64) -> bool {
         require!(self.review_round_now() > round + 1, "reveal window still open");
         let rk = format!("{merchant}|{round}");
         let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_else(|| env::panic_str("no ratings for this round"));
@@ -924,11 +935,17 @@ impl Bazaar {
     /// Open an escrow entry for the caller (or `account_id`). Pays for its storage.
     #[payable]
     pub fn storage_deposit(&mut self, account_id: Option<AccountId>) {
-        require!(env::attached_deposit() >= ESCROW_STORAGE_DEPOSIT, "attach at least 0.01 NEAR");
         let account = account_id.unwrap_or_else(env::predecessor_account_id);
-        if !self.escrow.contains_key(&account) {
-            self.escrow.insert(account, 0);
+        if self.escrow.contains_key(&account) {
+            // Already open: refund the whole deposit instead of keeping it (audit A8).
+            let d = env::attached_deposit();
+            if !d.is_zero() {
+                Promise::new(env::predecessor_account_id()).transfer(d).detach();
+            }
+            return;
         }
+        require!(env::attached_deposit() >= ESCROW_STORAGE_DEPOSIT, "attach at least 0.01 NEAR");
+        self.escrow.insert(account, 0);
     }
 
     pub fn escrow_of(&self, account_id: AccountId) -> Option<U128> {

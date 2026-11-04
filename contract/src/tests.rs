@@ -1578,3 +1578,22 @@ fn a_purchase_joins_the_review_group_only_after_the_payout_succeeded() {
     set("agent.testnet");
     c.join_review_group(n, "1".into());
 }
+
+#[test]
+fn a_second_storage_deposit_is_refunded_in_full() {
+    // Audit A8: the escrow entry exists after setup(); a repeat deposit must not be kept.
+    let mut c = setup();
+    let mut b = ctx("agent.testnet");
+    b.attached_deposit(ESCROW_STORAGE_DEPOSIT);
+    testing_env!(b.build());
+    c.storage_deposit(None);
+    let refunded: u128 = near_sdk::test_utils::get_created_receipts()
+        .iter()
+        .flat_map(|r| r.actions.iter())
+        .filter_map(|a| match a {
+            near_sdk::mock::MockAction::Transfer { deposit, .. } => Some(deposit.as_yoctonear()),
+            _ => None,
+        })
+        .sum();
+    assert_eq!(refunded, ESCROW_STORAGE_DEPOSIT.as_yoctonear());
+}
