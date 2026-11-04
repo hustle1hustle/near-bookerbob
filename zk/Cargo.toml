@@ -1,7 +1,7 @@
 # Jolt zkVM provers for BookerBob (own workspace; not in `make test`, builds are large).
 # Jolt is upstream a16z/jolt pinned to 997c1543e (2026-03-24), the commit the installed
 # `jolt` CLI was built from; the arkworks patches are the revisions upstream's own
-# Cargo.lock uses at that commit.
+# Cargo.lock uses at that commit (the branch is pinned to 76bb3a45 in zk/Cargo.lock).
 [package]
 name = "bookerbob-zk"
 version = "0.1.0"
@@ -32,9 +32,11 @@ sha2 = "0.10"
 ed25519-dalek = "2.2"
 
 [patch.crates-io]
-ark-ff = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
-ark-ec = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
-ark-serialize = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
-ark-bn254 = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
-jolt-optimizations = { git = "https://github.com/a16z/arkworks-algebra", rev = "76bb3a4518928f1ff7f15875f940d614bb9845e6" }
+# Exactly upstream jolt@997c1543e's patch section: arkworks on the same git source jolt-core
+# depends on (branch dev/twist-shout), pinned to 76bb3a45 through Cargo.lock as upstream's
+# own lock does. A rev = pin here would be a second source and link two arkworks copies.
+ark-bn254 = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ff = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ec = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-serialize = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
 allocative = { git = "https://github.com/facebookexperimental/allocative", rev = "85b773d85d526d068ce94724ff7a7b81203fc95e" }
