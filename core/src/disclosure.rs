@@ -73,13 +73,10 @@ pub struct Plan {
 /// context that revealed `p`; the buyer adds one for each bit it reveals.
 pub fn best_price<'a>(merchants: &'a [(String, Schedule)], subset: &[String], others: &dyn Fn(&str) -> u32) -> Option<(&'a str, u128)> {
     let k = |p: &str| others(p) + subset.iter().any(|s| s == p) as u32;
-    merchants
-        .iter()
-        .map(|(id, s)| (id.as_str(), quote_in_cohort(s, subset, k).price))
-        .fold(None, |best, (id, p)| match best {
-            Some((_, bp)) if bp <= p => best,
-            _ => Some((id, p)),
-        })
+    merchants.iter().map(|(id, s)| (id.as_str(), quote_in_cohort(s, subset, k).price)).fold(None, |best, (id, p)| match best {
+        Some((_, bp)) if bp <= p => best,
+        _ => Some((id, p)),
+    })
 }
 
 pub fn plan(policy: &Policy, derived: &[String], merchants: &[(String, Schedule)], others: &dyn Fn(&str) -> u32) -> Option<Plan> {
@@ -153,7 +150,15 @@ mod tests {
 
     fn merchants() -> Vec<(String, Schedule)> {
         vec![
-            ("a".into(), Schedule { base_price: 100, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 1000 }, Rule { predicate: "world_id_human".into(), bps: 1000 }], cap_bps: 2000, cohort: Some(CohortRule { predicate: "world_id_human".into(), k_min: 5, bps: 500 }) }),
+            (
+                "a".into(),
+                Schedule {
+                    base_price: 100,
+                    rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 1000 }, Rule { predicate: "world_id_human".into(), bps: 1000 }],
+                    cap_bps: 2000,
+                    cohort: Some(CohortRule { predicate: "world_id_human".into(), k_min: 5, bps: 500 }),
+                },
+            ),
             ("b".into(), Schedule { base_price: 95, rules: vec![], cap_bps: 0, cohort: None }),
         ]
     }
@@ -178,10 +183,7 @@ mod tests {
         let p = plan(&Policy { max_bits: 2 }, &derived, &merchants(), &four).unwrap();
         // 4 others + the buyer = 5: the group price opens, 25% off.
         assert_eq!(p.price, 75);
-        assert_eq!(p.per_bit, vec![
-            BitSaving { predicate: "airbnb_frequent".into(), saved: 10 },
-            BitSaving { predicate: "world_id_human".into(), saved: 15 },
-        ]);
+        assert_eq!(p.per_bit, vec![BitSaving { predicate: "airbnb_frequent".into(), saved: 10 }, BitSaving { predicate: "world_id_human".into(), saved: 15 },]);
         assert_eq!(p.winner, "a");
     }
 

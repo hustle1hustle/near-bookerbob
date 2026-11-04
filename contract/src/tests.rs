@@ -1,5 +1,5 @@
 use super::*;
-use bookerbob_core::{Attestation, Claim, Envelope, ProofSet, Fact, Rule, WorldAttestation, WorldBody};
+use bookerbob_core::{Attestation, Claim, Envelope, Fact, ProofSet, Rule, WorldAttestation, WorldBody};
 use bookerbob_referee_worker::{arbitrate, run as run_referee, DisputeInput, WorkerInput};
 use ed25519_dalek::{Signer, SigningKey};
 use near_sdk::test_utils::{get_logs, VMContextBuilder};
@@ -15,9 +15,7 @@ fn acc(s: &str) -> AccountId {
 
 fn ctx(predecessor: &str) -> VMContextBuilder {
     let mut b = VMContextBuilder::new();
-    b.current_account_id(acc("bazaar.testnet"))
-        .predecessor_account_id(acc(predecessor))
-        .block_timestamp(NOW_MS * 1_000_000);
+    b.current_account_id(acc("bazaar.testnet")).predecessor_account_id(acc(predecessor)).block_timestamp(NOW_MS * 1_000_000);
     b
 }
 
@@ -84,11 +82,9 @@ fn sign_p256(e: Envelope) -> SignedVerdict {
 fn schedule() -> Schedule {
     Schedule {
         base_price: 189_000_000,
-        rules: vec![
-            Rule { predicate: "airbnb_frequent".into(), bps: 1200 },
-            Rule { predicate: "world_id_human".into(), bps: 800 },
-        ],
-        cap_bps: 2500, cohort: None,
+        rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 1200 }, Rule { predicate: "world_id_human".into(), bps: 800 }],
+        cap_bps: 2500,
+        cohort: None,
     }
 }
 
@@ -113,7 +109,13 @@ fn referee_key() -> SigningKey {
 }
 
 fn proofs() -> ProofSet {
-    let f = |id: &str, platform: &str, field: &str, value: u64| Fact { id: id.into(), platform: platform.into(), field: field.into(), value, proof_ref: "cc".repeat(32) };
+    let f = |id: &str, platform: &str, field: &str, value: u64| Fact {
+        id: id.into(),
+        platform: platform.into(),
+        field: field.into(),
+        value,
+        proof_ref: "cc".repeat(32),
+    };
     ProofSet { facts: vec![f("F1", "airbnb", "trips_12m", 7), f("F5", "world_id", "verified", 1)] }
 }
 
@@ -192,7 +194,11 @@ fn p256_verdict_is_accepted() {
 fn p256_host_function_matches_known_vector() {
     // Vector from the near-sdk 5.29.1 docs for env::p256_verify (RFC 6979 "sample").
     set("owner.testnet");
-    let sig: [u8; 64] = hex::decode("EFD48B2AACB6A8FD1140DD9CD45E81D69D2C877B56AAF991C34D0EA84EAF37160834E36AD29A83BF2BC9385E491D6099C8FDF9D1ED67AA7EA5F51F93782857A9").unwrap().try_into().unwrap();
+    let sig: [u8; 64] =
+        hex::decode("EFD48B2AACB6A8FD1140DD9CD45E81D69D2C877B56AAF991C34D0EA84EAF37160834E36AD29A83BF2BC9385E491D6099C8FDF9D1ED67AA7EA5F51F93782857A9")
+            .unwrap()
+            .try_into()
+            .unwrap();
     let pk: [u8; 33] = hex::decode("0360FED4BA255A9D31C961EB74C6356D68C049B8923B61FA6CE669622E60F29FB6").unwrap().try_into().unwrap();
     assert!(env::p256_verify(&sig, &env::sha256_array(b"sample"), &pk));
     assert!(!env::p256_verify(&sig, &env::sha256_array(b"Sample"), &pk));
@@ -752,9 +758,8 @@ mod props {
 
     /// Run `f`; Ok if it returned, Err(message) if the contract panicked.
     fn attempt<T>(f: impl FnOnce() -> T) -> Result<T, String> {
-        catch_unwind(AssertUnwindSafe(f)).map_err(|e| {
-            e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default()
-        })
+        catch_unwind(AssertUnwindSafe(f))
+            .map_err(|e| e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())
     }
 
     /// Each case on its own thread: near-sdk's mocked storage is thread-local and survives

@@ -121,13 +121,7 @@ pub fn quote_in_cohort(schedule: &Schedule, revealed: &[String], cohort_size: im
     let capped = sum.min(schedule.cap_bps as u32);
     let discount_bps = (capped + cohort.as_ref().map_or(0, |c| c.bps as u32)).min(BPS_DENOM as u32) as u16;
     let discount = schedule.base_price * discount_bps as u128 / BPS_DENOM;
-    Quote {
-        base_price: schedule.base_price,
-        lines,
-        cohort,
-        discount_bps,
-        price: schedule.base_price - discount,
-    }
+    Quote { base_price: schedule.base_price, lines, cohort, discount_bps, price: schedule.base_price - discount }
 }
 
 #[cfg(test)]

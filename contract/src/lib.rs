@@ -8,9 +8,7 @@
 use bookerbob_core::{quote_in_cohort, DisputeDecision, Quote, Schedule, SigAlg, SignedVerdict, WorkerResult, WorldAttestation};
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
-use near_sdk::{
-    env, ext_contract, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseOrValue,
-};
+use near_sdk::{env, ext_contract, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseOrValue};
 
 pub const EVENT_STANDARD: &str = "bookerbob";
 pub const EVENT_VERSION: &str = "0.1.0";
@@ -83,13 +81,7 @@ pub struct MerchantQuote {
 #[ext_contract(ext_outlayer)]
 #[allow(dead_code)]
 trait OutLayer {
-    fn request_execution(
-        &mut self,
-        source: serde_json::Value,
-        resource_limits: serde_json::Value,
-        input_data: String,
-        response_format: String,
-    );
+    fn request_execution(&mut self, source: serde_json::Value, resource_limits: serde_json::Value, input_data: String, response_format: String);
 }
 
 #[ext_contract(ext_ft)]
@@ -302,12 +294,7 @@ impl Bazaar {
     }
 
     pub fn merchants(&self, from_index: Option<u32>, limit: Option<u32>) -> Vec<(AccountId, Merchant)> {
-        self.merchants
-            .iter()
-            .skip(from_index.unwrap_or(0) as usize)
-            .take(limit.unwrap_or(50) as usize)
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect()
+        self.merchants.iter().skip(from_index.unwrap_or(0) as usize).take(limit.unwrap_or(50) as usize).map(|(k, v)| (k.clone(), v.clone())).collect()
     }
 
     // ---------- verdicts and nullifiers ----------
@@ -405,7 +392,7 @@ impl Bazaar {
                 continue;
             }
             let q = self.quote_for(&m.schedule, v);
-            if best.as_ref().map_or(true, |b| q.price < b.quote.price) {
+            if best.as_ref().is_none_or(|b| q.price < b.quote.price) {
                 best = Some(MerchantQuote { merchant: id.clone(), quote: q });
             }
         }
@@ -497,13 +484,15 @@ impl Bazaar {
             emit("referee_failed", serde_json::json!({}));
             return false;
         };
-        let parsed: Option<WorkerResult> = serde_json::from_slice(&bytes).ok().or_else(|| {
-            serde_json::from_slice::<String>(&bytes).ok().and_then(|s| serde_json::from_str(&s).ok())
-        });
+        let parsed: Option<WorkerResult> =
+            serde_json::from_slice(&bytes).ok().or_else(|| serde_json::from_slice::<String>(&bytes).ok().and_then(|s| serde_json::from_str(&s).ok()));
         match parsed {
             // Report instead of panicking, so a hello-world run shows the output arrived.
             Some(r) if !self.verdicts.contains_key(&r.body.nullifier) => {
-                emit("referee_failed", serde_json::json!({ "reason": "unknown nullifier", "output_sha256": hex::encode(env::sha256_array(&bytes)), "outcome": r.body.outcome }));
+                emit(
+                    "referee_failed",
+                    serde_json::json!({ "reason": "unknown nullifier", "output_sha256": hex::encode(env::sha256_array(&bytes)), "outcome": r.body.outcome }),
+                );
                 false
             }
             Some(r) => self.apply_referee_result(r),
@@ -668,11 +657,7 @@ impl Bazaar {
             .with_attached_deposit(NearToken::from_yoctonear(1))
             .with_static_gas(GAS_FT_TRANSFER)
             .ft_transfer(m.payout.clone(), U128(price), Some(format!("bookerbob:{checkout_ref}")))
-            .then(
-                Self::ext(env::current_account_id())
-                    .with_static_gas(GAS_SETTLE_CALLBACK)
-                    .on_settle_transfer(nullifier, agent, U128(price)),
-            )
+            .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price)))
     }
 
     #[private]

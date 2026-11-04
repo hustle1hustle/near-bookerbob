@@ -240,7 +240,8 @@ pub fn build(
     let disclose = |cat: &CategoryBoard| {
         let w = &cat.rows[0];
         let (base, price): (u128, u128) = (w.base_price.parse().unwrap(), w.price.parse().unwrap());
-        let in_cat: Vec<(String, Schedule)> = merchants.iter().filter(|m| m.category == cat.category).map(|m| (m.account.clone(), m.schedule.clone())).collect();
+        let in_cat: Vec<(String, Schedule)> =
+            merchants.iter().filter(|m| m.category == cat.category).map(|m| (m.account.clone(), m.schedule.clone())).collect();
         let plan = extras.policy.as_ref().and_then(|pol| bookerbob_core::disclosure::plan(pol, &derived, &in_cat, &others));
         Disclosure {
             category: cat.category.clone(),
@@ -275,7 +276,12 @@ pub fn build(
         Some(pol) => extras
             .asks
             .iter()
-            .map(|a| AskRow { merchant: a.merchant.clone(), text: a.text.clone(), ask: a.ask.clone(), answer: bookerbob_core::disclosure::answer(pol, &derived, &verdict.envelope.predicates, &a.ask) })
+            .map(|a| AskRow {
+                merchant: a.merchant.clone(),
+                text: a.text.clone(),
+                ask: a.ask.clone(),
+                answer: bookerbob_core::disclosure::answer(pol, &derived, &verdict.envelope.predicates, &a.ask),
+            })
             .collect(),
         None => vec![],
     };
@@ -315,7 +321,8 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     let peers_path = verdict_path.with_file_name("verdicts-cohort.json");
     let peers: Vec<SignedVerdict> = std::fs::read_to_string(&peers_path).ok().map(|s| serde_json::from_str(&s).expect("parse peers")).unwrap_or_default();
     let worlds_path = verdict_path.with_file_name("world-attestations.json");
-    let worlds: Vec<bookerbob_core::WorldAttestation> = std::fs::read_to_string(&worlds_path).ok().map(|s| serde_json::from_str(&s).expect("parse world attestations")).unwrap_or_default();
+    let worlds: Vec<bookerbob_core::WorldAttestation> =
+        std::fs::read_to_string(&worlds_path).ok().map(|s| serde_json::from_str(&s).expect("parse world attestations")).unwrap_or_default();
     let near = |name: &str| std::fs::read_to_string(verdict_path.with_file_name(name)).ok();
     let mut extras = Extras { proofs: near("proofs.json").map(|s| serde_json::from_str(&s).expect("parse proofs")), claim_sets: vec![], ..Default::default() };
     for (label, file) in [("honest claims", "claims-honest.json"), ("claims after a prompt injection", "claims-cheat.json")] {
@@ -335,7 +342,14 @@ pub fn run(merchants_path: &Path, verdict_path: &Path, out: &Path, check: bool) 
     println!("board: {} merchant agents, blind commit then reveal", board.merchants);
     println!("buyer: commitment {}..  revealed {} bits  {}", &board.buyer.verdict_commitment[..12], board.buyer.revealed_bits, board.buyer.group_unlock);
     for d in &board.disclosures {
-        println!("disclosure: revealed {} bits, saved {} USDC on {} ({} to {})", d.revealed_bits, usdc(d.saved.parse().unwrap()), d.category, usdc(d.base_price.parse().unwrap()), usdc(d.price.parse().unwrap()));
+        println!(
+            "disclosure: revealed {} bits, saved {} USDC on {} ({} to {})",
+            d.revealed_bits,
+            usdc(d.saved.parse().unwrap()),
+            d.category,
+            usdc(d.base_price.parse().unwrap()),
+            usdc(d.price.parse().unwrap())
+        );
     }
     for d in &board.disclosures {
         for b in &d.per_bit {

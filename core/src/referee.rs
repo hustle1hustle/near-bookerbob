@@ -108,10 +108,7 @@ mod tests {
     #[test]
     fn uncited_fact_refuses_receipt() {
         let cheat = Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec!["F9".into()] };
-        assert_eq!(
-            referee(&proofs(), &["airbnb_frequent".into()], &q(), &[cheat]),
-            RefereeOutcome::Refused { reason: "F9 not in proof set".into() }
-        );
+        assert_eq!(referee(&proofs(), &["airbnb_frequent".into()], &q(), &[cheat]), RefereeOutcome::Refused { reason: "F9 not in proof set".into() });
     }
 
     #[test]

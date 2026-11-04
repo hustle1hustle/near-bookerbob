@@ -68,10 +68,7 @@ pub const RULES: &[(&str, &str, u64, &str)] = &[
 
 /// Which predicate, if any, a single fact proves.
 pub fn predicate_for(fact: &Fact) -> Option<&'static str> {
-    RULES
-        .iter()
-        .find(|(p, f, min, _)| *p == fact.platform && *f == fact.field && fact.value >= *min)
-        .map(|(_, _, _, pred)| *pred)
+    RULES.iter().find(|(p, f, min, _)| *p == fact.platform && *f == fact.field && fact.value >= *min).map(|(_, _, _, pred)| *pred)
 }
 
 pub fn tier_for_count(n: usize) -> Tier {
@@ -102,13 +99,7 @@ mod tests {
     use super::*;
 
     fn fact(id: &str, platform: &str, field: &str, value: u64) -> Fact {
-        Fact {
-            id: id.into(),
-            platform: platform.into(),
-            field: field.into(),
-            value,
-            proof_ref: "00".repeat(32),
-        }
+        Fact { id: id.into(), platform: platform.into(), field: field.into(), value, proof_ref: "00".repeat(32) }
     }
 
     #[test]
@@ -122,11 +113,7 @@ mod tests {
     #[test]
     fn three_predicates_make_gold_and_are_sorted() {
         let set = ProofSet {
-            facts: vec![
-                fact("F1", "uber", "trips_90d", 14),
-                fact("F2", "airbnb", "trips_12m", 7),
-                fact("F3", "anthropic", "monthly_spend_usd", 100),
-            ],
+            facts: vec![fact("F1", "uber", "trips_90d", 14), fact("F2", "airbnb", "trips_12m", 7), fact("F3", "anthropic", "monthly_spend_usd", 100)],
         };
         let r = derive(&set);
         assert_eq!(r.tier, Tier::Gold);

@@ -8,10 +8,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: format
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -j 4 -- -D warnings
       - name: unit tests
         run: make test JOBS=4
       - name: stellar contract tests
@@ -20,3 +26,22 @@ jobs:
         run: make fixtures-check JOBS=4
       - name: offline end-to-end
         run: make verify JOBS=4
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+      - name: coverage (core, contract, worker, cli)
+        run: |
+          cargo llvm-cov --workspace -j 4 --summary-only | tee coverage.txt
+          { echo '## Rust line coverage'; echo; echo '```'; cat coverage.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.txt

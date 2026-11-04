@@ -74,12 +74,8 @@ fn as_caller(predecessor: &str, deposit: Option<near_sdk::NearToken>) {
 
 /// Run a contract call, turning a contract panic into Err(message).
 fn call<R>(f: impl FnOnce() -> R) -> Result<R, String> {
-    catch_unwind(AssertUnwindSafe(f)).map_err(|e| {
-        e.downcast_ref::<String>()
-            .cloned()
-            .or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string()))
-            .unwrap_or_else(|| "panic".into())
-    })
+    catch_unwind(AssertUnwindSafe(f))
+        .map_err(|e| e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_else(|| "panic".into()))
 }
 
 fn verify_offchain(v: &SignedVerdict) -> bool {
@@ -215,7 +211,15 @@ pub fn run(dir: &Path) -> ExitCode {
         r.check(
             pl.as_ref().is_some_and(|p| p.revealed == e.predicates && p.revealed.len() <= policy.max_bits && p.winner == exp.winner),
             "disclosure budget: the plan under the cap picks exactly the revealed bits",
-            pl.as_ref().map(|p| format!("max {} bits, {}", policy.max_bits, p.per_bit.iter().map(|b| format!("{} saves {}", b.predicate, b.saved)).collect::<Vec<_>>().join(", "))).unwrap_or_default(),
+            pl.as_ref()
+                .map(|p| {
+                    format!(
+                        "max {} bits, {}",
+                        policy.max_bits,
+                        p.per_bit.iter().map(|b| format!("{} saves {}", b.predicate, b.saved)).collect::<Vec<_>>().join(", ")
+                    )
+                })
+                .unwrap_or_default(),
         );
         let raw = asks.iter().find(|a| matches!(a.ask, Ask::RawHistory { .. })).expect("a raw history ask in fixtures");
         let raw_ans = answer(&policy, &t.predicates(), &e.predicates, &raw.ask);
@@ -380,7 +384,8 @@ pub fn run(dir: &Path) -> ExitCode {
             issuer_keys: vec![v_ed.key_id()],
             referee_keys: vec![forged.worker_key.clone()],
         };
-        let decision: bookerbob_core::DisputeDecision = serde_json::from_str(&bookerbob_referee_worker::arbitrate(&input, &arbiter_key).expect("arbiter runs")).expect("decision");
+        let decision: bookerbob_core::DisputeDecision =
+            serde_json::from_str(&bookerbob_referee_worker::arbitrate(&input, &arbiter_key).expect("arbiter runs")).expect("decision");
         let took = t0.elapsed();
         let overturned = call(|| c.submit_dispute_decision(decision.clone())) == Ok(true);
         let blocked = call(|| drop(c.settle(e.nullifier.clone(), best.merchant.clone(), "fixture-order-1".into(), U128(best.quote.price))));
@@ -433,11 +438,7 @@ pub fn run(dir: &Path) -> ExitCode {
     );
     as_caller(&e.cnf, None);
     let again = call(|| drop(c.settle(e.nullifier.clone(), best.merchant.clone(), "fixture-order-2".into(), U128(best.quote.price))));
-    r.check(
-        again.as_ref().err().is_some_and(|m| m.contains("nullifier spent")) && c.spent_count() == 1,
-        "second settle on the same nullifier is rejected",
-        "",
-    );
+    r.check(again.as_ref().err().is_some_and(|m| m.contains("nullifier spent")) && c.spent_count() == 1, "second settle on the same nullifier is rejected", "");
 
     println!();
     if r.failed == 0 {

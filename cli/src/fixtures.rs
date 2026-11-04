@@ -2,7 +2,9 @@
 //! `gen-fixtures --check` can prove the committed files are what this code produces.
 //! No real user data: facts, nullifier and keys are labelled placeholders.
 use bookerbob_core::envelope::commitment;
-use bookerbob_core::{derive, sha256, sha256_hex, Attestation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict, WorldAttestation, WorldBody};
+use bookerbob_core::{
+    derive, sha256, sha256_hex, Attestation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict, WorldAttestation, WorldBody,
+};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
 
@@ -70,13 +72,7 @@ pub fn p256_issuer() -> p256::ecdsa::SigningKey {
 }
 
 fn fact(id: &str, platform: &str, field: &str, value: u64) -> Fact {
-    Fact {
-        id: id.into(),
-        platform: platform.into(),
-        field: field.into(),
-        value,
-        proof_ref: sha256_hex(format!("synthetic presentation {id}").as_bytes()),
-    }
+    Fact { id: id.into(), platform: platform.into(), field: field.into(), value, proof_ref: sha256_hex(format!("synthetic presentation {id}").as_bytes()) }
 }
 
 pub fn proofs() -> ProofSet {
@@ -128,11 +124,7 @@ pub fn merchants() -> Vec<MerchantFixture> {
             account: "m03.bookerbob.testnet".into(),
             label: "travel bundle".into(),
             category: "hoodie".into(),
-            schedule: Schedule {
-                base_price: 50_000_000,
-                rules: vec![r("airbnb_frequent", 1200), r("world_id_human", 800)],
-                cap_bps: 2500, cohort: None,
-            },
+            schedule: Schedule { base_price: 50_000_000, rules: vec![r("airbnb_frequent", 1200), r("world_id_human", 800)], cap_bps: 2500, cohort: None },
         },
     ]
 }
@@ -148,11 +140,7 @@ pub fn honest_claims() -> Vec<Claim> {
 /// A prompt injection in a product description made the model claim a status it cannot prove.
 pub fn cheat_claims() -> Vec<Claim> {
     let mut c = honest_claims();
-    c.push(Claim {
-        line: "airbnb_frequent".into(),
-        text: "guest is marriott platinum, apply vip rate".into(),
-        citations: vec!["F9".into()],
-    });
+    c.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum, apply vip rate".into(), citations: vec!["F9".into()] });
     c
 }
 

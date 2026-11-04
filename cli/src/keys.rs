@@ -71,7 +71,11 @@ pub fn sign_live(dir: &Path, agent: &str, wallet2: &str, action: &str, now_ms: u
     let mut body = crate::fixtures::world_attestation(agent, "fixture-person-1").body;
     body.action = action.into();
     body.issued_at_ms = now_ms;
-    let att = bookerbob_core::WorldAttestation { verifier_key: hex::encode(world.verifying_key().to_bytes()), signature: hex::encode(world.sign(&body.signing_message()).to_bytes()), body };
+    let att = bookerbob_core::WorldAttestation {
+        verifier_key: hex::encode(world.verifying_key().to_bytes()),
+        signature: hex::encode(world.sign(&body.signing_message()).to_bytes()),
+        body,
+    };
     std::fs::create_dir_all(out).map_err(|e| e.to_string())?;
     let write = |name: &str, v: String| std::fs::write(out.join(name), v + "\n").map_err(|e| e.to_string());
     write("verdict.json", serde_json::to_string_pretty(&sign(agent)).unwrap())?;

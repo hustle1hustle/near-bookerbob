@@ -68,7 +68,11 @@ fn referee_cmd(a: &[String]) -> ExitCode {
     let q = bookerbob_core::quote(&m.schedule, &verdict.envelope.predicates);
     let out = bookerbob_core::referee(&proofs, &verdict.envelope.predicates, &q, &claims);
     println!("{}", serde_json::to_string(&out).unwrap());
-    if out.is_receipt() { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+    if out.is_receipt() {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    }
 }
 
 /// Print the referee worker input for the fixture purchase (honest claims, winner m01).
@@ -125,9 +129,7 @@ fn main() -> ExitCode {
         }
         Some("worker-input") if args.len() >= 2 => worker_input(Path::new(&args[1]), args.get(2).map(Path::new)),
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
-        Some("swarm") if args.len() >= 4 => {
-            swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check"))
-        }
+        Some("swarm") if args.len() >= 4 => swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check")),
         _ => usage(),
     }
 }

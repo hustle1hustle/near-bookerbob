@@ -10,23 +10,16 @@ pub mod tier;
 pub mod u128_str;
 pub mod world;
 
-pub use envelope::{Attestation, Envelope, SignedVerdict, SigAlg};
+pub use envelope::{Attestation, Envelope, SigAlg, SignedVerdict};
 pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN};
 pub use referee::{referee, Citation, Claim, RefereeOutcome};
 pub use referee_result::{DisputeBody, DisputeDecision, ResultBody, WorkerResult};
-pub use world::{WorldAttestation, WorldBody};
 pub use tier::{derive, Derived, Fact, ProofSet, Tier, TierResult};
+pub use world::{WorldAttestation, WorldBody};
 
 /// Coarse predicates a verdict may reveal. Anything else is rejected, so a merchant or a
 /// model cannot invent a property. Each one is derived by code in [`tier`].
-pub const KNOWN_PREDICATES: &[&str] = &[
-    "airbnb_frequent",
-    "booking_genius",
-    "claude_spender",
-    "steam_veteran",
-    "uber_regular",
-    "world_id_human",
-];
+pub const KNOWN_PREDICATES: &[&str] = &["airbnb_frequent", "booking_genius", "claude_spender", "steam_veteran", "uber_regular", "world_id_human"];
 
 pub fn is_known_predicate(p: &str) -> bool {
     KNOWN_PREDICATES.contains(&p)

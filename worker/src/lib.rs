@@ -176,7 +176,9 @@ mod tests {
             revealed: vec!["airbnb_frequent".into()],
             claims,
             cohort_k: 0,
-            proofs: ProofSet { facts: vec![Fact { id: "F1".into(), platform: "airbnb".into(), field: "trips_12m".into(), value: 7, proof_ref: "cc".repeat(32) }] },
+            proofs: ProofSet {
+                facts: vec![Fact { id: "F1".into(), platform: "airbnb".into(), field: "trips_12m".into(), value: 7, proof_ref: "cc".repeat(32) }],
+            },
         }
     }
 
