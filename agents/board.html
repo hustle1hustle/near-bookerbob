@@ -62,6 +62,13 @@
   .ask .a { color: var(--red); margin-top: 2px; }
   .bits { margin-top: 8px; font-size: 12px; color: var(--dim); }
   .bits div { display: flex; justify-content: space-between; }
+  /* capture views: board.html#winner, #cheat, #asks */
+  body.v-winner .receipts, body.v-winner aside, body.v-winner footer, body.v-cheat .grid, body.v-cheat footer, body.v-asks .grid > section, body.v-asks .receipts, body.v-asks footer, body.v-asks aside > .panel:first-child { display: none; }
+  body.v-winner .grid { grid-template-columns: 1fr; }
+  body.v-winner tr:nth-child(n+5) { display: none; }
+  body.v-cheat .receipt.ok { display: none; }
+  body.v-cheat .receipts { grid-template-columns: 1fr; }
+  body.v-asks .grid { grid-template-columns: 1fr; }
   footer { color: var(--faint); font-size: 12px; margin-top: 24px; }
   .tabs { display: flex; gap: 6px; }
   .tabs button { background: none; border: 1px solid var(--line); color: var(--dim); font: inherit; font-size: 12px; padding: 2px 8px; border-radius: 4px; cursor: pointer; }
@@ -69,6 +76,7 @@
 </style>
 </head>
 <body>
+<script>if (location.hash) document.body.classList.add("v-" + location.hash.slice(1));</script>
 <main>
   <header>
     <h1>bookerbob</h1>
