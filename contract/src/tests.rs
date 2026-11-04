@@ -119,10 +119,14 @@ fn proofs() -> ProofSet {
     ProofSet { facts: vec![f("F1", "airbnb", "trips_12m", 7), f("F5", "world_id", "verified", 1)] }
 }
 
+fn cite(fact: &str, field: &str, value: u64) -> bookerbob_core::Citation {
+    bookerbob_core::Citation { fact: fact.into(), field: field.into(), value }
+}
+
 fn honest_claims() -> Vec<Claim> {
     vec![
-        Claim { line: "airbnb_frequent".into(), text: "frequent".into(), citations: vec!["F1".into()] },
-        Claim { line: "world_id_human".into(), text: "human".into(), citations: vec!["F5".into()] },
+        Claim { line: "airbnb_frequent".into(), text: "frequent".into(), citations: vec![cite("F1", "trips_12m", 7)] },
+        Claim { line: "world_id_human".into(), text: "human".into(), citations: vec![cite("F5", "verified", 1)] },
     ]
 }
 
@@ -472,7 +476,7 @@ fn uncited_fact_refuses_receipt() {
     set("agent.testnet");
     c.submit_verdict(sign_ed(e.clone()));
     let mut cheat = honest_claims();
-    cheat.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec!["F9".into()] });
+    cheat.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec![cite("F9", "trips_12m", 7)] });
     assert!(!c.submit_referee_result(referee_result(&e, cheat, &referee_key())));
     assert!(get_logs().iter().any(|l| l.contains("receipt_refused") && l.contains("F9 not in proof set")));
     assert_eq!(c.verdict(e.nullifier).unwrap().receipt, None);
@@ -634,7 +638,7 @@ fn arbiter_key() -> SigningKey {
 /// A compromised (registered) referee key signs a receipt for the F9 cheat.
 fn forged_receipt(e: &Envelope) -> (Vec<Claim>, WorkerResult) {
     let mut cheat = honest_claims();
-    cheat.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec!["F9".into()] });
+    cheat.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec![cite("F9", "trips_12m", 7)] });
     let mut r = referee_result(e, cheat.clone(), &referee_key());
     r.body.outcome = "receipt".into();
     r.body.detail = "forged".into();

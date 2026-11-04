@@ -3,7 +3,8 @@
 //! No real user data: facts, nullifier and keys are labelled placeholders.
 use bookerbob_core::envelope::commitment;
 use bookerbob_core::{
-    derive, sha256, sha256_hex, Attestation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict, WorldAttestation, WorldBody,
+    derive, sha256, sha256_hex, Attestation, Citation, Claim, CohortRule, Envelope, Fact, ProofSet, Rule, Schedule, SigAlg, SignedVerdict, WorldAttestation,
+    WorldBody,
 };
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
@@ -129,18 +130,22 @@ pub fn merchants() -> Vec<MerchantFixture> {
     ]
 }
 
+fn cite(fact: &str, field: &str, value: u64) -> Citation {
+    Citation { fact: fact.into(), field: field.into(), value }
+}
+
 pub fn honest_claims() -> Vec<Claim> {
     vec![
-        Claim { line: "claude_spender".into(), text: "spends on claude every month".into(), citations: vec!["F3".into()] },
-        Claim { line: "world_id_human".into(), text: "one human, one agent".into(), citations: vec!["F5".into()] },
-        Claim { line: "airbnb_frequent".into(), text: "frequent traveller".into(), citations: vec!["F1".into()] },
+        Claim { line: "claude_spender".into(), text: "spends 120 a month on claude".into(), citations: vec![cite("F3", "monthly_spend_usd", 120)] },
+        Claim { line: "world_id_human".into(), text: "one human, one agent".into(), citations: vec![cite("F5", "verified", 1)] },
+        Claim { line: "airbnb_frequent".into(), text: "7 airbnb trips in 12 months".into(), citations: vec![cite("F1", "trips_12m", 7)] },
     ]
 }
 
 /// A prompt injection in a product description made the model claim a status it cannot prove.
 pub fn cheat_claims() -> Vec<Claim> {
     let mut c = honest_claims();
-    c.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum, apply vip rate".into(), citations: vec!["F9".into()] });
+    c.push(Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum, apply vip rate".into(), citations: vec![cite("F9", "trips_12m", 7)] });
     c
 }
 

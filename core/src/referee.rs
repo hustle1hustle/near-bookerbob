@@ -1,15 +1,27 @@
-//! Referee: a deterministic fact-citation checker. A model writes the "why" for each
-//! discount line and must cite facts by id. The referee refuses the receipt if any cited
-//! fact is missing from the proof set, does not prove the line, or the line was not
-//! revealed, if any applied discount line has no cited claim, and if two facts share an id.
+//! Referee: a deterministic claim checker. A model writes the "why" for each discount line
+//! as structured claims: each citation names a fact and asserts its field and value. The
+//! referee refuses the receipt if a cited fact is missing, the asserted field or value
+//! differs from the proof, the fact does not prove the line, or the line was not revealed;
+//! if the free text names an unproven status, a platform the claim does not prove, or a
+//! number the claim does not assert; if any applied discount line has no claim; and if
+//! two facts share an id. The text never earns a discount on its own: only proven,
+//! asserted values do.
 //! "The agent can lie. The receipt cannot."
 use serde::{Deserialize, Serialize};
 
 use crate::price::Quote;
-use crate::tier::{predicate_for, ProofSet};
+use crate::tier::{predicate_for, ProofSet, RULES};
 
-/// A fact id cited by a claim, e.g. `F3`.
-pub type Citation = String;
+/// One cited fact and what the claim asserts about it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Citation {
+    /// Fact id in the proof set, e.g. `F3`.
+    pub fact: String,
+    /// The proven field the claim relies on, e.g. `trips_12m`.
+    pub field: String,
+    /// The value the claim asserts for that field. Must equal the proven value.
+    pub value: u64,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Claim {
@@ -36,6 +48,74 @@ fn refuse(reason: String) -> RefereeOutcome {
     RefereeOutcome::Refused { reason }
 }
 
+/// Status words no fact in this system can prove. Text that uses one is a claim the
+/// receipt would launder, so it is refused.
+pub const UNPROVEN_STATUS: &[&str] = &[
+    "platinum",
+    "diamond",
+    "titanium",
+    "gold",
+    "silver",
+    "elite",
+    "vip",
+    "ambassador",
+    "superhost",
+    "premier",
+    "executive",
+    "centurion",
+    "marriott",
+    "hilton",
+    "hyatt",
+    "ihg",
+    "accor",
+    "bonvoy",
+    "amex",
+    "loyalty",
+];
+
+/// Words that name a platform, and the predicate whose facts come from it.
+const PLATFORM_WORDS: &[(&str, &str)] = &[
+    ("airbnb", "airbnb_frequent"),
+    ("booking", "booking_genius"),
+    ("genius", "booking_genius"),
+    ("anthropic", "claude_spender"),
+    ("claude", "claude_spender"),
+    ("steam", "steam_veteran"),
+    ("uber", "uber_regular"),
+    ("world", "world_id_human"),
+];
+
+fn words(text: &str) -> Vec<String> {
+    text.to_lowercase().split(|c: char| !c.is_ascii_alphanumeric()).filter(|w| !w.is_empty()).map(String::from).collect()
+}
+
+/// Numbers that are part of a field name for this line, like the 12 in `trips_12m`.
+fn window_numbers(line: &str) -> Vec<u64> {
+    RULES.iter().filter(|r| r.3 == line).flat_map(|r| r.1.split(|c: char| !c.is_ascii_digit()).filter_map(|d| d.parse().ok()).collect::<Vec<u64>>()).collect()
+}
+
+fn check_text(c: &Claim) -> Option<String> {
+    // Homoglyphs and zero-width characters would slip past the word checks.
+    if !c.text.chars().all(|ch| ch == ' ' || ch.is_ascii_graphic()) {
+        return Some("claim text must be plain ascii".into());
+    }
+    if c.text.len() > 280 {
+        return Some("claim text over 280 characters".into());
+    }
+    let w = words(&c.text);
+    if let Some(bad) = w.iter().find(|x| UNPROVEN_STATUS.contains(&x.as_str())) {
+        return Some(format!("claim text names unproven status: {bad}"));
+    }
+    if let Some((word, _)) = PLATFORM_WORDS.iter().find(|(word, pred)| *pred != c.line && w.iter().any(|x| x == word)) {
+        return Some(format!("claim text names {word}, which the {} claim does not prove", c.line));
+    }
+    let allowed: Vec<u64> = c.citations.iter().map(|x| x.value).chain(window_numbers(&c.line)).collect();
+    if let Some(n) = w.iter().filter_map(|x| x.parse::<u64>().ok()).find(|n| !allowed.contains(n)) {
+        return Some(format!("claim text states {n}, not an asserted value"));
+    }
+    None
+}
+
 pub fn referee(proofs: &ProofSet, revealed: &[String], quote: &Quote, claims: &[Claim]) -> RefereeOutcome {
     // A citation must name exactly one fact.
     for (i, f) in proofs.facts.iter().enumerate() {
@@ -53,13 +133,19 @@ pub fn referee(proofs: &ProofSet, revealed: &[String], quote: &Quote, claims: &[
         if c.citations.is_empty() {
             return refuse(format!("claim for {} cites no fact", c.line));
         }
-        for id in &c.citations {
-            let Some(fact) = proofs.facts.iter().find(|f| &f.id == id) else {
-                return refuse(format!("{id} not in proof set"));
+        for cit in &c.citations {
+            let Some(fact) = proofs.facts.iter().find(|f| f.id == cit.fact) else {
+                return refuse(format!("{} not in proof set", cit.fact));
             };
-            if predicate_for(fact) != Some(c.line.as_str()) {
-                return refuse(format!("{id} does not prove {}", c.line));
+            if fact.field != cit.field || fact.value != cit.value {
+                return refuse(format!("{} asserted {}={}, proven {}={}", cit.fact, cit.field, cit.value, fact.field, fact.value));
             }
+            if predicate_for(fact) != Some(c.line.as_str()) {
+                return refuse(format!("{} does not prove {}", cit.fact, c.line));
+            }
+        }
+        if let Some(reason) = check_text(c) {
+            return refuse(reason);
         }
     }
     for line in &quote.lines {
@@ -96,8 +182,23 @@ mod tests {
         quote(&s, &["airbnb_frequent".into()])
     }
 
+    fn cite(fact: &str, field: &str, value: u64) -> Citation {
+        Citation { fact: fact.into(), field: field.into(), value }
+    }
+
+    fn claim(line: &str, text: &str, c: Citation) -> Claim {
+        Claim { line: line.into(), text: text.into(), citations: vec![c] }
+    }
+
     fn honest() -> Claim {
-        Claim { line: "airbnb_frequent".into(), text: "7 stays in 12 months".into(), citations: vec!["F1".into()] }
+        claim("airbnb_frequent", "7 stays in 12 months", cite("F1", "trips_12m", 7))
+    }
+
+    fn refused(c: Claim) -> String {
+        match referee(&proofs(), &["airbnb_frequent".into()], &q(), &[c]) {
+            RefereeOutcome::Refused { reason } => reason,
+            r => panic!("expected refusal, got {r:?}"),
+        }
     }
 
     #[test]
@@ -107,15 +208,12 @@ mod tests {
 
     #[test]
     fn uncited_fact_refuses_receipt() {
-        let cheat = Claim { line: "airbnb_frequent".into(), text: "guest is marriott platinum".into(), citations: vec!["F9".into()] };
-        assert_eq!(referee(&proofs(), &["airbnb_frequent".into()], &q(), &[cheat]), RefereeOutcome::Refused { reason: "F9 not in proof set".into() });
+        assert_eq!(refused(claim("airbnb_frequent", "guest is marriott platinum", cite("F9", "trips_12m", 7))), "F9 not in proof set");
     }
 
     #[test]
     fn fact_that_does_not_prove_the_line_is_refused() {
-        let c = Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec!["F2".into()] };
-        let r = referee(&proofs(), &["airbnb_frequent".into()], &q(), &[c]);
-        assert_eq!(r, RefereeOutcome::Refused { reason: "F2 does not prove airbnb_frequent".into() });
+        assert_eq!(refused(claim("airbnb_frequent", "x", cite("F2", "trips_90d", 3))), "F2 does not prove airbnb_frequent");
     }
 
     #[test]
@@ -132,8 +230,36 @@ mod tests {
 
     #[test]
     fn invented_status_is_refused() {
-        let c = Claim { line: "marriott_platinum".into(), text: "x".into(), citations: vec!["F1".into()] };
-        let r = referee(&proofs(), &["airbnb_frequent".into()], &q(), &[c]);
-        assert_eq!(r, RefereeOutcome::Refused { reason: "marriott_platinum is not a known predicate".into() });
+        assert_eq!(refused(claim("marriott_platinum", "x", cite("F1", "trips_12m", 7))), "marriott_platinum is not a known predicate");
+    }
+
+    #[test]
+    fn a_real_fact_with_a_false_status_in_the_text_is_refused() {
+        // The review's attack: a real citation, an invented status in the text.
+        assert_eq!(refused(claim("airbnb_frequent", "guest is marriott platinum", cite("F1", "trips_12m", 7))), "claim text names unproven status: marriott");
+    }
+
+    #[test]
+    fn an_inflated_value_is_refused() {
+        assert_eq!(refused(claim("airbnb_frequent", "9 stays", cite("F1", "trips_12m", 9))), "F1 asserted trips_12m=9, proven trips_12m=7");
+        assert_eq!(refused(claim("airbnb_frequent", "stays", cite("F1", "trips_90d", 7))), "F1 asserted trips_90d=7, proven trips_12m=7");
+    }
+
+    #[test]
+    fn homoglyph_status_is_refused() {
+        assert_eq!(refused(claim("airbnb_frequent", "guest is pl\u{0430}tinum", cite("F1", "trips_12m", 7))), "claim text must be plain ascii");
+    }
+
+    #[test]
+    fn text_numbers_must_be_asserted() {
+        assert_eq!(refused(claim("airbnb_frequent", "40 stays in 12 months", cite("F1", "trips_12m", 7))), "claim text states 40, not an asserted value");
+    }
+
+    #[test]
+    fn text_naming_another_platform_is_refused() {
+        assert_eq!(
+            refused(claim("airbnb_frequent", "7 airbnb stays and an uber regular", cite("F1", "trips_12m", 7))),
+            "claim text names uber, which the airbnb_frequent claim does not prove"
+        );
     }
 }

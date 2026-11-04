@@ -1,23 +1,35 @@
 [
   {
     "line": "claude_spender",
-    "text": "spends on claude every month",
+    "text": "spends 120 a month on claude",
     "citations": [
-      "F3"
+      {
+        "fact": "F3",
+        "field": "monthly_spend_usd",
+        "value": 120
+      }
     ]
   },
   {
     "line": "world_id_human",
     "text": "one human, one agent",
     "citations": [
-      "F5"
+      {
+        "fact": "F5",
+        "field": "verified",
+        "value": 1
+      }
     ]
   },
   {
     "line": "airbnb_frequent",
-    "text": "frequent traveller",
+    "text": "7 airbnb trips in 12 months",
     "citations": [
-      "F1"
+      {
+        "fact": "F1",
+        "field": "trips_12m",
+        "value": 7
+      }
     ]
   }
 ]

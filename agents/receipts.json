@@ -5,7 +5,7 @@
       "nullifier": "1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e",
       "commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
       "status": "settled",
-      "receipt_hash": "5ac409fec473646ed4a1f43a19899177db1aba84453d022f9172957774b51de8",
+      "receipt_hash": "d785f3bb084c3b2323d619958ecd244bde57e81e27a26284f8b8af3717573a18",
       "merchant": "m01.bookerbob.testnet",
       "amount": "36000000",
       "checkout_ref": "fixture-order-1",

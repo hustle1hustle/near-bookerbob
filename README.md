@@ -4,8 +4,8 @@ merchants compete for you. none of them learns who you are.
 
 BookerBob is a market on NEAR where merchant agents bid for a buyer who has proven facts
 about their own history (zkTLS), while the buyer stays unknown to every merchant. Code, not
-a model, computes the price. A deterministic referee refuses any claim that is not in the
-proof set. An on-chain nullifier set stops the same proof from being used twice. The
+a model, computes the price. A deterministic referee refuses any claim whose asserted value is not
+exactly what the proof set holds. An on-chain nullifier set stops the same proof from being used twice. The
 winning merchant is paid in USDC on NEAR.
 
 Built at NEAR HACKATHON (2026-11-01 to 2026-11-14). Prior work is disclosed in
@@ -146,7 +146,7 @@ group unlock (5 peer verdicts bring the cohort to `k=6` and the cohort price ope
 referee worker (a signed refusal for the injected claim `F9 not in proof set`, settle
 blocked without a receipt, a signed receipt for honest claims), settle (escrow debit,
 nullifier burn, `settled` event, `ft_transfer` receipt to USDC), and the replay from
-another wallet (`nullifier spent`). Then the 30-agent board check and 20 referee evals.
+another wallet (`nullifier spent`). Then the 30-agent board check and 50 referee evals.
 
 Mocked or synthetic today: the proof set and attestation report (synthetic fixtures), the
 issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, no live
@@ -168,7 +168,7 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 | zkTLS proof | the facts came from the user's real account over TLS | the notary is a single MPC key today, not attested ("notary not attested") |
 | NEAR AI TEE | the answer came from the attested model key; under E2EE v2 the signature covers the ciphertext | TEE caveats apply; `tcb_status` is recorded, not hidden (OutOfDate grades exist); the TDX quote is not verified in this repo yet |
 | verdict issuer | the envelope was signed by a registered key (`ed25519_verify` / `p256_verify`) | that the issuer is honest beyond its key |
-| referee (OutLayer worker) | every cited fact is in the proof set and proves its line; the price is the code quote | OutLayer is unaudited; a compromised referee key can sign a false receipt (the dispute path exists for that) |
+| referee (OutLayer worker) | every cited fact is in the proof set, its asserted field and value match, and it proves its line; the price is the code quote | OutLayer is unaudited; a compromised referee key can sign a false receipt (the dispute path exists for that) |
 | dispute arbiter | an independent re-run of every check, signed | only as independent as its operator; today it is a fixture seed like the referee |
 | World ID verifier | one World ID holder bound one agent | there is no World ID verifier on NEAR; the contract trusts the service key |
 | contract | nullifier used once, price from code, cap, receipt required, payout atomic with the burn | it never sees raw facts, by design |
@@ -188,7 +188,7 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 | attack | stopped by | where |
 |---|---|---|
 | replay the same proof from another wallet | per-context nullifier in a global spent-set | `submit_verdict`, `settle`; `make verify` check 25 |
-| model claims a status it cannot prove (prompt injection) | referee refuses uncited or unproven facts; no receipt, no payment | `core/src/referee.rs`; checks 19 to 21; 20 evals |
+| model claims a status it cannot prove (prompt injection) | structured claims: each citation asserts a field and value that must equal the proof; text naming an unproven status, another platform or an unasserted number is refused; no receipt, no payment | `core/src/referee.rs`; checks 19 to 21; 50 evals, 30 of them injection-style |
 | compromised referee signs a false receipt | arbiter re-runs and signs `overturned`; the receipt is cleared | check 22 |
 | merchant asks for raw history or identity | buyer agent policy declines by rule | `core/src/disclosure.rs`; check 05 |
 | one person runs many agents | one agent per World nullifier | `attest_human`; check 12 |
@@ -222,6 +222,9 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
   `attest_human`, unused deposit refunded); `storage_deposit` opens an escrow entry for
   0.01 NEAR.
 - No refunds after a dispute that lands after settle; the record is only flagged.
+- The referee's text checks are a word-level tripwire (status words, platform names,
+  numbers, plain ascii), not language understanding. A discount never depends on the text:
+  only on asserted values that equal the proof.
 - `make verify` runs the contract code natively against near-sdk's MockedBlockchain, not
   on a live chain. Nothing is deployed yet; testnet addresses and tx hashes go below.
 

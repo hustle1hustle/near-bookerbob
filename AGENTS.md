@@ -14,7 +14,7 @@ Needs Rust stable and Node 22. From the repo root:
 
 | goal | command | expected |
 |---|---|---|
-| everything offline | `make verify` | `ALL PASS (26 checks)`, `PASS  public receipts page data matches agents/receipts.json`, `PASS  swarm board matches agents/board.json and contract best_quote per category`, `PASS  referee evals 20/20 (13 cheats refused, 7 honest receipts)` |
+| everything offline | `make verify` | `ALL PASS (26 checks)`, `PASS  public receipts page data matches agents/receipts.json`, `PASS  swarm board matches agents/board.json and contract best_quote per category`, `PASS  referee evals 50/50 (39 cheats refused, 11 honest receipts)` |
 | the story in one screen | `make demo-offline` | the hoodie board, then the PASS lines for World ID, group unlock, cheat refused, settle, replay; ends `ALL PASS (26 checks)` |
 | unit tests | `make test` | cargo workspace (contract, core, worker, cli) and node tests (ucp, mcp, x402, sdk, scripts), all ok |
 | Stellar contract tests | `make test-stellar` | all ok (own workspace, `stellar/`) |

@@ -182,13 +182,17 @@ mod tests {
         }
     }
 
+    fn cite(fact: &str, field: &str, value: u64) -> bookerbob_core::Citation {
+        bookerbob_core::Citation { fact: fact.into(), field: field.into(), value }
+    }
+
     fn key() -> SigningKey {
         SigningKey::from_bytes(&[3u8; 32])
     }
 
     #[test]
     fn signed_receipt_fits_the_output_cap() {
-        let out = run(&input(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec!["F1".into()] }]), &key()).unwrap();
+        let out = run(&input(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec![cite("F1", "trips_12m", 7)] }]), &key()).unwrap();
         assert!(out.len() <= MAX_OUTPUT, "{} bytes", out.len());
         let r: WorkerResult = serde_json::from_str(&out).unwrap();
         assert_eq!(r.body.outcome, "receipt");
@@ -199,7 +203,9 @@ mod tests {
 
     #[test]
     fn injected_claim_is_refused_and_signed() {
-        let out = run(&input(vec![Claim { line: "airbnb_frequent".into(), text: "marriott platinum".into(), citations: vec!["F9".into()] }]), &key()).unwrap();
+        let out =
+            run(&input(vec![Claim { line: "airbnb_frequent".into(), text: "marriott platinum".into(), citations: vec![cite("F9", "trips_12m", 7)] }]), &key())
+                .unwrap();
         let r: WorkerResult = serde_json::from_str(&out).unwrap();
         assert_eq!((r.body.outcome.as_str(), r.body.detail.as_str()), ("refused", "F9 not in proof set"));
     }
@@ -250,7 +256,7 @@ mod tests {
 
     #[test]
     fn honest_receipt_is_upheld() {
-        let d = dispute(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec!["F1".into()] }], None);
+        let d = dispute(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec![cite("F1", "trips_12m", 7)] }], None);
         let out: DisputeDecision = serde_json::from_str(&arbitrate(&d, &SigningKey::from_bytes(&[9u8; 32])).unwrap()).unwrap();
         assert_eq!(out.body.decision, "upheld");
         assert!(out.body.reasons.is_empty());
@@ -258,7 +264,7 @@ mod tests {
 
     #[test]
     fn receipt_from_a_compromised_referee_is_overturned() {
-        let cheat = vec![Claim { line: "airbnb_frequent".into(), text: "marriott platinum".into(), citations: vec!["F9".into()] }];
+        let cheat = vec![Claim { line: "airbnb_frequent".into(), text: "marriott platinum".into(), citations: vec![cite("F9", "trips_12m", 7)] }];
         let d = dispute(cheat, Some("receipt"));
         let out = arbitrate(&d, &SigningKey::from_bytes(&[9u8; 32])).unwrap();
         assert!(out.len() <= MAX_OUTPUT);
@@ -269,7 +275,7 @@ mod tests {
 
     #[test]
     fn swapped_claims_are_caught() {
-        let mut d = dispute(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec!["F1".into()] }], None);
+        let mut d = dispute(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec![cite("F1", "trips_12m", 7)] }], None);
         d.claims[0].text = "something else".into();
         let out: DisputeDecision = serde_json::from_str(&arbitrate(&d, &SigningKey::from_bytes(&[9u8; 32])).unwrap()).unwrap();
         assert_eq!(out.body.decision, "overturned");

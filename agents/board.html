@@ -162,7 +162,7 @@ function bids(cat, pitches) {
     const bad = ok ? null : (r.detail.match(/^([Ff]\d+)/) || [])[0];
     return `<div class="receipt ${ok ? "ok" : "no"}">
       <div class="head"><span>${esc(r.label)}</span><span class="state">${ok ? "receipt" : "receipt refused"}</span></div>
-      ${r.claims.map((c) => `<div class="claim ${bad && c.citations.includes(bad) ? "bad" : ""}">${esc(c.line)} <span class="cite">[${esc(c.citations.join(","))}]</span> ${esc(c.text)}</div>`).join("")}
+      ${r.claims.map((c) => `<div class="claim ${bad && c.citations.some((x) => x.fact === bad) ? "bad" : ""}">${esc(c.line)} <span class="cite">[${esc(c.citations.map((x) => `${x.fact} ${x.field}=${x.value}`).join(", "))}]</span> ${esc(c.text)}</div>`).join("")}
       <div class="verdict">${ok ? `receipt ${esc(r.detail.slice(0, 16))}` : `${esc(r.detail.toLowerCase())}. receipt refused.`}</div>
     </div>`;
   }).join("");
