@@ -165,7 +165,42 @@
       }
     ]
   },
-  "reviews": null,
+  "reviews": {
+    "round": 5979413,
+    "ratings": 6,
+    "senders": [
+      "f2db456b24d845f399966f7afb456bf029020ceaeb369c8e069d0caa13740681",
+      "8895d1439569b3293e23832062d33f9005135684fae59fa7a61c12d2705edabc",
+      "40df75eaa0af6899d070b80dc6ee62ebba01dcc726ad5bf4c62b533098b372e8",
+      "d65ce1cbddfd6a03f6dc1303a223ecb1fb87c1bf6931feca49a16aee6c9c5193",
+      "d283dc5147d1cd465a9e9a012cf065e277a707a019c7890cb89533b0aed7a452",
+      "659f7ff7ca02775fa66c59c7ee0cb1d1a4b93e0c5484af6ffbb0d271687bb79d"
+    ],
+    "seal_txs": [
+      "CJ6HXyNh3qqC6zi3Z6jb9MHW2H5P9znmWnYzerUDVVRb",
+      "HLnFc2mYNmShj5KsMRrWaApCddyxVFe5gw86EeZTzLKF",
+      "9xscQ6G85f93ezSrAEnUqpbU2hx2TzX97TwChPENqyXT",
+      "FYsGxi13U9fmkP26dbiaqSbNVf6SAS6YQ3YD4ZZnjiPf",
+      "2vdcLhoMnV3JLSdCd2g5auoQrEiYkHxtnbfRpsc2Jm1S",
+      "55X7ocwBPJmySUmFhxjWt8WNNaRZ66giipYtte9M7SJq"
+    ],
+    "reveal_txs": [
+      "BaArfhRu5GdEGPg4eEwjqJeLcPUjZd7BAtCytzHSmfmt",
+      "J9QWLP1XFAGtH8szYyyNRdnDDYXjMctn7smYMykAiu7e",
+      "CDQcUf2Nvf7XMjFdRktMaCPvPBDGgttwmns5aSC9bXJF",
+      "F6L7Hgsgbjrj4r7q3k9Ji7uKchjrmCSQb9iQYARdFcM8",
+      "7aT1kKhgoE62x3bmEpFUkzmU6NEpye2jGV1j3ZDGNcDn",
+      "29GEhm2RLRFJ8oDHW5Skj4MMgMEGswyRYwosY4x2nFU9"
+    ],
+    "publish_tx": "5Fe4Qrat6GoKb3n7jJzHfjZfXBPargF2UKDVqFeoaGCZ",
+    "graph_events": [
+      {
+        "index": 4,
+        "event": "02150000006d30312e626f6f6b6572626f622e746573746e657406000000000000001a00000000000000",
+        "root": "ad42980dafd34038b63552ea229024f827ea968159d2369943a405b9d1e72326"
+      }
+    ]
+  },
   "standing": {
     "input": "fixtures/zk/standing-testnet-input.json"
   }
