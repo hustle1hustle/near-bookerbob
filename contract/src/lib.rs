@@ -54,6 +54,8 @@ pub struct VerdictRecord {
     /// Bytes the agent prepaid at submit for this record's later growth (referee receipt,
     /// settle). Growth is drawn from it, shrinkage goes back; the contract balance pays none.
     pub storage_reserve: u64,
+    /// Set when the agent added a Semaphore identity to the merchant's review group.
+    pub review_joined: bool,
 }
 
 #[near(serializers = [borsh, json])]
@@ -84,6 +86,56 @@ pub const MAX_QUOTE_PAGE: u32 = 100;
 /// Prepaid growth per verdict record: a referee receipt (about 250 bytes) plus the settle
 /// fields (checkout_ref up to 128 bytes). Charged to the agent in `submit_verdict`.
 pub const RECORD_RESERVE_BYTES: u64 = 512;
+/// Review rounds: ratings are released per round, after it closes, all at once.
+pub const REVIEW_ROUND_MS: u64 = 24 * 3600 * 1000;
+/// Recent group roots a review proof may use (members keep joining while others prove).
+pub const REVIEW_ROOT_HISTORY: usize = 32;
+/// Neutral prior for the merchant score: `(n * mean + C * 3) / (n + C)`.
+pub const REVIEW_PRIOR_WEIGHT: u64 = 5;
+
+/// One merchant's review group: the LeanIMT and its recent roots.
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Default)]
+pub struct ReviewGroup {
+    pub tree: bookerbob_core::semaphore::LeanImt,
+    pub recent_roots: Vec<String>,
+}
+
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct Review {
+    pub rating: u8,
+    pub delivered: bool,
+    pub reason_hash: String,
+}
+
+/// Ratings for one merchant and round. Sealed until `publish_reviews`, after the round
+/// closes and only if the group had at least `K_MIN` members by then.
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Default)]
+pub struct ReviewRound {
+    pub sealed: Vec<Review>,
+    pub published: bool,
+}
+
+#[near(serializers = [json])]
+pub struct MerchantScore {
+    pub merchant: AccountId,
+    pub ratings: u64,
+    pub mean_x100: u64,
+    pub delivered_pct: u64,
+    /// `(n * mean + 5 * 3) / (n + 5)`, times 100.
+    pub score_x100: u64,
+    pub members: u64,
+}
+
+#[near(serializers = [json])]
+pub struct ReviewProof {
+    pub depth: u32,
+    pub merkle_root: String,
+    pub nullifier: String,
+    pub points: [String; 8],
+}
 /// Most sealed bids one round holds, so a round record stays small.
 pub const MAX_ROUND_BIDS: usize = 100;
 
@@ -149,6 +201,13 @@ pub struct Bazaar {
     rounds: LookupMap<String, Round>,
     /// NEAR AI model signing key (hex) to the attestation the owner checked for it.
     model_attestations: LookupMap<String, ModelAttestation>,
+    review_groups: LookupMap<AccountId, ReviewGroup>,
+    /// `scope|nullifier` of every review accepted.
+    review_nullifiers: LookupMap<String, bool>,
+    /// `merchant|round` to its ratings.
+    review_rounds: LookupMap<String, ReviewRound>,
+    /// Merchant to (released ratings, rating sum, delivered count).
+    review_totals: LookupMap<AccountId, (u64, u64, u64)>,
 }
 
 /// A NEAR AI model key whose attestation the owner checked off chain (TDX quote to Intel's
@@ -233,6 +292,10 @@ impl Bazaar {
             arbiters: IterableMap::new(b"d"),
             rounds: LookupMap::new(b"b"),
             model_attestations: LookupMap::new(b"n"),
+            review_groups: LookupMap::new(b"g"),
+            review_nullifiers: LookupMap::new(b"q"),
+            review_rounds: LookupMap::new(b"o"),
+            review_totals: LookupMap::new(b"t"),
         }
     }
 
@@ -375,7 +438,123 @@ impl Bazaar {
         self.arbiters.flush();
         self.rounds.flush();
         self.model_attestations.flush();
+        self.review_groups.flush();
+        self.review_nullifiers.flush();
+        self.review_rounds.flush();
+        self.review_totals.flush();
         env::state_write(self);
+    }
+
+    // ---------- sealed reviews (Semaphore v4), see docs/semaphore.md ----------
+
+    /// After `settle`, the record's agent adds one Semaphore identity commitment to the
+    /// paid merchant's review group. One settled purchase, one membership.
+    #[payable]
+    pub fn join_review_group(&mut self, nullifier: String, identity_commitment: String) -> String {
+        let before = env::storage_usage();
+        let r = self.verdicts.get_mut(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        require!(r.agent == env::predecessor_account_id(), "agent mismatch");
+        require!(r.spent, "only a settled purchase joins a review group");
+        require!(!r.review_joined, "this purchase already joined");
+        let merchant = r.receipt.as_ref().map(|x| x.merchant.clone()).unwrap_or_else(|| env::panic_str("no receipt"));
+        r.review_joined = true;
+        let mut g = self.review_groups.get(&merchant).cloned().unwrap_or_default();
+        let root = g.tree.insert(&identity_commitment).unwrap_or_else(|e| env::panic_str(e));
+        g.recent_roots.push(root.clone());
+        if g.recent_roots.len() > REVIEW_ROOT_HISTORY {
+            g.recent_roots.remove(0);
+        }
+        let size = g.tree.size;
+        self.review_groups.insert(merchant.clone(), g);
+        emit("review_member_added", serde_json::json!({ "merchant": merchant, "identity_commitment": identity_commitment, "root": root, "size": size }));
+        self.verdicts.flush();
+        self.review_groups.flush();
+        charge_storage(before);
+        root
+    }
+
+    pub fn review_group(&self, merchant: AccountId) -> Option<ReviewGroup> {
+        self.review_groups.get(&merchant).cloned()
+    }
+
+    pub fn review_round_now(&self) -> u64 {
+        env::block_timestamp_ms() / REVIEW_ROUND_MS
+    }
+
+    /// A sealed rating with a Semaphore proof of membership in the merchant's group. The
+    /// scope is (merchant, round): one rating per member per round. Send it from an account
+    /// that is not the buyer's agent (a fresh account or a relayer); the sender is public.
+    #[payable]
+    pub fn submit_review(&mut self, merchant: AccountId, rating: u8, delivered: bool, reason_hash: String, proof: ReviewProof) {
+        let before = env::storage_usage();
+        require!((1..=5).contains(&rating), "rating must be 1 to 5");
+        require!(bookerbob_core::is_hex32(&reason_hash), "bad reason hash");
+        let round = self.review_round_now();
+        let g = self.review_groups.get(&merchant).unwrap_or_else(|| env::panic_str("merchant has no review group"));
+        require!(g.recent_roots.contains(&proof.merkle_root), "proof is not for this merchant's group");
+        let scope = bookerbob_core::semaphore::review_scope(merchant.as_str(), round);
+        let key = format!("{scope}|{}", proof.nullifier);
+        require!(!self.review_nullifiers.contains_key(&key), "already rated this round");
+        let message = bookerbob_core::semaphore::review_message(rating, delivered, &reason_hash);
+        let ok =
+            groth16::verify(&groth16::SemaphoreProof { depth: proof.depth, points: &proof.points }, [&proof.merkle_root, &proof.nullifier, &message, &scope])
+                .unwrap_or_else(|e| env::panic_str(e));
+        require!(ok, "invalid Semaphore proof");
+        self.review_nullifiers.insert(key, true);
+        let rk = format!("{merchant}|{round}");
+        let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_default();
+        rr.sealed.push(Review { rating, delivered, reason_hash });
+        self.review_rounds.insert(rk, rr);
+        // No rating in the event: only that one arrived, sealed until the round is released.
+        emit("review_sealed", serde_json::json!({ "merchant": merchant, "round": round }));
+        self.review_nullifiers.flush();
+        self.review_rounds.flush();
+        charge_storage(before);
+    }
+
+    /// After a round closes, release its ratings together, if the merchant's group has at
+    /// least K_MIN members. Returns false (and keeps them sealed) otherwise. Anyone may call.
+    pub fn publish_reviews(&mut self, merchant: AccountId, round: u64) -> bool {
+        require!(round < self.review_round_now(), "round still open");
+        let rk = format!("{merchant}|{round}");
+        let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_else(|| env::panic_str("no ratings for this round"));
+        require!(!rr.published, "already published");
+        let members = self.review_groups.get(&merchant).map_or(0, |g| g.tree.size);
+        if members < bookerbob_core::K_MIN as u64 {
+            emit("reviews_held", serde_json::json!({ "merchant": merchant, "round": round, "members": members, "k_min": bookerbob_core::K_MIN }));
+            return false;
+        }
+        rr.published = true;
+        let (mut n, mut sum, mut del) = self.review_totals.get(&merchant).copied().unwrap_or((0, 0, 0));
+        for r in &rr.sealed {
+            n += 1;
+            sum += r.rating as u64;
+            del += r.delivered as u64;
+        }
+        let count = rr.sealed.len();
+        self.review_rounds.insert(rk, rr);
+        self.review_totals.insert(merchant.clone(), (n, sum, del));
+        emit("reviews_published", serde_json::json!({ "merchant": merchant, "round": round, "ratings": count, "members": members }));
+        true
+    }
+
+    /// Released ratings only; a sealed round returns None.
+    pub fn reviews(&self, merchant: AccountId, round: u64) -> Option<Vec<Review>> {
+        self.review_rounds.get(&format!("{merchant}|{round}")).filter(|r| r.published).map(|r| r.sealed.clone())
+    }
+
+    pub fn merchant_score(&self, merchant: AccountId) -> MerchantScore {
+        let (n, sum, del) = self.review_totals.get(&merchant).copied().unwrap_or((0, 0, 0));
+        let members = self.review_groups.get(&merchant).map_or(0, |g| g.tree.size);
+        let c = REVIEW_PRIOR_WEIGHT;
+        MerchantScore {
+            merchant,
+            ratings: n,
+            mean_x100: if n == 0 { 0 } else { sum * 100 / n },
+            delivered_pct: if n == 0 { 0 } else { del * 100 / n },
+            score_x100: (sum * 100 + c * 300) / (n + c),
+            members,
+        }
     }
 
     // ---------- blind bid rounds ----------
@@ -568,6 +747,7 @@ impl Bazaar {
             receipt: None,
             disputed: false,
             storage_reserve: RECORD_RESERVE_BYTES,
+            review_joined: false,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
         for p in &e.predicates {

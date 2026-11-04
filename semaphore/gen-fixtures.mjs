@@ -12,7 +12,9 @@ const OUT = "../fixtures/semaphore";
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 const big = (hex) => BigInt(`0x${hex}`);
 const MERCHANT = "m01.bookerbob.testnet";
-const ROUND = 1;
+// Rounds are days since the epoch (REVIEW_ROUND_MS); the fixture clock is
+// cli/src/fixtures.rs NOW_MS = 2026-11-04T12:00:00Z.
+const ROUND = Math.floor(1_793_793_600_000 / 86_400_000);
 
 // message preimage: sha256(json([rating, delivered, reason_hash])); scope preimage:
 // sha256("bookerbob/review/v0|" + merchant + "|" + round). The contract recomputes both;
@@ -51,8 +53,18 @@ const double = await generateProof(ids[0], group, messageOf({ rating: 1, deliver
 const other = new Group([outsider.commitment, ids[1].commitment]);
 const nonMember = await generateProof(outsider, other, messageOf(reviews[0]), scope);
 
+// A merchant with only 4 members: valid proofs, but the round must stay sealed (k >= 5).
+const SMALL = "m02.bookerbob.testnet";
+const small = new Group(ids.slice(0, 4).map((i) => i.commitment));
+const smallScope = scopeOf(SMALL, ROUND);
+const smallProofs = [];
+for (const [i, id] of ids.slice(0, 4).entries()) {
+  smallProofs.push({ reviewer: i, review: reviews[i], proof: await generateProof(id, small, messageOf(reviews[i]), smallScope) });
+}
+
 const vks = JSON.parse(readFileSync("node_modules/@semaphore-protocol/proof/src/verification-keys.json", "utf8"));
-const depths = [...new Set([...proofs.map((p) => p.proof.merkleTreeDepth), double.merkleTreeDepth, nonMember.merkleTreeDepth])].sort();
+// Depths 1..16: groups up to 65536 members.
+const depths = Array.from({ length: 16 }, (_, i) => i + 1);
 const vk = {
   source: "@semaphore-protocol/proof 4.14.5, src/verification-keys.json (Semaphore V4 ceremony, 2024-07-13)",
   protocol: vks.protocol,
@@ -75,6 +87,7 @@ const j = (v) => JSON.stringify(v, (_, x) => (typeof x === "bigint" ? x.toString
 writeFileSync(`${OUT}/group.json`, j({ merchant: MERCHANT, members: ids.map((i) => i.commitment), roots_after_each_insert: roots }));
 writeFileSync(`${OUT}/reviews.json`, j({ merchant: MERCHANT, round: ROUND, scope_preimage: scope, proofs, double_rating: double, non_member: nonMember }));
 writeFileSync(`${OUT}/verification-key.json`, j(vk));
+writeFileSync(`${OUT}/reviews-small-group.json`, j({ merchant: SMALL, round: ROUND, members: ids.slice(0, 4).map((i) => i.commitment), proofs: smallProofs }));
 writeFileSync(`${OUT}/poseidon-vectors.json`, j(poseidon));
 console.log(`group of ${ids.length}, depth ${proofs[0].proof.merkleTreeDepth}, root ${group.root}; ${proofs.length} proofs, vk depths ${depths.join(",")}`);
 // snarkjs keeps its curve worker threads alive; exit explicitly.

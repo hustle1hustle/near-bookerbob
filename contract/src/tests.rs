@@ -1215,3 +1215,192 @@ fn growth_beyond_the_reserve_is_refused() {
     c.verdicts.get_mut(&n).unwrap().storage_reserve = 10;
     c.submit_referee_result(referee_result(&envelope(1, "agent.testnet"), honest_claims(), &referee_key()));
 }
+
+// ---------- sealed reviews (fixtures/semaphore, Semaphore v4 proofs) ----------
+
+mod reviews {
+    use super::*;
+
+    const REVIEWS: &str = include_str!("../../fixtures/semaphore/reviews.json");
+    const SMALL: &str = include_str!("../../fixtures/semaphore/reviews-small-group.json");
+    const GROUP: &str = include_str!("../../fixtures/semaphore/group.json");
+    /// Fixture clock (cli/src/fixtures.rs), inside the proofs' round.
+    const T: u64 = 1_793_793_600_000;
+
+    fn j(s: &str) -> serde_json::Value {
+        serde_json::from_str(s).unwrap()
+    }
+
+    fn at(who: &str, ms: u64) {
+        let mut b = ctx(who);
+        b.block_timestamp(ms * 1_000_000).attached_deposit(RECORD_DEPOSIT);
+        testing_env!(b.build());
+    }
+
+    /// A settled purchase from `merchant` by `agent`, written directly (the full settle path
+    /// is covered above and in make verify).
+    fn settled(c: &mut Bazaar, i: usize, agent: &str, merchant: &str) -> String {
+        let n = hex::encode([200 + i as u8; 32]);
+        let receipt =
+            RefereeReceipt { merchant: acc(merchant), price: U128(1), receipt_hash: "00".repeat(32), referee: "00".repeat(32), result_sha256: "00".repeat(32) };
+        let r = VerdictRecord {
+            agent: acc(agent),
+            context: "bookerbob:v0:test".into(),
+            predicates: vec![],
+            commitment: "22".repeat(32),
+            proof_hash: "33".repeat(32),
+            tier: "silver".into(),
+            tcb_status: "fixture".into(),
+            issuer: "fixture".into(),
+            max_spend: U128(1),
+            expires_at_ms: T + 1,
+            spent: true,
+            checkout_ref: Some(format!("order-{i}")),
+            digest: "44".repeat(32),
+            receipt: Some(receipt),
+            disputed: false,
+            storage_reserve: RECORD_RESERVE_BYTES,
+            review_joined: false,
+        };
+        c.verdicts.insert(n.clone(), r);
+        n
+    }
+
+    /// `members` buyers of `merchant` join, in fixture order.
+    fn group(members: &[serde_json::Value], merchant: &str) -> Bazaar {
+        at("owner.testnet", T);
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        for (i, m) in members.iter().enumerate() {
+            let agent = format!("buyer{i}.testnet");
+            let n = settled(&mut c, i, &agent, merchant);
+            at(&agent, T);
+            c.join_review_group(n, m.as_str().unwrap().into());
+        }
+        c
+    }
+
+    fn proof(p: &serde_json::Value) -> ReviewProof {
+        let pts: Vec<String> = p["points"].as_array().unwrap().iter().map(|x| x.as_str().unwrap().into()).collect();
+        ReviewProof {
+            depth: p["merkleTreeDepth"].as_u64().unwrap() as u32,
+            merkle_root: p["merkleTreeRoot"].as_str().unwrap().into(),
+            nullifier: p["nullifier"].as_str().unwrap().into(),
+            points: pts.try_into().unwrap(),
+        }
+    }
+
+    fn rate(c: &mut Bazaar, merchant: &str, entry: &serde_json::Value, relayer: &str) {
+        let r = &entry["review"];
+        at(relayer, T);
+        c.submit_review(
+            acc(merchant),
+            r["rating"].as_u64().unwrap() as u8,
+            r["delivered"].as_bool().unwrap(),
+            r["reason_hash"].as_str().unwrap().into(),
+            proof(&entry["proof"]),
+        );
+    }
+
+    fn six() -> (Bazaar, serde_json::Value) {
+        let g = j(GROUP);
+        let c = group(g["members"].as_array().unwrap(), "m01.bookerbob.testnet");
+        (c, j(REVIEWS))
+    }
+
+    #[test]
+    fn the_contract_tree_root_equals_the_semaphore_group_root() {
+        let (c, _) = six();
+        let g = j(GROUP);
+        let roots = g["roots_after_each_insert"].as_array().unwrap();
+        assert_eq!(&c.review_group(acc("m01.bookerbob.testnet")).unwrap().tree.root, roots.last().unwrap().as_str().unwrap());
+    }
+
+    #[test]
+    fn six_buyers_rate_and_the_round_is_released_together_after_it_closes() {
+        let (mut c, r) = six();
+        for (i, e) in r["proofs"].as_array().unwrap().iter().enumerate() {
+            rate(&mut c, "m01.bookerbob.testnet", e, &format!("relayer{i}.testnet"));
+        }
+        let round = r["round"].as_u64().unwrap();
+        assert!(c.reviews(acc("m01.bookerbob.testnet"), round).is_none(), "sealed while the round is open");
+        at("anyone.testnet", T + REVIEW_ROUND_MS);
+        assert!(c.publish_reviews(acc("m01.bookerbob.testnet"), round));
+        let out = c.reviews(acc("m01.bookerbob.testnet"), round).unwrap();
+        assert_eq!(out.iter().map(|x| x.rating as u64).sum::<u64>(), 23);
+        let s = c.merchant_score(acc("m01.bookerbob.testnet"));
+        assert_eq!((s.ratings, s.mean_x100, s.delivered_pct, s.members), (6, 383, 83, 6));
+        assert_eq!(s.score_x100, (2300 + 1500) / 11);
+        assert!(!get_logs().iter().any(|l| l.contains("review_sealed") && l.contains("rating")), "the sealed event carries no rating");
+    }
+
+    #[test]
+    #[should_panic(expected = "already rated this round")]
+    fn a_second_rating_by_the_same_member_is_refused_by_the_nullifier() {
+        let (mut c, r) = six();
+        rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][0], "relayer0.testnet");
+        let double = serde_json::json!({ "review": { "rating": 1, "delivered": false, "reason_hash": bookerbob_core::sha256_hex(b"changed my mind") }, "proof": r["double_rating"] });
+        rate(&mut c, "m01.bookerbob.testnet", &double, "relayer9.testnet");
+    }
+
+    #[test]
+    #[should_panic(expected = "proof is not for this merchant's group")]
+    fn a_valid_proof_from_a_non_member_is_refused() {
+        let (mut c, r) = six();
+        let e = serde_json::json!({ "review": r["proofs"][0]["review"], "proof": r["non_member"] });
+        rate(&mut c, "m01.bookerbob.testnet", &e, "relayer0.testnet");
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid Semaphore proof")]
+    fn changing_the_rating_under_a_real_proof_is_refused() {
+        let (mut c, r) = six();
+        let mut e = r["proofs"][3].clone();
+        e["review"]["rating"] = 5.into();
+        rate(&mut c, "m01.bookerbob.testnet", &e, "relayer0.testnet");
+    }
+
+    #[test]
+    fn a_group_below_k5_stays_sealed() {
+        let s = j(SMALL);
+        let mut c = group(s["members"].as_array().unwrap(), "m02.bookerbob.testnet");
+        for (i, e) in s["proofs"].as_array().unwrap().iter().enumerate() {
+            rate(&mut c, "m02.bookerbob.testnet", e, &format!("relayer{i}.testnet"));
+        }
+        at("anyone.testnet", T + REVIEW_ROUND_MS);
+        assert!(!c.publish_reviews(acc("m02.bookerbob.testnet"), s["round"].as_u64().unwrap()));
+        assert!(c.reviews(acc("m02.bookerbob.testnet"), s["round"].as_u64().unwrap()).is_none());
+        assert_eq!(c.merchant_score(acc("m02.bookerbob.testnet")).ratings, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "round still open")]
+    fn a_round_cannot_be_released_while_open() {
+        let (mut c, r) = six();
+        rate(&mut c, "m01.bookerbob.testnet", &r["proofs"][0], "relayer0.testnet");
+        at("anyone.testnet", T);
+        c.publish_reviews(acc("m01.bookerbob.testnet"), r["round"].as_u64().unwrap());
+    }
+
+    #[test]
+    #[should_panic(expected = "this purchase already joined")]
+    fn one_purchase_joins_once() {
+        at("owner.testnet", T);
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        let n = settled(&mut c, 0, "buyer0.testnet", "m01.bookerbob.testnet");
+        let g = j(GROUP);
+        at("buyer0.testnet", T);
+        c.join_review_group(n.clone(), g["members"][0].as_str().unwrap().into());
+        c.join_review_group(n, g["members"][1].as_str().unwrap().into());
+    }
+
+    #[test]
+    #[should_panic(expected = "only a settled purchase joins a review group")]
+    fn an_unsettled_verdict_cannot_join() {
+        at("owner.testnet", T);
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        let n = settled(&mut c, 0, "buyer0.testnet", "m01.bookerbob.testnet");
+        c.verdicts.get_mut(&n).unwrap().spent = false;
+        at("buyer0.testnet", T);
+        c.join_review_group(n, j(GROUP)["members"][0].as_str().unwrap().into());
+    }
+}
