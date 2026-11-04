@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -34,6 +34,10 @@ demo-tester:
 # Re-derive every testnet claim over public RPC (no keys, no build).
 verify-live:
 	node scripts/verify-live.mjs
+
+# What a passive observer links from public testnet data (docs/leak.md).
+leak:
+	node scripts/leak.mjs
 
 demo-live:
 	@node scripts/demo-live.mjs
