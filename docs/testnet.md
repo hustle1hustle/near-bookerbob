@@ -175,7 +175,7 @@ After the three hires, `graph_root` on chain is `782a6b09457d692214c2cee85236192
 `bookerbob graph-input <root> fixtures/zk/standing-testnet-input.json <agent>:<sub> ...` writes
 the standing guest's input only if the events hash to that root.
 
-## Jolt-proven standing update on the live graph (2026-11-04)
+## Standing update on the live graph: a Jolt proof, signed by a worker (2026-11-04)
 
 The standing guest proved the three live hire events (zk/out/standing-testnet: proved in 1.74 s,
 verified in 64 ms, proof 83,884 B, peak RSS 811 MB). The program hash is

@@ -12,7 +12,10 @@ conserved delegation), the `bookerbob` CLI, fixtures, the swarm and board, the U
 handler under `ucp/`, the relayer, docs and CI.
 
 How it was built: Claude Code sessions directed by the founder, one coordinating session
-and one build session, with each commit pushed as it was written.
+and one build session, with each commit pushed as it was written. Most of the repository
+(about 116 commits) landed on 2026-11-04 in one long AI build session: that is why the
+history is dense, not because code was imported. Every commit is in the window; nothing
+predates 2026-11-01. From 2026-11-05, small commits each carry a testnet transaction.
 
 ## Prior REP work, used only as named services or dependencies
 
@@ -26,6 +29,8 @@ as a service or pinned as a versioned dependency, and named here.
 | rep-concierge (NEAR AI attestation, E2EE v2) | private inference pipeline | reference for request shapes; the NEAR AI client in this repo is written in the window | planned |
 | rep-world-verify | World ID 4.0 off-chain verify | service that will sign the `WorldBody` (`core/src/world.rs`) the contract checks in `attest_human` | contract side built on fixtures; service not called yet |
 | HackMeridian UCP module (BookerBob, 2026-10-25, local repo `ucp-module`, commit `97d9320`) | UCP bridge to our Shopify test store `jwq0dd-rp`, Stellar USDC payment handler, draft-order write-back | the NEAR handler `ucp/src/near-usdc.mjs` is new code written in the window; the bridge surface will be ported file by file, each with a header naming its source | handler built; bridge port not started |
+| Shopify test store `jwq0dd-rp` (same store as the HackMeridian entry) | our own test store, not a real merchant | demo-mode settles write a paid order there through the Admin API (draft order completed as paid, `near_tx` in the note); credentials live outside the repo | live on testnet settles (docs/testnet.md) |
+| HackMeridian Stellar entry: its own testnet USDC issuer ("On testnet we use our own USDC issuer so seed guests can be funded") | the approach, not the code | demo mode's dUSDC follows the same idea on NEAR: a testnet demo token with no value, so testers need no faucet; production uses Circle USDC. dUSDC is new code (`dusdc/`) | built, live on testnet |
 | HackMeridian Proof of Stay Soroban contract (Oct 2026) | Semaphore-based Stellar contract | not used | none |
 | REP Jolt fork and the JMPR Elite guests (REP's private Jolt fork, `examples/jmpr-elite-*`, last changed 2026-10-01 to 2026-10-14) | Jolt zkVM guests proving hotel elite status from signed sources | not used; BookerBob's Jolt guests (`zk/`) are new code, and the dependency is upstream a16z/jolt pinned to a public commit | none |
 | REP iOS app (NearTrust / NearSeal) | on-device proofs and enclave check | closed client in the demo | not in this repo |

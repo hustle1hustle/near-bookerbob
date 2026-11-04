@@ -2,6 +2,9 @@
 
 merchants compete for you. none of them learns who you are.
 
+Your agent proves you are worth a discount, merchants compete for you blind, none of them
+learns who you are, and it settles on NEAR.
+
 BookerBob is a market on NEAR where merchant agents bid for a buyer who has proven facts
 about their own history (zkTLS), while the buyer stays unknown to every merchant. Code, not
 a model, computes the price. A deterministic referee refuses any claim whose asserted value is not
@@ -18,6 +21,23 @@ Agents can already check out (UCP) and pay (USDC). No rail proves that the custo
 the agent is real and valuable without handing over their data, so merchants keep paying
 ads to find customers. BookerBob turns that ad budget into a discount paid to a proven
 customer, and keeps the customer private.
+
+## Why a chain, not a server
+
+A server run by us could compute the same prices. It could not give these three properties
+to parties that do not trust us or each other:
+
+- **One spent-set shared by distrusting merchants.** A proof used at m01 cannot be used again
+  at m02. With 30 independent merchant agents, the only place all of them can check "this
+  nullifier is spent" without trusting one operator is a shared ledger
+  (`submit_verdict`, `settle`).
+- **Atomic settle gated on a receipt.** Escrow debit, nullifier burn and the payout to the
+  merchant happen in one contract call that refuses without a referee receipt for exactly
+  that merchant and price, with a rollback callback if the transfer fails. Nobody, us
+  included, can pay a merchant without the receipt or reuse it.
+- **Proof checks anyone can rerun.** Verdict signatures (`ed25519_verify`, `p256_verify`),
+  Semaphore Groth16 proofs on `alt_bn128` and the k >= 5 release rule run inside the
+  contract, so a merchant or a judge does not take our word for a rating or a verdict.
 
 ## What is live and what is offline
 
@@ -249,6 +269,16 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 | NEAR AI enclave | the facts, sealed to its key | |
 | REP | today, the HMAC nullifier key, so it could link accounts | |
 
+### What each party can link
+
+| party | can link | cannot link | fixed by |
+|---|---|---|---|
+| a merchant | the verdict to the settle of its own sale (same nullifier, same agent account) | the buyer's other purchases in other contexts (per-context nullifier), the raw history | |
+| anyone reading the chain | today, every call one agent account makes (verdict, settle, review-group join); two purchases by the same agent account | which group member wrote a rating (Semaphore); the rating's sender to the buyer (one-time implicit account) | one-time cnf key and account per purchase (planned, panel action 6) |
+| the relayer | every sender it pays for, and each rating at reveal time | the buyer behind a one-time review account, unless it also relayed that buyer's purchase | run your own relayer; it is not trusted by the contract |
+| REP (nullifier issuer) | today, accounts across contexts (the nullifier is an HMAC under a REP key) | | VOPRF nullifiers (chosen, not built) |
+| the NEAR AI enclave | the facts it was sealed (by design) | | |
+
 ### Attacks and what stops them
 
 | attack | stopped by | where |
@@ -280,6 +310,20 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
   combination can narrow who the buyer is. Category-only bids, blind rounds and k>=5
   reduce this; they do not remove it.
 - Owner key centralization (above). Fixture keys are public seeds: test only.
+- TEE side channels: the NEAR AI verdict path trusts Intel TDX. A side-channel break leaks
+  the facts sealed to the enclave; it does not let anyone forge a contract-side check
+  (signatures, nullifiers, Semaphore, the k floor).
+- The zkTLS notary is a single MPC key today, not attested. A compromised notary could sign
+  false facts. A verdict is only as good as the notary behind it.
+- REP can link a user's accounts across contexts while the nullifier is an HMAC under a REP
+  key (Known limits). VOPRF removes that; it is not built.
+- When a TEE output and a Jolt output disagree: today they cover different things (NEAR AI
+  derives the verdict predicates; Jolt proves the standing, price, referee and cohort code),
+  so they cannot disagree on one value. Where both will exist (planned predicate guest),
+  the rule is that the contract refuses on mismatch rather than picking one.
+- Jolt updates are not challengeable on chain yet: the contract accepts a standing update
+  signed by the registered worker key, and the worker's honesty is checked off chain by
+  rerunning `make zk-verify`. Challengeable updates with a bond are planned.
 
 ## Known limits
 
@@ -327,8 +371,7 @@ Where testnet stands, as of 2026-11-04:
   ([86XFzy3P…](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw))
   and the referee receipt
   ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
-  38.40 USDC: one buyer on testnet, so no group price), three hire edges and a Jolt-proven,
-  worker-signed standing update for them.
+  38.40 USDC: one buyer on testnet, so no group price), three hire edges and a standing update for them (a Jolt proof, signed by a worker).
 - Waiting on testnet USDC for the agent: escrow, settle, the replay refusal, sealed reviews
   and, through them, nonzero standing scores.
 - Not on testnet yet: the OutLayer referee, the NEP-366 relayer sending.
