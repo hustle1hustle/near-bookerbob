@@ -439,6 +439,7 @@
     "category": "hotel-lisbon",
     "persona": "Bairro Alto Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 531/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1593000000",
       "rules": [
@@ -466,6 +467,7 @@
     "category": "hotel-lisbon",
     "persona": "Memmo Principe Real, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 336/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1008000000",
       "rules": [
@@ -489,6 +491,7 @@
     "category": "hotel-lisbon",
     "persona": "Olissippo Lapa Palace, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 373/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1119000000",
       "rules": [
@@ -513,6 +516,7 @@
     "category": "hotel-lisbon",
     "persona": "Valverde Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. elite 484/night x 3, before tax (no base rate)",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1452000000",
       "rules": [
@@ -539,10 +543,24 @@
     "category": "hotel-lisbon",
     "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "510000000",
-      "rules": [],
-      "cap_bps": 0
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        },
+        {
+          "predicate": "claude_spender",
+          "bps": 500
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 1000
+        }
+      ],
+      "cap_bps": 2000
     },
     "perks": [
       "Daily Breakfast",
@@ -558,6 +576,7 @@
     "category": "hotel-lisbon",
     "persona": "Pestana Palace Lisboa, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 435/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1305000000",
       "rules": [
@@ -584,6 +603,7 @@
     "category": "hotel-lisbon",
     "persona": "The One Palacio Da Anunciada, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 277/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "831000000",
       "rules": [
@@ -615,6 +635,7 @@
     "category": "hotel-lisbon",
     "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
     "source": "JMPR rates, 2026-11-04, comparison prices",
+    "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "669000000",
       "rules": [

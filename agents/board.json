@@ -302,6 +302,29 @@
       "rows": [
         {
           "rank": 1,
+          "merchant": "h05.bookerbob.testnet",
+          "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
+          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "perks": [
+            "Daily Breakfast",
+            "Room upgrade (subject to availability)",
+            "Early Check In (subject to availability)",
+            "Late Check Out (subject to availability)",
+            "Welcome Amenity",
+            "USD100 Hotel Credit"
+          ],
+          "bid_commitment": "f7dd9bcbef021cbbbc7927bea2e497e6c76376efa69f88ec5a11f97faf0a707b",
+          "base_price": "510000000",
+          "lines": [
+            "-500bps airbnb_frequent",
+            "-500bps claude_spender",
+            "-1000bps world_id_human"
+          ],
+          "discount_bps": 2000,
+          "price": "408000000"
+        },
+        {
+          "rank": 2,
           "merchant": "h08.bookerbob.testnet",
           "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
           "source": "JMPR rates, 2026-11-04, comparison prices",
@@ -321,25 +344,6 @@
           ],
           "discount_bps": 2700,
           "price": "488370000"
-        },
-        {
-          "rank": 2,
-          "merchant": "h05.bookerbob.testnet",
-          "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
-          "perks": [
-            "Daily Breakfast",
-            "Room upgrade (subject to availability)",
-            "Early Check In (subject to availability)",
-            "Late Check Out (subject to availability)",
-            "Welcome Amenity",
-            "USD100 Hotel Credit"
-          ],
-          "bid_commitment": "846d1efc2d0fba4b807c00fb745cbd40e10f702ffa6d894260d6237777ff9543",
-          "base_price": "510000000",
-          "lines": [],
-          "discount_bps": 0,
-          "price": "510000000"
         },
         {
           "rank": 3,
@@ -454,7 +458,7 @@
           "price": "1354050000"
         }
       ],
-      "winner": "h08.bookerbob.testnet"
+      "winner": "h05.bookerbob.testnet"
     }
   ],
   "disclosure": {
@@ -517,26 +521,27 @@
       "max_bits": 3,
       "plan": [
         "airbnb_frequent",
+        "claude_spender",
         "world_id_human"
       ],
       "per_bit": [
         {
           "predicate": "airbnb_frequent",
-          "saved": "21630000"
+          "saved": "25500000"
         },
         {
           "predicate": "claude_spender",
-          "saved": "0"
+          "saved": "25500000"
         },
         {
           "predicate": "world_id_human",
-          "saved": "21630000"
+          "saved": "51000000"
         }
       ],
       "revealed_bits": 3,
-      "base_price": "669000000",
-      "price": "488370000",
-      "saved": "180630000"
+      "base_price": "510000000",
+      "price": "408000000",
+      "saved": "102000000"
     }
   ],
   "receipts": [

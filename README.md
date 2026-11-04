@@ -49,7 +49,10 @@ Hotel bids (`hotel-lisbon`, h01..h08) use **JMPR rates, 2026-11-04, comparison p
 rate (incl. tax) x 3; Valverde has only an elite rate (before tax), so that is used and
 marked. These are "from" prices, not quotes. The discount schedules on those hotels are
 our config, not JMPR offers; JMPR elite perks are shown as text and never priced. With the
-buyer's 3 revealed bits the best hotel bid is $488.37 against a $669.00 base.
+buyer's 3 revealed bits the best hotel bid is Intercontinental at $408.00 against a $510.00
+base (our schedule: airbnb 5%, claude 5%, World ID 10%). Each bit saves something, and it
+adds up by hand: 25.50 + 25.50 + 51.00 = 102.00 = 510.00 - 408.00. Without any one bit,
+Intercontinental is still the cheapest hotel, so each saving is that bit's line.
 
 Public receipts (`/receipts.html`, data `agents/receipts.json` from `make receipts`): every
 verdict and purchase the contract logged, hashes and public payment fields only, built
