@@ -1,0 +1,16 @@
+[package]
+name = "bookerbob-stellar"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "BookerBob Stellar leg: pays a merchant in USDC when the NEAR bazaar, via Chain Signatures, authorizes it"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }

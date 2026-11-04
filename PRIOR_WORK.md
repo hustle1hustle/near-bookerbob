@@ -22,6 +22,7 @@ as a service or pinned as a versioned dependency, and named here.
 | rep-concierge (NEAR AI attestation, E2EE v2) | private inference pipeline | reference for request shapes; the NEAR AI client in this repo is written in the window | planned |
 | rep-world-verify | World ID 4.0 off-chain verify | service that will sign the `WorldBody` (`core/src/world.rs`) the contract checks in `attest_human` | contract side built on fixtures; service not called yet |
 | HackMeridian UCP module (BookerBob, 2026-10-25, local repo `ucp-module`, commit `97d9320`) | UCP bridge to our Shopify test store `jwq0dd-rp`, Stellar USDC payment handler, draft-order write-back | the NEAR handler `ucp/src/near-usdc.mjs` is new code written in the window; the bridge surface will be ported file by file, each with a header naming its source | handler built; bridge port not started |
+| HackMeridian Proof of Stay Soroban contract (Oct 2026) | Semaphore-based Stellar contract | not used; `stellar/` is a new, much smaller contract written in the window | none |
 | REP iOS app (NearTrust / NearSeal) | on-device proofs and enclave check | closed client in the demo | not in this repo |
 
 ## Open source dependencies
@@ -31,6 +32,7 @@ as a service or pinned as a versioned dependency, and named here.
 | near-sdk-rs 5.29.1 | MIT / Apache-2.0 | contract, host functions `ed25519_verify` and `p256_verify`, MockedBlockchain for offline runs |
 | ed25519-dalek, p256 (RustCrypto) | BSD-3 / MIT / Apache-2.0 | fixture signing and independent off-chain signature checks |
 | serde, serde_json, borsh, sha2, hex | MIT / Apache-2.0 | encoding and hashing |
+| soroban-sdk 28.0.0 | Apache-2.0 | Stellar leg contract in `stellar/` |
 
 ## AI assistance
 

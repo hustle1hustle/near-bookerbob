@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: verify demo-offline test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: verify demo-offline test test-ucp test-stellar fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -25,6 +25,10 @@ swarm:
 
 test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
+
+# Soroban contract for the Stellar leg (own workspace). Wasm: `cd stellar && stellar contract build`.
+test-stellar:
+	cd stellar && $(CARGO) test $(CARGO_FLAGS)
 
 test-ucp:
 	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs
