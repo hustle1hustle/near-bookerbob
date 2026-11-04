@@ -19,6 +19,8 @@ evals=$(grep -E 'referee evals' "$LOG" | sed 's/^PASS  //')
 nearai=$(grep -E 'NEAR AI verdict:' "$LOG" | sed 's/^PASS  //')
 rounds=$(grep -cE '^PASS  blind round' "$LOG")
 storage=$("$BB" evidence 2>/dev/null)
+reviewgas=$("$BB" reviews fixtures 2>/dev/null | grep '^GAS' | sed -E 's/^GAS   ([^:]+): ([0-9.]+) Tgas mocked host gas \(mean of ([0-9]+)\)/| `\1` | \2 | \3 |/')
+reviews=$(grep -E 'sealed reviews:' "$LOG" | sed 's/^PASS  //')
 live=$(node -e '
 const r = require("./agents/out/live-run.json");
 const ok = r.calls.filter((c) => c.signature_valid && c.request_hash_matches && c.response_hash_matches).length;
@@ -38,6 +40,7 @@ console.log(`${r.calls.length} calls, ${ok}/${r.calls.length} signatures valid, 
   echo "| referee evals | ${evals} |"
   echo "| NEAR AI verdict, offline checks | ${nearai} |"
   echo "| blind rounds run through the contract | ${rounds} (one per category) |"
+  echo "| sealed reviews (Semaphore v4, real purchases) | ${reviews} |"
   echo "| NEAR AI live run (\`agents/out/live-run.json\`) | ${live} |"
   echo
   echo "## Storage and gas per contract method"
@@ -48,6 +51,17 @@ console.log(`${r.calls.length} calls, ${ok}/${r.calls.length} signatures valid, 
   echo "first verdict in a context also creates its cohort counters, so it costs more."
   echo
   echo "$storage"
+  echo
+  echo "## Sealed reviews gas"
+  echo
+  echo "Mocked host gas per call. \`submit_review\` is mostly alt_bn128 host work (one"
+  echo "multiexp, a 4-pair pairing check); it also parses the committed verification key JSON"
+  echo "in wasm, which is not counted. \`join_review_group\` runs Poseidon in wasm, also not"
+  echo "counted. Treat both as floors until the testnet deploy."
+  echo
+  echo "| method | host gas, mocked (Tgas) | calls |"
+  echo "|---|---|---|"
+  echo "$reviewgas"
   echo
   echo "## Who pays"
   echo

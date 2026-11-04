@@ -26,6 +26,34 @@ fn at(who: &str, ms: u64) {
     testing_env!(b.build());
 }
 
+thread_local! {
+    /// (method, host Tgas) for each successful call measured here.
+    static GAS: std::cell::RefCell<Vec<(&'static str, f64)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// Mocked host gas of the call just made in the current context (one context per call).
+fn note_gas(method: &'static str) {
+    GAS.with(|g| g.borrow_mut().push((method, near_sdk::env::used_gas().as_gas() as f64 / 1e12)));
+}
+
+/// Mean host gas per method, for docs/evidence.md.
+pub fn gas_table() -> Vec<(&'static str, f64, usize)> {
+    GAS.with(|g| {
+        let g = g.borrow();
+        let mut names: Vec<&'static str> = g.iter().map(|x| x.0).collect();
+        names.dedup();
+        names.sort();
+        names.dedup();
+        names
+            .iter()
+            .map(|n| {
+                let v: Vec<f64> = g.iter().filter(|x| x.0 == *n).map(|x| x.1).collect();
+                (*n, v.iter().sum::<f64>() / v.len() as f64, v.len())
+            })
+            .collect()
+    })
+}
+
 fn call<T>(f: impl FnOnce() -> T) -> Result<T, String> {
     catch_unwind(AssertUnwindSafe(f))
         .map_err(|e| e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())
@@ -81,13 +109,17 @@ fn proof(p: &Value) -> ReviewProof {
 /// During the round: post the sealed rating with its Semaphore proof, from a relayer.
 fn rate(c: &mut Bazaar, merchant: &str, review: &Value, p: &Value, relayer: &str) -> Result<(), String> {
     at(relayer, NOW_MS);
-    call(|| c.submit_review(acc(merchant), review["sealed"].as_str().unwrap().into(), proof(p)))
+    let r = call(|| c.submit_review(acc(merchant), review["sealed"].as_str().unwrap().into(), proof(p)));
+    if r.is_ok() {
+        note_gas("submit_review (Groth16 on alt_bn128)");
+    }
+    r
 }
 
 /// After the round: open it, in the reveal window.
 fn reveal(c: &mut Bazaar, merchant: &str, round: u64, r: &Value, relayer: &str) -> Result<(), String> {
     at(relayer, NOW_MS + REVIEW_ROUND_MS);
-    call(|| {
+    let r = call(|| {
         c.reveal_review(
             acc(merchant),
             round,
@@ -96,7 +128,11 @@ fn reveal(c: &mut Bazaar, merchant: &str, round: u64, r: &Value, relayer: &str) 
             r["reason_hash"].as_str().unwrap().into(),
             r["salt"].as_str().unwrap().into(),
         )
-    })
+    });
+    if r.is_ok() {
+        note_gas("reveal_review");
+    }
+    r
 }
 
 /// `out`: write or (with `check`) compare the public reviews page data.
@@ -155,6 +191,7 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
             bought += 1;
             at(&v.envelope.cnf, NOW_MS);
             if call(|| c.join_review_group(v.envelope.nullifier.clone(), commitment.as_str().unwrap().into())).is_ok() {
+                note_gas("join_review_group (LeanIMT insert, Poseidon)");
                 joined += 1;
             }
         }
@@ -229,6 +266,7 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
     ));
     at("anyone.testnet", NOW_MS + 2 * REVIEW_ROUND_MS);
     let released = call(|| c.publish_reviews(acc(&m01.account), round)).unwrap_or(false);
+    note_gas("publish_reviews (6 ratings)");
     let s = c.merchant_score(acc(&m01.account));
     out.push((
         "after the reveal window, m01's 6 ratings are released together, sorted by hash (k >= 5)".into(),
@@ -299,6 +337,9 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
                 println!("FAIL  R{}  {name}  ({d})", i + 1)
             }
         }
+    }
+    for (m, g, n) in gas_table() {
+        println!("GAS   {m}: {g:.2} Tgas mocked host gas (mean of {n})");
     }
     if failed == 0 {
         println!("PASS  sealed reviews: {} checks", out.len());

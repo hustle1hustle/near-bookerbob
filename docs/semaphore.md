@@ -1,7 +1,8 @@
 # Sealed reviews with Semaphore (spec, 2026-11-04)
 
-Status: **spec only.** Nothing below is built yet. This file states the design, the trusted
-setup, the limits and the gas plan before any code.
+Status: **built** (2026-11-04), on the mocked chain, not deployed. Written first as the
+spec; changes made while building are marked "built:". Run: `make verify` (`bookerbob
+reviews`, 12 checks) and `cargo test -p bookerbob-bazaar reviews`.
 
 ## Goal
 
@@ -38,9 +39,14 @@ own ceremony. We commit the verification keys we use and their source.
    yet), so one purchase is one membership. The contract keeps the LeanIMT side nodes and
    computes the new root itself (Poseidon in wasm; NEAR has no Poseidon host function).
    It keeps the last 32 roots, so a proof made against a slightly older root still works.
-2. **Signal.** `submit_review(merchant, round, rating, delivered, reason_hash, proof)`.
-   - `message = hash(json([rating, delivered, reason_hash]))`, rating 1 to 5, delivered
-     true or false, `reason_hash` = sha256 of a reason kept off chain;
+2. **Signal.** `submit_review(merchant, sealed, proof)` during the round (a day,
+   `REVIEW_ROUND_MS`), then `reveal_review(merchant, round, rating, delivered, reason_hash,
+   salt)` in the next round. Built: the first draft posted the plain rating; chain state
+   and tx arguments are public, so that showed the rating the moment it was sent, next to
+   the purchase that just settled. Now:
+   - `sealed = sha256(json([rating, delivered, reason_hash, salt]))`, the Semaphore
+     message is `hash(sealed)`; rating 1 to 5, delivered true or false, `reason_hash` =
+     sha256 of a reason kept off chain;
    - `scope = hash("bookerbob/review/v0" || merchant || round)`: one rating per member, per
      merchant, per round;
    - the contract recomputes message and scope from the arguments, checks the root is one
@@ -50,26 +56,27 @@ own ceremony. We commit the verification keys we use and their source.
 3. **Privacy rules.**
    - k-floor: a round's ratings are released only if the group had at least 5 members
      when the round closed (same floor as the cohorts). Below that they stay sealed.
-   - Batch release: ratings are stored per round and become readable together after the
-     round closes (`publish_round`), never one by one as they arrive, so the time of a
-     rating does not point at the purchase that just settled.
+   - Batch release: only sealed hashes exist during the round; reveals happen after it
+     closes, and `publish_reviews` (after the reveal window) releases them sorted by sealed
+     hash, not by arrival. A reveal is refused while the group has fewer than 5 members,
+     so a small group's ratings never appear on chain.
    - Separate scopes: the review nullifier is `Poseidon(review scope, secret)` with a fresh
      Semaphore identity; the verdict nullifier is an account nullifier from the proof of
      history. They share no input, so the rating cannot be linked to the verdict by the
      nullifiers. What still links is named below.
 4. **Ranking.** Within a group every member weighs the same: one settled purchase, one
-   membership, one vote (weighting by amount would reveal the amount). Across merchants,
-   a merchant's score is shrunk toward a neutral prior by how much settled volume backs
-   it, so ratings cannot be minted without purchases:
-   `score = (n * mean + c * 3) / (n + c)`, `n` = released ratings, `c` a fixed prior
-   weight. The weight a merchant can carry into the board is bounded by its settled
+   membership, one vote (weighting by amount would reveal the amount). A merchant's score
+   is shrunk toward a neutral prior by how many released ratings back it, and every
+   rating is backed by one settled purchase, so ratings cannot be minted:
+   `score = (n * mean + 5 * 3) / (n + 5)` (built: `merchant_score`, `REVIEW_PRIOR_WEIGHT`). The weight a merchant can carry into the board is bounded by its settled
    volume `V`: transported, not minted. If weight is passed on with a damping factor `w`
    per hop, a ring of colluding accounts can reach at most `w + w^2 + ... = w / (1 - w)`
    of the weight it started with. This is the standard geometric damping bound, stated
    by us; we have not checked it against the exact theorem in REP's working paper
    "On (an unpublished REP draft)" (2026-09), which we cite as the motivation, not as the source
-   of this formula. `best_quote` uses the score only as a tiebreak among equal prices,
-   and a filter (`min_score`) the buyer may set.
+   of this formula. Built: the score is one hop (buyer to merchant), so no weight is
+   passed on and the damping bound is not exercised yet. `best_quote` uses the score only
+   as a tiebreak among equal prices, and a filter (`min_score`) the buyer may set.
 5. **Checks.** A `make verify` step: 5+ buyers settle, join, and rate; a second rating by
    one member in a round is refused by the nullifier; a proof from a non-member (another
    tree) is refused; a group of 4 stays sealed. Evals for the attack cases. The board and
@@ -86,11 +93,14 @@ own ceremony. We commit the verification keys we use and their source.
   they do not remove it.
 - The merchant learns aggregate ratings per round, not who rated.
 - The trusted setup is Semaphore's, as above.
-- Poseidon runs in wasm on chain; its gas is measured on the mocked chain as a host-gas
-  lower bound only (it is mostly wasm work, so the real number needs the testnet deploy).
-  The Groth16 check is mostly host functions, so its mocked number is closer to real.
+- The sender of `submit_review` and `reveal_review` is public: use a fresh account or a
+  relayer, never the buyer's agent. A member who does not reveal drops out silently.
+- Gas (`docs/evidence.md`): `submit_review` about 33 Tgas mocked host gas, mostly the
+  alt_bn128 pairing, close to real; Poseidon (in `join_review_group`) and parsing the
+  verification key JSON run in wasm and are not counted, so those numbers are floors
+  until the testnet deploy.
 
-## Build plan (small commits)
+## Build plan (small commits, done)
 
 1. Node: `@semaphore-protocol/core` and `snarkjs` in `semaphore/` (testnet only, no
    money). If installing them is blocked, stop and hand over the command.

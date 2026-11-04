@@ -115,6 +115,7 @@ interface exists with a test double; `planned` means not built yet.
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
 | dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | `worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md` | built; `make verify` check 22 |
 | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | `core/src/world.rs`, `contract/src/lib.rs` `attest_human` | built on offline fixtures (placeholder action); live verifier is the rep-world-verify service, not wired |
+| sealed reviews (Semaphore v4): a settled purchase joins the merchant's group (LeanIMT, Poseidon on chain); during a round a member posts a sealed rating with a Groth16 proof checked on `alt_bn128` host functions, one per member per round (nullifier scoped to merchant and round); after the round members reveal, only if the group has k >= 5; release is batched and sorted by hash; `best_quote` breaks price ties by the score and takes a `min_score` floor | swarms, privacy | `docs/semaphore.md`, `core/src/semaphore.rs`, `contract/src/groth16.rs`, `contract/src/lib.rs`, `cli/src/reviews.rs`, `semaphore/` | built: 13 contract tests on real Semaphore proofs and a `make verify` step through 10 real purchases (12 checks); trusted setup is Semaphore's V4 ceremony; gas in `docs/evidence.md` |
 | FUNCTION CALL KEYS: agent key limited to `settle` | security, agents | `contract/` | planned |
 | x402 v2 paid verdict read (`exact`, USDC on `near:testnet`, verify and settle through an explicit x402 facilitator) | agents, realworld | `x402/verdict-read.mjs` | built (7 tests on synthetic payments); no facilitator wired, testnet config only |
 | MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | built (2 tests on a fake RPC); points at testnet once deployed |
@@ -165,7 +166,8 @@ proves the committed fixtures are exactly what the generator produces.
 
 Full output in `docs/evidence.md`, rerun to refresh. Headline numbers from 2026-11-04:
 `make verify` 3.9 s warm; 26 chain checks, 50/50 referee evals, 14/14 NEAR AI verdict
-checks, 2 blind rounds through the contract; NEAR AI live run 33/33 signatures at about
+checks, 2 blind rounds through the contract, 12/12 sealed-review checks (a Semaphore
+proof costs about 33 Tgas of mocked host gas); NEAR AI live run 33/33 signatures at about
 $0.00024 per call; referee worker about 0.25 ms per run (native). A verdict record costs the
 agent 823 bytes plus a 512-byte reserve for its receipt and settle (0.0134 NEAR in all);
 the contract balance pays nothing per purchase. Gas below is a mocked lower bound (host
@@ -173,21 +175,21 @@ functions only); real gas comes with the testnet deploy.
 
 | method | who pays | storage added (bytes) | storage cost (NEAR) | host gas, mocked (Tgas, lower bound; settle includes gas attached to its two receipts) |
 |---|---|---|---|---|
-| `register_issuer` | owner | 224 | 0.00224 | 0.467 |
-| `register_world_verifier` | owner | 229 | 0.00229 | 1.550 |
-| `attest_human` | agent | 272 | 0.00272 | 1.189 |
-| `register_merchant` | merchant | 291 | 0.00291 | 0.945 |
-| `approve_merchant` | owner | 0 | 0.00000 | 0.304 |
-| `open_round` | owner | 87 | 0.00087 | 0.372 |
-| `commit_bid` | merchant | 93 | 0.00093 | 0.805 |
-| `reveal_bid` | merchant | 25 | 0.00025 | 0.862 |
-| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.308 |
-| `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.304 |
-| `submit_verdict (ed25519, first in context)` | agent | 823 | 0.00823 | 1.623 |
-| `submit_verdict (p256, same context)` | agent | 557 | 0.00557 | 2.539 |
-| `submit_referee_result` | agent, from the record reserve prepaid at submit | 245 | 0.00245 | 0.723 |
-| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.165 |
-| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.830 |
+| `register_issuer` | owner | 224 | 0.00224 | 0.468 |
+| `register_world_verifier` | owner | 229 | 0.00229 | 1.553 |
+| `attest_human` | agent | 272 | 0.00272 | 1.191 |
+| `register_merchant` | merchant | 291 | 0.00291 | 0.946 |
+| `approve_merchant` | owner | 0 | 0.00000 | 0.305 |
+| `open_round` | owner | 87 | 0.00087 | 0.374 |
+| `commit_bid` | merchant | 93 | 0.00093 | 0.807 |
+| `reveal_bid` | merchant | 25 | 0.00025 | 0.863 |
+| `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.309 |
+| `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.306 |
+| `submit_verdict (ed25519, first in context)` | agent | 824 | 0.00824 | 1.624 |
+| `submit_verdict (p256, same context)` | agent | 558 | 0.00558 | 2.541 |
+| `submit_referee_result` | agent, from the record reserve prepaid at submit | 245 | 0.00245 | 0.725 |
+| `best_quote (view, 1 merchant)` | free (view) | 0 | 0.00000 | 0.227 |
+| `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.831 |
 
 ## Threat model and trust
 
@@ -223,6 +225,8 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 
 | attack | stopped by | where |
 |---|---|---|
+| a merchant farms its own reviews | a rating needs membership, membership needs a settled, paid purchase; one membership per purchase; one rating per member per round | `join_review_group`, `submit_review`; `make verify` R4, R5 |
+| linking a rating to the buyer who paid | Semaphore hides which member rated; sealed hash during the round, reveal after it, release sorted by hash; no reveal below k = 5; separate scopes from the verdict nullifier | `docs/semaphore.md`; the anonymity set is the group (5 at worst), and the submitting account must not be the buyer's agent |
 | registration flood: cheap fake merchants crowd the board or make `best_quote` unbounded | merchants pay their own storage; only owner-approved merchants are quoted or paid; a changed schedule drops approval; `best_quote` is paged (at most 100 per call) | `approve_merchant`, `revoke_merchant`, `best_quote(.., from_index, limit)`; contract tests |
 | a second verdict for the same account (same nullifier) from another wallet | per-context nullifier in a global spent-set | `submit_verdict`, `settle`; `make verify` check 25 |
 | model claims a status it cannot prove (prompt injection) | structured claims: each citation asserts a field and value that must equal the proof; text naming an unproven status, another platform or an unasserted number is refused; no receipt, no payment | `core/src/referee.rs`; checks 19 to 21; 50 evals, 30 of them injection-style |
@@ -259,6 +263,10 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
   `attest_human`, unused deposit refunded); `storage_deposit` opens an escrow entry for
   0.01 NEAR.
 - No refunds after a dispute that lands after settle; the record is only flagged.
+- Sealed reviews: group membership is public (a commitment joins right after a settle),
+  the anonymity set is the group size (5 at worst), the sender of `submit_review` and
+  `reveal_review` is public (use a fresh account or a relayer), and a member who skips
+  the reveal drops out silently. The trusted setup is Semaphore's V4 ceremony.
 - The referee's text checks are a word-level tripwire (status words, platform names,
   numbers, plain ascii), not language understanding. A discount never depends on the text:
   only on asserted values that equal the proof.
