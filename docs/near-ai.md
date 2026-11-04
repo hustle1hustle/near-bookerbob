@@ -55,10 +55,27 @@ runs `68657600d12549518664defcf8fb0dd1` (honest), `bfbb3d0db39447918285c8b6570dd
 https://cloud.near.ai/verify; we have not confirmed whether it takes these ids without
 our account.
 
-Still open: NVIDIA GPU evidence (NRAS is online, not run here); the contract does not
-accept a NEAR AI verdict yet. The model key is shared by every user of the model, so a
-TEE signature alone proves nothing about our envelope on chain; acceptance needs the
-binding checked on chain (open the answer in wasm, or a plaintext answer field).
+On chain (`submit_near_ai_verdict`): the model key is shared by every user of the model,
+so a TEE signature alone proves only that the model said something. The contract accepts
+a NEAR AI verdict only when:
+- the owner registered that key with an attestation (`register_model_attestation`:
+  model, nonce, report hash, TCB status) after checking the quote off chain, and the
+  proof names the same nonce;
+- the envelope names that model, report and TCB status;
+- `env::ed25519_verify` passes over `model:request_sha256:sha256(response)`, with the
+  response bytes handed in and hashed by the contract;
+- the sealed answer opens (XChaCha20-Poly1305 in wasm) with the disclosed 32-byte field
+  key, echoes `Envelope::near_ai_bind`, and lists every revealed predicate.
+Then the usual checks (expiry, agent, nullifier, World ID) apply. `make verify` (N10 to
+N14) runs it and four refusals: another envelope with the same signature, one changed
+response byte, another attestation nonce, a wrong key. 7 contract tests.
+
+The disclosed field key opens only that one answer. The non-committing AEAD is not an
+issue here because the TEE made the ciphertext; a different key would have to forge a
+Poly1305 tag for it.
+
+Still open: NVIDIA GPU evidence (NRAS is online, not run here); the TDX quote is checked
+off chain, not inside the contract.
 
 ## Not checked yet
 

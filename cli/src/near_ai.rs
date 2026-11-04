@@ -41,8 +41,8 @@ fn sha_hex(b: &[u8]) -> String {
     hex::encode(Sha256::digest(b))
 }
 
-/// E2EE v2: wire = eph_pub(32) || nonce(24) || xchacha20poly1305 ; key = HKDF-SHA256(X25519).
-fn open(wire_hex: &str, x_secret: [u8; 32]) -> Result<String, String> {
+/// The per-field key: HKDF-SHA256(X25519(client secret, eph_pub), info "ed25519_encryption").
+pub fn field_key(wire_hex: &str, x_secret: [u8; 32]) -> Result<[u8; 32], String> {
     let w = hex::decode(wire_hex).map_err(|_| "sealed field is not hex")?;
     if w.len() < 32 + 24 + 16 {
         return Err("sealed field too short".into());
@@ -51,8 +51,37 @@ fn open(wire_hex: &str, x_secret: [u8; 32]) -> Result<String, String> {
     let shared = MontgomeryPoint(eph).mul_clamped(x_secret).to_bytes();
     let mut key = [0u8; 32];
     hkdf::Hkdf::<Sha256>::new(None, &shared).expand(b"ed25519_encryption", &mut key).map_err(|_| "hkdf")?;
+    Ok(key)
+}
+
+/// E2EE v2: wire = eph_pub(32) || nonce(24) || xchacha20poly1305 ; key = `field_key`.
+fn open(wire_hex: &str, x_secret: [u8; 32]) -> Result<String, String> {
+    let key = field_key(wire_hex, x_secret)?;
+    let w = hex::decode(wire_hex).map_err(|_| "sealed field is not hex")?;
     let pt = XChaCha20Poly1305::new(&key.into()).decrypt(XNonce::from_slice(&w[32..56]), &w[56..]).map_err(|_| "does not open with the disclosed key")?;
     String::from_utf8(pt).map_err(|_| "not utf-8".into())
+}
+
+/// The on-chain proof for `submit_near_ai_verdict`, built from the capture: the exact
+/// response bytes and the disclosed key for its sealed answer field (not the client secret).
+pub fn proof(dir: &Path) -> (Envelope, bookerbob_core::near_ai::NearAiProof) {
+    let read = |n: &str| std::fs::read(dir.join(n)).unwrap_or_else(|e| panic!("read {n}: {e}"));
+    let cap: Capture = serde_json::from_slice(&read("capture.json")).expect("parse capture");
+    let sig: Sig = serde_json::from_slice(&read("signature.json")).expect("parse signature");
+    let response = String::from_utf8(read("response.json")).expect("utf-8 response");
+    let body: serde_json::Value = serde_json::from_str(&response).expect("parse response");
+    let x: [u8; 32] = hex::decode(&cap.client_x25519_secret).ok().and_then(|b| b.try_into().ok()).expect("client secret");
+    let key = field_key(body["choices"][0]["message"]["content"].as_str().unwrap_or_default(), x).expect("field key");
+    let p = bookerbob_core::near_ai::NearAiProof {
+        chat_id: cap.chat_id,
+        signing_key: cap.signing_address,
+        nonce: cap.nonce,
+        request_sha256: sha_hex(&read("request.json")),
+        response,
+        response_key: hex::encode(key),
+        signature: sig.signature,
+    };
+    (cap.envelope, p)
 }
 
 pub fn run(dir: &Path, proofs_path: &Path) -> ExitCode {
@@ -160,6 +189,46 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
         },
     );
 
+    // The committed on-chain proof (used by the contract's unit tests) is this capture's.
+    let committed: Option<bookerbob_core::near_ai::NearAiProof> = std::fs::read(dir.join("proof.json")).ok().and_then(|b| serde_json::from_slice(&b).ok());
+    check(
+        "proof.json is exactly the proof built from this capture",
+        if committed.as_ref() == Some(&proof(dir).1) { Ok("ok".into()) } else { Err("stale or missing proof.json (run bookerbob near-ai-proof)".into()) },
+    );
+    // 10-14. The contract: accepts this verdict with the proof, refuses it without.
+    let report_hash = sha_hex(&report_bytes);
+    let tcb = verified.as_ref().map(|v| v.status.clone()).unwrap_or_default();
+    let (env0, proof0) = proof(dir);
+    let run_chain = |e: Envelope, p: bookerbob_core::near_ai::NearAiProof, nonce: String| {
+        let (rh, tcb) = (report_hash.clone(), tcb.clone());
+        std::thread::spawn(move || chain_case(e, p, nonce, rh, tcb)).join().unwrap_or_else(|_| Err("panicked".into()))
+    };
+    check(
+        "the bazaar contract accepts the verdict with the proof (submit_near_ai_verdict)",
+        run_chain(env0.clone(), proof0.clone(), proof0.nonce.clone()).map(|n| format!("record for nullifier {}..", &n[..12])),
+    );
+    let refused = |r: Result<String, String>, want: &str| match r {
+        Err(m) if m.contains(want) => Ok(format!("refused: {want}")),
+        Err(m) => Err(format!("refused for another reason: {m}")),
+        Ok(_) => Err("accepted".into()),
+    };
+    let mut other = env0.clone();
+    other.nullifier = "00".repeat(32);
+    check(
+        "same model key and signature, another envelope: refused",
+        refused(run_chain(other, proof0.clone(), proof0.nonce.clone()), "answer is about another envelope"),
+    );
+    let mut p2 = proof0.clone();
+    p2.response = p2.response.replacen("\"id\"", "\"id\" ", 1);
+    check("one changed response byte: refused", refused(run_chain(env0.clone(), p2, proof0.nonce.clone()), "bad TEE signature"));
+    check(
+        "model key registered with another attestation nonce: refused",
+        refused(run_chain(env0.clone(), proof0.clone(), "11".repeat(32)), "attestation nonce mismatch"),
+    );
+    let mut p3 = proof0.clone();
+    p3.response_key = "22".repeat(32);
+    check("wrong disclosed answer key: refused", refused(run_chain(env0.clone(), p3, proof0.nonce.clone()), "does not open"));
+
     let passed = checks.iter().filter(|(_, r)| r.is_ok()).count();
     if print {
         println!("bookerbob near-ai {}", dir.display());
@@ -169,7 +238,7 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
                 Err(d) => println!("FAIL  N{}  {name}  ({d})", i + 1),
             }
         }
-        println!("NOTE  NVIDIA GPU evidence is not checked offline (NRAS is online); on-chain acceptance of this verdict is not built");
+        println!("NOTE  NVIDIA GPU evidence is not checked (NRAS is online); the TDX quote is checked here and by the owner before register_model_attestation, not inside the contract");
     }
     (passed, checks.len())
 }
@@ -218,16 +287,18 @@ mod tests {
         let mut c: serde_json::Value = serde_json::from_slice(&std::fs::read(d.join("capture.json")).unwrap()).unwrap();
         c["envelope"]["predicates"].as_array_mut().unwrap().push("steam_veteran".into());
         std::fs::write(d.join("capture.json"), serde_json::to_vec(&c).unwrap()).unwrap();
-        assert_eq!(super::check_dir(&d, &proofs(), false), (7, 8));
+        let (p, t) = super::check_dir(&d, &proofs(), false);
+        assert!(t - p >= 2, "N8 and the contract acceptance fail");
     }
 
     #[test]
     fn another_nullifier_breaks_the_binding() {
         let d = copy("bind");
         let mut c: serde_json::Value = serde_json::from_slice(&std::fs::read(d.join("capture.json")).unwrap()).unwrap();
-        c["envelope"]["nullifier"] = "00".repeat(32).into();
+        c["envelope"]["nullifier"] = "11".repeat(32).into();
         std::fs::write(d.join("capture.json"), serde_json::to_vec(&c).unwrap()).unwrap();
-        assert_eq!(super::check_dir(&d, &proofs(), false), (7, 8));
+        let (p, t) = super::check_dir(&d, &proofs(), false);
+        assert!(p < t, "binding and contract acceptance fail");
     }
 
     #[test]
@@ -239,4 +310,36 @@ mod tests {
         let (p, t) = super::check_dir(&d, &proofs(), false);
         assert!(p <= t - 3, "open, predicates and binding all fail");
     }
+}
+
+/// One fresh bazaar on the mocked chain: owner registers the model attestation with
+/// `registered_nonce`, the agent binds its World ID, then submits the NEAR AI verdict.
+fn chain_case(e: Envelope, p: bookerbob_core::near_ai::NearAiProof, registered_nonce: String, report_hash: String, tcb: String) -> Result<String, String> {
+    use bookerbob_bazaar::{Bazaar, ModelAttestation, RECORD_DEPOSIT};
+    use near_sdk::test_utils::VMContextBuilder;
+    use near_sdk::testing_env;
+    std::panic::set_hook(Box::new(|_| {}));
+    let acc = |s: &str| s.parse::<near_sdk::AccountId>().unwrap();
+    let at = |who: &str| {
+        let mut b = VMContextBuilder::new();
+        b.current_account_id(acc(crate::fixtures::OWNER))
+            .predecessor_account_id(acc(who))
+            .block_timestamp(crate::fixtures::NOW_MS * 1_000_000)
+            .attached_deposit(RECORD_DEPOSIT);
+        testing_env!(b.build());
+    };
+    at(crate::fixtures::OWNER);
+    let mut c = Bazaar::new(acc(crate::fixtures::OWNER), acc(crate::fixtures::USDC));
+    let w = crate::fixtures::world_attestation(&e.cnf, "fixture-person-1");
+    c.register_world_verifier(w.verifier_key.clone(), w.body.action.clone(), "fixture".into());
+    c.register_model_attestation(
+        p.signing_key.clone(),
+        ModelAttestation { model: e.attestation.model.clone(), nonce: registered_nonce, report_hash, tcb_status: tcb },
+    );
+    at(&e.cnf);
+    c.attest_human(w);
+    let n = e.nullifier.clone();
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.submit_near_ai_verdict(e, p)))
+        .map_err(|x| x.downcast_ref::<String>().cloned().or_else(|| x.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default())?;
+    c.verdict(n.clone()).map(|_| n).ok_or_else(|| "no record".to_string())
 }

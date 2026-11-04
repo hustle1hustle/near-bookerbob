@@ -131,6 +131,13 @@ fn main() -> ExitCode {
         }
         Some("evidence") => evidence::run(),
         Some("near-ai") if args.len() >= 3 => near_ai::run(Path::new(&args[1]), Path::new(&args[2])),
+        Some("near-ai-proof") if args.len() >= 2 => {
+            let (_, p) = near_ai::proof(Path::new(&args[1]));
+            let out = Path::new(&args[1]).join("proof.json");
+            std::fs::write(&out, serde_json::to_string_pretty(&p).unwrap() + "\n").expect("write proof");
+            println!("wrote {}", out.display());
+            ExitCode::SUCCESS
+        }
         Some("near-ai-bind") if args.len() >= 2 => {
             let e: bookerbob_core::Envelope = serde_json::from_str(&std::fs::read_to_string(&args[1]).expect("read envelope")).expect("parse envelope");
             println!("{}", e.near_ai_bind());

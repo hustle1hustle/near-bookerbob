@@ -111,7 +111,7 @@ interface exists with a test double; `planned` means not built yet.
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | built; `make verify` shows `k=6` |
 | blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline); 30 merchant agents bid through it | swarms | `contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs` | built: 8 contract tests, and the `make verify` board runs both rounds on the contract code (MockedBlockchain); not deployed; merchant sub-accounts are not created yet |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | built (plain TLS) |
-| NEAR AI issues the verdict under E2EE v2: the facts go sealed to the attested model key, the model derives the predicates and echoes a binding of the envelope, and `make verify` checks the TDX quote (dcap-qvl, Intel root, committed PCS collateral), report_data (signing key and our nonce), the TEE signature over the exact wire bytes, the sealed answer (opened with a disclosed one-time key), predicates equal to the code's, and the binding | privacy, security | `scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md` | built, one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate); NVIDIA GPU evidence not checked offline; the contract does not accept this verdict yet (its issuer is still a fixture key) |
+| NEAR AI issues the verdict under E2EE v2: the facts go sealed to the attested model key, the model derives the predicates and echoes a binding of the envelope, and `make verify` checks the TDX quote (dcap-qvl, Intel root, committed PCS collateral), report_data (signing key and our nonce), the TEE signature over the exact wire bytes, the sealed answer (opened with a disclosed one-time key), predicates equal to the code's, and the binding | privacy, security | `scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md` | built, one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate). On chain, `submit_near_ai_verdict` accepts it only with a registered model attestation (same nonce), the TEE signature over the exact response bytes, and a sealed answer that opens with the disclosed key and echoes this envelope's binding; `make verify` runs the contract on it and on 4 refusals. The quote check itself happens before `register_model_attestation`, not in the contract; NVIDIA GPU evidence is not checked |
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | built and in `make verify`; not deployed to OutLayer yet. Live `estimate_execution_cost` = 0.0070001 NEAR |
 | dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | `worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md` | built; `make verify` check 22 |
 | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | `core/src/world.rs`, `contract/src/lib.rs` `attest_human` | built on offline fixtures (placeholder action); live verifier is the rep-world-verify service, not wired |
@@ -154,7 +154,7 @@ blocked without a receipt, a signed receipt for honest claims), settle (escrow d
 nullifier burn, `settled` event, `ft_transfer` receipt to USDC), and the replay from
 another wallet: a second verdict for the same account, same nullifier (`nullifier spent`). Then the 30-agent board check and 50 referee evals.
 
-Then `bookerbob near-ai` re-checks the captured NEAR AI verdict (8 checks, `fixtures/live/near-ai/`).
+Then `bookerbob near-ai` re-checks the captured NEAR AI verdict (14 checks, `fixtures/live/near-ai/`), including the contract accepting it with its proof and refusing it without.
 
 Mocked or synthetic today: the proof set (synthetic fixtures; the NEAR AI capture uses the same synthetic facts), the
 issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, no live
@@ -164,7 +164,7 @@ proves the committed fixtures are exactly what the generator produces.
 ## Evidence (measured, `scripts/evidence.sh`)
 
 Full output in `docs/evidence.md`, rerun to refresh. Headline numbers from 2026-11-04:
-`make verify` 3.9 s warm; 26 chain checks, 50/50 referee evals, 8/8 NEAR AI verdict
+`make verify` 3.9 s warm; 26 chain checks, 50/50 referee evals, 14/14 NEAR AI verdict
 checks, 2 blind rounds through the contract; NEAR AI live run 33/33 signatures at about
 $0.00024 per call; referee worker 0.27 ms per run (native). A verdict record costs the
 agent 815 bytes (0.00815 NEAR) of storage. Gas below is a mocked lower bound (host
@@ -201,7 +201,7 @@ Mitigation path: a multisig or DAO owner, and registering only keys an attestati
 | layer | what it proves | what it does not |
 |---|---|---|
 | zkTLS proof | the facts came from the user's real account over TLS | the notary is a single MPC key today, not attested ("notary not attested") |
-| NEAR AI TEE | the answer came from the attested model key; the TDX quote verifies to Intel's root and its report_data holds that key and our nonce; under E2EE v2 the signature covers the ciphertext | TEE caveats apply; `tcb_status` is recorded, not hidden; the NVIDIA GPU evidence is not checked in this repo; the contract does not check any of this on chain |
+| NEAR AI TEE | the answer came from the attested model key; the TDX quote verifies to Intel's root and its report_data holds that key and our nonce; under E2EE v2 the signature covers the ciphertext | TEE caveats apply; `tcb_status` is recorded, not hidden; the NVIDIA GPU evidence is not checked in this repo; the contract trusts the owner's registration of the model key (the quote is checked off chain) |
 | verdict issuer | the envelope was signed by a registered key (`ed25519_verify` / `p256_verify`) | that the issuer is honest beyond its key |
 | referee (OutLayer worker) | every cited fact is in the proof set, its asserted field and value match, and it proves its line; the price is the code quote | OutLayer is unaudited; a compromised referee key can sign a false receipt (the dispute path exists for that) |
 | dispute arbiter | an independent re-run of every check, signed | only as independent as its operator; today it is a fixture seed like the referee |
