@@ -317,8 +317,11 @@ trust-anchor keys registered and USDC storage paid. 139 transactions, every hash
 | `register_issuer` | [95mbs6KG…](https://testnet.nearblocks.io/txns/95mbs6KGPHfNYU4RHa5ZQ6jgGq6vNZw7qhXTmA3yyUoG) |
 | first Chain Signatures `sign`, domain 1 (Ed25519), path `stellar-1`: the 64-byte signature verifies over the payload with the derived key `ed25519:Hni3RKAy…` (`fixtures/live/mpc-sign.txt`) | [2yHrL9YW…](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
 
-Not yet on testnet: a purchase (`make demo-live`), the OutLayer referee. Mainnet only on an
-explicit go.
+`make demo-live` ran on testnet up to escrow: the agent's settle-only function-call key, its
+World ID binding, the verdict ([86XFzy3P…](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw)) and the referee receipt
+([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2), 38.40 USDC: one buyer on testnet, so no group price). Escrow, settle and
+the replay wait on testnet USDC for the agent. Not yet on testnet: the OutLayer referee.
+Mainnet only on an explicit go.
 
 ### Deploy to testnet (one command)
 

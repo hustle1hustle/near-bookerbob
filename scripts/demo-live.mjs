@@ -54,7 +54,12 @@ const NEAR_CLI = "near-cli-rs (cargo install --locked near-cli-rs)";
 const BOOKERBOB = ["cargo", "run", "-q", "-p", "bookerbob-cli", "--"];
 
 /** The steps, in demo order. Pure: reads nothing from the network or the keys dir. */
+// The amount escrowed and settled is the referee receipt's price, read during the run (on
+// testnet the cohort is smaller than in the offline board, so the price differs).
+const live_state = { price: null };
+
 export function plan(c, price) {
+  const amount = () => String(live_state.price ?? price ?? 0);
   const call = (signer, contract, method, args, deposit, gas = "100.0 Tgas") => [
     "contract", "call-function", "as-transaction", contract, method, "json-args", args,
     "prepaid-gas", gas, "attached-deposit", deposit, "sign-as", signer, "network-config", "testnet", "sign-with-keychain", "send",
@@ -70,18 +75,21 @@ export function plan(c, price) {
     // keys cannot attach a deposit, so submit_verdict (pays storage) and withdraw (1 yocto)
     // still need the full-access key; that is the point: this key can only spend escrow on
     // a refereed purchase.
-    { id: "fckey", kind: "tx", title: "add a function-call key for the agent: settle only, 0.25 NEAR gas allowance", near: [["account", "add-key", c.agent, "grant-function-call-access", "--allowance", "0.25 NEAR", "--receiver-account-id", c.bazaar, "--method-names", "settle", "autogenerate-new-keypair", "save-to-keychain", "network-config", "testnet", "sign-with-keychain", "send"]], needs: [NEAR_CLI] },
-    { id: "world", kind: "tx", title: "bind the agent to one World ID person", near: [call(c.agent, c.bazaar, "attest_human", () => `{"attestation":${file("world.json")()}}`, "0.01 NEAR")], needs: [NEAR_CLI] },
-    { id: "verdict", kind: "tx", title: "submit the verdict: merchants see 3 bits and a commitment", near: [call(c.agent, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict.json")()}}`, "0.05 NEAR")], needs: [NEAR_CLI] },
-    { id: "quote", kind: "view", title: "best hoodie quote on chain", view: [c.bazaar, "best_quote", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier, category: "hoodie" })], expect: price ? `price ${price}` : undefined },
+    { id: "fckey", kind: "tx", skipFcKey: true, title: "add a function-call key for the agent: settle only, 0.25 NEAR gas allowance", near: [["account", "add-key", c.agent, "grant-function-call-access", "--allowance", "0.25 NEAR", "--contract-account-id", c.bazaar, "--function-names", "settle", "autogenerate-new-keypair", "save-to-keychain", "network-config", "testnet", "sign-with-keychain", "send"]], needs: [NEAR_CLI] },
+    // (skipView: a view that says the step is already done on chain, so a re-run skips it)
+    { id: "world", kind: "tx", skipView: [c.bazaar, "is_human", () => ({ agent: c.agent }), (v) => v === true], title: "bind the agent to one World ID person", near: [call(c.agent, c.bazaar, "attest_human", () => `{"attestation":${file("world.json")()}}`, "0.01 NEAR")], needs: [NEAR_CLI] },
+    { id: "verdict", kind: "tx", skipView: [c.bazaar, "nullifier_status", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier }), (v) => v !== "Unknown"], title: "submit the verdict: merchants see 3 bits and a commitment", near: [call(c.agent, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict.json")()}}`, "0.05 NEAR")], needs: [NEAR_CLI] },
+    { id: "quote", kind: "view", title: "best hoodie quote on chain", view: [c.bazaar, "best_quote", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier, category: "hoodie" })] },
     { id: "referee", kind: "local", title: "referee checks the winner's claims against the proofs, signs a receipt", cmd: () => [...BOOKERBOB, "worker-input", "fixtures", join(c.liveDir, "verdict.json")], then: "worker", needs: [`referee.seed in ${c.keysDir}`] },
-    { id: "receipt", kind: "tx", title: "post the signed referee receipt", near: [call(c.agent, c.bazaar, "submit_referee_result", () => `{"result":${file("referee-result.json")()}}`, "0.01 NEAR")], needs: [NEAR_CLI] },
+    { id: "receipt", kind: "tx", skipView: [c.bazaar, "verdict", () => ({ nullifier: JSON.parse(file("verdict.json")()).envelope.nullifier }), (v) => Boolean(v && v.receipt)], title: "post the signed referee receipt", near: [call(c.agent, c.bazaar, "submit_referee_result", () => `{"result":${file("referee-result.json")()}}`, "0 NEAR")], needs: [NEAR_CLI] },
     { id: "escrow", kind: "tx", title: `escrow ${price ? Number(price) / 1e6 : "the price in"} testnet USDC`, near: [
       call(c.agent, c.bazaar, "storage_deposit", "{}", "0.01 NEAR"),
       call(c.agent, c.usdc, "storage_deposit", `{"account_id":"${c.bazaar}","registration_only":true}`, "0.00125 NEAR"),
-      call(c.agent, c.usdc, "ft_transfer_call", `{"receiver_id":"${c.bazaar}","amount":"${price ?? 0}","msg":""}`, "1 yoctoNEAR", "100.0 Tgas"),
+      // The agent itself must be registered with the USDC contract to hold and send USDC.
+      call(c.agent, c.usdc, "storage_deposit", `{"account_id":"${c.agent}","registration_only":true}`, "0.00125 NEAR"),
+      call(c.agent, c.usdc, "ft_transfer_call", () => `{"receiver_id":"${c.bazaar}","amount":"${amount()}","msg":""}`, "1 yoctoNEAR", "100.0 Tgas"),
     ], needs: [NEAR_CLI, `testnet USDC on ${c.agent} (faucet.circle.com, NEAR testnet)`] },
-    { id: "settle", kind: "tx", title: "settle: the merchant is paid the receipt price, the nullifier is spent", near: [call(c.agent, c.bazaar, "settle", () => `{"nullifier":"${JSON.parse(file("verdict.json")()).envelope.nullifier}","merchant":"m01.${c.bazaar}","checkout_ref":"demo-live-1","amount":"${price ?? 0}"}`, "0 NEAR", "150.0 Tgas")], needs: [NEAR_CLI] },
+    { id: "settle", kind: "tx", title: "settle: the merchant is paid the receipt price, the nullifier is spent", near: [call(c.agent, c.bazaar, "settle", () => `{"nullifier":"${JSON.parse(file("verdict.json")()).envelope.nullifier}","merchant":"m01.${c.bazaar}","checkout_ref":"demo-live-1","amount":"${amount()}"}`, "0 NEAR", "150.0 Tgas")], needs: [NEAR_CLI] },
     { id: "replay", kind: "tx", title: "same account (same nullifier) from another wallet is refused", near: [call(c.wallet2, c.bazaar, "submit_verdict", () => `{"verdict":${file("verdict-replay.json")()}}`, "0.05 NEAR")], expectFail: "nullifier spent", needs: [NEAR_CLI] },
     { id: "outlayer", kind: "tx", title: "OutLayer runs the same referee in a TEE", needs: [NEAR_CLI, "OUTLAYER_PROJECT (worker for wasm32-wasip2, rustup target add wasm32-wasip2)"], optional: !c.outlayerProject, near: [call(c.bazaar, c.bazaar, "request_referee", () => JSON.stringify({ project_id: c.outlayerProject, input_data: readFileSync(join(c.liveDir, "worker-input.json"), "utf8").trim() }), "0.01 NEAR", "300.0 Tgas")] },
   ];
@@ -131,7 +139,18 @@ async function live(c, steps) {
       continue;
     }
     if (s.kind === "local") {
-      const r = run(s.cmd());
+      let env = process.env;
+      if (s.id === "sign") {
+        // A verdict already on chain: sign the same envelope again (sign-live sets
+        // expires = issued + 7 days, and the record keeps the expiry).
+        const fixtureNullifier = JSON.parse(readFileSync("fixtures/verdict-ed25519.json", "utf8")).envelope.nullifier;
+        const rec = await view(c, [c.bazaar, "verdict", { nullifier: fixtureNullifier }]).catch(() => null);
+        if (rec && rec.expires_at_ms) {
+          env = { ...process.env, BOOKERBOB_NOW_MS: String(rec.expires_at_ms - 7 * 24 * 3600 * 1000) };
+          console.log("   the verdict is on chain: re-signing the same envelope");
+        }
+      }
+      const r = run(s.cmd(), { env });
       if (!r.ok) throw new Error(`${s.id}: ${r.out.slice(-400)}`);
       if (s.then === "worker") {
         writeFileSync(join(c.liveDir, "worker-input.json"), r.stdout);
@@ -139,9 +158,27 @@ async function live(c, steps) {
         const w = run(["cargo", "run", "-q", "-p", "bookerbob-referee-worker"], { input: r.stdout, env: { ...process.env, REFEREE_SIGNING_SEED: seed } });
         if (!w.ok) throw new Error(`worker: ${w.out.slice(-400)}`);
         writeFileSync(join(c.liveDir, "referee-result.json"), w.stdout);
-        console.log(`   receipt signed, ${w.stdout.length} bytes`);
+        live_state.price = JSON.parse(w.stdout).body.price;
+        console.log(`   receipt signed, ${w.stdout.length} bytes, price ${live_state.price}`);
       } else console.log(`   ${r.stdout.trim().split("\n").at(-1)}`);
       continue;
+    }
+    if (s.skipFcKey && (await hasFunctionCallKey(c, c.agent))) {
+      console.log("   skip: the agent already has a function-call key for the bazaar");
+      continue;
+    }
+    if (s.skipView) {
+      const [acct, method, args, done] = s.skipView;
+      let v;
+      try {
+        v = await view(c, [acct, method, args]);
+      } catch {
+        v = undefined;
+      }
+      if (v !== undefined && done(v)) {
+        console.log("   skip: already done on chain");
+        continue;
+      }
     }
     if (s.skipIf && (await Promise.all(s.skipIf.map((a) => accountExists(c, a)))).every(Boolean)) {
       console.log("   skip: exists");
@@ -160,6 +197,12 @@ async function live(c, steps) {
       }
     }
   }
+}
+
+async function hasFunctionCallKey(c, account_id) {
+  const body = { jsonrpc: "2.0", id: "bookerbob", method: "query", params: { request_type: "view_access_key_list", finality: "final", account_id } };
+  const r = await (await fetch(c.rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).json();
+  return (r.result?.keys ?? []).some((k) => k.access_key?.permission?.FunctionCall?.receiver_id === c.bazaar);
 }
 
 async function accountExists(c, account_id) {

@@ -143,3 +143,19 @@ Written by `scripts/deploy-testnet.sh`. Network: testnet. Explorer: testnet.near
 | 2026-11-04T16:08:26Z | approve_merchant h08 | bookerbob.testnet | [55boZj4Yx4Juw8pTAqBsXj1ffjAXgimtRPDGZoXrvnPQ](https://testnet.nearblocks.io/txns/55boZj4Yx4Juw8pTAqBsXj1ffjAXgimtRPDGZoXrvnPQ) |
 | 2026-11-04T16:08:35Z | usdc storage_deposit h08 | h08.bookerbob.testnet | [5hu2zVXd918na1CruMff8oXnSt3pfg9HFwPWWxAmvV2o](https://testnet.nearblocks.io/txns/5hu2zVXd918na1CruMff8oXnSt3pfg9HFwPWWxAmvV2o) |
 | 2026-11-04T16:08:48Z | mpc sign domain 1 | bookerbob.testnet | [2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe](https://testnet.nearblocks.io/txns/2yHrL9YWdF5ev7ArUaPM7HG8dJCxWECVLEiWcnhM7SVe) |
+
+## make demo-live (2026-11-04)
+
+Stops at escrow: the agent holds no testnet USDC yet (faucet.circle.com, a web form).
+
+| step | account | tx |
+|---|---|---|
+| create agent.bookerbob.testnet | agent.bookerbob.testnet | [4AgYkNxUM24mykKp6BBqBnX9A6P53Rxi2YXPgi3CjSw2](https://testnet.nearblocks.io/txns/4AgYkNxUM24mykKp6BBqBnX9A6P53Rxi2YXPgi3CjSw2) |
+| create wallet2.bookerbob.testnet | wallet2.bookerbob.testnet | [78vm43NRAJMguP8TzsTyYYRqyZZWpERtu4n33vW7eget](https://testnet.nearblocks.io/txns/78vm43NRAJMguP8TzsTyYYRqyZZWpERtu4n33vW7eget) |
+| function-call key for the agent: settle only, 0.25 NEAR allowance | agent.bookerbob.testnet | [GN7yVwSaK9wB47wq1biSAwAuJbtnhrYXsiRVnX6qNrML](https://testnet.nearblocks.io/txns/GN7yVwSaK9wB47wq1biSAwAuJbtnhrYXsiRVnX6qNrML) |
+| attest_human (World ID binding, placeholder action) | agent.bookerbob.testnet | [5Qq7eRTbCU44iUSoy7J8USjsF1SAhL5CMqjUXAF7qFgC](https://testnet.nearblocks.io/txns/5Qq7eRTbCU44iUSoy7J8USjsF1SAhL5CMqjUXAF7qFgC) |
+| submit_verdict (3 bits, commitment, nullifier pending) | agent.bookerbob.testnet | [86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw](https://testnet.nearblocks.io/txns/86XFzy3PcJLxqkiVLQAeZSAY7F31BZVzd84yrF4eunXw) |
+| submit_referee_result (receipt, m01, 38.40 USDC) | agent.bookerbob.testnet | [HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2) |
+| bazaar storage_deposit (escrow entry) | agent.bookerbob.testnet | [F3LiQmuVZP9Jkna9JU8LiajHZ2BMs8E3RzQ1UUaMNqNC](https://testnet.nearblocks.io/txns/F3LiQmuVZP9Jkna9JU8LiajHZ2BMs8E3RzQ1UUaMNqNC) |
+| usdc storage_deposit bazaar (repeat, refunded) | agent.bookerbob.testnet | [8G3peQpWjNRASsjvYARE9TyYqpgyaRRQDcN7KsEEZaa5](https://testnet.nearblocks.io/txns/8G3peQpWjNRASsjvYARE9TyYqpgyaRRQDcN7KsEEZaa5) |
+| usdc storage_deposit agent | agent.bookerbob.testnet | [AFfAVeJVchBMpN3NkLiE6PGCK3sS5GKHnv4UxdYdJdG](https://testnet.nearblocks.io/txns/AFfAVeJVchBMpN3NkLiE6PGCK3sS5GKHnv4UxdYdJdG) |

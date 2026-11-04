@@ -122,7 +122,11 @@ fn main() -> ExitCode {
         Some("referee") if args.len() >= 6 => referee_cmd(&args[1..6]),
         Some("keys") if args.len() >= 2 => keys::run(Path::new(&args[1]), args.iter().any(|a| a == "--pub")),
         Some("sign-live") if args.len() >= 6 => {
-            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64;
+            // BOOKERBOB_NOW_MS re-creates an envelope already on chain (demo-live re-runs).
+            let now = std::env::var("BOOKERBOB_NOW_MS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or_else(|| std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64);
             match keys::sign_live(Path::new(&args[1]), &args[2], &args[3], &args[4], now, Path::new(&args[5])) {
                 Ok(()) => {
                     println!("wrote verdict.json, verdict-replay.json, world.json to {}", args[5]);

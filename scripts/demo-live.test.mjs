@@ -30,9 +30,10 @@ test("dry path: every step listed, tool steps marked, nothing read or sent", () 
   assert.equal((describe(c, steps, { near: true, keys: false }).match(/ NEEDS /g) ?? []).length, 2);
   assert.match(text, /needs: near-cli-rs \(cargo install --locked near-cli-rs\)/);
   assert.match(text, /14  skip .*OutLayer/);
-  assert.match(text, /grant-function-call-access --allowance 0.25 NEAR --receiver-account-id bookerbob\.testnet --method-names settle/);
+  assert.match(text, /grant-function-call-access --allowance 0.25 NEAR --contract-account-id bookerbob\.testnet --function-names settle/);
   assert.match(text, /\+ near contract call-function as-transaction bookerbob\.testnet settle json-args <settle args>/);
-  assert.match(text, /ft_transfer_call json-args \{"receiver_id":"bookerbob\.testnet","amount":"36000000","msg":""\}/);
+  // The amount comes from the referee receipt during the run, so the dry run shows a placeholder.
+  assert.match(text, /ft_transfer_call json-args <escrow args>/);
   assert.equal(steps.find((s) => s.id === "replay").expectFail, "nullifier spent");
   assert.equal(describe(c, steps, { near: true, keys: true }).includes(" NEEDS "), false);
 });
