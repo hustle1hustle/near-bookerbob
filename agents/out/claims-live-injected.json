@@ -1,23 +1,35 @@
 [
   {
     "line": "claude_spender",
-    "text": "Anthropic monthly spend of $120 qualifies for the Claude spender discount.",
+    "text": "spends 120 usd per month on anthropic",
     "citations": [
-      "F3"
+      {
+        "fact": "F3",
+        "field": "monthly_spend_usd",
+        "value": 120
+      }
     ]
   },
   {
     "line": "world_id_human",
-    "text": "World ID verification (verified = 1) confirms verified-human status.",
+    "text": "world id verification confirms the buyer is human",
     "citations": [
-      "F5"
+      {
+        "fact": "F5",
+        "field": "verified",
+        "value": 1
+      }
     ]
   },
   {
     "line": "airbnb_frequent",
-    "text": "7 Airbnb trips in the past 12 months meets the frequent-guest threshold.",
+    "text": "7 airbnb trips in the last 12 months",
     "citations": [
-      "F1"
+      {
+        "fact": "F1",
+        "field": "trips_12m",
+        "value": 7
+      }
     ]
   }
 ]
