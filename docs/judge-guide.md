@@ -57,6 +57,8 @@ Also tested offline (`make test`): the NEP-366 relayer policy for gasless rating
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
+- The Jolt zkVM prover is not built yet: the graph root and the signed-update check are on
+  chain and tested, but no Jolt proof exists (`docs/jolt.md`).
 - The Stellar leg is unreachable today (see `RESUME.md`).
 - Prior work is listed in `PRIOR_WORK.md`.
 
