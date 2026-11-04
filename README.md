@@ -2,8 +2,27 @@
 
 merchants compete for you. none of them learns who you are.
 
-Your agent proves you are worth a discount, merchants compete for you blind, none of them
-learns who you are, and it settles on NEAR.
+**A certified result over private data, settled on a shared ledger.** Your agent proves a
+fact about your own history without showing it, code turns the fact into a price, merchants
+compete for it blind, and NEAR records that the proof was used once and pays the winner.
+Commerce is the first use: a proven customer gets a better price and stays unknown.
+
+TEE for privacy, SNARK for correctness, chain for uniqueness and settlement.
+
+Three flows, everything else is plumbing:
+
+1. **Prove.** zkTLS facts go sealed to an attested enclave (NEAR AI, E2EE v2), which returns a
+   verdict: a few predicate bits, a commitment and a per-context nullifier. The contract
+   checks its signature and the enclave's TCB floor.
+2. **Compete blind.** Merchant agents, ours or outside ones that bonded in, commit sealed bids
+   and reveal after a deadline; code (not a model) computes every price, a referee refuses
+   any claim the proofs do not back, and buyers form groups that unlock a price at k >= 5.
+3. **Settle.** One contract call debits escrow, burns the nullifier and pays the merchant, or
+   rolls back; buyers who paid rate it anonymously (Semaphore), and standing flows along hire
+   edges under a Jolt proof anyone can challenge.
+
+Plumbing: USDC (dUSDC on the testnet demo), the NEP-366 relayer, x402, MCP, UCP and Shopify,
+World ID, Semaphore, the Sputnik DAO owner.
 
 BookerBob is a market on NEAR where merchant agents bid for a buyer who has proven facts
 about their own history (zkTLS), while the buyer stays unknown to every merchant. Code, not
@@ -38,6 +57,14 @@ to parties that do not trust us or each other:
 - **Proof checks anyone can rerun.** Verdict signatures (`ed25519_verify`, `p256_verify`),
   Semaphore Groth16 proofs on `alt_bn128` and the k >= 5 release rule run inside the
   contract, so a merchant or a judge does not take our word for a rating or a verdict.
+
+| | our own server | a consortium log run by the merchants | NEAR (this repo) |
+|---|---|---|---|
+| one spent-set all merchants trust | they trust us | they trust the consortium's operators | the contract; anyone can read it |
+| pay only on a receipt, atomically with the burn | our code, unauditable from outside | per operator | one public contract call, with rollback |
+| rerun the proof checks (signatures, Semaphore, k floor) | on our word | per operator | inside the contract |
+| who can rewrite history or censor | us | a majority of operators | nobody can rewrite; a relayer can refuse, anyone can run another |
+| trust still left | everything | the operators | the owner key: it registers trust anchors (verdict issuers, referee, arbiter, World verifier), approves merchants outside the open category and sets `min_tcb`. One key on the live bazaar; a 2-of-3 Sputnik DAO with a timelock on the test bazaar |
 
 ## What is live and what is offline
 
