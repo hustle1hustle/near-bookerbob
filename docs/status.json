@@ -313,6 +313,16 @@
     ]
   },
   {
+    "feature": "certified private eval (the envelope's second use): a model answers a sealed 20-item set on NEAR AI Cloud, each answer's TEE signature is checked, code grades, a registered issuer signs the certificate; the bazaar stores the floored score and answers `eval_passes(subject, set, threshold)`",
+    "tracks": "agents, privacy, security",
+    "where": "`contract/src/lib.rs` (`register_eval_set`, `submit_eval_certificate`, `eval_passes`), `scripts/eval-run.mjs`",
+    "status": "live",
+    "detail": "glm-5.3-flash scored 20/20 (bucket 100) on testnet; the items stay private; 5 contract tests",
+    "evidence": [
+      "eval"
+    ]
+  },
+  {
     "feature": "NEAR INTENTS / 1Click top-up from any chain",
     "tracks": "realworld, agents",
     "where": "`docs/`",

@@ -610,5 +610,13 @@
         }
       ]
     }
-  ]
+  ],
+  "eval": {
+    "run": "fixtures/live/eval/run.json",
+    "subject": "z-ai/glm-5.3-flash",
+    "set_root": "3ec8cbd5a8e688dfd72f44f9818bc907eac7fcd8943df7bfd408cc8822ae1cd1",
+    "register_tx": "G8xJZsLcCy3PzSEkwarjSQ2gDV897BdZzZXKSjVgaL4q",
+    "certify_tx": "Ek6834cuYYK3s7TKQgUteu9jca2MpTBsvrfy4FgDdAXR",
+    "score_bucket": 100
+  }
 }

@@ -34,6 +34,7 @@ const m = {
   dao: prev.dao ?? null,
   blind_round: prev.blind_round ?? null,
   fee: prev.fee ?? null,
+  eval: prev.eval ?? null,
   groups: (() => {
     const f = join(c.testersDir, "group-state.json");
     if (!existsSync(f)) return prev.groups ?? [];

@@ -3,7 +3,7 @@
 // Reads fixtures/live/testnet-manifest.json (public data only: accounts, nullifiers, tx
 // hashes, expected values) and checks each against chain state and tx outcomes now.
 //   NEAR_RPC=<url> make verify-live     another public testnet RPC (fallback list below)
-import { createHash } from "node:crypto";
+import { createHash, createPublicKey, verify as edVerify } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 // Public testnet RPCs that answer as of 2026-11-05 (rpc.testnet.near.org and pagoda are
@@ -242,6 +242,19 @@ if (m.fee) {
     const toTreasury = events(w.logs).find((e) => e.standard === "nep141" && e.event === "ft_transfer" && e.data[0].new_owner_id === f.treasury)?.data?.[0];
     const conserved = BigInt(toMerchant?.amount ?? -1) + BigInt(settled?.fee ?? -1) === BigInt(settled?.amount ?? 0);
     return [s.ok && w.ok && conserved && settled.fee === f.fee && toTreasury?.amount === f.fee, `paid ${Number(settled?.amount) / 1e6} = merchant ${Number(toMerchant?.amount) / 1e6} + fee ${Number(settled?.fee) / 1e6}; ${Number(toTreasury?.amount) / 1e6} swept to ${f.treasury.split(".")[0]}`];
+  });
+}
+if (m.eval) {
+  const e = m.eval;
+  await attempt(`certified private eval: ${e.subject} scored ${e.score_bucket} on a sealed set of ${20}; every answer's NEAR AI TEE signature verifies; the score is on chain`, async () => {
+    const run = JSON.parse(readFileSync(new URL(`../${e.run}`, import.meta.url)));
+    const sigs = run.answers.every((a) => {
+      const der = Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(a.signing_address, "hex")]);
+      return edVerify(null, Buffer.from(a.signature_text, "utf8"), createPublicKey({ key: der, format: "der", type: "spki" }), Buffer.from(a.signature, "hex")) && a.signature_text.startsWith(`${e.subject}:`);
+    });
+    const hashOk = createHash("sha256").update(run.answers.map((a) => a.signature_text).join("\n")).digest("hex") === run.certificate.answers_hash;
+    const [score, c] = await Promise.all([view(m.bazaar, "eval_score", { subject: e.subject, set_root: e.set_root }), tx(e.certify_tx, m.bazaar)]);
+    return [sigs && hashOk && score === e.score_bucket && c.ok, `${run.answers.length} TEE signatures valid, answers hash matches the certificate, eval_score on chain ${score}`];
   });
 }
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);

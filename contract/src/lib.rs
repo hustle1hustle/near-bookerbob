@@ -478,6 +478,38 @@ fn settle_fees() -> LookupMap<String, u128> {
     LookupMap::new(b"f")
 }
 
+// ---------- certified private evals (the envelope's second use) ----------
+
+/// The tag an eval certificate's signing message starts with.
+pub const EVAL_TAG: &[u8] = b"bookerbob/eval-certificate/v0\x00";
+
+/// A certified result over a private eval set: the set is public only as a root of salted
+/// item hashes, every answer is signed by the attested model key (checked off chain, its
+/// signatures listed under `answers_hash`), the score is graded by code and quantized.
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct EvalCertificate {
+    pub v: u8,
+    /// What was evaluated, e.g. a model id or an agent account.
+    pub subject: String,
+    pub set_root: String,
+    pub n: u32,
+    /// Correct answers out of n, and the score in whole percent, floored to a multiple of 10.
+    pub correct: u32,
+    pub score_bucket: u8,
+    /// sha256 over the model's per-answer TEE signature texts.
+    pub answers_hash: String,
+    pub issued_at_ms: u64,
+}
+
+fn eval_sets() -> LookupMap<String, (u32, String)> {
+    LookupMap::new(b"V")
+}
+
+fn eval_scores() -> LookupMap<String, u8> {
+    LookupMap::new(b"S")
+}
+
 /// Quantized group tiers: (persons needed, the most a merchant may offer, bps).
 pub const GROUP_TIERS: [(u64, u16); 2] = [(5, 1000), (10, 2000)];
 
@@ -663,6 +695,50 @@ impl Bazaar {
         fa.insert(token, v);
         fa.flush();
         false
+    }
+
+    /// Owner: an eval set, known only by its root of salted item hashes, and its size.
+    pub fn register_eval_set(&mut self, set_root: String, n: u32, label: String) {
+        self.assert_owner();
+        require!(bookerbob_core::is_hex32(&set_root) && n > 0, "bad eval set");
+        let mut e = eval_sets();
+        e.insert(set_root.clone(), (n, label.clone()));
+        e.flush();
+        emit("eval_set_registered", serde_json::json!({ "set_root": set_root, "n": n, "label": label }));
+    }
+
+    /// Anyone relays an eval certificate signed by a registered issuer key (ed25519,
+    /// `ed25519:<hex>` as in `issuers`); the score is stored per (subject, set).
+    #[payable]
+    pub fn submit_eval_certificate(&mut self, certificate: EvalCertificate, issuer_key: String, signature: String) {
+        let before = env::storage_usage();
+        let c = &certificate;
+        require!(c.v == 0, "unsupported certificate");
+        let (n, _) = eval_sets().get(&c.set_root).cloned().unwrap_or_else(|| env::panic_str("unknown eval set"));
+        require!(c.n == n && c.correct <= n, "certificate does not match the set size");
+        let pct = (c.correct as u64 * 100 / n as u64) as u8;
+        require!(c.score_bucket == pct / 10 * 10, "score bucket must be the floored score");
+        require!(bookerbob_core::is_hex32(&c.answers_hash), "bad answers hash");
+        require!(self.issuers.contains_key(&issuer_key), "unknown issuer key");
+        let pk: [u8; 32] = decode(issuer_key.strip_prefix("ed25519:").unwrap_or_else(|| env::panic_str("eval issuers are ed25519")), "issuer key");
+        let sig: [u8; 64] = decode(&signature, "issuer signature");
+        let mut msg = EVAL_TAG.to_vec();
+        msg.extend(serde_json::to_vec(c).expect("json"));
+        require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad issuer signature");
+        let mut s = eval_scores();
+        s.insert(format!("{}|{}", c.subject, c.set_root), c.score_bucket);
+        s.flush();
+        emit("eval_certified", serde_json::json!({ "subject": c.subject, "set_root": c.set_root, "score_bucket": c.score_bucket, "n": n }));
+        charge_storage(before);
+    }
+
+    pub fn eval_score(&self, subject: String, set_root: String) -> Option<u8> {
+        eval_scores().get(&format!("{subject}|{set_root}")).copied()
+    }
+
+    /// The predicate a buyer or a merchant checks: `eval_score_gte(threshold)` for a subject.
+    pub fn eval_passes(&self, subject: String, set_root: String, threshold: u8) -> bool {
+        self.eval_score(subject, set_root).is_some_and(|s| s >= threshold)
     }
 
     pub fn anchor_delay(&self) -> u64 {

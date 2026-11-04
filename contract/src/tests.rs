@@ -2718,3 +2718,86 @@ mod market_fee {
         assert_eq!(c.fee(), (100, Some(acc(TREASURY))));
     }
 }
+
+/// Certified private evals: a score over a sealed set, signed by a registered issuer.
+mod certified_eval {
+    use super::*;
+    const ROOT: &str = "e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1";
+
+    fn cert(correct: u32, bucket: u8) -> EvalCertificate {
+        EvalCertificate {
+            v: 0,
+            subject: "z-ai/glm-5.3-flash".into(),
+            set_root: ROOT.into(),
+            n: 20,
+            correct,
+            score_bucket: bucket,
+            answers_hash: "ab".repeat(32),
+            issued_at_ms: NOW_MS,
+        }
+    }
+
+    fn signed(c: &EvalCertificate, k: &SigningKey) -> (String, String) {
+        let mut msg = EVAL_TAG.to_vec();
+        msg.extend(serde_json::to_vec(c).unwrap());
+        (format!("ed25519:{}", hex::encode(k.verifying_key().to_bytes())), hex::encode(k.sign(&bookerbob_core::sha256(&msg)).to_bytes()))
+    }
+
+    fn with_set() -> Bazaar {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.register_eval_set(ROOT.into(), 20, "20 sealed arithmetic items".into());
+        c
+    }
+
+    #[test]
+    fn a_signed_certificate_is_stored_and_the_predicate_holds() {
+        let mut c = with_set();
+        let cert = cert(17, 80);
+        let (k, sig) = signed(&cert, &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(cert, k, sig);
+        assert_eq!(c.eval_score("z-ai/glm-5.3-flash".into(), ROOT.into()), Some(80));
+        assert!(c.eval_passes("z-ai/glm-5.3-flash".into(), ROOT.into(), 80));
+        assert!(!c.eval_passes("z-ai/glm-5.3-flash".into(), ROOT.into(), 90));
+    }
+
+    #[test]
+    #[should_panic(expected = "score bucket must be the floored score")]
+    fn an_inflated_bucket_is_refused() {
+        let mut c = with_set();
+        let cert = cert(17, 90);
+        let (k, sig) = signed(&cert, &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(cert, k, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "bad issuer signature")]
+    fn a_changed_score_breaks_the_signature() {
+        let mut c = with_set();
+        let (k, sig) = signed(&cert(10, 50), &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(cert(17, 80), k, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown issuer key")]
+    fn an_unregistered_issuer_is_refused() {
+        let mut c = with_set();
+        let cert = cert(17, 80);
+        let (k, sig) = signed(&cert, &SigningKey::from_bytes(&[42u8; 32]));
+        set("relayer.testnet");
+        c.submit_eval_certificate(cert, k, sig);
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown eval set")]
+    fn an_unregistered_set_is_refused() {
+        let mut c = setup();
+        let cert = cert(17, 80);
+        let (k, sig) = signed(&cert, &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(cert, k, sig);
+    }
+}

@@ -351,6 +351,19 @@ Contract with the fee: [FLabtw87…](https://testnet.nearblocks.io/txns/FLabtw87
 liability record includes it. `sweep_fees` ([EzLN3dX8…](https://testnet.nearblocks.io/txns/EzLN3dX8xSkUoyW63ikEsiVbCbVP4euuJ3Nx5GQfPUR)) moved the 0.36 dUSDC to the
 DAO, whose balance went from 0 to 0.36. The buyer never pays more than the receipt price.
 
+## A certified private eval (2026-11-05)
+
+The envelope's second use: a certified result over private data where the "data" is an eval
+set. 20 arithmetic items were made once and kept private (`~/.rep-secrets`); only their
+salted hashes and a Merkle root (`3ec8cbd5a8e6…`) are public. `z-ai/glm-5.3-flash` on
+NEAR AI Cloud answered each item; every answer's TEE signature verifies against the attested
+model key and binds the request and response hashes; code graded them: 20 of 20. The testnet
+issuer key signed the certificate (score floored to 10), the owner registered the set
+([G8xJZsLc…](https://testnet.nearblocks.io/txns/G8xJZsLcCy3PzSEkwarjSQ2gDV897BdZzZXKSjVgaL4q)), and the bazaar stored it
+([Ek6834cu…](https://testnet.nearblocks.io/txns/Ek6834cuYYK3s7TKQgUteu9jca2MpTBsvrfy4FgDdAXR)): `eval_passes(glm-5.3-flash, root, 100)` is
+true. Cost about $0.0003. Not claimed: that grading ran in a TEE (it ran on the Mac), or
+that the items are hard.
+
 ## Footnote: Chain Signatures, domain 0 (2026-11-04)
 
 One domain-0 (secp256k1) sign request from `bookerbob.testnet` on path `evm-1`
