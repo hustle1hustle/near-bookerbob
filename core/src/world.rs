@@ -50,3 +50,45 @@ impl WorldBody {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn body() -> WorldBody {
+        WorldBody { v: 0, action: "bookerbob-fixture-action".into(), world_nullifier: "ab".repeat(32), agent: "agent.testnet".into(), issued_at_ms: 1 }
+    }
+
+    #[test]
+    fn a_well_formed_attestation_body_validates() {
+        assert_eq!(body().validate(), Ok(()));
+    }
+
+    #[test]
+    fn malformed_attestation_bodies_are_refused() {
+        let mut b = body();
+        b.v = 1;
+        assert_eq!(b.validate(), Err("unsupported world attestation"));
+        let mut b = body();
+        b.action = String::new();
+        assert_eq!(b.validate(), Err("bad world action"));
+        let mut b = body();
+        b.action = "a".repeat(65);
+        assert_eq!(b.validate(), Err("bad world action"));
+        let mut b = body();
+        b.world_nullifier = "zz".into();
+        assert_eq!(b.validate(), Err("bad world nullifier"));
+        let mut b = body();
+        b.agent = String::new();
+        assert_eq!(b.validate(), Err("bad agent"));
+    }
+
+    #[test]
+    fn the_signed_message_is_tagged_and_binds_the_agent() {
+        let m = body().signing_message();
+        assert!(m.starts_with(WORLD_TAG));
+        let mut other = body();
+        other.agent = "wallet2.testnet".into();
+        assert_ne!(m, other.signing_message());
+    }
+}

@@ -12,6 +12,8 @@
 //! MockedBlockchain, which executes host functions (ed25519_verify, p256_verify, sha256)
 //! through nearcore's VM logic. No network, no keys.
 
+#[cfg(test)]
+mod e2e_tests;
 mod evals;
 mod evidence;
 mod fixtures;
