@@ -24,3 +24,5 @@ lto = true
 debug = false
 panic = "abort"
 overflow-checks = true
+# Drop symbols and debug sections from the contract wasm (testnet RPC rejects a 2 MB deploy).
+strip = true

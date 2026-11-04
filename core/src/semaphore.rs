@@ -3,10 +3,7 @@
 //! scope hashing (`keccak256(x as 32 bytes) >> 8`). Field elements travel as decimal
 //! strings, as Semaphore writes them. The Groth16 check itself is in the contract, on the
 //! alt_bn128 host functions. See docs/semaphore.md.
-use ark_bn254::Fr;
-use ark_ff::{BigInteger, PrimeField};
 use borsh::{BorshDeserialize, BorshSerialize};
-use light_poseidon::{Poseidon, PoseidonHasher};
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
@@ -34,28 +31,21 @@ pub fn dec_to_le32(s: &str) -> Option<[u8; 32]> {
     Some(out)
 }
 
-fn fr(s: &str) -> Option<Fr> {
-    let le = dec_to_le32(s)?;
-    let f = Fr::from_le_bytes_mod_order(&le);
-    // Reject values at or above the field modulus instead of reducing them.
-    (f.into_bigint().to_bytes_le() == le.to_vec()).then_some(f)
+fn fr(s: &str) -> Option<crate::poseidon::Fe> {
+    // Values at or above the modulus are refused, not reduced.
+    crate::poseidon::from_le_bytes(&dec_to_le32(s)?)
 }
 
 /// True for the one canonical decimal form of a field element: no leading zeros, below the
 /// modulus. A nullifier or root compared as a string must be canonical, or "0123" and "123"
 /// would be the same field element under two different strings.
 pub fn is_canonical_field(s: &str) -> bool {
-    fr(s).is_some_and(|f| dec(f) == s)
-}
-
-fn dec(f: Fr) -> String {
-    f.into_bigint().to_string()
+    fr(s).is_some_and(|f| crate::poseidon::to_decimal(&f) == s)
 }
 
 /// Poseidon(2), circomlib parameters (Semaphore's commitments and tree nodes).
 pub fn poseidon2(a: &str, b: &str) -> Option<String> {
-    let mut h = Poseidon::<Fr>::new_circom(2).ok()?;
-    h.hash(&[fr(a)?, fr(b)?]).ok().map(dec)
+    Some(crate::poseidon::to_decimal(&crate::poseidon::hash2(&fr(a)?, &fr(b)?)))
 }
 
 /// Semaphore's off-circuit hash: keccak256 of the 32-byte big-endian value, shifted right
@@ -66,7 +56,8 @@ pub fn semaphore_hash(x32_be: &[u8; 32]) -> String {
     h.copy_within(0..31, 1);
     h[0] = 0;
     h.reverse();
-    Fr::from_le_bytes_mod_order(&h).into_bigint().to_string()
+    // 248 bits, always below r.
+    crate::poseidon::to_decimal(&crate::poseidon::from_le_bytes(&h).expect("248-bit value is below r"))
 }
 
 /// The sealed rating, hex: sha256(json([rating, delivered, reason_hash, salt])). Posted

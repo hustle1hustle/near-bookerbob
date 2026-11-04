@@ -76,7 +76,7 @@ tx() {
   hash=$(echo "$out" | grep -oE 'Transaction ID: [1-9A-HJ-NP-Za-km-z]{43,44}' | head -1 | awk '{print $3}' || true)
   log_init
   printf '| %s | %s | %s | %s |\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$step" "$account" \
-    "${hash:+[$hash](https://testnet.nearblocks.io/txns/$hash)}${hash:-see output}" >> "$LOG"
+    "$([ -n "$hash" ] && echo "[$hash](https://testnet.nearblocks.io/txns/$hash)" || echo "see output")" >> "$LOG"
   LAST_OUT="$out"
 }
 

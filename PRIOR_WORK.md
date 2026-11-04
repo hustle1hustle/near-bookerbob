@@ -52,6 +52,6 @@ carry a `Co-Authored-By` trailer where an AI session wrote the change.
 | proptest | MIT / Apache-2.0 | property tests (dev only) |
 | dcap-qvl 0.3 (Phala) | MIT | Intel TDX quote verification for the NEAR AI attestation, offline with committed collateral |
 | chacha20poly1305, hkdf, curve25519-dalek (RustCrypto, dalek) | MIT / Apache-2.0 / BSD-3 | opening the NEAR AI E2EE v2 answer (contract and CLI) |
-| light-poseidon 0.4, ark-bn254, ark-ff (arkworks), sha3 | Apache-2.0 / MIT | Semaphore Poseidon and LeanIMT on chain, Semaphore's message hash |
+| light-poseidon 0.4.1 (data only), sha3 | Apache-2.0 / MIT | Semaphore Poseidon: the width-3 circomlib round constants are extracted from light-poseidon's parameter file into `core/src/poseidon_params.rs`; the field arithmetic and permutation in `core/src/poseidon.rs` are new code (the crate itself made the contract wasm 2 MB, over NEAR's transaction limit); sha3 for Semaphore's message hash |
 | @semaphore-protocol/core 4.14.5, snarkjs 0.7.6 (npm, `semaphore/`) | MIT / GPL-3.0 | generating the Semaphore identities, groups and proofs for the fixtures only; not shipped in the contract |
 | Semaphore V4 trusted setup (PSE ceremony, 2024-07-13) | public artifacts | the verification keys compiled into the contract (`fixtures/semaphore/verification-key.json`) |

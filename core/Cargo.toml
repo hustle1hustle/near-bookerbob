@@ -16,10 +16,6 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 # Opens the sealed NEAR AI answer (E2EE v2) with a disclosed per-response key; no_std.
 chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
-# Semaphore groups: Poseidon(2) with circomlib parameters on BN254 (LeanIMT nodes).
-light-poseidon = "0.4.0"
-ark-bn254 = "0.5"
-ark-ff = "0.5"
 sha3 = { version = "0.10", default-features = false }
 
 [dev-dependencies]
