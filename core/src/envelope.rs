@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub const DOMAIN_TAG: &[u8] = b"bookerbob/verdict/v0\x00";
 pub const COMMIT_TAG: &[u8] = b"bookerbob/commit/v0\x00";
+pub const NEAR_AI_BIND_TAG: &[u8] = b"bookerbob/near-ai-bind/v0\x00";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Attestation {
@@ -68,6 +69,17 @@ impl Envelope {
 
     pub fn digest(&self) -> [u8; 32] {
         crate::sha256(&self.signing_message())
+    }
+
+    /// What the NEAR AI issuer is asked to echo inside its sealed, TEE-signed answer: every
+    /// envelope field the model does not compute (context, nullifier, commitment, proof hash,
+    /// agent, cap, times). Echoing it binds this envelope to that one chat.
+    pub fn near_ai_bind(&self) -> String {
+        let core =
+            (&self.context, &self.nullifier, &self.commitment, &self.proof_hash, &self.cnf, self.max_spend.to_string(), self.issued_at_ms, self.expires_at_ms);
+        let mut m = NEAR_AI_BIND_TAG.to_vec();
+        m.extend(serde_json::to_vec(&core).expect("serializes"));
+        crate::sha256_hex(&m)
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {

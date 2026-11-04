@@ -1,0 +1,15 @@
+[package]
+name = "tdx-collateral"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Fetch Intel PCS collateral for a TDX quote once, so make verify can check the quote offline."
+
+[dependencies]
+dcap-qvl = "0.3.12"
+tokio = { version = "1", features = ["rt", "macros"] }
+serde_json = "1"
+hex = "0.4"
+
+[workspace]

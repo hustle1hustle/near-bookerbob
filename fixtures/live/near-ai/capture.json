@@ -1,0 +1,33 @@
+{
+  "note": "NEAR AI verdict under E2EE v2, live capture. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so verifiers can open the sealed answer.",
+  "at": "2026-11-04T12:20:05.066Z",
+  "model": "z-ai/glm-5.3-flash",
+  "nonce": "0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d",
+  "chat_id": "08af1d014f2d4f379dba94094562d9ba",
+  "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+  "client_x25519_secret": "a0b29b6a31a6d889aeb63d4b5bcc68ee7d19186cd39895c7f04983c704e03477",
+  "answer": "{\"predicates\": [\"airbnb_frequent\", \"booking_genius\", \"claude_spender\", \"world_id_human\"], \"bind\": \"5b9c5576db08f8df84ba98c6e121d879d1aa32496e1f4790ed185b1b7e4428aa\"}",
+  "bind": "5b9c5576db08f8df84ba98c6e121d879d1aa32496e1f4790ed185b1b7e4428aa",
+  "envelope": {
+    "v": 0,
+    "context": "bookerbob:v0:demo-hoodie",
+    "nullifier": "1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e",
+    "commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
+    "proof_hash": "fd14aaf2c1ced63226cd3ffd1fa20c07d0bbe77ef0f3b9a39d822b9c136df196",
+    "predicates": [
+      "airbnb_frequent",
+      "claude_spender",
+      "world_id_human"
+    ],
+    "tier": "gold",
+    "attestation": {
+      "model": "z-ai/glm-5.3-flash",
+      "tcb_status": "UpToDate",
+      "report_hash": "a0b1ec65e0f02bc9fb2b5d4c5c64a1040418c64198b405a9186632c3f8e682cb"
+    },
+    "cnf": "agent.bookerbob.testnet",
+    "max_spend": "45000000",
+    "issued_at_ms": 1793793600000,
+    "expires_at_ms": 1794700740000
+  }
+}
