@@ -11,7 +11,7 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::Path;
 use std::process::ExitCode;
 
-use bookerbob_bazaar::Bazaar;
+use bookerbob_bazaar::{Bazaar, RECORD_DEPOSIT};
 use bookerbob_core::{sha256_hex, Schedule, SignedVerdict};
 use near_sdk::test_utils::VMContextBuilder;
 use near_sdk::{testing_env, AccountId};
@@ -87,6 +87,7 @@ fn acc(s: &str) -> AccountId {
 fn as_caller(p: &str) {
     let mut b = VMContextBuilder::new();
     b.current_account_id(acc(OWNER)).predecessor_account_id(acc(p)).block_timestamp(NOW_MS * 1_000_000);
+    b.attached_deposit(RECORD_DEPOSIT);
     testing_env!(b.build());
 }
 

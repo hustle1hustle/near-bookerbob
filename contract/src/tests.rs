@@ -21,6 +21,12 @@ fn ctx(predecessor: &str) -> VMContextBuilder {
 }
 
 fn set(predecessor: &str) {
+    let mut b = ctx(predecessor);
+    b.attached_deposit(RECORD_DEPOSIT);
+    testing_env!(b.build());
+}
+
+fn set_no_deposit(predecessor: &str) {
     testing_env!(ctx(predecessor).build());
 }
 
@@ -363,4 +369,27 @@ fn merchant_category_is_validated() {
     let mut c = setup();
     set("m02.bazaar.testnet");
     c.register_merchant(schedule(), "Hoodie Store!".into(), None);
+}
+
+#[test]
+#[should_panic(expected = "for storage")]
+fn verdict_without_storage_deposit_is_rejected() {
+    let mut c = setup();
+    set_no_deposit("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+}
+
+#[test]
+fn unused_storage_deposit_is_refunded() {
+    let mut c = setup();
+    set("agent.testnet");
+    c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+    let receipts = near_sdk::test_utils::get_created_receipts();
+    let refund = receipts.iter().find(|r| r.receiver_id.as_str() == "agent.testnet").expect("refund receipt");
+    let amount = refund.actions.iter().find_map(|a| match a {
+        near_sdk::mock::MockAction::Transfer { deposit, .. } => Some(*deposit),
+        _ => None,
+    });
+    let amount = amount.expect("transfer action");
+    assert!(amount > NearToken::from_yoctonear(0) && amount < RECORD_DEPOSIT);
 }

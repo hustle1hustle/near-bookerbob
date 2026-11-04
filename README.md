@@ -126,6 +126,8 @@ predicate bits revealed for a discount, never raw history.
   labelled placeholder.
 - The bid board can leak coarse buyer traits. Mitigations: category-only bids, blind
   rounds, k>=5 cohorts.
+- Callers pay for the storage they add (`submit_verdict`, `register_merchant`, unused deposit
+  refunded); `storage_deposit` opens an escrow entry for 0.01 NEAR.
 - `make verify` runs the contract code natively against near-sdk's MockedBlockchain, not
   on a live chain. Testnet addresses and tx hashes are listed below once deployed.
 

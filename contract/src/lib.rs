@@ -16,6 +16,8 @@ pub const EVENT_STANDARD: &str = "bookerbob";
 pub const EVENT_VERSION: &str = "0.1.0";
 /// Deposit `storage_deposit` must attach to open an escrow entry.
 pub const ESCROW_STORAGE_DEPOSIT: NearToken = NearToken::from_millinear(10);
+/// Enough for one verdict or merchant record; the unused part is refunded.
+pub const RECORD_DEPOSIT: NearToken = NearToken::from_millinear(50);
 const GAS_FT_TRANSFER: Gas = Gas::from_tgas(10);
 const GAS_SETTLE_CALLBACK: Gas = Gas::from_tgas(10);
 
@@ -92,6 +94,18 @@ fn decode<const N: usize>(hex_str: &str, what: &str) -> [u8; N] {
     bytes.try_into().unwrap_or_else(|_| env::panic_str(&format!("bad {what} length")))
 }
 
+/// Charge the caller for storage added since `before`, refund the rest of the deposit.
+fn charge_storage(before: u64) {
+    let after = env::storage_usage();
+    let cost = env::storage_byte_cost().saturating_mul(after.saturating_sub(before) as u128);
+    let attached = env::attached_deposit();
+    require!(attached >= cost, format!("attach at least {} yoctoNEAR for storage", cost.as_yoctonear()));
+    let refund = attached.saturating_sub(cost);
+    if !refund.is_zero() {
+        Promise::new(env::predecessor_account_id()).transfer(refund).detach();
+    }
+}
+
 /// Check a verdict signature with the NEAR host functions.
 pub fn verify_signature(v: &SignedVerdict) -> bool {
     let digest: [u8; 32] = env::sha256_array(v.envelope.signing_message());
@@ -152,7 +166,9 @@ impl Bazaar {
     /// A merchant agent registers its own account (usually `mNN.<bazaar>`) with a discount
     /// schedule. The payout account must already be registered with the USDC contract
     /// (`storage_deposit` there), or the payout fails and `settle` rolls back.
+    #[payable]
     pub fn register_merchant(&mut self, schedule: Schedule, category: String, payout: Option<AccountId>) {
+        let before = env::storage_usage();
         if let Err(e) = schedule.validate() {
             env::panic_str(e);
         }
@@ -164,6 +180,9 @@ impl Bazaar {
         let payout = payout.unwrap_or_else(|| merchant.clone());
         self.merchants.insert(merchant.clone(), Merchant { payout: payout.clone(), category: category.clone(), schedule });
         emit("merchant_registered", serde_json::json!({ "merchant": merchant, "category": category, "payout": payout }));
+        // store:: collections write on flush; flush now so the storage delta is measurable.
+        self.merchants.flush();
+        charge_storage(before);
     }
 
     pub fn merchant(&self, merchant: AccountId) -> Option<Merchant> {
@@ -183,8 +202,10 @@ impl Bazaar {
 
     /// Submit a signed verdict. Called by the agent named in the envelope's `cnf`.
     /// Rejects: bad envelope, unknown key, bad signature, expired, agent mismatch, and a
-    /// nullifier that is already pending or spent.
+    /// nullifier that is already pending or spent. The caller pays the storage of the record.
+    #[payable]
     pub fn submit_verdict(&mut self, verdict: SignedVerdict) {
+        let before = env::storage_usage();
         let e = &verdict.envelope;
         if let Err(msg) = e.validate() {
             env::panic_str(msg);
@@ -221,6 +242,8 @@ impl Bazaar {
                 "tcb_status": e.attestation.tcb_status,
             }),
         );
+        self.verdicts.flush();
+        charge_storage(before);
     }
 
     pub fn nullifier_status(&self, nullifier: String) -> NullifierStatus {

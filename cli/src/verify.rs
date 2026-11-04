@@ -4,7 +4,7 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::Path;
 use std::process::ExitCode;
 
-use bookerbob_bazaar::{Bazaar, NullifierStatus, ESCROW_STORAGE_DEPOSIT};
+use bookerbob_bazaar::{Bazaar, NullifierStatus, ESCROW_STORAGE_DEPOSIT, RECORD_DEPOSIT};
 use bookerbob_core::envelope::commitment;
 use bookerbob_core::{derive, quote, referee, sha256_hex, Claim, ProofSet, RefereeOutcome, SigAlg, SignedVerdict};
 use near_sdk::json_types::U128;
@@ -128,7 +128,7 @@ pub fn run(dir: &Path) -> ExitCode {
     c.register_issuer(v_ed.key_id(), "fixture ed25519 issuer".into());
     c.register_issuer(v_p256.key_id(), "fixture p256 issuer".into());
     for m in &merchants {
-        as_caller(&m.account, None);
+        as_caller(&m.account, Some(RECORD_DEPOSIT));
         c.register_merchant(m.schedule.clone(), m.category.clone(), None);
     }
     as_caller(&e.cnf, Some(ESCROW_STORAGE_DEPOSIT));
@@ -141,14 +141,14 @@ pub fn run(dir: &Path) -> ExitCode {
         format!("{} merchants, escrow {} USDC base units", merchants.len(), ESCROW_USDC),
     );
 
-    as_caller(&e.cnf, None);
+    as_caller(&e.cnf, Some(RECORD_DEPOSIT));
     let sub = call(|| c.submit_verdict(v_ed.clone()));
     r.check(
         sub.is_ok() && c.nullifier_status(e.nullifier.clone()) == NullifierStatus::Pending,
         "contract accepts ed25519 verdict (env::ed25519_verify), nullifier pending",
         sub.err().unwrap_or_default(),
     );
-    as_caller(&v_p256.envelope.cnf, None);
+    as_caller(&v_p256.envelope.cnf, Some(RECORD_DEPOSIT));
     let sub = call(|| c.submit_verdict(v_p256.clone()));
     r.check(sub.is_ok(), "contract accepts p256 verdict (env::p256_verify, low-S)", sub.err().unwrap_or_default());
 
@@ -195,7 +195,7 @@ pub fn run(dir: &Path) -> ExitCode {
     );
 
     // --- replay ---
-    as_caller(&v_replay.envelope.cnf, None);
+    as_caller(&v_replay.envelope.cnf, Some(RECORD_DEPOSIT));
     let replay = call(|| c.submit_verdict(v_replay.clone()));
     let msg = replay.err().unwrap_or_else(|| "accepted".into());
     r.check(
