@@ -1,0 +1,5 @@
+{
+  "note": "synthetic. salt and nullifier labels are fixed so fixtures are reproducible; production uses random salt and the REP nullifier",
+  "salt": "0dadafdf89329df6ef7d699837c2563dc4ba8fe55104f8feb7e74e36cb49a072",
+  "nullifier_label": "fixture-account-1"
+}

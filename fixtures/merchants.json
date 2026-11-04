@@ -1,0 +1,56 @@
+[
+  {
+    "account": "m01.bookerbob.testnet",
+    "label": "shopify test store (UCP)",
+    "schedule": {
+      "base_price": "48000000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1000
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 800
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  },
+  {
+    "account": "m02.bookerbob.testnet",
+    "label": "low base, booking only",
+    "schedule": {
+      "base_price": "42000000",
+      "rules": [
+        {
+          "predicate": "booking_genius",
+          "bps": 1500
+        }
+      ],
+      "cap_bps": 1500
+    }
+  },
+  {
+    "account": "m03.bookerbob.testnet",
+    "label": "travel bundle",
+    "schedule": {
+      "base_price": "50000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1200
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 800
+        }
+      ],
+      "cap_bps": 2500
+    }
+  }
+]

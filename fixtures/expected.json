@@ -1,0 +1,20 @@
+{
+  "derived_predicates": [
+    "airbnb_frequent",
+    "booking_genius",
+    "claude_spender",
+    "world_id_human"
+  ],
+  "tier": "gold",
+  "revealed": [
+    "airbnb_frequent",
+    "claude_spender",
+    "world_id_human"
+  ],
+  "winner": "m01.bookerbob.testnet",
+  "price": "38400000",
+  "discount_bps": 2000,
+  "escrow_after": "11600000",
+  "cheat_refusal": "F9 not in proof set",
+  "replay_error": "nullifier spent"
+}

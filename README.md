@@ -63,10 +63,11 @@ interface exists with a test double; `planned` means not built yet.
 
 | feature | track ids | where | status |
 |---|---|---|---|
-| near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | in progress |
-| `env::ed25519_verify` and `env::p256_verify` host functions on verdict signatures | security, privacy | `contract/src/lib.rs` | in progress |
-| NEP-141 USDC escrow (`ft_on_transfer`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | in progress |
-| NEP-297 events (`settled`, `verdict_submitted`) | realworld | `contract/src/lib.rs` | in progress |
+| near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | built (unit tests, `make verify`), not deployed |
+| `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | built |
+| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | built; payout rollback in `on_settle_transfer` |
+| NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | built |
+| deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | built (19 tests) |
 | SUB-ACCOUNTS: one merchant agent per sub-account | swarms | `agents/` | planned |
 | NEAR AI Cloud private inference and attestation (TEE ATTESTATION) | privacy | `agents/` | planned |
 | OutLayer TDX worker as referee and verification node | security, privacy | `docs/` | planned |
@@ -85,6 +86,22 @@ interface exists with a test double; `planned` means not built yet.
 | `ucp/` | UCP payment handler `xyz.r3p.near_usdc` |
 | `fixtures/` | synthetic, deterministic inputs and expected outputs |
 | `docs/` | envelope spec, ideas, design notes |
+
+## What `make verify` checks, and what is mocked
+
+`cli/src/verify.rs` runs 17 checks in order: proof set hash, tier from proven fields,
+revealed subset, commitment opening, envelope shape, ed25519 and p256 signatures
+off-chain, then the real `bazaar` contract code against near-sdk's MockedBlockchain
+(host functions run through nearcore's VM logic): enclave keys, merchants, escrow, verdict
+submission with both signature schemes, code-computed quotes, the referee (honest receipt,
+injected claim refused with `F9 not in proof set`), settle (escrow debit, nullifier burn,
+`settled` event, `ft_transfer` receipt to USDC), and the replay from another wallet
+(`nullifier spent`).
+
+Mocked or synthetic today: the proof set and attestation report (synthetic fixtures), the
+issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, no live
+RPC), and the USDC transfer (a scheduled receipt, not executed). `make fixtures-check`
+proves the committed fixtures are exactly what the generator produces.
 
 ## Threat model and trust
 

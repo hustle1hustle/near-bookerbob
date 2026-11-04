@@ -1,0 +1,39 @@
+{
+  "facts": [
+    {
+      "id": "F1",
+      "platform": "airbnb",
+      "field": "trips_12m",
+      "value": 7,
+      "proof_ref": "c91eb2d2feceef191ab708f73b82a613df8c182733909eb60a73e7bd3aff3ff8"
+    },
+    {
+      "id": "F2",
+      "platform": "booking",
+      "field": "genius_level",
+      "value": 2,
+      "proof_ref": "57f443ab93a9cba22357072edc0546d32f71d277ca0057c2f7d58bb4ca403a54"
+    },
+    {
+      "id": "F3",
+      "platform": "anthropic",
+      "field": "monthly_spend_usd",
+      "value": 120,
+      "proof_ref": "2806f7adcf66998264edcec84a208d486ce01ad8537cdc10eea6372eb0661018"
+    },
+    {
+      "id": "F4",
+      "platform": "uber",
+      "field": "trips_90d",
+      "value": 4,
+      "proof_ref": "f03eb448d110f1f5b0506393e00276412897887f1428e36b4907c8cb00c16a05"
+    },
+    {
+      "id": "F5",
+      "platform": "world_id",
+      "field": "verified",
+      "value": 1,
+      "proof_ref": "e1297d1e2889fa0738bf2aec578a15691057257f49cdf61b219e121c0ae8fab3"
+    }
+  ]
+}

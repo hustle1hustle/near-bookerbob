@@ -1,0 +1,27 @@
+{
+  "envelope": {
+    "v": 0,
+    "context": "bookerbob:v0:demo-hoodie",
+    "nullifier": "a0cc6f6f335248fd3a1fdb3f2f28da4b634434003d29e85fa316e5c3cda6319a",
+    "commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
+    "proof_hash": "fd14aaf2c1ced63226cd3ffd1fa20c07d0bbe77ef0f3b9a39d822b9c136df196",
+    "predicates": [
+      "airbnb_frequent",
+      "claude_spender",
+      "world_id_human"
+    ],
+    "tier": "gold",
+    "attestation": {
+      "model": "z-ai/glm-5.3-flash",
+      "tcb_status": "fixture",
+      "report_hash": "53059c31fad3e7bc2b122ade646be0e9df702aff422301a46bdb57e316fc391e"
+    },
+    "cnf": "agent.bookerbob.testnet",
+    "max_spend": "45000000",
+    "issued_at_ms": 1793793600000,
+    "expires_at_ms": 1794700740000
+  },
+  "alg": "p256",
+  "issuer_key": "033590dcd84a77bf803cc9db9c12cc529b462090407c3ce16e4eeb15231e87a722",
+  "signature": "2dc60b844868086944a1c985b82c15920874940916bbe81979975a81f473ee6a1c50602534403f8f53d936c6a6ec1b403087697167e6f86cc972d99b92f43600"
+}

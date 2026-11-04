@@ -1,0 +1,27 @@
+{
+  "envelope": {
+    "v": 0,
+    "context": "bookerbob:v0:demo-hoodie",
+    "nullifier": "1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e",
+    "commitment": "6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d",
+    "proof_hash": "fd14aaf2c1ced63226cd3ffd1fa20c07d0bbe77ef0f3b9a39d822b9c136df196",
+    "predicates": [
+      "airbnb_frequent",
+      "claude_spender",
+      "world_id_human"
+    ],
+    "tier": "gold",
+    "attestation": {
+      "model": "z-ai/glm-5.3-flash",
+      "tcb_status": "fixture",
+      "report_hash": "53059c31fad3e7bc2b122ade646be0e9df702aff422301a46bdb57e316fc391e"
+    },
+    "cnf": "wallet2.bookerbob.testnet",
+    "max_spend": "45000000",
+    "issued_at_ms": 1793793600000,
+    "expires_at_ms": 1794700740000
+  },
+  "alg": "ed25519",
+  "issuer_key": "bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d",
+  "signature": "0ef727274ce5550737807a1174f591cb6da75d14fbf45d78ed0a7acdcf0a26db7f52cb9dc9858b9becf7996a76c26f82415e8b94e4a99f26202fa5d8fdfc310c"
+}

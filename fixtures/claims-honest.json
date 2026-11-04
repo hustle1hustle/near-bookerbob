@@ -1,0 +1,23 @@
+[
+  {
+    "line": "claude_spender",
+    "text": "spends on claude every month",
+    "citations": [
+      "F3"
+    ]
+  },
+  {
+    "line": "world_id_human",
+    "text": "one human, one agent",
+    "citations": [
+      "F5"
+    ]
+  },
+  {
+    "line": "airbnb_frequent",
+    "text": "frequent traveller",
+    "citations": [
+      "F1"
+    ]
+  }
+]
