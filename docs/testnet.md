@@ -305,7 +305,7 @@ refused, "timelock: not ready yet" ([75Fpspqo…](https://testnet.nearblocks.io/
 ([65emi7CK…](https://testnet.nearblocks.io/txns/65emi7CKxmByEPhjhFJpEzka2hTNBDZF4mEU5dsY2mPZ)). A watcher has the whole delay to object; the owner can cancel. The live
 bazaar runs the same code with no delay set.
 
-Not built: the cohort DAO at k >= 5 from the panel's action 9.
+The cohort DAO at k >= 5 (the panel's action 9) is now live as a buying group's own treasury: see "A buying group's own treasury" below (`lisbon-g1.sputnikv2.testnet`).
 
 ## All 30 merchant agents in blind rounds (2026-11-05)
 
