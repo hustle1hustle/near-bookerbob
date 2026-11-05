@@ -163,6 +163,29 @@ a set that separates models by accuracy. Committed before any v4 item is generat
 - **What it is for:** a merchant can require `eval_passes(subject, set_root, threshold)` of
   the model that issued a buyer's verdict (the `eval_gate`, built after this freeze).
 
+## Results v4: 40 harder items at 4,000 tokens (testnet, 2026-11-05, run once)
+
+Set root `af82187494d180ed…` (40 items, 5 with every claim holding, against the frozen "about
+a fifth": reported, not regenerated), committed by its own owner `evalset.bookerbob-demo.testnet`
+[91ZUKXoz…](https://testnet.nearblocks.io/txns/91ZUKXoz78uvTLd4C75LZV8TP83iCmksiqsSuAtH7YyM).
+The generator was committed (`6d23772`) before any model saw an item.
+
+| model | correct | 95% CI | by tier (t4 / t5, of 20) | answered | wrong among answered | no answer (cut at 4,000 tokens) | bucket on chain | certificate |
+|---|---|---|---|---|---|---|---|---|
+| `deepseek-ai/DeepSeek-V4.1-Flash-1017` | 29/40 | 57.5 to 85.0 | 20 / 9 | 29 | 0 | 11 | 70 | [5usqCoLx…](https://testnet.nearblocks.io/txns/5usqCoLxywrSUQNUwp3sXBtnTC4ESEUiFuGqSVH24Fu3) |
+| `z-ai/glm-5.3-flash` | 22/40 | 37.5 to 70.0 | 18 / 4 | 23 | 1 | 17 | 50 | [AWo2iet1…](https://testnet.nearblocks.io/txns/AWo2iet1653akoieAHFgq5v8bYaeXnexbBZ43YMi5MmK) |
+
+- **In the target band:** the top model at 72.5%, inside 40 to 80%.
+- **The set separates the models now,** and t5 is where: DeepSeek 9 of 20, glm 4 of 20.
+- **The first wrong finished answer in any run:** glm, 1 of 23. Across v2 to v4 that is 1 wrong
+  in 244 finished answers. Most misses are still cut replies, now on the 8-claim t5 items, so
+  v4 measures accuracy and endurance together, and the table reports them apart.
+- In the generator, before the set was made: a sample showed the first mistake sat at claim 1 in
+  60% of items, which a model could guess. The placement was made uniform (the first mistake
+  at any of claims 1 to n-1, the others after it) before the one set was generated. Both are in
+  `6d23772`; no model had seen an item.
+- **Cost:** about $0.16 of existing NEAR AI credit; no 402.
+
 ## The calibration set (tuned, not the headline)
 
 The first sealed set (root `758b21ccd7edc046…`) chose the budget. Its 400-token run is also
