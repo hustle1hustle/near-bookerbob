@@ -14,6 +14,9 @@ pub const RULES: &[(&str, &str, u64, &str)] = &[
     ("anthropic", "monthly_spend_usd", 20, "claude_spender"),
     ("steam", "account_age_years", 5, "steam_veteran"),
     ("uber", "trips_90d", 10, "uber_regular"),
+    // Lifetime rides, the count Uber's privacy page serves (the device run). Its own field,
+    // with a higher bar: a lifetime count is never read as a 90-day one.
+    ("uber", "trips_lifetime", 50, "uber_regular"),
     ("world_id", "verified", 1, "world_id_human"),
 ];
 

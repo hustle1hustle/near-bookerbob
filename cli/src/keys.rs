@@ -194,6 +194,21 @@ fn sign_purchase_inner(
     let opening = std::cell::RefCell::new(None);
     let issuer = load_seed(dir, "issuer")?;
     let world = load_seed(dir, "world")?;
+    // BOOKERBOB_REVEAL: the device run reveals the predicate its real fact proves. Every
+    // name must be proven by this proof set; nothing unproven can be revealed.
+    let reveal = match (set, std::env::var("BOOKERBOB_REVEAL").ok()) {
+        (Some(p), Some(list)) => {
+            let proven = bookerbob_core::tier::derive(p).predicates();
+            let mut r: Vec<String> = list.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
+            if let Some(x) = r.iter().find(|x| !proven.contains(x)) {
+                return Err(format!("BOOKERBOB_REVEAL names {x}, which this proof set does not prove"));
+            }
+            r.sort();
+            r.dedup();
+            Some(r)
+        }
+        _ => None,
+    };
     let sign = |agent: &str| {
         let mut e = match set {
             Some(p) => crate::fixtures::envelope_over(agent, p),
@@ -201,6 +216,9 @@ fn sign_purchase_inner(
         };
         if let Some(n) = &nullifier {
             e.nullifier = n.clone();
+        }
+        if let Some(r) = &reveal {
+            e.predicates = r.clone();
         }
         e.issued_at_ms = now_ms;
         e.expires_at_ms = now_ms + 7 * 24 * 3600 * 1000;

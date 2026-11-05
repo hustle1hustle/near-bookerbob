@@ -115,6 +115,13 @@ mod tests {
     }
 
     #[test]
+    fn a_lifetime_uber_count_has_its_own_bar_and_never_reads_as_90_days() {
+        let one = |f: Fact| derive(&ProofSet { facts: vec![f] }).predicates();
+        assert_eq!(one(fact("F4", "uber", "trips_lifetime", 50)), vec!["uber_regular"]);
+        assert!(one(fact("F4", "uber", "trips_lifetime", 49)).is_empty(), "the 90-day bar of 10 does not apply to a lifetime count");
+    }
+
+    #[test]
     fn unknown_field_is_ignored() {
         let set = ProofSet { facts: vec![fact("F1", "marriott", "status", 99)] };
         assert!(derive(&set).derived.is_empty());
