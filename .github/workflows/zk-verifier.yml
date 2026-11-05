@@ -28,6 +28,7 @@ jobs:
           set -eu
           t=x86_64-unknown-linux-gnu
           cp zk/target/release/bookerbob-zk zk/bin/bookerbob-zk-$t
+          strip zk/bin/bookerbob-zk-$t
           xz -9e -kc zk/bin/bookerbob-zk-$t > zk/bin/bookerbob-zk-$t.xz
           echo "$(sha256sum zk/bin/bookerbob-zk-$t.xz | cut -c1-64)  bookerbob-zk-$t.xz" > sha256-$t.txt
           echo "$(sha256sum zk/bin/bookerbob-zk-$t | cut -c1-64)  bookerbob-zk-$t (uncompressed)" >> sha256-$t.txt
@@ -61,6 +62,7 @@ jobs:
           set -eu
           t=aarch64-unknown-linux-gnu
           cp zk/target/release/bookerbob-zk zk/bin/bookerbob-zk-$t
+          strip zk/bin/bookerbob-zk-$t
           xz -9e -kc zk/bin/bookerbob-zk-$t > zk/bin/bookerbob-zk-$t.xz
           echo "$(sha256sum zk/bin/bookerbob-zk-$t.xz | cut -c1-64)  bookerbob-zk-$t.xz" > sha256-$t.txt
           echo "$(sha256sum zk/bin/bookerbob-zk-$t | cut -c1-64)  bookerbob-zk-$t (uncompressed)" >> sha256-$t.txt
