@@ -27,7 +27,14 @@ check "OpenAI-style key (sk-)" '(^|[^a-z])sk-[A-Za-z0-9_-]{20,}'
 check "AWS access key" 'AKIA[0-9A-Z]{16}'
 check "GitHub token" 'gh[pousr]_[A-Za-z0-9]{30,}'
 check "secret assignment with a value" '^\+.*(SECRET|TOKEN|PRIVATE_KEY|API_KEY|PASSWORD)[A-Z_]*=["'"'"']?[A-Za-z0-9_+-][A-Za-z0-9_+/=-]{11,}'
-check "JWT" 'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.'
+# JWTs, except NVIDIA NRAS attestation results (fixtures/live/near-ai/nras.json): those are public
+# signed verdicts about GPUs, not credentials. Any other issuer, or an unreadable token, is a hit.
+grep -oE 'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*' "$tmp/history.txt" | sort -u > "$tmp/jwts.txt" || true
+njwt=$(node -e '
+  const t = require("fs").readFileSync(process.argv[1], "utf8").split("\n").filter(Boolean);
+  const bad = t.filter((j) => { try { return JSON.parse(Buffer.from(j.split(".")[1], "base64url")).iss !== "https://nras.attestation.nvidia.com"; } catch { return true; } });
+  console.log(bad.length);' "$tmp/jwts.txt")
+if [ "$njwt" != 0 ]; then echo "HIT   JWT: $njwt token(s) not issued by NVIDIA NRAS"; hits=$((hits+1)); else echo "ok    JWT (NRAS attestation results excepted: $(wc -l < "$tmp/jwts.txt" | tr -d ' ') public tokens)"; fi
 if [ -d "$SECRETS_DIR" ]; then
   # Every value of 16+ chars in the secrets dir: whole seed files and KEY=value values.
   # Secret files only: seeds, Semaphore secrets, env files, keys, tokens, and fly/notary
