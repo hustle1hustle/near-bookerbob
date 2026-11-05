@@ -35,6 +35,13 @@ const m = {
   blind_round: prev.blind_round ?? null,
   fee: prev.fee ?? null,
   eval: prev.eval ?? null,
+  group_dao: (() => {
+    const f = join(c.testersDir, "group-dao-state.json");
+    if (!existsSync(f)) return prev.group_dao ?? null;
+    const g = JSON.parse(readFileSync(f, "utf8"));
+    if (!g.result?.released) return prev.group_dao ?? null;
+    return { dao: g.dao, group: g.group, offer: { merchant: g.offer[0], bps: g.offer[1], price: g.offer[2] }, dropout: g.dropout, members: g.members.map((m) => ({ tester: m.tester, nullifier: m.nullifier, intent: m.txs.intent, pledge: m.txs.pledge })), txs: g.txs };
+  })(),
   groups: (() => {
     const f = join(c.testersDir, "group-state.json");
     if (!existsSync(f)) return prev.groups ?? [];

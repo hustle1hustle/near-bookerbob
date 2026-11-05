@@ -324,6 +324,16 @@
     ]
   },
   {
+    "feature": "a buying group's own treasury: a Sputnik DAO created per group, its council the members; each member pledges the tier price, which stays in the bazaar under the group; only a passed DAO proposal refunds a member or pays the merchant, never below the tier's member count",
+    "tracks": "social, swarms, security",
+    "where": "`contract/src/lib.rs` (`bind_group_treasury`, `pledge_group_demo`, `refund_group`, `release_group`), `scripts/group-dao.mjs`",
+    "status": "live",
+    "detail": "`lisbon-g1.sputnikv2.testnet`: 6 World-bound hotel buyers, h05's 10% offer (367.20 each), one dropout refunded by proposal, 5 pledges released to h05 by a second proposal (1817.64 dUSDC after the 1% fee), a direct release refused; 6 contract tests",
+    "evidence": [
+      "group_dao"
+    ]
+  },
+  {
     "feature": "market fee into a DAO treasury: at most 2%, taken from the price (merchant + fee = price), in the liability record, given back on a failed payout, swept by anyone to the treasury; a raise waits out the anchor timelock",
     "tracks": "business, social, security",
     "where": "`contract/src/lib.rs` (`set_fee`, `sweep_fees`)",

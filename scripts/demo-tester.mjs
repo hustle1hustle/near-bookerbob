@@ -232,7 +232,7 @@ export class Demo {
       const budget = String(BigInt(rec.price) + 5_000_000n);
       writeFileSync(join(dir, "budget.secret"), `${budget} ${salt}\n`, { mode: 0o600 });
       const commitment = createHash("sha256").update(`${budget}|${salt}`).digest("hex");
-      const r = await this.relay("post_intent", tester, c.bazaar, fc("post_intent", { nullifier: rec.nullifier, category: "hoodie", budget_commitment: commitment }, 20n * MILLI));
+      const r = await this.relay("post_intent", tester, c.bazaar, fc("post_intent", { nullifier: rec.nullifier, category: opts.category ?? "hoodie", budget_commitment: commitment }, 20n * MILLI));
       rec.txs.intent = r.hash;
       rec.group = r.value ?? (await this.client.view(c.bazaar, "group_of", { nullifier: rec.nullifier }));
       save();
@@ -294,7 +294,7 @@ export class Demo {
    *  member pays the group price. */
   /** One purchase from a hotel merchant (h01..h08): the same calls as the hoodie run, with the
    * hotel's schedule for the referee and a 500 dUSDC mint so the tester can escrow a stay. */
-  async hotel(merchant = `h05.${this.c.bazaar}`) {
+  async hotel(merchant = `h05.${this.c.bazaar}`, opts = {}) {
     const m = JSON.parse(readFileSync("agents/merchants.json", "utf8")).find((x) => x.account === merchant && x.category === "hotel-lisbon");
     if (!m) throw new Error(`${merchant} is not a hotel merchant`);
     const fx = join(this.c.testersDir, "hotel-fixtures");
@@ -304,7 +304,7 @@ export class Demo {
     this.c = { ...this.c, merchant: m.account, category: "hotel" };
     // The verdict's cap must cover a stay (the fixture cap is 45 dUSDC; settle refuses above it).
     process.env.BOOKERBOB_MAX_SPEND = "450000000";
-    const rec = await this.run({ fixturesDir: fx, mint: 500_000_000 }).finally(() => delete process.env.BOOKERBOB_MAX_SPEND);
+    const rec = await this.run({ fixturesDir: fx, mint: 500_000_000, ...opts }).finally(() => delete process.env.BOOKERBOB_MAX_SPEND);
     rec.category = "hotel-lisbon";
     rec.merchant = m.account;
     writeFileSync(join(this.c.testersDir, `${rec.tester}.json`), JSON.stringify(rec, null, 2) + "\n");

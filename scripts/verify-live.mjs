@@ -244,6 +244,23 @@ for (const g of m.groups ?? []) {
     return [grp.persons >= 5 && grp.offer?.[1] === 1000 && txs.every((t) => t.ok && t.delegated) && same, `${grp.members.length} members, ${grp.persons} persons, offer ${grp.offer?.[0]?.split(".")[0]} at tier ${grp.offer?.[1] / 100}%; every settled amount ${Number(g.offer.price) / 1e6}`];
   });
 }
+if (m.group_dao) {
+  const gd = m.group_dao;
+  await attempt(`group treasury ${gd.dao}: its council is the ${gd.members.length} members; the pot stayed in the bazaar until DAO proposals refunded the dropout and paid ${gd.offer.merchant.split(".")[0]}; a direct release was refused`, async () => {
+    const [pol, t, refused, refund, release] = await Promise.all([view(gd.dao, "get_policy", {}), view(m.bazaar, "group_treasury", { group: gd.group }), tx(gd.txs.direct_release_refused, m.treasury), tx(gd.txs.refund_vote4, gd.members[3].tester), tx(gd.txs.release_vote4, gd.members[3].tester)]);
+    const council = pol.roles.find((r) => r.name === "council").kind.Group;
+    const ev = (r, name) => events(r.logs).find((e) => e.event === name)?.data?.[0];
+    const rel = ev(release, "group_release");
+    const ft = events(release.logs).find((e) => e.standard === "nep141" && e.event === "ft_transfer" && e.data[0].new_owner_id === gd.offer.merchant);
+    const want = gd.members.length - 1;
+    const ok = council.length === gd.members.length && gd.members.every((x) => council.includes(x.tester))
+      && t.pledged.length === gd.members.length && t.refunded.length === 1 && t.released
+      && !refused.ok && /only the group's treasury DAO/.test(refused.error)
+      && ev(refund, "group_refund")?.nullifier === gd.members.at(-1).nullifier
+      && rel?.pledges === want && ft && ft.data[0].amount === rel.amount;
+    return [ok, `${t.pledged.length} pledged, 1 refunded, ${want} released: ${Number(rel?.amount ?? 0) / 1e6} dUSDC to ${gd.offer.merchant.split(".")[0]}`];
+  });
+}
 if (m.fee) {
   const f = m.fee;
   await attempt(`market fee ${f.bps / 100}%: the merchant got the price minus the fee, the fee was swept to the DAO treasury`, async () => {

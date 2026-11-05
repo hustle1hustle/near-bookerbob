@@ -2528,7 +2528,7 @@ mod buying_groups {
     const DUSDC: &str = "dusdc.bazaar.testnet";
 
     /// `n` buyers, each its own World person, each with a verdict and an m01 receipt, dUSDC in escrow.
-    fn buyers(n: u8) -> (Bazaar, Vec<(String, String)>) {
+    pub(super) fn buyers(n: u8) -> (Bazaar, Vec<(String, String)>) {
         let mut c = setup();
         set_no_deposit("owner.testnet");
         c.set_demo_token(acc(DUSDC));
@@ -2548,7 +2548,7 @@ mod buying_groups {
         (c, out)
     }
 
-    fn join(c: &mut Bazaar, b: &[(String, String)]) -> String {
+    pub(super) fn join(c: &mut Bazaar, b: &[(String, String)]) -> String {
         let mut key = String::new();
         for (agent, n) in b {
             set(agent);
@@ -2999,5 +2999,92 @@ mod anchors_all_timelocked {
         c.remove_issuer(k.clone());
         assert!(!c.issuers().iter().any(|(x, _)| x == &k), "a stolen key can be cut at once");
         assert!(c.pending_anchor(1).is_none());
+    }
+}
+
+/// Panel round 3, action 8: a buying group's own Sputnik treasury. The pot stays in the
+/// bazaar; only the group's DAO (a passed proposal) pays the merchant or refunds a member.
+mod group_treasury {
+    use super::buying_groups::{buyers, join};
+    use super::*;
+    const DAO: &str = "lisbon-g1.sputnikv2.testnet";
+
+    /// 6 members, an m01 offer at 10%, the DAO bound, every member pledged.
+    fn pledged() -> (Bazaar, Vec<(String, String)>, String, u128) {
+        let (mut c, b) = buyers(6);
+        let key = join(&mut c, &b);
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key.clone(), 1000);
+        let price = c.buying_group(key.clone()).unwrap().offer.unwrap().2 .0;
+        set(&b[0].0);
+        c.bind_group_treasury(key.clone(), acc(DAO));
+        for (i, (agent, n)) in b.iter().enumerate() {
+            set(agent);
+            c.pledge_group_demo(n.clone(), format!("g-{i}"), U128(price));
+        }
+        (c, b, key, price)
+    }
+
+    #[test]
+    fn pledges_stay_in_the_bazaar_until_the_dao_releases_them() {
+        let (mut c, b, key, price) = pledged();
+        let t = c.group_treasury(key.clone()).unwrap();
+        assert_eq!((t.pledged.len(), t.released), (6, false));
+        assert_eq!(c.nullifier_status(b[0].1.clone()), NullifierStatus::Spent);
+        assert!(near_sdk::test_utils::get_created_receipts().iter().all(|r| r.receiver_id.as_str() != "dusdc.bazaar.testnet"), "no transfer at pledge");
+        set_no_deposit(DAO);
+        c.refund_group(key.clone(), b[5].1.clone());
+        assert_eq!(c.demo_escrow_of(acc(&b[5].0)), Some(U128(200_000_000)), "the dropout got its pledge back");
+        let _ = c.release_group(key.clone());
+        assert!(c.group_treasury(key).unwrap().released);
+        let logs = get_logs().join("\n");
+        assert!(logs.contains("group_release") && logs.contains(&format!("\"amount\":\"{}\"", 5 * price)), "{logs}");
+    }
+
+    #[test]
+    #[should_panic(expected = "only the group's treasury DAO")]
+    fn payout_is_refused_without_the_dao_proposal() {
+        let (mut c, b, key, _) = pledged();
+        set_no_deposit(&b[0].0);
+        let _ = c.release_group(key);
+    }
+
+    #[test]
+    #[should_panic(expected = "only the group's treasury DAO")]
+    fn a_refund_is_refused_without_the_dao_proposal() {
+        let (mut c, b, key, _) = pledged();
+        set_no_deposit("owner.testnet");
+        c.refund_group(key, b[1].1.clone());
+    }
+
+    #[test]
+    #[should_panic(expected = "fewer standing pledges than the tier needs")]
+    fn the_dao_cannot_release_below_the_tier() {
+        let (mut c, b, key, _) = pledged();
+        set_no_deposit(DAO);
+        c.refund_group(key.clone(), b[4].1.clone());
+        c.refund_group(key.clone(), b[5].1.clone());
+        let _ = c.release_group(key);
+    }
+
+    #[test]
+    #[should_panic(expected = "only a group member binds its treasury")]
+    fn an_outsider_cannot_bind_the_treasury() {
+        let (mut c, b) = buyers(5);
+        let key = join(&mut c, &b);
+        set("outsider.testnet");
+        c.bind_group_treasury(key, acc(DAO));
+    }
+
+    #[test]
+    #[should_panic(expected = "the group has no treasury DAO yet")]
+    fn no_pledge_before_a_treasury_is_bound() {
+        let (mut c, b) = buyers(5);
+        let key = join(&mut c, &b);
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key.clone(), 1000);
+        let price = c.buying_group(key).unwrap().offer.unwrap().2;
+        set(&b[0].0);
+        c.pledge_group_demo(b[0].1.clone(), "g".into(), price);
     }
 }

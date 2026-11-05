@@ -341,7 +341,7 @@ member paid the receipt price minus 10%, gasless through the relayer:
 `make leak` L6 (the amount oracle): before, the six single buyers split into two amounts, 3
 each, so an amount narrowed a buyer to 3 people; the five group members share one amount
 (32.40), so an amount narrows a member only to the group (5). Single buyers are unchanged.
-Not built: a DAO sub-account holding the group's escrow (each member pays from its own
+Superseded below ("A buying group's own treasury"): a Sputnik DAO per group now holds the release. Before it: each member paid from its own
 escrow today), and the 20% tier has not been reached live.
 
 ## Market fee into the DAO treasury (2026-11-05)
@@ -444,3 +444,31 @@ escrow stays in the bazaar. The second tester's verdict was issued with a 450 ca
 
 Shopify test store order #1063 carries the settle tx. `make verify-live` re-derives it with the
 other single buyers.
+
+## A buying group's own treasury: `lisbon-g1.sputnikv2.testnet` (2026-11-05)
+
+Panel round 3, action 8. `node scripts/group-dao.mjs run`, bazaar redeploy
+[EBZtZ1aS…](https://testnet.nearblocks.io/txns/EBZtZ1aSAnXZEbhCCRqxTuSu7ziKKfCn9SWAt94qsuHy).
+
+- Six fresh testers, each its own World person with a verdict (cap 450), posted sealed intents
+  for the 3-night Lisbon stay: one group, k = 6 distinct persons.
+- h05 offered the 10% tier, 367.20 per member: [4A5MP8Mc…](https://testnet.nearblocks.io/txns/4A5MP8McZ5FruRKYA5JpvAcfy83jGNoADAJ71jF6hBLo).
+- The relayer account created `lisbon-g1.sputnikv2.testnet` from the Sputnik factory, its council the six members,
+  threshold half the council (4 of 6 votes): [CVRRvZfP…](https://testnet.nearblocks.io/txns/CVRRvZfP9Db5YV2baECiPiFxrGmTYa7n87SZzXsvW1bn).
+- A member bound the group to it: [9Tmbq7kp…](https://testnet.nearblocks.io/txns/9Tmbq7kp49FwdXmBapUcRjrhHe2cHQGkgGwEYy4HP5tR). Every member pledged 367.20; the pledges stay
+  in the bazaar under the group (no transfer at pledge).
+- A direct `release_group` from a non-DAO account was refused, `only the group's treasury DAO`:
+  [43LSL9pa…](https://testnet.nearblocks.io/txns/43LSL9paPGWFyuTFadRptfWXo93VAXzDB4BhnqGJTrUi).
+- One member dropped out. Proposal one, `refund_group`: [G3PWFFb8…](https://testnet.nearblocks.io/txns/G3PWFFb8zT71GHGs4sgWuNW6Aj1xaCYNGnGEPPfdKwP3), executed on
+  the 4th member vote [9Km9TEEk…](https://testnet.nearblocks.io/txns/9Km9TEEkuPLYwfw2eZhxKJmaMgDJnGstqZQ1ZBc776eU); its 367.20 went back to its escrow.
+- Proposal two, `release_group`: [4c3Fak46…](https://testnet.nearblocks.io/txns/4c3Fak46KUzETzisQcTgXPRRkLnv8DEkRctVX6TkEMeS), executed on the 4th vote
+  [5A8LgNQn…](https://testnet.nearblocks.io/txns/5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A): one transfer of 1817.64 dUSDC to h05 (5 x 367.20 minus the 1% fee).
+
+Members voted with their own keys; each voter got 0.5 testnet NEAR from the relayer account for
+the 300 Tgas prepay. `make verify-live` checks the council, the treasury record (6 pledged, 1
+refunded, released), the refused direct release, the refund event and the release transfer.
+
+What is not done: the bazaar does not check that the DAO's council is the group's members (a
+member binds it once, before any pledge, and pledging is consent to that DAO). The pot is held
+by the bazaar, not by the DAO account, so the DAO controls only release and refund. No board
+view of the group's k yet.

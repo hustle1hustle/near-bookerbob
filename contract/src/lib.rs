@@ -478,6 +478,22 @@ pub struct BuyingGroup {
     pub offer: Option<(AccountId, u16, U128)>,
 }
 
+/// A buying group's own treasury: a Sputnik DAO (its council the members) that alone can pay
+/// the pledged pot to the merchant or refund a member. The pot stays in the bazaar.
+#[near(serializers = [borsh, json])]
+#[derive(Clone, Debug, Default)]
+pub struct GroupTreasury {
+    pub dao: Option<AccountId>,
+    /// (member nullifier, amount pledged at the tier price), in pledge order.
+    pub pledged: Vec<(String, U128)>,
+    pub refunded: Vec<String>,
+    pub released: bool,
+}
+
+fn group_treasuries() -> LookupMap<String, GroupTreasury> {
+    LookupMap::new(b"Y")
+}
+
 // ---------- market fee into a treasury ----------
 
 /// The most the owner may set as the market fee: 2%.
@@ -1420,6 +1436,128 @@ impl Bazaar {
             .with_static_gas(GAS_FT_TRANSFER)
             .ft_transfer(m.payout.clone(), U128(price - settle_fees().get(&nullifier).copied().unwrap_or(0)), Some(format!("bookerbob:{checkout_ref}")))
             .then(Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_settle_transfer(nullifier, agent, U128(price), Some(true)))
+    }
+
+    /// A member names the group's treasury DAO, once, before anyone pledges. Pledging is
+    /// consent to it: a member who distrusts the DAO does not pledge.
+    #[payable]
+    pub fn bind_group_treasury(&mut self, group: String, dao: AccountId) {
+        let before = env::storage_usage();
+        let g = groups().get(&group).cloned().unwrap_or_else(|| env::panic_str("unknown group"));
+        let me = env::predecessor_account_id();
+        require!(g.members.iter().any(|n| self.verdicts.get(n).is_some_and(|v| v.agent == me)), "only a group member binds its treasury");
+        let mut ts = group_treasuries();
+        let mut t = ts.get(&group).cloned().unwrap_or_default();
+        require!(t.dao.is_none(), "the group already has a treasury");
+        t.dao = Some(dao.clone());
+        ts.insert(group.clone(), t);
+        ts.flush();
+        emit("group_treasury_bound", serde_json::json!({ "group": group, "dao": dao }));
+        charge_storage(before);
+    }
+
+    /// A member pledges the group's offer in the demo token: the same checks and nullifier burn
+    /// as `settle_group_demo`, but the amount stays in the bazaar under the group until its DAO
+    /// releases it to the merchant or refunds the member.
+    #[payable]
+    pub fn pledge_group_demo(&mut self, nullifier: String, checkout_ref: String, amount: U128) {
+        let key = intents().get(&nullifier).cloned().unwrap_or_else(|| env::panic_str("no intent for this verdict"));
+        let g = groups().get(&key).cloned().expect("group");
+        let t = group_treasuries().get(&key).cloned().unwrap_or_default();
+        require!(t.dao.is_some(), "the group has no treasury DAO yet");
+        require!(!t.released, "the group's pot was already released");
+        let (merchant, bps, _) = g.offer.clone().unwrap_or_else(|| env::panic_str("no group offer yet"));
+        require!(bps <= group_tier(g.persons), "the group has not reached that tier");
+        let (_, price, _) = self.take_payment_at(&nullifier, &merchant, &checkout_ref, amount, "group-pledge", true, bps);
+        // The record's growth came from its reserve; the pledge entry is the caller's to pay.
+        let before = env::storage_usage();
+        let mut ts = group_treasuries();
+        let mut t = ts.get(&key).cloned().expect("bound");
+        t.pledged.push((nullifier.clone(), U128(price)));
+        ts.insert(key.clone(), t);
+        ts.flush();
+        emit("group_pledge", serde_json::json!({ "group": key, "nullifier": nullifier, "amount": U128(price) }));
+        charge_storage(before);
+    }
+
+    pub fn group_treasury(&self, group: String) -> Option<GroupTreasury> {
+        group_treasuries().get(&group).cloned()
+    }
+
+    fn assert_group_dao(&self, group: &str) -> GroupTreasury {
+        let t = group_treasuries().get(group).cloned().unwrap_or_else(|| env::panic_str("the group has no treasury"));
+        require!(t.dao.as_ref() == Some(&env::predecessor_account_id()), "only the group's treasury DAO");
+        require!(!t.released, "the group's pot was already released");
+        t
+    }
+
+    /// The group's DAO (a passed proposal) refunds one member's pledge to its demo escrow.
+    pub fn refund_group(&mut self, group: String, nullifier: String) {
+        let mut t = self.assert_group_dao(&group);
+        let amount = t.pledged.iter().find(|(n, _)| n == &nullifier).map(|(_, a)| a.0).unwrap_or_else(|| env::panic_str("not a pledge in this group"));
+        require!(!t.refunded.contains(&nullifier), "already refunded");
+        let agent = self.verdicts.get(&nullifier).expect("member verdict").agent.clone();
+        self.credit(&agent, amount, true);
+        let mut sf = settle_fees();
+        if let Some(fee) = sf.remove(&nullifier) {
+            sf.flush();
+            let mut fa = fee_ledger();
+            let v = fa.get("demo").copied().unwrap_or(0).saturating_sub(fee);
+            fa.insert("demo".to_string(), v);
+            fa.flush();
+        }
+        t.refunded.push(nullifier.clone());
+        let mut ts = group_treasuries();
+        ts.insert(group.clone(), t);
+        ts.flush();
+        emit("group_refund", serde_json::json!({ "group": group, "nullifier": nullifier, "amount": U128(amount) }));
+    }
+
+    /// The group's DAO (a passed proposal) pays the pot, minus fees, to the offering merchant in
+    /// one transfer. Refused while fewer pledges stand than the offered tier needs.
+    pub fn release_group(&mut self, group: String) -> Promise {
+        let mut t = self.assert_group_dao(&group);
+        let g = groups().get(&group).cloned().expect("group");
+        let (merchant, bps, _) = g.offer.clone().expect("a pledged group has an offer");
+        let active: Vec<(String, U128)> = t.pledged.iter().filter(|(n, _)| !t.refunded.contains(n)).cloned().collect();
+        let need = GROUP_TIERS.iter().find(|(_, b)| *b == bps).map(|(k, _)| *k).expect("a fixed tier");
+        require!(active.len() as u64 >= need, "fewer standing pledges than the tier needs");
+        let fees = settle_fees();
+        let total: u128 = active.iter().map(|(n, a)| a.0 - fees.get(n).copied().unwrap_or(0)).sum();
+        t.released = true;
+        let mut ts = group_treasuries();
+        ts.insert(group.clone(), t);
+        ts.flush();
+        let payout = self.merchants.get(&merchant).expect("merchant").payout.clone();
+        emit("group_release", serde_json::json!({ "group": group, "merchant": merchant, "pledges": active.len(), "amount": U128(total) }));
+        let token = demo_token_id().unwrap_or_else(|| env::panic_str("no demo token"));
+        ext_ft::ext(token)
+            .with_attached_deposit(NearToken::from_yoctonear(1))
+            .with_static_gas(GAS_FT_TRANSFER)
+            .ft_transfer(payout, U128(total), Some(format!("bookerbob:group:{}", &group[..16])))
+            .then(
+                Self::ext(env::current_account_id()).with_static_gas(GAS_SETTLE_CALLBACK).on_group_release(group, active.into_iter().map(|(n, _)| n).collect()),
+            )
+    }
+
+    /// A failed transfer reopens the pot; a sent one marks every standing pledge paid.
+    #[private]
+    pub fn on_group_release(&mut self, group: String, members: Vec<String>) -> bool {
+        if env::promise_result_checked(0, 64).is_ok() {
+            for n in &members {
+                if let Some(r) = self.verdicts.get_mut(n) {
+                    r.paid = true;
+                }
+            }
+            return true;
+        }
+        let mut ts = group_treasuries();
+        if let Some(t) = ts.get_mut(&group) {
+            t.released = false;
+        }
+        ts.flush();
+        emit("group_release_reverted", serde_json::json!({ "group": group }));
+        false
     }
 
     /// The liability record of a settled purchase (see `liabilities`).

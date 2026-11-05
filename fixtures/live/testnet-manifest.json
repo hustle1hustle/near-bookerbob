@@ -598,6 +598,74 @@
     "certify_tx": "Ek6834cuYYK3s7TKQgUteu9jca2MpTBsvrfy4FgDdAXR",
     "score_bucket": 100
   },
+  "group_dao": {
+    "dao": "lisbon-g1.sputnikv2.testnet",
+    "group": "397774e681c0b40ff194066f3410078e7d14701ae99636c1863fbba0ac9e3b55",
+    "offer": {
+      "merchant": "h05.bookerbob.testnet",
+      "bps": 1000,
+      "price": "367200000"
+    },
+    "dropout": "t-41f2aa.bookerbob-demo.testnet",
+    "members": [
+      {
+        "tester": "t-44d549.bookerbob-demo.testnet",
+        "nullifier": "527e3e62c083f30c7c44b77208efb94927d18760866e1f89ac8e9d04a5109370",
+        "intent": "6QbgoN7eRKgfbzGdD4XkVkFEsD3a4YG2oGz5RJLVPRfT",
+        "pledge": "J4oNS7gexBEHU3BzjZKrKfwAHB4mQqqNXD4at1Nnvjda"
+      },
+      {
+        "tester": "t-7ea3ae.bookerbob-demo.testnet",
+        "nullifier": "a08f535cadd0e161a6d033d95fed9bf110793d0db17618bb62b64c5c8d2c266d",
+        "intent": "7NvpjsQcjnRhcFShSTxtQuKKw4f24YbzWxXGJxhiGoXj",
+        "pledge": "GiezAHh7Vd93BAnQqNvbujfRqq5wHwHXAbJLfVRjxuu5"
+      },
+      {
+        "tester": "t-f29860.bookerbob-demo.testnet",
+        "nullifier": "df47e9324b62e7b21d35fa5aecd26c96ffb5a36690ab84021bbad9785bec5c91",
+        "intent": "ES3sK3hWEY9mi9Gkd659amEEmGAUfpLFD4nD17ns1dH6",
+        "pledge": "3wW5YppFBGNd7mga7mg8cBTjyoCYb8QZMVbLL418M2uB"
+      },
+      {
+        "tester": "t-963c60.bookerbob-demo.testnet",
+        "nullifier": "3554ef565a5c3cb0fb4b97cc107d1d975300edd8b712388ce2bc817247150942",
+        "intent": "GH7khyrFVpvzy8GeFcrg2sGwGSv8QhLKK7k3WNVELWnf",
+        "pledge": "3xG3kjmjuD9Kw9jTY7gnKaXW3Q8pjSZdukjxrZadZ2Kg"
+      },
+      {
+        "tester": "t-93140c.bookerbob-demo.testnet",
+        "nullifier": "4be4e712a72481158414e281f31328ee5876464a1533d97466d87692e52a778a",
+        "intent": "EUiZTZtMzREEnwEA8Po2Zz99tnZnhvXX8mPXMdfoZ8nA",
+        "pledge": "DxxxWgE7qMn5RsyA3jA4jrvef7FucHpm771GUNex7YKU"
+      },
+      {
+        "tester": "t-41f2aa.bookerbob-demo.testnet",
+        "nullifier": "5aa6a39bd7fa1629543f1b4f79ff30cae9663f9aba2c2f6c73c85b6b3b909fc8",
+        "intent": "4L3VeGw9aQRrKkXZALmsXhSUUJr1yoAhRB3nmkTRJD7X",
+        "pledge": "6L3sf6CvccTxeixy8LDTZQJ75MK2sTf8AVDUfYnW5fcp"
+      }
+    ],
+    "txs": {
+      "offer": "4A5MP8McZ5FruRKYA5JpvAcfy83jGNoADAJ71jF6hBLo",
+      "dao": "CVRRvZfP9Db5YV2baECiPiFxrGmTYa7n87SZzXsvW1bn",
+      "bind": "9Tmbq7kp49FwdXmBapUcRjrhHe2cHQGkgGwEYy4HP5tR",
+      "direct_release_refused": "43LSL9paPGWFyuTFadRptfWXo93VAXzDB4BhnqGJTrUi",
+      "refund_proposal": "G3PWFFb8zT71GHGs4sgWuNW6Aj1xaCYNGnGEPPfdKwP3",
+      "fund_44d549": "9rjYh24BreJZseTt6ByRbbTh4eYQcGip8cv1N5516Cg3",
+      "refund_vote1": "GmpmGmDRfuLxBavwES6GW9vauSV9GLh5oCj88gsGWMT",
+      "fund_7ea3ae": "G6i1yg54aMztf9iw5UCLmHmmfhr5jexoyCtyZGeB2v2e",
+      "refund_vote2": "H2RjNeJ4FEnsj7qD69WUMWozzJya49Bf2pbCrzTF5NRx",
+      "fund_f29860": "5mnBEfdcvNpHJVDGBfbpQN8RLEepvo3k2f3k8aXh4UMq",
+      "refund_vote3": "7FytXYZiiCwtF635bHEVvQQRayTALYtg73ffwdR4Cde6",
+      "fund_963c60": "4KDLf9WApTguQ6tnYdeqMTfqehg8H6TMPGiBhyMvsVXp",
+      "refund_vote4": "9Km9TEEkuPLYwfw2eZhxKJmaMgDJnGstqZQ1ZBc776eU",
+      "release_proposal": "4c3Fak46KUzETzisQcTgXPRRkLnv8DEkRctVX6TkEMeS",
+      "release_vote1": "D3ahcEJxP5yh2CokTHibdp4eKnhNJQ1wSeqkoE2QEZeF",
+      "release_vote2": "6pw91Dj9Q2tJZSgkLpaAStXJ5u3HALCpSJsHt7j35MD5",
+      "release_vote3": "AD83DjfZ3BdwcptZ2aC5wf5CwzGkuYLxQEL6tBDbFfhy",
+      "release_vote4": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A"
+    }
+  },
   "groups": [
     {
       "group": "e2c8d23ba724b290cf7fb8437d7f07c36e4b0ae3110e7edc52dc29903b6421de",
