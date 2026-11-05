@@ -1,0 +1,35 @@
+{
+  "bazaar": "bookerbob.testnet",
+  "set_root": "3001d46569c9d36e9ff3168bc193e39f059d728bc6472f3de37de6bd988b8e0b",
+  "n": 120,
+  "budget_tokens": 8000,
+  "threshold": 70,
+  "models": [
+    {
+      "model": "z-ai/glm-5.3-flash",
+      "subject": "z-ai/glm-5.3-flash@8000tok/referee-v5",
+      "gate_subject": "z-ai/glm-5.3-flash@8000tok/referee-v5/ci95-lower",
+      "correct": 88,
+      "wilson95": [
+        64.7873943715014,
+        80.43165964588854
+      ],
+      "truncated": 31,
+      "finished": 89,
+      "passes": false
+    },
+    {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "subject": "deepseek-ai/DeepSeek-V4.1-Flash-1017@8000tok/referee-v5",
+      "gate_subject": "deepseek-ai/DeepSeek-V4.1-Flash-1017@8000tok/referee-v5/ci95-lower",
+      "correct": 91,
+      "wilson95": [
+        67.44968590361366,
+        82.61426675849667
+      ],
+      "truncated": 26,
+      "finished": 94,
+      "passes": false
+    }
+  ]
+}

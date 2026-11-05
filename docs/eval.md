@@ -186,6 +186,38 @@ The generator was committed (`6d23772`) before any model saw an item.
   `6d23772`; no model had seen an item.
 - **Cost:** about $0.16 of existing NEAR AI credit; no 402.
 
+## Results v5: 120 items, the gate on the lower bound (testnet, 2026-11-06)
+
+Protocol: [eval-v5-protocol.md](eval-v5-protocol.md), committed first (`0976bfc`), then the code
+(`5a780a8`) with the set made once. Set root `3001d46569c9d36e…` (120 items, 20 with every
+claim holding), committed by its own owner [9VsgCw8z…](https://testnet.nearblocks.io/txns/9VsgCw8zGuwggfPpS9cvuToGae3iGCauDxyZkHJRkcku) and on the market bazaar too.
+
+| model | correct | Wilson 95% | t4 / t5, of 60 | finished | wrong among finished | cut at 8,000 tokens | point bucket | certified lower bound | passes 70 |
+|---|---|---|---|---|---|---|---|---|---|
+| `deepseek-ai/DeepSeek-V4.1-Flash-1017` | 91/120 | 67.4 to 82.6 | 60 / 31 | 94 | 3 | 26 | 70 | 80/120, bucket 60 [8FVEs6aL…](https://testnet.nearblocks.io/txns/8FVEs6aLiNpWstMxtYDgk1PSuei6ErCbnsJFJCvgzeMR) | **no** |
+| `z-ai/glm-5.3-flash` | 88/120 | 64.8 to 80.4 | 60 / 28 | 89 | 1 | 31 | 70 | 77/120, bucket 60 [AUQLLDWy…](https://testnet.nearblocks.io/txns/AUQLLDWyiqxS2j9v16KMN6eMjQCNWfN9gCMTvbJaarub) | **no** |
+
+- **Neither model passes the frozen 70.** Both land in point bucket 70, the bucket that let a model
+  through on v4, and neither has a lower bound at 70. This is the gap v5 was built to show: a
+  point score of 75 on 120 items does not support a claim of 70 at 95%.
+- **The models do not separate here.** Their intervals overlap almost entirely. v4's gap of 72.5
+  against 55 on 40 items did not hold up at three times the items.
+- **DeepSeek's live pass on `vetted` stands as what it was:** a 70 gate on the v4 point bucket.
+  Under the v5 rule it would be refused. That gate still reads v4; it has not been moved.
+- **Truncation apart:** t4 is finished and right for both, 60 of 60. Every miss on glm but one and
+  26 of DeepSeek's 29 are replies cut on the 8-claim t5 items, even at twice the budget. Among
+  finished answers: DeepSeek 91 of 94 (Wilson 91.0 to 98.9), glm 88 of 89 (93.9 to 99.8).
+- **One restart.** The first attempt died on a network error at glm's 69th of 120 replies, before
+  any reply was graded, so no score was seen. Those replies were not saved and were asked again.
+  The fix (`48f548e`: a longer wait, retries, a private journal of answers) touched no item,
+  prompt or grading. The protocol's "run once" holds for the run that was graded; the 69 aborted
+  replies cost about $0.08.
+- **Cost:** about $0.66 for the graded run, about $0.74 with the aborted one, under the 2 USD cap,
+  existing credit, no 402.
+- **The derived count is not a count of right answers.** In a `/ci95-lower` certificate, `correct`
+  is `floor(n * lower bound)`, and the subject says so; `make eval-verify` recomputes it from the
+  public correct vector.
+
 ## The eval gate: a merchant requires a passing model (testnet, 2026-11-05)
 
 `set_eval_gate({set_root, subject_suffix, threshold})`, called by a registered merchant: a

@@ -432,6 +432,16 @@
     ]
   },
   {
+    "feature": "REP Eval v5: 120 items, protocol committed first, the gate on the Wilson 95% lower bound (threshold 70 fixed before the set), certified apart as `/ci95-lower` with no contract change, truncation reported apart",
+    "tracks": "agents, security, open",
+    "where": "`docs/eval-v5-protocol.md`, `scripts/rep-eval-v2.mjs`, `agents/eval.html`",
+    "status": "live",
+    "detail": "both bazaars: DeepSeek 91/120 (lower bound 67.4), glm 88/120 (64.8): both in point bucket 70, neither passes 70 on the bound; `make eval-verify` recomputes the bound and reads `eval_passes`",
+    "evidence": [
+      "rep_eval"
+    ]
+  },
+  {
     "feature": "NEAR INTENTS / 1Click top-up from any chain",
     "tracks": "realworld, agents",
     "where": "`docs/`",

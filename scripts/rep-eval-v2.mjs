@@ -345,6 +345,17 @@ async function onchain() {
   const ownerKey = keyFromSeed(readFileSync(seedPath, "utf8"));
   const as = (who, key, actions) => send(client, { signer_id: who, key, receiver_id: bazaar, actions });
   pub.set_owner = owner;
+  if (bazaar !== "bookerbob.testnet") {
+    // The same set and certificates on another bazaar (the market): nothing else changes.
+    const rec = ((pub.also ??= {})[bazaar] ??= {});
+    const relayer = keyFromSeed(readFileSync(join(keysDir, "treasury.seed"), "utf8"));
+    rec.commit_set ??= ok(`${bazaar}: commit_eval_set`, await as(owner, ownerKey, [fc("commit_eval_set", { set_root: pub.set_root, n: pub.n, label: `referee-${PROTOCOL}` }, 10n ** 22n)]));
+    for (const [what, certificate, signature] of pub.models.flatMap((m) => [[m.certificate.subject, m.certificate, m.signature], [m.gate.certificate.subject, m.gate.certificate, m.gate.signature]])) {
+      (rec.certificates ??= {})[what] ??= ok(`${bazaar}: ${what}`, await as(c.treasury, relayer, [fc("submit_eval_certificate", { certificate, issuer_key: pub.issuer_key, signature }, 10n ** 22n)]));
+    }
+    writeFileSync(PUBLIC, JSON.stringify(pub, null, 2) + "\n");
+    return;
+  }
   // v3 reuses the v2 set: its root is already committed by the same owner.
   const existing = await client.view(bazaar, "eval_set", { set_root: pub.set_root });
   if (existing && !pub.txs.commit_set && PROTOCOL === "v3") pub.txs.commit_set = JSON.parse(readFileSync("fixtures/live/eval/rep-eval-v2.json", "utf8")).txs.commit_set;
@@ -388,6 +399,9 @@ export async function verifyPublic(pub, view) {
       const signed = issuerSigned(g, m.gate.signature, pub.issuer_key);
       const passes = wilson(k, pub.n)[0] >= m.gate.threshold;
       const onChain = view ? await view(bazaar, "eval_passes", { subject: g.subject, set_root: pub.set_root, threshold: m.gate.threshold }) : passes;
+      for (const other of Object.keys(pub.also ?? {})) {
+        if (view) lines.push([(await view(other, "eval_passes", { subject: g.subject, set_root: pub.set_root, threshold: m.gate.threshold })) === passes && (await view(other, "eval_score", { subject: m.certificate.subject, set_root: pub.set_root })) === m.certificate.score_bucket, `v5 ${m.model} on ${other}: the same score and gate`]);
+      }
       lines.push([signed && g.correct === c && g.score_bucket === bucketOf(c, pub.n) && g.answers_hash === m.certificate.answers_hash && passes === m.gate.passes && onChain === passes, `v5 gate ${m.model}: Wilson lower bound ${wilson(k, pub.n)[0].toFixed(1)}, ${passes ? "passes" : "does not pass"} ${m.gate.threshold}${view ? ", eval_passes on chain agrees" : ""}`]);
     }
     lines.push([ok, `${pub.protocol ?? "v2"} ${m.model}${m.budget_probe ? " (budget probe)" : ""}: ${k}/${pub.n} (CI ${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)}), ${sigs}/${pub.n} TEE signatures valid, ${m.truncated} cut replies graded as no answer${view ? `, eval_score on chain ${chain}, set committed by ${owner?.[2]}` : ""}`]);
