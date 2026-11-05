@@ -72,6 +72,17 @@ for (const [v, what] of [["v2", "600 tokens: the budget result"], ["v3", "2,000 
   line(ev.status === 0, `REP Eval ${v} (referee claims, truth from the referee's code, ${what}): ${v === "v4" ? 2 : 3} certificates, every TEE signature verifies, cut replies graded as no answer` + (online ? ", scores on chain match, set committed by its own owner" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
 }
 
+// 1b. the code both bazaars run is the committed, tagged build (contract/DEPLOYED.json)
+{
+  const dep = JSON.parse(readFileSync(`${root}contract/DEPLOYED.json`, "utf8"));
+  if (online) {
+    const rpcUrl = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
+    const hashOf = async (a) => (await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "view_account", finality: "final", account_id: a } }) }).then((r) => r.json()).catch(() => null))?.result?.code_hash;
+    const hashes = await Promise.all(dep.accounts.map(hashOf));
+    line(hashes.every((h) => h === dep.code_hash), `code parity: ${dep.accounts.join(" and ")} run the tagged build ${dep.tag} (make wasm-parity rebuilds it)`, hashes.map((h, i) => `${dep.accounts[i].split(".")[0]} ${h?.slice(0, 10)}..`).join(", ") + `; DEPLOYED ${dep.code_hash.slice(0, 10)}..`);
+  } else console.log(`SKIP  code parity: no network (DEPLOYED.json names ${dep.code_hash.slice(0, 10)}.., tag ${dep.tag})`);
+}
+
 // 2. committed Jolt artifacts
 const hex = (a) => Buffer.from(a).toString("hex");
 const zk = (g, input) => {

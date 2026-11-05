@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: try site audit audit-all flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: try site audit audit-all wasm-parity flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -54,8 +54,12 @@ market-eval:
 # vendor/SHA256, which also pins Cargo.lock) replace crates.io. Logged run: README "Offline".
 verify-offline:
 	shasum -a 256 -c vendor/SHA256
-	test -d vendor/crates || tar -C vendor -xJf vendor/crates.tar.xz
+	cmp -s vendor/SHA256 vendor/.extracted 2>/dev/null || { tar -C vendor -xJf vendor/crates.tar.xz && cp vendor/SHA256 vendor/.extracted; }
 	$(MAKE) verify CARGO_FLAGS="-j $(JOBS) --offline --config vendor/offline.toml"
+
+# Rebuild the bazaar wasm and compare it with the code both testnet bazaars run (contract/DEPLOYED.json).
+wasm-parity:
+	node scripts/wasm-parity.mjs
 
 # A merchant inflates its base price to fake a discount: refused on testnet (docs/unit-economics.md).
 cheat:

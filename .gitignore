@@ -13,3 +13,4 @@ node_modules/
 /zk/bin/bookerbob-zk-*
 !/zk/bin/*.xz
 /site/
+/vendor/.extracted
