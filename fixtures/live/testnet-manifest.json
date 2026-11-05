@@ -52,6 +52,27 @@
       }
     },
     {
+      "tester": "t-5a162a.bookerbob-demo.testnet",
+      "merchant": "vetted.bookerbob-demo.testnet",
+      "nullifier": "88fa9cbaad539c96e5b331f39611083ffd76fa4c08cec56dd9588e293c6e0a1f",
+      "price": "36000000",
+      "cohort_k": 27,
+      "model_issued": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "shopify_order": "#1071",
+      "txs": {
+        "account": "E8tDwd1v7udorQDejXgDA6ciwZBU6b1f3DnQgVAx8AxL",
+        "mint": "4LmUXbk39zS9LzguE34swAzHnYbhtmd8WfP3Q6XM82mv",
+        "world": "7Qt4y4jRyBxu5ZmSkvpn2JWqzT2HipDCBP65E6pZa3Nr",
+        "verdict": "6fnSf2BcSLFzkzkGnG4gYcTaqPXuTVnf1AGX6LDRL1vd",
+        "receipt": "FZFkqZPxP9RCoYZeEcjRgX17fWE8tvC5HcajwNYdQVco",
+        "escrow": "86PFrSec1jSJXicsAMw56bRYryhbcKBsBVNgAoVtMin5",
+        "settle_failed_unregistered_payout": "6uwDfsaHTNNG8tvWiqY7w48u71YsxBdYFifvuKEmVgJ8",
+        "settle": "7tErgeyMyAn7f79HeY68hr3jyk8LuxbvzTmxFhgLWXw2",
+        "replay": "2QctuDAu5qJew96XnpzmfKmh3endmn4ANznv3zqHrL9Q",
+        "review_join": "9BrEG41S8dzuqqLjiEk91NTo2txiXw4Lf39d1D1teoQE"
+      }
+    },
+    {
       "tester": "t-b1de37.bookerbob-demo.testnet",
       "merchant": "h05.bookerbob.testnet",
       "nullifier": "62eb45b4d76cf237d069c5d4dda961407a4d50c67e08ea62c3bd14bd96ba3c3d",

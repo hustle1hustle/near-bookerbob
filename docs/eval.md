@@ -203,9 +203,15 @@ set_root, threshold)`. `None` clears it. On testnet (`make eval-gate`, also in `
   buyer's verdict through `submit_near_ai_verdict`; the same verdict asked `vetted` for a receipt
   and was refused ("z-ai/glm-5.3-flash@4000tok/referee-v4 does not pass 70"), then bought from
   m01, which has no gate, and settled 36 dUSDC (`fixtures/live/model-buy/run.json`).
-- **Not run live:** a purchase that passes the gate. It needs a model at 70 or more with its key
-  registered on the bazaar; DeepSeek (bucket 70) is not registered. The pass is covered on
-  near-sdk's mocked chain (`certified_eval`: refused under the
+- **The gate passing, live** (`MODEL_BUY_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017 make model-buy`):
+  DeepSeek's key was registered on the bazaar only against its TDX quote verified on chain
+  (`scripts/register-model.mjs`, 5 calls, UpToDate); DeepSeek issued the buyer's verdict; `vetted`
+  took it and settled 36 dUSDC (`fixtures/live/model-buy/passing.json`). The first settle failed
+  because `vetted` had no dUSDC storage registration; it was registered and the settle sent again.
+- **The threshold was chosen after the results.** The 70 on `vetted` was set after the v4 scores
+  were known (DeepSeek 70, glm 50), so this gate shows the mechanism, not a threshold fixed in
+  advance. A v5 freezes the threshold with the protocol, before any run. The pass and the refusal
+  are also covered on near-sdk's mocked chain (`certified_eval`: refused under the
   threshold, accepted at it, an unregistered model key refused, only a registered merchant sets
   a gate, the set must be committed, a cleared gate takes any issuer).
 

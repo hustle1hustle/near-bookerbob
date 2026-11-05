@@ -22,8 +22,12 @@ import { clientKey, edVerify, fieldKey, openWith, sealTo, sha } from "./lib/e2ee
 
 const API = process.env.NEAR_AI_BASE ?? "https://cloud-api.near.ai/v1";
 const CAPTURE = JSON.parse(readFileSync("fixtures/live/near-ai/capture.json", "utf8"));
-const MODEL_KEY = CAPTURE.signing_address;
-const OUT = "fixtures/live/model-buy/run.json";
+// MODEL_BUY_MODEL=<model id>: a model registered with scripts/register-model.mjs; it must pass the
+// eval gate, so the purchase goes to the gated merchant directly (the positive path).
+const PASSING = process.env.MODEL_BUY_MODEL;
+const REG = PASSING ? JSON.parse(readFileSync(`fixtures/live/near-ai/models/${PASSING.replace(/[^A-Za-z0-9.-]+/g, "_")}/run.json`, "utf8")) : null;
+const MODEL_KEY = REG?.signing_key ?? CAPTURE.signing_address;
+const OUT = PASSING ? "fixtures/live/model-buy/passing.json" : "fixtures/live/model-buy/run.json";
 // The rule table the model applies (core/src/tier.rs RULES), as in scripts/near-ai-verdict.mjs.
 const RULES = [
   ["airbnb", "trips_12m", 3, "airbnb_frequent"],
@@ -84,14 +88,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(2);
   }
   const gate = JSON.parse(readFileSync("fixtures/live/eval-gate/run.json", "utf8"));
-  const d = new Demo(c);
+  const gatedDir = join(c.keysDir, "model-buy", "vetted");
+  mkdirSync(gatedDir, { recursive: true, mode: 0o700 });
+  writeFileSync(join(gatedDir, "merchants.json"), JSON.stringify([{ account: gate.merchant, label: "eval-gated merchant", category: "hoodie", schedule: gate.schedule }]));
+  for (const f of ["proofs.json", "claims-honest.json"]) writeFileSync(join(gatedDir, f), readFileSync(join("fixtures", f)));
+  const d = new Demo(PASSING ? { ...c, merchant: gate.merchant } : c);
+  if (PASSING && !(await d.client.view(c.dusdc, "storage_balance_of", { account_id: gate.merchant }))) {
+    // The gated merchant's payout must hold a dUSDC registration, or settle_demo panics.
+    const { keyFromSeed } = await import("../relayer/near.mjs");
+    await d.direct("dUSDC storage_deposit for the gated merchant", c.treasury, keyFromSeed(readFileSync(join(c.keysDir, "treasury.seed"), "utf8")), c.dusdc, [{ type: "FunctionCall", method_name: "storage_deposit", args: { account_id: gate.merchant, registration_only: true }, gas: 30n * 10n ** 12n, deposit: 1250n * 10n ** 18n }]);
+  }
   const out = { note: "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so anyone can open the sealed answer; the sealed request, which holds the facts, stays sealed to the model key." };
   const beforeReceipt = async ({ tester, rec, live, d: demo }) => {
     // The same verdict asks the eval-gated merchant first: refused, glm is under its threshold.
-    const dir = join(c.keysDir, "model-buy", "vetted");
-    mkdirSync(dir, { recursive: true, mode: 0o700 });
-    writeFileSync(join(dir, "merchants.json"), JSON.stringify([{ account: gate.merchant, label: "eval-gated merchant", category: "hoodie", schedule: gate.schedule }]));
-    for (const f of ["proofs.json", "claims-honest.json"]) writeFileSync(join(dir, f), readFileSync(join("fixtures", f)));
+    const dir = gatedDir;
     const q = await demo.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
     const input = execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", "worker-input", dir, join(live, "verdict.json"), String(q?.cohort?.k ?? 0)], { encoding: "utf8" });
     const seed = readFileSync(join(c.keysDir, "referee.seed"), "utf8").trim();
@@ -106,10 +116,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.log("   refused on chain as expected: the model does not pass the gate");
     }
   };
-  const rec = await d.run({ nearAi: (base) => issue(d.client, c.bazaar, base, "fixtures/proofs.json", c.keysDir), beforeReceipt });
+  const rec = await d.run({ nearAi: (base) => issue(d.client, c.bazaar, base, "fixtures/proofs.json", c.keysDir), ...(PASSING ? { fixturesDir: gatedDir } : { beforeReceipt }) });
   const v = await d.client.view(c.bazaar, "verdict", { nullifier: rec.nullifier });
   if (v.issuer !== `near-ai:${MODEL_KEY}`) throw new Error(`the verdict's issuer is ${v.issuer}`);
-  Object.assign(out, { tester: rec.tester, merchant: c.merchant, nullifier: rec.nullifier, price: rec.price, issuer: v.issuer, gate_merchant: gate.merchant, near_ai: rec.near_ai, txs: rec.txs });
+  if (PASSING) out.note = `One testnet purchase at the eval-gated merchant (REP Eval v4 >= ${gate.gate.threshold}), with a verdict ${REG.model} issued; its key was registered against its TDX quote verified on chain (scripts/register-model.mjs). Facts are the synthetic fixture proof set.`;
+  Object.assign(out, { tester: rec.tester, merchant: PASSING ? gate.merchant : c.merchant, nullifier: rec.nullifier, price: rec.price, issuer: v.issuer, gate_merchant: gate.merchant, near_ai: rec.near_ai, txs: rec.txs });
   mkdirSync("fixtures/live/model-buy", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n");
   console.log(`\nmodel-buy: PASS  ${OUT} (issuer ${v.issuer.slice(0, 20)}.., paid ${Number(rec.price) / 1e6} dUSDC)`);

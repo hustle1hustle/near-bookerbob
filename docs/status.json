@@ -24,7 +24,7 @@
     "tracks": "realworld, agents",
     "where": "`contract/src/lib.rs`",
     "status": "live",
-    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 15 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
+    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 16 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
     "evidence": [
       "testers"
     ]
@@ -211,7 +211,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "25 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, one with a verdict a NEAR AI model issued, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
+    "detail": "26 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, two with a verdict a NEAR AI model issued (one refused by an eval gate, one passing it), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -426,7 +426,7 @@
     "tracks": "agents, security, open",
     "where": "`scripts/rep-eval-v2.mjs` (`REP_EVAL_PROTOCOL=v4`), `scripts/eval-gate.mjs`, `contract/src/lib.rs` (`set_eval_gate`), `docs/eval.md`",
     "status": "live",
-    "detail": "v4 on testnet: DeepSeek-V4.1-Flash 29/40 (bucket 70), glm-5.3-flash 22/40 (bucket 50, the first wrong finished answer in any run); `vetted` gates on v4 at 70, an ordinary verdict's receipt was refused on chain; a glm-issued verdict was refused by the gate and bought from m01 instead (`make model-buy`); a purchase that passes the gate needs a model at 70 or more registered (DeepSeek is not); `make eval-gate`, `make eval-verify`",
+    "detail": "v4 on testnet: DeepSeek-V4.1-Flash 29/40 (bucket 70), glm-5.3-flash 22/40 (bucket 50, the first wrong finished answer in any run); `vetted` gates on v4 at 70, an ordinary verdict's receipt was refused on chain; a glm-issued verdict was refused by the gate and bought from m01 instead (`make model-buy`); DeepSeek, its key registered against its on-chain TDX verification, passed the gate and bought from `vetted` (`MODEL_BUY_MODEL=... make model-buy`); the 70 was set after the v4 scores; `make eval-gate`, `make eval-verify`",
     "evidence": [
       "rep_eval"
     ]

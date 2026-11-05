@@ -48,12 +48,16 @@ if (v.issuer.startsWith("near-ai:")) {
   const key = v.issuer.slice(8);
   const att = await client.view(bazaar, "model_attestation", { signing_key: key });
   const verifier = await client.view(bazaar, "quote_verifier", {});
-  const spike = JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8"));
+  // The key's own verification: a model registered with scripts/register-model.mjs, or the first one (tools/dcap-spike).
+  const { readdirSync, existsSync } = await import("node:fs");
+  const regDir = "fixtures/live/near-ai/models";
+  const reg = existsSync(regDir) ? readdirSync(regDir).map((d) => `${regDir}/${d}/run.json`).filter(existsSync).map((f) => JSON.parse(readFileSync(f, "utf8"))).find((r) => r.signing_key === key) : null;
+  const spike = reg ? { real: { id: reg.verification_id } } : JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8"));
   const ver = verifier ? await client.view(verifier, "verification", { id: spike.real.id }) : null;
   const rd = ver?.[1]?.split(" ")[1] ?? "";
   line(Boolean(att) && ver?.[0] === "verified" && rd.startsWith(key) && att.tcb_status === ver[1].split(" ")[0], "the model key: registered on the bazaar against its TDX quote, verified on chain", `${att?.model}, ${verifier}, verification ${spike.real.id.slice(0, 12)}.. ${ver?.[0]} ${att?.tcb_status}, report_data starts with the key`);
-  const mb = JSON.parse(readFileSync("fixtures/live/model-buy/run.json", "utf8"));
-  if (mb.nullifier === nullifier) {
+  const mb = ["run", "passing"].map((f) => `fixtures/live/model-buy/${f}.json`).filter(existsSync).map((f) => JSON.parse(readFileSync(f, "utf8"))).find((x) => x.nullifier === nullifier);
+  if (mb) {
     const t = await client.rpc("tx", { tx_hash: mb.txs.verdict, sender_account_id: m.treasury, wait_until: "FINAL" });
     const d = t.result.transaction.actions.find((x) => x.Delegate)?.Delegate?.delegate_action;
     const call = (d?.actions ?? []).map((x) => x.NonDelegateAction ?? x).find((x) => x.FunctionCall?.method_name === "submit_near_ai_verdict");

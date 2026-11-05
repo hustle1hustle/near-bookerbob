@@ -314,6 +314,15 @@ if (existsSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url)))
     return [ok, `issuer ${v?.issuer?.slice(0, 20)}.., model key registered (${att?.tcb_status}), gate refusal: ${String(refused.error).match(/does not pass \d+/)?.[0]}, chat ${p.near_ai.chat_id.slice(0, 12)}..`];
   });
 }
+if (existsSync(new URL("../fixtures/live/model-buy/passing.json", import.meta.url))) {
+  const p = JSON.parse(readFileSync(new URL("../fixtures/live/model-buy/passing.json", import.meta.url)));
+  const v4 = JSON.parse(readFileSync(new URL("../fixtures/live/eval/rep-eval-v4.json", import.meta.url)));
+  await attempt(`the eval gate passed on testnet: ${p.near_ai.model.split("/")[1]} issued the verdict, the gated merchant took it and settled ${Number(p.price) / 1e6} dUSDC`, async () => {
+    const [v, att, gate, passes, settle] = await Promise.all([view(m.bazaar, "verdict", { nullifier: p.nullifier }), view(m.bazaar, "model_attestation", { signing_key: p.near_ai.signing_key }), view(m.bazaar, "eval_gate", { merchant: p.merchant }), view(m.bazaar, "eval_passes", { subject: `${p.near_ai.model}@4000tok/referee-v4`, set_root: v4.set_root, threshold: 70 }), tx(p.txs.settle, m.treasury)]);
+    const ok = v?.issuer === `near-ai:${p.near_ai.signing_key}` && v.spent && v.receipt?.merchant === p.merchant && att?.model === p.near_ai.model && gate?.threshold === 70 && passes === true && settle.ok;
+    return [ok, `issuer ${v?.issuer?.slice(0, 20)}.., model key registered (${att?.tcb_status}), gate ${gate?.threshold}, eval_passes ${passes}, receipt from ${v?.receipt?.merchant?.split(".")[0]}`];
+  });
+}
 if (existsSync(new URL("../fixtures/live/eval-gate/run.json", import.meta.url))) {
   const { verifyGate } = await import("./eval-gate.mjs");
   const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;

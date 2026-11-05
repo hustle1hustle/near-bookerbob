@@ -1,0 +1,39 @@
+{
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+  "attestation": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "nonce": "567fb974e58e09ed705dbbca39271568c26d7278b3e4b0d35da37684c3146abc",
+    "report_hash": "6a535979028020d109532db096d59bd662306830595161be4f2d7df30ca113e3",
+    "tcb_status": "UpToDate"
+  },
+  "spike": "spike.bookerbob.testnet",
+  "verification_id": "7a9d54baff023cd8fb520dae411bcdd633860757db8fdd611cb8589bbb78c765",
+  "verification": [
+    "verified",
+    "UpToDate 236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c567fb974e58e09ed705dbbca39271568c26d7278b3e4b0d35da37684c3146abc"
+  ],
+  "calls": [
+    {
+      "step": "start",
+      "tx": "9LDfYDBHDCh8WBco4gwAgWVYXgjBiwtoW75Viz8qAxbP"
+    },
+    {
+      "step": "tcb",
+      "tx": "AeU4wJyh2wXVAidruSNBBmzAhrBY7qUeaidEELSmG6Zd"
+    },
+    {
+      "step": "qe_identity",
+      "tx": "GTvHXCRnNqEKahQxDSL2rsuhg14Kx9V9fnpgJDp3qcdK"
+    },
+    {
+      "step": "pck",
+      "tx": "sgwrQGhvvxAyZ6ivqChrMtLyFzFeFJtkBqZnrPUdnG6"
+    },
+    {
+      "step": "finalize",
+      "tx": "5RLuLYSu3ageykv7ATMCyajZPxehMy2D55xqPoLACai3"
+    }
+  ],
+  "register_tx": "HD4iAinH111xnT5NcnotVFwyQjahffB48YTnF46whqU7"
+}

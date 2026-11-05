@@ -1,0 +1,25 @@
+{
+  "note": "One testnet purchase at the eval-gated merchant (REP Eval v4 >= 70), with a verdict deepseek-ai/DeepSeek-V4.1-Flash-1017 issued; its key was registered against its TDX quote verified on chain (scripts/register-model.mjs). The first settle failed because the gated merchant had no dUSDC storage registration; it was registered and the settle sent again. Facts are the synthetic fixture proof set.",
+  "tester": "t-5a162a.bookerbob-demo.testnet",
+  "merchant": "vetted.bookerbob-demo.testnet",
+  "nullifier": "88fa9cbaad539c96e5b331f39611083ffd76fa4c08cec56dd9588e293c6e0a1f",
+  "price": "36000000",
+  "issuer": "near-ai:236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+  "near_ai": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+    "chat_id": "chatcmpl-a88a744d-e968-4500-8362-e33fcf89badc"
+  },
+  "txs": {
+    "account": "E8tDwd1v7udorQDejXgDA6ciwZBU6b1f3DnQgVAx8AxL",
+    "mint": "4LmUXbk39zS9LzguE34swAzHnYbhtmd8WfP3Q6XM82mv",
+    "world": "7Qt4y4jRyBxu5ZmSkvpn2JWqzT2HipDCBP65E6pZa3Nr",
+    "verdict": "6fnSf2BcSLFzkzkGnG4gYcTaqPXuTVnf1AGX6LDRL1vd",
+    "receipt": "FZFkqZPxP9RCoYZeEcjRgX17fWE8tvC5HcajwNYdQVco",
+    "escrow": "86PFrSec1jSJXicsAMw56bRYryhbcKBsBVNgAoVtMin5",
+    "settle_failed_unregistered_payout": "6uwDfsaHTNNG8tvWiqY7w48u71YsxBdYFifvuKEmVgJ8",
+    "settle": "7tErgeyMyAn7f79HeY68hr3jyk8LuxbvzTmxFhgLWXw2",
+    "replay": "2QctuDAu5qJew96XnpzmfKmh3endmn4ANznv3zqHrL9Q",
+    "review_join": "9BrEG41S8dzuqqLjiEk91NTo2txiXw4Lf39d1D1teoQE"
+  }
+}

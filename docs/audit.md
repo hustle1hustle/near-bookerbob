@@ -113,6 +113,6 @@ The contract's `quote` view prices with the cohort as it is now. A receipt keeps
 cohort it was bought at, so for an older purchase whose cohort has since crossed the k floor the
 audit leaves the live quote out of the parity check and prints both.
 
-`make audit-all` runs it on every purchase in the public manifest: on 2026-11-05 all 19 (the
+`make audit-all` runs it on every purchase in the public manifest: on 2026-11-05 all 21 (the
 single settles, the prove-me and try pipeline tests, the model-issued purchase and the 5 buying
 group members) print PASS.
