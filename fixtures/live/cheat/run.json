@@ -1,0 +1,69 @@
+{
+  "anchors": {
+    "h01.bookerbob.testnet": {
+      "max_base": "1593000000",
+      "source": "JMPR 2026-11-04, Bairro Alto Hotel, public base rate incl. tax, 531 x 3 nights",
+      "tx": "3maEampDXYbN4mLXXqZaauqL9mAJP3RK3WzjDJYp81fq",
+      "base": "1593000000",
+      "approved": true
+    },
+    "h02.bookerbob.testnet": {
+      "max_base": "1008000000",
+      "source": "JMPR 2026-11-04, Memmo Principe Real, public base rate incl. tax, 336 x 3 nights",
+      "tx": "GmHdRh3WnmJMJp2t1fzyg3Y8WaYm4zfot1KsY9vX2nXf",
+      "base": "1008000000",
+      "approved": true
+    },
+    "h03.bookerbob.testnet": {
+      "max_base": "1119000000",
+      "source": "JMPR 2026-11-04, Olissippo Lapa Palace, public base rate incl. tax, 373 x 3 nights",
+      "tx": "4a423YeekUojmZC1wFSmu9jXjNqmwSVQqvCrdQbKDCnW",
+      "base": "1119000000",
+      "approved": true
+    },
+    "h04.bookerbob.testnet": {
+      "max_base": "1452000000",
+      "source": "JMPR 2026-11-04, Valverde Hotel, public elite rate before tax (no base rate listed), 484 x 3 nights",
+      "tx": "FuGVFfeNB6KGh4RmWNBA9M286afBcnm6QGda5ayZznFS",
+      "base": "1452000000",
+      "approved": true
+    },
+    "h05.bookerbob.testnet": {
+      "max_base": "510000000",
+      "source": "JMPR 2026-11-04, Intercontinental Lisbon, public base rate incl. tax, 170 x 3 nights",
+      "tx": "DiyFdZ1ELnTEwqMpbATVVoNLsnoTz4cuqAhZaELW9rja",
+      "base": "510000000",
+      "approved": true
+    },
+    "h06.bookerbob.testnet": {
+      "max_base": "1305000000",
+      "source": "JMPR 2026-11-04, Pestana Palace Lisboa, public base rate incl. tax, 435 x 3 nights",
+      "tx": "EL2nbP5PP9nX7dQiPQfK6gEZAoJczz4gQ1fLgpSQTxDb",
+      "base": "1305000000",
+      "approved": true
+    },
+    "h07.bookerbob.testnet": {
+      "max_base": "831000000",
+      "source": "JMPR 2026-11-04, The One Palacio Da Anunciada, public base rate incl. tax, 277 x 3 nights",
+      "tx": "EvGwAajXJpa29vuSkhcHPzrm6xVqgmDK8hLVvgdwrR51",
+      "base": "831000000",
+      "approved": true
+    },
+    "h08.bookerbob.testnet": {
+      "max_base": "669000000",
+      "source": "JMPR 2026-11-04, Myriad By Sana, public base rate incl. tax, 223 x 3 nights",
+      "tx": "Hif1tPMwJ2BA2SfYfqSXkYAa5hBcqdiMhb8T7xsupk1k",
+      "base": "669000000",
+      "approved": true
+    }
+  },
+  "cheat": {
+    "merchant": "h05.bookerbob.testnet",
+    "inflated_base": "600000000",
+    "anchor": "510000000",
+    "tx": "6M3Bi7RY6thU4yfbUUQShHz9M9drHSNwrMY683rjB16u",
+    "refused": true,
+    "schedule_unchanged": true,
+    "approved_after": true
+  }
+}

@@ -55,6 +55,10 @@ verify-offline:
 	test -d vendor/crates || tar -C vendor -xJf vendor/crates.tar.xz
 	$(MAKE) verify CARGO_FLAGS="-j $(JOBS) --offline --config vendor/offline.toml"
 
+# A merchant inflates its base price to fake a discount: refused on testnet (docs/unit-economics.md).
+cheat:
+	node scripts/cheat.mjs run
+
 # Who can change a bazaar's code, over public RPC (panel action 8). `node scripts/no-owner.mjs plan` prints the staged steps.
 no-owner:
 	node scripts/no-owner.mjs

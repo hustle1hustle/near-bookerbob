@@ -36,6 +36,7 @@ const m = {
   fee: prev.fee ?? null,
   eval: prev.eval ?? null,
   rep_eval: existsSync("fixtures/live/eval/rep-eval.json") ? (({ set_root, issuer_key, txs, models }) => ({ set_root, issuer_key, txs, models: models.map((m) => ({ subject: m.certificate.subject, bucket: m.certificate.score_bucket, submit_tx: m.submit_tx })) }))(JSON.parse(readFileSync("fixtures/live/eval/rep-eval.json", "utf8"))) : prev.rep_eval ?? null,
+  cheat: existsSync("fixtures/live/cheat/run.json") ? JSON.parse(readFileSync("fixtures/live/cheat/run.json", "utf8")) : prev.cheat ?? null,
   gate: existsSync("fixtures/live/gate/run.json") ? JSON.parse(readFileSync("fixtures/live/gate/run.json", "utf8")) : prev.gate ?? null,
   group_dao: (() => {
     const f = join(c.testersDir, "group-dao-state.json");

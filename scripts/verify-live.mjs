@@ -303,6 +303,18 @@ for (const f of ["run", "public-test"]) {
     return [ok, `verdict ${v?.tier}, ${round.revealed.length} revealed bids, builder line ${line}, NEAR AI chat ${p.near_ai.chat_id.slice(0, 12)}..`];
   });
 }
+if (m.cheat?.cheat) {
+  const k = m.cheat;
+  await attempt(`base-price anchor: ${Object.keys(k.anchors).length} hotels capped at their public rate (JMPR); an inflated base refused on chain`, async () => {
+    const rows = await Promise.all(Object.entries(k.anchors).map(async ([acct, a]) => {
+      const [anchor, mer] = await Promise.all([view(m.bazaar, "price_anchor", { merchant: acct }), view(m.bazaar, "merchant", { merchant: acct })]);
+      return anchor?.[0] === a.max_base && BigInt(mer.schedule.base_price) <= BigInt(a.max_base);
+    }));
+    const t = await tx(k.cheat.tx, k.cheat.merchant);
+    const refused = !t.ok && t.error.includes("above its public price anchor");
+    return [rows.every(Boolean) && refused, `every hotel's base at or under its anchor; ${k.cheat.merchant.split(".")[0]} at ${Number(k.cheat.inflated_base) / 1e6} over ${Number(k.cheat.anchor) / 1e6} refused`];
+  });
+}
 if (m.gate) {
   const g = m.gate;
   await attempt(`Verdict Gate: ${g.consumers.length} Sputnik DAOs grant a role on a BookerBob verdict; refused: another agent's verdict, a reused verdict, a sealed verdict`, async () => {

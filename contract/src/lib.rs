@@ -547,6 +547,19 @@ fn eval_scores() -> LookupMap<String, u8> {
 
 /// Who committed an eval set: the account that made it (`commit_eval_set`), or the bazaar owner
 /// (`register_eval_set`).
+/// A merchant's public price ceiling: (the most its base price may be, where the number comes from).
+fn price_anchors() -> LookupMap<AccountId, (U128, String)> {
+    LookupMap::new(b"B")
+}
+
+/// The base-price anchor: a "discount" off an inflated base is no discount, so a merchant with
+/// an anchor cannot register or reveal a base above it.
+fn check_price_anchor(merchant: &AccountId, schedule: &Schedule) {
+    if let Some((max, source)) = price_anchors().get(merchant) {
+        require!(schedule.base_price <= max.0, format!("base price {} above its public price anchor {} ({source})", schedule.base_price, max.0));
+    }
+}
+
 fn eval_owners() -> LookupMap<String, AccountId> {
     LookupMap::new(b"X")
 }
@@ -883,6 +896,11 @@ impl Bazaar {
                 self.graph_program = Some(s("program_hash"));
                 emit("graph_program_set", serde_json::json!({ "program_hash": s("program_hash"), "timelock": id }));
             }
+            "price_anchor" => {
+                let merchant: AccountId = s("merchant").parse().expect("stored account");
+                let max: U128 = serde_json::from_value(a["max_base"].clone()).expect("stored amount");
+                self.store_price_anchor(merchant, max, s("source"));
+            }
             "delay" => {
                 let ms = a["ms"].as_u64().expect("ms");
                 env::storage_write(b"anchor_delay_ms", &ms.to_le_bytes());
@@ -890,6 +908,21 @@ impl Bazaar {
             }
             _ => env::panic_str("unknown pending kind"),
         }
+    }
+
+    fn store_price_anchor(&mut self, merchant: AccountId, max_base: U128, source: String) {
+        let mut pa = price_anchors();
+        pa.insert(merchant.clone(), (max_base, source.clone()));
+        pa.flush();
+        let mut withdrawn = false;
+        if let Some(m) = self.merchants.get_mut(&merchant) {
+            if m.schedule.base_price > max_base.0 && m.approved {
+                m.approved = false;
+                withdrawn = true;
+            }
+        }
+        self.merchants.flush();
+        emit("price_anchor_set", serde_json::json!({ "merchant": merchant, "max_base": max_base, "source": source, "approval_withdrawn": withdrawn }));
     }
 
     /// Owner: drop a queued change before it executes.
@@ -986,6 +1019,7 @@ impl Bazaar {
             "bad category"
         );
         let merchant = env::predecessor_account_id();
+        check_price_anchor(&merchant, &schedule);
         let payout = payout.unwrap_or_else(|| merchant.clone());
         // A new or changed schedule waits for approval again: no bait and switch. In the open
         // category the bond is the approval: a bonded merchant stays approved, and a schedule
@@ -1763,6 +1797,7 @@ impl Bazaar {
         let (_, commitment) = round.commits.iter().find(|(a, _)| a == &merchant).cloned().unwrap_or_else(|| env::panic_str("no committed bid"));
         require!(!round.revealed.contains(&merchant), "already revealed");
         require!(bookerbob_core::bid_commitment(merchant.as_str(), &schedule, &salt) == commitment, "bid does not open its commitment");
+        check_price_anchor(&merchant, &schedule);
         // Open rounds: two bids under one operator cannot both stand. Same payout account, or a
         // hire edge either way, counts as one operator; the later reveal is refused.
         if round.category == OPEN_CATEGORY {
@@ -1995,6 +2030,23 @@ impl Bazaar {
 
     pub fn min_tcb(&self) -> String {
         tcb_floor()
+    }
+
+    /// Owner: a merchant's public price ceiling, from a named public source (e.g. a hotel's
+    /// public rate). A new or lower ceiling applies at once and withdraws approval if the current
+    /// base is above it; a higher one lets prices up, so it waits out the anchor delay.
+    pub fn set_price_anchor(&mut self, merchant: AccountId, max_base: U128, source: String) {
+        self.assert_owner();
+        require!(max_base.0 > 0 && !source.is_empty() && source.len() <= 200, "bad price anchor");
+        let raises = price_anchors().get(&merchant).is_some_and(|(m, _)| max_base.0 > m.0);
+        if raises && self.queue_anchor("price_anchor", serde_json::json!({ "merchant": merchant, "max_base": max_base, "source": source })) {
+            return;
+        }
+        self.store_price_anchor(merchant, max_base, source);
+    }
+
+    pub fn price_anchor(&self, merchant: AccountId) -> Option<(U128, String)> {
+        price_anchors().get(&merchant).cloned()
     }
 
     pub fn quote(&self, merchant: AccountId, nullifier: String) -> Quote {

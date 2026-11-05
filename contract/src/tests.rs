@@ -3115,3 +3115,52 @@ mod group_treasury {
         c.pledge_group_demo(b[0].1.clone(), "g".into(), price);
     }
 }
+
+mod price_anchor {
+    use super::*;
+
+    fn anchored() -> Bazaar {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_price_anchor(acc("m01.bazaar.testnet"), U128(200_000_000), "the store's public list price".into());
+        c
+    }
+
+    #[test]
+    #[should_panic(expected = "above its public price anchor")]
+    fn an_inflated_base_is_refused() {
+        let mut c = anchored();
+        set("m01.bazaar.testnet");
+        // Inflate the base so a "25% off" lands at the old price: refused.
+        c.register_merchant(Schedule { base_price: 252_000_000, ..schedule() }, "hoodie".into(), None);
+    }
+
+    #[test]
+    fn a_base_at_or_under_the_anchor_registers() {
+        let mut c = anchored();
+        set("m01.bazaar.testnet");
+        c.register_merchant(Schedule { base_price: 200_000_000, ..schedule() }, "hoodie".into(), None);
+        assert_eq!(c.merchant(acc("m01.bazaar.testnet")).unwrap().schedule.base_price, 200_000_000);
+    }
+
+    #[test]
+    fn a_lower_anchor_applies_at_once_and_withdraws_an_approval_above_it() {
+        let mut c = setup();
+        assert!(c.merchant(acc("m01.bazaar.testnet")).unwrap().approved);
+        set_no_deposit("owner.testnet");
+        c.set_price_anchor(acc("m01.bazaar.testnet"), U128(150_000_000), "a public rate".into());
+        assert!(!c.merchant(acc("m01.bazaar.testnet")).unwrap().approved, "base 189 is above 150");
+    }
+
+    #[test]
+    fn a_higher_anchor_waits_out_the_delay() {
+        let mut c = anchored();
+        set_no_deposit("owner.testnet");
+        c.set_anchor_delay(600_000);
+        c.set_price_anchor(acc("m01.bazaar.testnet"), U128(400_000_000), "raised".into());
+        assert_eq!(c.price_anchor(acc("m01.bazaar.testnet")).unwrap().0, U128(200_000_000), "queued, not applied");
+        let lower = U128(180_000_000);
+        c.set_price_anchor(acc("m01.bazaar.testnet"), lower, "lowered".into());
+        assert_eq!(c.price_anchor(acc("m01.bazaar.testnet")).unwrap().0, lower, "lowering applies at once");
+    }
+}
