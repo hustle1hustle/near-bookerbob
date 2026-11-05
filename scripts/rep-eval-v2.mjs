@@ -22,17 +22,19 @@ import { MODELS, sigOk } from "./rep-eval.mjs";
 
 const API = process.env.NEAR_AI_BASE ?? "https://cloud-api.near.ai/v1";
 const PRICE = { "z-ai/glm-5.3-flash": [0.08, 0.5], "deepseek-ai/DeepSeek-V4.1-Flash-1017": [0.3, 1.2], "Qwen/Qwen3.6-35B-A3B-FP8": [0.17, 1.1] };
-export const BUDGET_TOKENS = 600;
+// REP_EVAL_PROTOCOL=v3: the same items at 2,000 tokens (docs/eval.md, "Protocol v3").
+export const PROTOCOL = process.env.REP_EVAL_PROTOCOL === "v3" ? "v3" : "v2";
+export const BUDGET_TOKENS = PROTOCOL === "v3" ? 2000 : 600;
 export const BUDGET_PROBE = "Qwen/Qwen3.6-35B-A3B-FP8";
 export const TIERS = { t1: { facts: 3, claims: 2 }, t2: { facts: 5, claims: 3 }, t3: { facts: 6, claims: 4 } };
 const PER_TIER = 20;
-const SPEND_CAP_USD = 1;
+const SPEND_CAP_USD = 1.5;
 const TAG = Buffer.from("bookerbob/eval-certificate/v0\x00", "latin1");
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const keysDir = process.env.KEYS_DIR || `${process.env.HOME}/.rep-secrets/bookerbob-testnet`;
 const dir = join(keysDir, "eval");
 const setPath = join(dir, "rep-eval-v2-60.json");
-const PUBLIC = "fixtures/live/eval/rep-eval-v2.json";
+const PUBLIC = `fixtures/live/eval/rep-eval-${PROTOCOL}.json`;
 const bazaar = process.env.BAZAAR_ACCOUNT_ID || "bookerbob.testnet";
 
 // The rule table and the text rules, as the referee code has them (zkcore/src/referee.rs).
@@ -178,28 +180,28 @@ async function run() {
   const KEY = (process.env.NEAR_AI_KEY ?? readFileSync(`${process.env.HOME}/.rep-secrets/near-ai.key`, "utf8")).trim();
   const spend = { usd: 0 };
   const iss = issuerKey();
-  const pub = { note: "REP Eval v2: 60 sealed referee-claim items in 3 tiers, truth from the referee's own check; 3 NEAR AI models once, 600-token budget, a cut reply is no answer; every answer's TEE signature checks against its request and response hashes; grading and the CI in the worker's code; the eval issuer signed each certificate; the set owner account committed the root. The items stay private.", protocol: "v2", set_root: root, n: items.length, levels: Object.keys(TIERS), per_level: PER_TIER, budget_tokens: BUDGET_TOKENS, item_hashes: items.map(itemHash), issuer_key: `ed25519:${iss.pub}`, models: [] };
+  const pub = { note: `REP Eval ${PROTOCOL}: 60 sealed referee-claim items in 3 tiers, truth from the referee's own check; 3 NEAR AI models once, ${BUDGET_TOKENS}-token budget, a cut reply is no answer; every answer's TEE signature checks against its request and response hashes; grading and the CI in the worker's code; the eval issuer signed each certificate; the set owner account committed the root. The items stay private.`, protocol: PROTOCOL, set_root: root, n: items.length, levels: Object.keys(TIERS), per_level: PER_TIER, budget_tokens: BUDGET_TOKENS, item_hashes: items.map(itemHash), issuer_key: `ed25519:${iss.pub}`, models: [] };
   const priv = {};
   for (const model of MODELS) {
     console.log(`\n${model}: ${items.length} items, at most 6 in flight`);
     const answers = await pool(items, 6, (it) => ask(model, it, KEY, spend));
     const valid = answers.filter((a) => a.signature_valid).length;
     if (valid !== answers.length) throw new Error(`${model}: ${answers.length - valid} TEE signatures did not verify; no certificate`);
-    const p = join(dir, `grade-v2-${Date.now()}.json`);
+    const p = join(dir, `grade-${PROTOCOL}-${Date.now()}.json`);
     writeFileSync(p, JSON.stringify({ expected: items.map((it) => it.answer), replies: answers.map(gradedReply) }), { mode: 0o600 });
     const g = JSON.parse(cli(["eval-grade", p]));
     const byLevel = Object.fromEntries(Object.keys(TIERS).map((l) => [l, items.filter((it, i) => it.level === l && g.correct[i]).length]));
     const noAnswer = answers.filter((a) => a.finish === "length").length;
-    const cert = { v: 0, subject: `${model}@${BUDGET_TOKENS}tok/referee-v2`, set_root: root, n: items.length, correct: g.n_correct, score_bucket: g.score_bucket, answers_hash: sha(answers.map((a) => a.signature_text).join("\n")), issued_at_ms: Date.now() };
+    const cert = { v: 0, subject: `${model}@${BUDGET_TOKENS}tok/referee-${PROTOCOL}`, set_root: root, n: items.length, correct: g.n_correct, score_bucket: g.score_bucket, answers_hash: sha(answers.map((a) => a.signature_text).join("\n")), issued_at_ms: Date.now() };
     const signature = sign(null, createHash("sha256").update(Buffer.concat([TAG, Buffer.from(certificateJson(cert))])).digest(), iss.priv).toString("hex");
     console.log(`   ${g.n_correct}/${items.length} (95% CI ${g.ci95[0].toFixed(1)} to ${g.ci95[1].toFixed(1)}), by tier ${JSON.stringify(byLevel)}; no answer (cut at the budget) ${noAnswer}${model === BUDGET_PROBE ? "; budget probe" : ""}`);
     pub.models.push({ model, budget_probe: model === BUDGET_PROBE, correct: g.n_correct, ci95: g.ci95, by_level: byLevel, truncated: noAnswer, correct_vector: g.correct, answers: answers.map(({ reply, ...a }) => a), certificate: cert, signature });
     priv[model] = answers.map((a) => a.reply);
   }
   pub.cost_usd = Number(spend.usd.toFixed(4));
-  writeFileSync(join(dir, "rep-eval-v2-replies-private.json"), JSON.stringify(priv) + "\n", { mode: 0o600 });
+  writeFileSync(join(dir, `rep-eval-${PROTOCOL}-replies-private.json`), JSON.stringify(priv) + "\n", { mode: 0o600 });
   writeFileSync(PUBLIC, JSON.stringify(pub, null, 2) + "\n");
-  console.log(`\nrep-eval v2: 3 certificates signed; cost about $${spend.usd.toFixed(4)}; ${PUBLIC}`);
+  console.log(`\nrep-eval ${PROTOCOL}: 3 certificates signed; cost about $${spend.usd.toFixed(4)}; ${PUBLIC}`);
 }
 
 async function onchain() {
@@ -223,6 +225,9 @@ async function onchain() {
   const ownerKey = keyFromSeed(readFileSync(seedPath, "utf8"));
   const as = (who, key, actions) => send(client, { signer_id: who, key, receiver_id: bazaar, actions });
   pub.set_owner = owner;
+  // v3 reuses the v2 set: its root is already committed by the same owner.
+  const existing = await client.view(bazaar, "eval_set", { set_root: pub.set_root });
+  if (existing && !pub.txs.commit_set) pub.txs.commit_set = JSON.parse(readFileSync("fixtures/live/eval/rep-eval-v2.json", "utf8")).txs.commit_set;
   if (!pub.txs.commit_set) pub.txs.commit_set = ok("commit_eval_set (by the set owner, not the bazaar owner)", await as(owner, ownerKey, [fc("commit_eval_set", { set_root: pub.set_root, n: pub.n, label: "REP Eval v2: 60 referee-claim items, 3 tiers, truth from the referee check, 600 tokens, protocol frozen before the set" }, 10n ** 22n)]));
   const relayerKey = keyFromSeed(readFileSync(join(keysDir, "treasury.seed"), "utf8"));
   for (const m of pub.models) {
@@ -245,7 +250,7 @@ export async function verifyPublic(pub, view) {
     const cutOk = m.answers.every((a, i) => a.finish !== "length" || !m.correct_vector[i]);
     const chain = view ? await view(bazaar, "eval_score", { subject: m.certificate.subject, set_root: pub.set_root }) : null;
     const ok = sigs === pub.n && hashOk && certOk && cutOk && k === m.certificate.correct && bucket === m.certificate.score_bucket && merkleRoot(pub.item_hashes) === pub.set_root && (view ? chain === bucket && owner?.[2] === pub.set_owner : true);
-    lines.push([ok, `v2 ${m.model}${m.budget_probe ? " (budget probe)" : ""}: ${k}/${pub.n} (CI ${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)}), ${sigs}/${pub.n} TEE signatures valid, ${m.truncated} cut replies graded as no answer${view ? `, eval_score on chain ${chain}, set committed by ${owner?.[2]}` : ""}`]);
+    lines.push([ok, `${pub.protocol ?? "v2"} ${m.model}${m.budget_probe ? " (budget probe)" : ""}: ${k}/${pub.n} (CI ${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)}), ${sigs}/${pub.n} TEE signatures valid, ${m.truncated} cut replies graded as no answer${view ? `, eval_score on chain ${chain}, set committed by ${owner?.[2]}` : ""}`]);
   }
   return lines;
 }
@@ -258,7 +263,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     else if (cmd === "run") await run();
     else if (cmd === "onchain") await onchain();
     else if (cmd === "verify") {
-      if (!existsSync(PUBLIC)) { console.log("SKIP  rep eval v2: not run yet"); return; }
+      if (!existsSync(PUBLIC)) { console.log(`SKIP  rep eval ${PROTOCOL}: not run yet`); return; }
       const { rpcClient } = await import("../relayer/near.mjs");
       const client = rpcClient(process.env.NEAR_RPC || "https://test.rpc.fastnear.com");
       const online = process.env.JUDGE_OFFLINE !== "1" && (await client.block().then(() => true, () => false));
