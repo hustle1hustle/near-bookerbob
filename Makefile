@@ -64,6 +64,7 @@ no-owner:
 eval-verify:
 	node scripts/rep-eval.mjs verify
 	node scripts/rep-eval-v2.mjs verify
+	REP_EVAL_PROTOCOL=v3 node scripts/rep-eval-v2.mjs verify
 
 verify-live:
 	node scripts/verify-live.mjs

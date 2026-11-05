@@ -366,7 +366,7 @@
     "tracks": "agents, privacy, security, open",
     "where": "`scripts/rep-eval.mjs`, `worker/src/eval.rs`, `agents/eval.html`, `docs/eval.md`",
     "status": "live",
-    "detail": "headline on a held-out set made after the protocol was frozen: glm-5.3-flash 58/120 (CI 39.2 to 56.7), DeepSeek-V4.1-Flash 112/120, Qwen3.6-35B 0/120 (budget-bound, out of tokens on every item); all 360 TEE signatures valid; the tuned calibration set's run is on chain too and within 3 items; `make eval-verify` in about a second. Only one model lands in the 40 to 80% band. v2 (protocol frozen first): 60 referee-claim items, truth from the referee's code, set committed by its own owner account with `commit_eval_set`: glm 44/60, DeepSeek 35/60, Qwen a budget probe at 0; every answer given was right, every miss a reply cut at 600 tokens",
+    "detail": "headline on a held-out set made after the protocol was frozen: glm-5.3-flash 58/120 (CI 39.2 to 56.7), DeepSeek-V4.1-Flash 112/120, Qwen3.6-35B 0/120 (budget-bound, out of tokens on every item); all 360 TEE signatures valid; the tuned calibration set's run is on chain too and within 3 items; `make eval-verify` in about a second. Only one model lands in the 40 to 80% band. v2 (protocol frozen first): 60 referee-claim items, truth from the referee's code, set committed by its own owner account with `commit_eval_set`: glm 44/60, DeepSeek 35/60, Qwen a budget probe at 0; every answer given was right, every miss a reply cut at 600 tokens; v3, the same items at 2,000 tokens (frozen first): DeepSeek 58/60, glm 55/60, again right on every answer given, so the set is too easy to separate them by accuracy",
     "evidence": [
       "rep_eval"
     ]

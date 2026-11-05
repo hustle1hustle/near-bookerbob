@@ -85,6 +85,25 @@ is sent:
   easy for them, and that is what gets written.
 - Certificates under the subject `<model>@2000tok/referee-v3` on the same set root.
 
+## Results v3: the same items at 2,000 tokens (testnet, 2026-11-05, run once)
+
+The accuracy result, next to v2's budget result; neither replaces the other.
+
+| model | correct | 95% CI | by tier (t1 / t2 / t3, of 20) | no answer (cut at 2,000 tokens) | bucket on chain | certificate |
+|---|---|---|---|---|---|---|
+| `deepseek-ai/DeepSeek-V4.1-Flash-1017` | 58/60 | 91.7 to 100.0 | 20 / 20 / 18 | 2 | 90 | [6gCM3SJv…](https://testnet.nearblocks.io/txns/6gCM3SJvq5aHn2zf8qvhc3b3H4Ca8dCDfBoPuF9Uif99) |
+| `z-ai/glm-5.3-flash` | 55/60 | 83.3 to 98.3 | 20 / 20 / 15 | 5 | 90 | [9FknLVJ5…](https://testnet.nearblocks.io/txns/9FknLVJ54rpctoQhJ2NqGFwGPRWJmmfzUNTbaJUH4Nkq) |
+| `Qwen/Qwen3.6-35B-A3B-FP8` (budget probe, not ranked) | 0/60 | 0.0 to 0.0 | 0 / 0 / 0 | 60 | 0 | [67mvrTRn…](https://testnet.nearblocks.io/txns/67mvrTRnjmqYEkBuNqQbX21ENj6mYU4KG28e2zbWTbRo) |
+
+- **The finding: this set is too easy for these models.** With room to finish, every answer
+  either model gave was right again (DeepSeek 58 of 58, glm 55 of 55); every miss is still a
+  cut reply. Across v2 and v3, 192 finished answers, no wrong one.
+- So the referee-claim set does not separate the two models by accuracy; the v2/v3 difference
+  is how long each reasons. A set that does would need harder items (longer proof sets, more
+  claims, rules that interact), made and frozen before a v4 run; none is made.
+- Qwen3.6 reached 2,000 tokens on every item too.
+- **Cost:** about $0.22 (v2 and v3 together about $0.33).
+
 ## The calibration set (tuned, not the headline)
 
 The first sealed set (root `758b21ccd7edc046…`) chose the budget. Its 400-token run is also

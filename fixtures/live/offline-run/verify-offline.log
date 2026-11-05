@@ -2,8 +2,8 @@ shasum -a 256 -c vendor/SHA256
 vendor/crates.tar.xz: OK
 Cargo.lock: OK
 test -d vendor/crates || tar -C vendor -xJf vendor/crates.tar.xz
-/Applications/Xcode.app/Contents/Developer/usr/bin/make verify CARGO_FLAGS="-j 4 --offline --config vendor/offline.toml"
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- verify fixtures --receipts agents/receipts.json --check
+/Applications/Xcode.app/Contents/Developer/usr/bin/make verify CARGO_FLAGS="-j 2 --offline --config vendor/offline.toml"
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- verify fixtures --receipts agents/receipts.json --check
 bookerbob verify: fixtures (synthetic fixtures, offline)
 PASS  01  proof set hash matches envelope.proof_hash  (fd14aaf2c1ced632)
 PASS  02  tier derived by code from proven fields  (airbnb_frequent,booking_genius,claude_spender,world_id_human -> gold)
@@ -54,7 +54,7 @@ PASS  20  worker result for the cheat: signed refusal, contract stores no receip
 PASS  21  settle without a referee receipt is rejected  (no proof, no receipt, no payment)
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"forged"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"dispute_overturned","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","reasons":["referee said receipt, re-run says refused: F9 not in proof set"],"referee":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10"}]}
-PASS  22  dispute: arbiter re-checks a forged receipt, signs overturned, contract clears it, settle blocked  (referee said receipt, re-run says refused: F9 not in proof set, 851 us)
+PASS  22  dispute: arbiter re-checks a forged receipt, signs overturned, contract clears it, settle blocked  (referee said receipt, re-run says refused: F9 not in proof set, 835 us)
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"d785f3bb084c3b2323d619958ecd244bde57e81e27a26284f8b8af3717573a18"}]}
 PASS  23  worker result for honest claims: contract checks its ed25519 signature and stores the receipt  (d785f3bb084c3b23)
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"36000000","checkout_ref":"fixture-order-1","path":"near","token":"usdc","liability":"4c6b1e0023089dc9fd8589f31e84a772004488a306e55a75ccdfb3bc91c85339","fee":"0"}]}
@@ -64,7 +64,7 @@ PASS  26  second settle on the same nullifier is rejected
 
 ALL PASS (26 checks)
 PASS  public receipts page data matches agents/receipts.json
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
@@ -244,7 +244,7 @@ PASS  blind round swarm-hoodie on chain: 22 commit_bid, 22 reveal_bid opened the
 PASS  blind round swarm-hotel-lisbon on chain: 8 commit_bid, 8 reveal_bid opened their commitments, round_best_quote h05.bookerbob.testnet
 
 PASS  swarm board matches agents/board.json and contract best_quote per category
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
 PASS  eval 01  honest claims, one fact each  (receipt)
 PASS  eval 02  two citations, both prove the line  (receipt)
 PASS  eval 03  injected status citing a missing fact  (refused: F9 not in proof set)
@@ -296,7 +296,7 @@ PASS  eval 48  honest, six-line merchant pays only revealed lines  (receipt)
 PASS  eval 49  airbnb fact cited for world id  (refused: F1 does not prove world_id_human)
 PASS  eval 50  injected value from the merchant description  (refused: F1 asserted trips_12m=99, proven trips_12m=7)
 PASS  referee evals 50/50 (39 cheats refused, 11 honest receipts)
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- near-ai fixtures/live/near-ai fixtures/proofs.json
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- near-ai fixtures/live/near-ai fixtures/proofs.json
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"model_attestation_registered","data":[{"signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff","model":"z-ai/glm-5.3-flash","nonce":"0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d","tcb_status":"UpToDate"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
@@ -334,7 +334,7 @@ PASS  N16  model key registered with another attestation nonce: refused  (refuse
 PASS  N17  wrong disclosed answer key: refused  (refused: does not open)
 NOTE  NVIDIA GPU evidence is not checked (NRAS is online); the TDX quote is checked here and by the owner before register_model_attestation, not inside the contract
 PASS  NEAR AI verdict: 17 checks
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- reviews fixtures agents/reviews.json --check
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- reviews fixtures agents/reviews.json --check
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_registered","data":[{"key":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10","label":"fixture referee"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
@@ -478,7 +478,7 @@ GAS   publish_reviews (6 ratings): 1.04 Tgas mocked host gas (mean of 1)
 GAS   reveal_review: 0.74 Tgas mocked host gas (mean of 6)
 GAS   submit_review (Groth16 on alt_bn128): 33.26 Tgas mocked host gas (mean of 10)
 PASS  sealed reviews: 15 checks
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- scenario fixtures
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- scenario fixtures
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_registered","data":[{"key":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10","label":"fixture referee"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
@@ -556,7 +556,7 @@ PASS  S6  replay: a second verdict for the same account from another wallet is r
 PASS  S7  sealed reviews: 6 buyers who paid join, rate with Semaphore proofs, reveal after the round, released at k >= 5  (score 3.45, 6 ratings, no rater named)
 PASS  S8  multi-hop rank: a hired sub-agent ring gets at most w/(1-w) of the merchant's seed  (5.999990 of 6.000000 units (bound 6.000000))
 PASS  scenario: prove, bids, verdict, cheat refused, settle, replay refused, sealed reviews, multi-hop rank (8 stages, one chain)
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- zk-inputs fixtures --check
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- zk-inputs fixtures --check
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m01.bookerbob.testnet","category":"hoodie","payout":"m01.bookerbob.testnet","approved":false}]}
@@ -574,9 +574,9 @@ EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted"
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer5.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","commitment":"cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
 PASS  Jolt guest inputs match the contract (standing root, price quote, referee, cohort root): fixtures/zk up to date
-cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- zk-results fixtures zk/out
+cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- zk-results fixtures zk/out
 PASS  zk standing: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 8.94 s, proof 92716 bytes, program c780ceabae4decfa..)
 PASS  zk price: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 1.27 s, proof 80380 bytes, program 6a35b5c3a8c1fe69..)
-PASS  zk referee: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 2.34 s, proof 84796 bytes, program a66f1c29e3b7199a..)
+PASS  zk referee: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 2.26 s, proof 84796 bytes, program 6d4c5afb8a61704f..)
 PASS  zk cohort: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 2.91 s, proof 84724 bytes, program 50eb77d3d5c13c68..)
 PASS  Jolt results: 4 guests consistent with the contract's code (proof check: make zk-verify)

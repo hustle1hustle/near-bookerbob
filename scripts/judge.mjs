@@ -59,10 +59,11 @@ if (existsSync(`${root}fixtures/live/eval/rep-eval.json`)) {
   const rows = (ev.stdout.match(/^PASS /gm) ?? []).length;
   line(ev.status === 0, "REP Eval: 3 model certificates, every TEE signature and the issuer signature verify" + (online ? ", scores on chain match" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
 }
-if (existsSync(`${root}fixtures/live/eval/rep-eval-v2.json`)) {
-  const ev = spawnSync("node", ["scripts/rep-eval-v2.mjs", "verify"], { cwd: root, encoding: "utf8", env: { ...process.env, ...(online ? {} : { JUDGE_OFFLINE: "1" }) }, timeout: 120_000 });
+for (const [v, what] of [["v2", "600 tokens: the budget result"], ["v3", "2,000 tokens: the accuracy result"]]) {
+  if (!existsSync(`${root}fixtures/live/eval/rep-eval-${v}.json`)) continue;
+  const ev = spawnSync("node", ["scripts/rep-eval-v2.mjs", "verify"], { cwd: root, encoding: "utf8", env: { ...process.env, REP_EVAL_PROTOCOL: v, ...(online ? {} : { JUDGE_OFFLINE: "1" }) }, timeout: 120_000 });
   const rows = (ev.stdout.match(/^PASS /gm) ?? []).length;
-  line(ev.status === 0, "REP Eval v2 (referee claims, truth from the referee's code): 3 certificates, every TEE signature verifies, cut replies graded as no answer" + (online ? ", scores on chain match, set committed by its own owner" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
+  line(ev.status === 0, `REP Eval ${v} (referee claims, truth from the referee's code, ${what}): 3 certificates, every TEE signature verifies, cut replies graded as no answer` + (online ? ", scores on chain match, set committed by its own owner" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
 }
 
 // 2. committed Jolt artifacts
