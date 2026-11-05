@@ -326,6 +326,7 @@ pub fn run(dir: &Path) -> ExitCode {
     let cohort_k = winner.schedule.cohort.as_ref().map_or(0, |co| c.cohort_size(e.context.clone(), co.predicate.clone()));
     let worker = |claims: &[Claim]| -> Result<bookerbob_core::WorkerResult, String> {
         let input = WorkerInput {
+            salt: None,
             v: 0,
             verdict_digest: hex::encode(e.digest()),
             nullifier: e.nullifier.clone(),
@@ -377,6 +378,7 @@ pub fn run(dir: &Path) -> ExitCode {
         let accepted = call(|| c.submit_referee_result(forged.clone())) == Ok(true);
         let t0 = std::time::Instant::now();
         let input = bookerbob_referee_worker::DisputeInput {
+            salt: None,
             v: 0,
             verdict: v_ed.clone(),
             result: forged.clone(),

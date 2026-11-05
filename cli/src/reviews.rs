@@ -87,6 +87,7 @@ pub(crate) fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::Wor
     let claims: Vec<Claim> = fixtures::honest_claims().into_iter().filter(|cl| e.predicates.contains(&cl.line)).collect();
     let cohort_k = q.cohort.as_ref().map_or(0, |co| co.k);
     let input = WorkerInput {
+        salt: None,
         v: 0,
         verdict_digest: hex::encode(e.digest()),
         nullifier: e.nullifier.clone(),

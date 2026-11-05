@@ -99,6 +99,7 @@ pub fn collect() -> (Vec<Row>, std::time::Duration) {
     measure(&mut c, &mut rows, "submit_verdict (p256, same context)", "agent", |c| c.submit_verdict(v2.clone()));
     let q = quote(&m.schedule, &e.predicates);
     let input = WorkerInput {
+        salt: None,
         v: 0,
         verdict_digest: hex::encode(e.digest()),
         nullifier: e.nullifier.clone(),

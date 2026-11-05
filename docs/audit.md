@@ -62,6 +62,35 @@ only by the CLI evals. Two core tests added (`d34073e`); now **10/10 killed**:
 | M9 | settle on a spent nullifier | `double_settle_is_rejected` |
 | M10 | a second rating in the round accepted | `a_second_rating_by_the_same_member_is_refused_by_the_nullifier` |
 
+## Low-entropy preimages (2026-11-05)
+
+Every hash or commitment that reaches the chain, and whether its preimage could be guessed.
+A hash over a small domain (a predicate subset, a trip count) hides nothing unless a secret
+salt goes in with it. A quantum computer does not change this table: guessing a small
+preimage is a classical attack, and a 256-bit salt stops it either way.
+
+| on chain | preimage | before | now |
+|---|---|---|---|
+| verdict `commitment` | salt + the full derived predicate set (2^7 subsets) | **live verdicts used the public fixture salt: 128 guesses open it** | a fresh 32-byte salt per live verdict (`cli/src/keys.rs`), kept with the buyer (`commitment-salt.hex`, mode 600); test `a_live_commitment_does_not_fall_to_brute_force_over_every_predicate_subset` |
+| receipt hash (`detail` of a receipt) | sha256(quote, claims): public quote, claims with small cited values | **guessable** | salted with the referee input's own 32-byte salt (`WorkerInput::salt`, inside the sealed input) |
+| `claims_sha256` | json(claims) | **guessable: a cited value falls out of 100,000 tries** | salted the same way; the arbiter gets the salt in its dispute input; test `a_salted_claims_hash_does_not_fall_to_brute_force_over_the_cited_value` |
+| `proof_hash` (make prove-me) | json(proof set): small facts plus each fact's `proof_ref` | **the ref was the published presentation sha256, so the 3 GitHub numbers could be searched** | the ref is blinded with a private salt (`blindRef`, `proof-ref-salt.hex`); test in `scripts/prove-me.test.mjs` |
+| sealed verdict `disclosure` | predicates, tier, cap + 32-byte salt | salted | unchanged |
+| bid commitment | schedule + 32-byte salt | salted | unchanged |
+| intent budget commitment | budget + 32-byte salt | salted | unchanged |
+| sealed review | rating, delivered, reason hash + salt | salted | unchanged |
+| REP Eval item hashes | 16-byte salt + question + answer | salted | unchanged |
+| nullifier | HMAC under REP's key | keyed | unchanged (the key is REP's: README, "Who can lie") |
+| liability record, verdict digest, group key | digests of signed messages, or public predicates | high entropy or public | unchanged |
+
+Stated plainly:
+
+- **What is already on chain stays as it is.** The testnet verdicts and receipts made before
+  this change keep their guessable hashes. Their facts are synthetic, and the one
+  `make prove-me` test proved a public profile, so nothing private leaks from them; new ones
+  are salted.
+- The parked phone run (`scripts/device-run.mjs`) blinds its `proof_ref` the same way.
+
 ## Not covered by this audit
 
 The wasm build and its real gas (no deploy yet), the OutLayer worker as deployed, the

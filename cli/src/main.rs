@@ -87,6 +87,14 @@ fn referee_cmd(a: &[String]) -> ExitCode {
 /// An optional second argument swaps in another signed verdict (the live one in demo-live).
 /// `cohort_k`: the cohort size the contract counts now (its `quote` view), so the referee's
 /// price equals the on-chain quote once a group price has unlocked; 0 offline.
+/// 32 random bytes, hex: the salt of a live referee input (see `WorkerInput::salt`).
+fn input_salt() -> Option<String> {
+    use std::io::Read;
+    let mut b = [0u8; 32];
+    std::fs::File::open("/dev/urandom").and_then(|mut f| f.read_exact(&mut b)).expect("urandom");
+    Some(hex::encode(b))
+}
+
 fn worker_input(dir: &Path, verdict: Option<&Path>, cohort_k: u32) -> ExitCode {
     fn load<T: serde::de::DeserializeOwned>(p: std::path::PathBuf) -> T {
         serde_json::from_str(&std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()))).expect("parse")
@@ -94,6 +102,7 @@ fn worker_input(dir: &Path, verdict: Option<&Path>, cohort_k: u32) -> ExitCode {
     let v: bookerbob_core::SignedVerdict = load(verdict.map(Path::to_path_buf).unwrap_or_else(|| dir.join("verdict-ed25519.json")));
     let ms: Vec<fixtures::MerchantFixture> = load(dir.join("merchants.json"));
     let input = bookerbob_referee_worker::WorkerInput {
+        salt: input_salt(),
         v: 0,
         verdict_digest: hex::encode(v.envelope.digest()),
         nullifier: v.envelope.nullifier.clone(),
@@ -116,6 +125,7 @@ fn worker_input_sealed(dir: &Path, verdict: &Path, opening: &Path) -> ExitCode {
     let o: bookerbob_core::Opening = serde_json::from_str(&read(opening)).expect("opening");
     let ms: Vec<fixtures::MerchantFixture> = serde_json::from_str(&read(&dir.join("merchants.json"))).expect("merchants");
     let input = bookerbob_referee_worker::WorkerInput {
+        salt: input_salt(),
         v: 0,
         verdict_digest: hex::encode(v.envelope.digest()),
         nullifier: v.envelope.nullifier.clone(),

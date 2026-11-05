@@ -25,7 +25,7 @@
 // a public profile proves a fact about an account, not that the prover holds it; the record
 // says so. Testnet only; dUSDC is a demo token.
 import { execFileSync, spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config, Demo, guard } from "./demo-tester.mjs";
@@ -70,6 +70,13 @@ export function requestKind(sent) {
   if (m) return { authenticated: false, login: m[1] };
   throw new Error(`unexpected request line: ${line.slice(0, 40)}`);
 }
+
+/**
+ * The facts' proof_ref, blinded: sha256(presentation sha256 || a private salt). The presentation's
+ * own hash is published, so an unblinded ref would let anyone brute-force the three small
+ * numbers back out of the verdict's proof_hash.
+ */
+export const blindRef = (presentationSha, salt) => createHash("sha256").update(`bookerbob/proof-ref/v1|${presentationSha}|${salt}`).digest("hex");
 
 /** The fixture proof set plus the three real facts, and the claims for the revealed lines. */
 export function withGithub(proofs, claims, facts, sha256) {
@@ -187,7 +194,9 @@ async function run(c, round, dry, publicLogin) {
   console.log(`4. NEAR AI ${ai.model} (E2EE v2, facts sealed to the attested key): github_builder; TEE signature over both wire hashes valid`);
   const runDir = join(dir, `prove-me-${sha256.slice(0, 12)}`);
   mkdirSync(runDir, { recursive: true, mode: 0o700 });
-  const { proofs, claims } = withGithub(JSON.parse(readFileSync("fixtures/proofs.json", "utf8")), JSON.parse(readFileSync("fixtures/claims-honest.json", "utf8")), facts, sha256);
+  const refSalt = randomBytes(32).toString("hex");
+  writeFileSync(join(runDir, "proof-ref-salt.hex"), refSalt + "\n", { mode: 0o600 });
+  const { proofs, claims } = withGithub(JSON.parse(readFileSync("fixtures/proofs.json", "utf8")), JSON.parse(readFileSync("fixtures/claims-honest.json", "utf8")), facts, blindRef(sha256, refSalt));
   writeFileSync(join(runDir, "proofs.json"), JSON.stringify(proofs, null, 2) + "\n", { mode: 0o600 });
   writeFileSync(join(runDir, "claims-honest.json"), JSON.stringify(claims, null, 2) + "\n", { mode: 0o600 });
   // The round's revealed bids are the merchants the referee picks from.

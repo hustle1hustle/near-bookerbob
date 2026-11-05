@@ -39,6 +39,11 @@ pub struct WorkerInput {
     /// with no cohort, and refuses a price over the opening's cap.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sealed_verdict: Option<SealedVerdictInput>,
+    /// 32 random bytes, hex, chosen by the buyer and sent inside the sealed input. When set,
+    /// the receipt hash and `claims_sha256` on chain are salted with it: both hash claims whose
+    /// cited values are small numbers, so unsalted they can be brute-forced back to the values.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub salt: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -66,11 +71,12 @@ pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
     if input.v != 0 {
         return Err("unsupported input version".into());
     }
+    let salt = parse_salt(input.salt.as_deref())?;
     let cap = input.sealed_verdict.as_ref().map(|s| check_opening(input, s)).transpose()?;
     let q = quote_in_cohort(&input.schedule, &input.revealed, |_| input.cohort_k);
     let (outcome, detail) = match referee(&input.proofs, &input.revealed, &q, &input.claims) {
         RefereeOutcome::Receipt { .. } if cap.is_some_and(|c| q.price > c) => ("refused", "price over the sealed cap".to_string()),
-        RefereeOutcome::Receipt { receipt_hash } => ("receipt", receipt_hash),
+        RefereeOutcome::Receipt { receipt_hash } => ("receipt", salted(&salt, RECEIPT_TAG, receipt_hash)),
         RefereeOutcome::Refused { reason } => ("refused", reason.chars().take(120).collect()),
     };
     let body = ResultBody {
@@ -78,7 +84,7 @@ pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
         verdict_digest: input.verdict_digest.clone(),
         nullifier: input.nullifier.clone(),
         merchant: input.merchant.clone(),
-        claims_sha256: claims_hash(&input.claims),
+        claims_sha256: claims_hash_salted(&input.claims, &salt),
         price: q.price,
         outcome: outcome.into(),
         detail,
@@ -93,6 +99,30 @@ pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
 
 pub fn claims_hash(claims: &[Claim]) -> String {
     sha256_hex(&serde_json::to_vec(claims).expect("serializes"))
+}
+
+const CLAIMS_TAG: &[u8] = b"bookerbob/claims/v1\0";
+const RECEIPT_TAG: &[u8] = b"bookerbob/receipt/v1\0";
+
+fn parse_salt(s: Option<&str>) -> Result<Option<[u8; 32]>, String> {
+    s.map(|x| hex::decode(x).ok().and_then(|b| <[u8; 32]>::try_from(b).ok()).ok_or_else(|| "salt must be 32 bytes, hex".to_string())).transpose()
+}
+
+/// sha256(tag || salt || hash) when the input is salted; the plain hash otherwise (old inputs).
+fn salted(salt: &Option<[u8; 32]>, tag: &[u8], hash: String) -> String {
+    match salt {
+        None => hash,
+        Some(s) => {
+            let mut b = tag.to_vec();
+            b.extend_from_slice(s);
+            b.extend_from_slice(hash.as_bytes());
+            sha256_hex(&b)
+        }
+    }
+}
+
+pub fn claims_hash_salted(claims: &[Claim], salt: &Option<[u8; 32]>) -> String {
+    salted(salt, CLAIMS_TAG, claims_hash(claims))
 }
 
 fn ed_ok(key_hex: &str, sig_hex: &str, msg: &[u8]) -> bool {
@@ -128,6 +158,9 @@ pub struct DisputeInput {
     pub cohort_k: u32,
     pub issuer_keys: Vec<String>,
     pub referee_keys: Vec<String>,
+    /// The salt of the input the referee judged (see `WorkerInput::salt`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub salt: Option<String>,
 }
 
 /// Re-check everything independently and sign `upheld` or `overturned`.
@@ -150,7 +183,8 @@ pub fn arbitrate(d: &DisputeInput, key: &SigningKey) -> Result<String, String> {
     if !ed_ok(&d.result.worker_key, &d.result.signature, &r.signing_message()) {
         reasons.push("referee signature invalid".into());
     }
-    if r.claims_sha256 != claims_hash(&d.claims) {
+    let dsalt = parse_salt(d.salt.as_deref()).unwrap_or(None);
+    if r.claims_sha256 != claims_hash_salted(&d.claims, &dsalt) {
         reasons.push("claims differ from the ones the referee signed".into());
     }
     let revealed = &d.verdict.envelope.predicates;
@@ -194,10 +228,34 @@ pub fn key_from_seed_hex(seed_hex: &str) -> Result<SigningKey, String> {
 mod tests {
     use super::*;
     use bookerbob_core::{Fact, Rule};
+
+    #[test]
+    fn a_salted_claims_hash_does_not_fall_to_brute_force_over_the_cited_value() {
+        // A claim template and a small value domain (a lifetime trip count, an account age).
+        let claim = |v: u64| {
+            vec![Claim {
+                line: "airbnb_frequent".into(),
+                text: "stays a lot".into(),
+                citations: vec![bookerbob_core::Citation { fact: "F1".into(), field: "trips_12m".into(), value: v }],
+            }]
+        };
+        let secret = 37;
+        let unsalted = claims_hash(&claim(secret));
+        assert_eq!((0..100_000).find(|v| claims_hash(&claim(*v)) == unsalted), Some(secret), "unsalted: the value falls out");
+        let salt = Some([7u8; 32]);
+        let on_chain = claims_hash_salted(&claim(secret), &salt);
+        assert!(
+            !(0..100_000).any(|v| claims_hash(&claim(v)) == on_chain || claims_hash_salted(&claim(v), &None) == on_chain),
+            "salted: no value in the domain matches"
+        );
+        assert_eq!(claims_hash_salted(&claim(secret), &salt), on_chain, "the arbiter, who has the salt, re-derives it");
+    }
+
     use ed25519_dalek::{Signature, Verifier};
 
     fn input(claims: Vec<Claim>) -> WorkerInput {
         WorkerInput {
+            salt: None,
             v: 0,
             verdict_digest: "aa".repeat(32),
             nullifier: "bb".repeat(32),
@@ -315,6 +373,7 @@ mod tests {
             result.signature = hex::encode(key().sign(&result.body.signing_message()).to_bytes());
         }
         DisputeInput {
+            salt: None,
             v: 0,
             issuer_keys: vec![v.key_id()],
             verdict: v,

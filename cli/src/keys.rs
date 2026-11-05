@@ -209,11 +209,16 @@ fn sign_purchase_inner(
         }
         _ => None,
     };
+    // A live verdict's commitment to its full predicate set gets a fresh random salt: under the
+    // public fixture salt, 2^7 predicate subsets would open it by brute force.
+    let csalt: [u8; 32] = rand_salt()?;
+    let all_set = set.cloned().unwrap_or_else(crate::fixtures::proofs);
     let sign = |agent: &str| {
         let mut e = match set {
             Some(p) => crate::fixtures::envelope_over(agent, p),
             None => crate::fixtures::envelope(agent),
         };
+        e.commitment = fresh_commitment(&csalt, &all_set);
         if let Some(n) = &nullifier {
             e.nullifier = n.clone();
         }
@@ -250,6 +255,13 @@ fn sign_purchase_inner(
     write("verdict.json", serde_json::to_string_pretty(&sign(agent)).unwrap())?;
     write("verdict-replay.json", serde_json::to_string_pretty(&sign(wallet2)).unwrap())?;
     write("world.json", serde_json::to_string_pretty(&att).unwrap())?;
+    // The commitment's salt stays with the buyer (mode 600), for a later opening.
+    write("commitment-salt.hex", hex::encode(csalt))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(out.join("commitment-salt.hex"), std::fs::Permissions::from_mode(0o600)).map_err(|e| e.to_string())?;
+    }
     if let Some(o) = opening.into_inner() {
         let p = out.join("opening.json");
         write("opening.json", serde_json::to_string_pretty(&o).unwrap())?;
@@ -262,12 +274,42 @@ fn sign_purchase_inner(
     Ok(())
 }
 
+/// The envelope commitment over every predicate the proof set derives, under `salt`.
+pub fn fresh_commitment(salt: &[u8; 32], set: &bookerbob_core::ProofSet) -> String {
+    bookerbob_core::envelope::commitment(salt, &bookerbob_core::derive(set).predicates())
+}
+
 /// 32 bytes from the OS (the opening's salt hides a small predicate set from guessing).
 fn rand_salt() -> Result<[u8; 32], String> {
     use std::io::Read;
     let mut b = [0u8; 32];
     std::fs::File::open("/dev/urandom").and_then(|mut f| f.read_exact(&mut b)).map_err(|e| format!("urandom: {e}"))?;
     Ok(b)
+}
+
+#[cfg(test)]
+mod brute_force {
+    use bookerbob_core::envelope::commitment;
+
+    /// Every subset of the known predicates: the whole domain of a predicate-set commitment.
+    fn all_subsets() -> Vec<Vec<String>> {
+        let ps: Vec<String> = bookerbob_core::KNOWN_PREDICATES.iter().map(|p| p.to_string()).collect();
+        (0u32..1 << ps.len()).map(|m| ps.iter().enumerate().filter(|(i, _)| m & (1 << i) != 0).map(|(_, p)| p.clone()).collect()).collect()
+    }
+
+    #[test]
+    fn a_live_commitment_does_not_fall_to_brute_force_over_every_predicate_subset() {
+        let set = crate::fixtures::proofs();
+        let fixed = crate::fixtures::salt();
+        // The old live path used the public fixture salt: the subset falls out at once.
+        let old = commitment(&fixed, &bookerbob_core::derive(&set).predicates());
+        assert!(all_subsets().iter().any(|s| commitment(&fixed, s) == old), "the old commitment is guessable");
+        // Now: a fresh random salt; the same search over all 128 subsets finds nothing.
+        let salt = super::rand_salt().unwrap();
+        let new = super::fresh_commitment(&salt, &set);
+        assert!(!all_subsets().iter().any(|s| commitment(&fixed, s) == new));
+        assert_eq!(new, commitment(&salt, &bookerbob_core::derive(&set).predicates()), "it still opens with its salt");
+    }
 }
 
 #[cfg(test)]

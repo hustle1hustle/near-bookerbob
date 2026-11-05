@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { deriveGithub, requestKind, withGithub, REVEAL } from "./prove-me.mjs";
+import { createHash } from "node:crypto";
+import { blindRef, deriveGithub, requestKind, withGithub, REVEAL } from "./prove-me.mjs";
 
 // What rep-verify shows for a 3-field reveal: undisclosed bytes are X.
 const X = (n) => "X".repeat(n);
@@ -33,4 +34,15 @@ test("the real facts join the synthetic set as F6..F8; claims only for revealed 
   assert.ok(r.claims.every((c) => REVEAL.split(",").includes(c.line)));
   assert.ok(!/[0-9]/.test(r.claims.at(-1).text), "no number in the claim text");
   assert.equal(proofs.facts.length, 5, "the fixture is untouched");
+});
+
+test("the proof_hash does not fall to a search over the three numbers once the ref is blinded", () => {
+  const proofs = JSON.parse(readFileSync("fixtures/proofs.json", "utf8"));
+  const pres = "ab".repeat(32); // published
+  const hash = (ref, age) => createHash("sha256").update(JSON.stringify(withGithub(proofs, [], { account_age_years: age, public_repos: 8, followers: 3 }, ref).proofs)).digest("hex");
+  const secretAge = 15;
+  const unblinded = hash(pres, secretAge);
+  assert.equal([...Array(40).keys()].find((a) => hash(pres, a) === unblinded), secretAge, "with the published ref, the age falls out");
+  const onChain = hash(blindRef(pres, "cd".repeat(32)), secretAge);
+  assert.ok(![...Array(40).keys()].some((a) => hash(pres, a) === onChain), "blinded: no guess matches without the salt");
 });

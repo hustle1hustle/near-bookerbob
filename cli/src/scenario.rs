@@ -105,6 +105,7 @@ pub fn run(dir: &Path) -> ExitCode {
     let worker = |claims: Vec<Claim>, c: &Bazaar| {
         let q = c.quote(best.merchant.clone(), e.nullifier.clone());
         let input = WorkerInput {
+            salt: None,
             v: 0,
             verdict_digest: hex::encode(e.digest()),
             nullifier: e.nullifier.clone(),

@@ -134,6 +134,7 @@ fn honest_claims() -> Vec<Claim> {
 /// Run the real referee worker over `claims` for verdict `e` and merchant m01.
 fn referee_result(e: &Envelope, claims: Vec<Claim>, key: &SigningKey) -> WorkerResult {
     let input = WorkerInput {
+        salt: None,
         v: 0,
         verdict_digest: hex::encode(e.digest()),
         nullifier: e.nullifier.clone(),
@@ -728,6 +729,7 @@ fn forged_receipt(e: &Envelope) -> (Vec<Claim>, WorkerResult) {
 
 fn decide(v: &SignedVerdict, result: &WorkerResult, claims: Vec<Claim>) -> bookerbob_core::DisputeDecision {
     let d = DisputeInput {
+        salt: None,
         v: 0,
         verdict: v.clone(),
         result: result.clone(),
@@ -2429,6 +2431,7 @@ mod arbiter_quorum {
 
     fn signed_by(v: &SignedVerdict, result: &WorkerResult, claims: Vec<Claim>, k: &SigningKey) -> bookerbob_core::DisputeDecision {
         let d = DisputeInput {
+            salt: None,
             v: 0,
             verdict: v.clone(),
             result: result.clone(),
@@ -2871,6 +2874,7 @@ mod sealed_verdict {
     /// The real worker, opening the sealed verdict.
     fn sealed_result(e: &Envelope, o: &Opening) -> WorkerResult {
         let input = WorkerInput {
+            salt: None,
             v: 0,
             verdict_digest: hex::encode(e.digest()),
             nullifier: e.nullifier.clone(),
