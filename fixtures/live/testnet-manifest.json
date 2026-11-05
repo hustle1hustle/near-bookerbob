@@ -358,6 +358,27 @@
         "replay": "38GZmjxc4LBPQCveN3rfC1BjwUimwY8NMGGGpD7g6ef1",
         "review_join": "CkUTiXwuvCt5it5p5rs4MHf1mRaDdKdGpomm4375XmAh"
       }
+    },
+    {
+      "tester": "131f7f216680f0e2370f239a72fe4c4f2e987f9d296552c1fcaa22a69c0a3f3a",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "995b7d1e0d0c186243f03244d7c1ce58a8b3c0c79a20929e6d966ed925371627",
+      "price": "36000000",
+      "cohort_k": 28,
+      "shopify_order": "#1072",
+      "txs": {
+        "account": "4zi5B4a5e19ULbc8pQBoUbxYPfaVGV4SveEuPUiKJwrz",
+        "escrow_entry": "aynz61iygEwhVkXU8HAHb636SKREJSwSt1DypepXQHj",
+        "dusdc_storage": "HCsn4SVNjSiTrGZ19SoemJZr3gcxEXf2Fymcw9zEAbiy",
+        "mint": "N1eWMmjgquo3JvcNTYLT84rv3AYs3SvAhab3zecrmG8",
+        "world": "FGn6v85yoN9mLug4J6k5gEwA68t3vtZteYYnfiSVgSNy",
+        "verdict": "GJvj8XJUeTgj53uWzkMDt2bKzrtkJnwDS7ZZjQD2LJQW",
+        "receipt": "2uvnbF4a6fXBFMfce8GDGB7xZn5r8kpRCkKde6ZKcSa4",
+        "escrow": "4TDiMiWTx1Asn9qbA2QDbqwNug1ZQ5wHSXjQESKMCCG2",
+        "settle": "J7jRwTAdYE49epXJTcNerohUC6AzekkKx1Khr8tyxMiw",
+        "replay": "9pPRjCbGLqyHAviLX9H4NFi1EDQi5TJN1jj52mW2fj3x",
+        "review_join": "BzVLJAoJv3es6Cg1aktrzoSQrBv7wce7ia2ipyu7CukM"
+      }
     }
   ],
   "unfinished": [

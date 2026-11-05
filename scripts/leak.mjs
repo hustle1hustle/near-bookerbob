@@ -17,8 +17,9 @@ const RPC = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
 const m = JSON.parse(readFileSync(new URL("../fixtures/live/testnet-manifest.json", import.meta.url)));
 
 async function rpc(method, params) {
-  for (let i = 0; i < 5; i++) {
-    const r = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "leak", method, params }) });
+  for (let i = 0; i < 8; i++) {
+    const url = i % 2 ? "https://archival-rpc.testnet.fastnear.com" : RPC;
+    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "leak", method, params }) });
     if (r.status === 429 || r.status >= 500) { await new Promise((s) => setTimeout(s, 1000 * (i + 1))); continue; }
     return r.json();
   }
@@ -153,6 +154,17 @@ links.push({ rule: "L6 amount oracle", what: `settled amounts of ${rows.length} 
 const minFunder = Math.min(...[...byFunder.values()]);
 links.push({ rule: "L7 funding set", what: `who funded each of ${rows.length} buyer accounts: ${[...byFunder].map(([f, n]) => `${f.length > 30 ? f.slice(0, 12) + ".." : f} x${n}`).join(", ")}`, linked: minFunder < K, anonymity_set: minFunder });
 
+// L8: the account name. A subaccount of the treasury says whose it is in its name; a one-time
+// implicit account is the hex of a fresh key. Accounts reused across purchases count too (L1
+// covers one purchase; this covers two purchases by one account). Funding is L7: an implicit
+// account is still funded by the treasury today, so the name goes and the funding set stays.
+const beforeImplicit = JSON.parse(readFileSync(new URL("../fixtures/live/leak-before-implicit.json", import.meta.url)));
+const knownNamed = new Set(beforeImplicit.known);
+const named = rows.filter((r) => r.tester.endsWith(`.${m.treasury}`));
+const newNamed = named.filter((r) => !knownNamed.has(r.tester));
+const reused = rows.length - new Set(rows.map((r) => r.tester)).size;
+links.push({ rule: "L8 account name", what: `${rows.length} buyers: ${named.length} named under ${m.treasury}, ${rows.length - named.length} one-time implicit; ${reused} account(s) used twice`, linked: newNamed.length > 0 || reused > 0, note: `${knownNamed.size} named before implicit became the default (${beforeImplicit.date}), listed in fixtures/live/leak-before-implicit.json; ${newNamed.length} since`, anonymity_set: rows.length - named.length });
+
 const ratingToBuyer = links.find((l) => l.rule.startsWith("L2")).linked;
 console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${round.round})\n`);
 for (const l of links) console.log(`${l.linked ? "LINKED  " : "unlinked"}  ${l.rule.padEnd(16)} ${l.what}  (anonymity set ${l.anonymity_set}${l.correct !== undefined ? `, ${l.correct}/${l.of} right` : ""}${l.note ? `; ${l.note}` : ""})`);
@@ -161,4 +173,5 @@ console.log(`\nk-gate (k >= ${K} for every amount and funding set):`);
 for (const u of under) console.log(`${known.has(u.r.nullifier) ? "KNOWN " : "FAIL  "}  ${u.r.kind} ${u.r.tester.slice(0, 18)}: ${u.what}${known.has(u.r.nullifier) ? `  (before the gate: ${gate.known.find((x) => x.nullifier === u.r.nullifier).reason})` : ""}`);
 console.log(newUnder.length ? `FAIL  k-gate: ${newUnder.length} purchase(s) after the gate sit in a set under ${K}` : `PASS  k-gate: no purchase after the gate (${gate.date}) sits in a set under ${K}; ${under.length} known one(s) before it, listed above`);
 writeFileSync(new URL(`../docs/leak-report-${round.round}.json`, import.meta.url), JSON.stringify({ when: new Date().toISOString(), bazaar: m.bazaar, round: round.round, links, rating_to_buyer_linked: ratingToBuyer, k_gate: { k: K, pass: newUnder.length === 0, known: under.filter((u) => known.has(u.r.nullifier)).map((u) => ({ nullifier: u.r.nullifier, what: u.what })) } }, null, 2) + "\n");
-if (newUnder.length) process.exit(1);
+console.log(`${newNamed.length ? "FAIL " : "PASS "} account names: ${newNamed.length} new named buyer(s) since ${beforeImplicit.date}, ${reused} reused`);
+if (newUnder.length || newNamed.length || reused) process.exit(1);

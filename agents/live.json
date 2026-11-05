@@ -1,10 +1,10 @@
 {
   "note": "what bookerbob.testnet said at taken_at; the pages read the chain live and fall back to this file only when public RPC is unreachable. dUSDC is a testnet demo token; the facts behind every verdict are synthetic",
-  "taken_at": "2026-11-05T14:12:20.095Z",
-  "block_height": 276351656,
+  "taken_at": "2026-11-05T20:17:45.007Z",
+  "block_height": 276389320,
   "bazaar": "bookerbob.testnet",
   "rpc": "https://rpc.testnet.fastnear.com",
-  "spent_count": 27,
+  "spent_count": 28,
   "merchants": [
     {
       "account": "m01.bookerbob.testnet",
@@ -320,6 +320,15 @@
       "nullifier": "41f94901238a2a2afcb7d28cf20e8df2d3c63693f6f3bc7df2c9bf237abf1efe",
       "paid": "36000000",
       "tx": "4xjiCEkemBinDTdUBuTvJApRcBrYZz4x1gSCgJcyd9AH",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "131f7f216680f0e2370f239a72fe4c4f2e987f9d296552c1fcaa22a69c0a3f3a",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "995b7d1e0d0c186243f03244d7c1ce58a8b3c0c79a20929e6d966ed925371627",
+      "paid": "36000000",
+      "tx": "J7jRwTAdYE49epXJTcNerohUC6AzekkKx1Khr8tyxMiw",
       "status": "Spent"
     },
     {

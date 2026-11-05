@@ -1,0 +1,31 @@
+{
+  "note": "Buyer accounts from before one-time implicit accounts became the default (2026-11-06). Their names show the treasury as parent. Frozen: make leak lists them as KNOWN and fails on any new named buyer.",
+  "date": "2026-11-06",
+  "known": [
+    "t-0a1423.bookerbob-demo.testnet",
+    "t-112804.bookerbob-demo.testnet",
+    "t-1a2121.bookerbob-demo.testnet",
+    "t-22c72f.bookerbob-demo.testnet",
+    "t-388a34.bookerbob-demo.testnet",
+    "t-3f71c2.bookerbob-demo.testnet",
+    "t-44d549.bookerbob-demo.testnet",
+    "t-4fdc17.bookerbob-demo.testnet",
+    "t-565d86.bookerbob-demo.testnet",
+    "t-56c1fd.bookerbob-demo.testnet",
+    "t-5a162a.bookerbob-demo.testnet",
+    "t-730490.bookerbob-demo.testnet",
+    "t-744ca5.bookerbob-demo.testnet",
+    "t-7e261e.bookerbob-demo.testnet",
+    "t-7ea3ae.bookerbob-demo.testnet",
+    "t-823cb3.bookerbob-demo.testnet",
+    "t-93140c.bookerbob-demo.testnet",
+    "t-963c60.bookerbob-demo.testnet",
+    "t-b1de37.bookerbob-demo.testnet",
+    "t-ba7253.bookerbob-demo.testnet",
+    "t-bb681d.bookerbob-demo.testnet",
+    "t-e29071.bookerbob-demo.testnet",
+    "t-f29860.bookerbob-demo.testnet",
+    "t-f7883a.bookerbob-demo.testnet",
+    "t-fb6278.bookerbob-demo.testnet"
+  ]
+}

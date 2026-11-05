@@ -1,7 +1,20 @@
 # make leak: what a passive observer links
 
+## Who sees what
+
+| party | sees | does not see |
+|---|---|---|
+| anyone reading the chain | nullifier, commitments, tcb_status, cap, settled amount, merchant, checkout_ref, the account and who funded it; revealed predicates, except on a sealed verdict | the facts; a sealed verdict's predicates; the person |
+| the merchant | what the chain shows, the Shopify order in the test store | the facts, the account's owner |
+| the relayer and the treasury (REP today) | every account it funds and relays for, and when; so it can link a buyer's calls in one purchase | the facts |
+| NEAR AI enclave | the facts, sealed to its attested key | who the account is |
+| the referee and the arbiter | the proof set they judge; a sealed verdict's opening | the person, other purchases |
+| REP as verdict issuer | the facts it signs over (synthetic so far) | |
+| REP as VOPRF evaluator | who asked, in which context, and when; a blinded element | the input and the nullifier it produces, so timing is its only link |
+| the notary (`make prove-me`, `make try`) | that a session ran, its transcript commitments | the redacted fields |
+
 `make leak` reads only public testnet data (signers, receivers, args, events, block heights,
-funding) for the txs in `fixtures/live/testnet-manifest.json` and applies four rules:
+funding) for the txs in `fixtures/live/testnet-manifest.json` and applies these rules (L5 to L8 are below):
 
 | rule | signal |
 |---|---|
@@ -9,6 +22,7 @@ funding) for the txs in `fixtures/live/testnet-manifest.json` and applies four r
 | L2 timing order | the k-th sealed rating follows the k-th review-group join |
 | L3 funding | review senders funded by the same relayer as the buyers |
 | L4 reveal | a revealed rating opens one sealed hash, so it is tied to its sender |
+| L8 account name | a subaccount of the treasury shows its parent; a new one fails `make leak` |
 
 ## Before (2026-11-05, round 5979413, `docs/leak-before.json`)
 
@@ -25,6 +39,25 @@ account through the relayer.
 - L4: by design; harmless unless combined with L2.
 
 Verdict: a leak. Ratings were not anonymous in practice, though every proof was valid.
+
+## L1 and L3 with one-time accounts (2026-11-06)
+
+`make demo-tester` now buys from a one-time implicit account by default: its id is the hex of a
+fresh key and it is the verdict's `cnf`, so an account and its key serve one purchase
+(`DEMO_NAMED=1` gives the old named subaccount, and `make leak` fails on a new one, rule L8).
+
+| rule | before (26 purchases) | after (27 purchases) |
+|---|---|---|
+| L1 one purchase, one actor | linked, set 1 | linked, set 1: unchanged, one account still makes all calls of its purchase |
+| L1 across purchases | 0 accounts reused | 0 accounts reused |
+| L3 funding of review senders | 1 funder, set 16 | 1 funder, set 17: unchanged |
+| L7 funding of buyers | treasury x26 | treasury x27: unchanged |
+| L8 account name shows the treasury | 25 of 26 | 25 of 27, 0 new |
+
+What moved is the name, not the funding: an implicit account no longer says whose it is, and the
+treasury still funds every buyer, so funding stays one set of all buyers. A buyer who funded their
+own account would leave that set. The default purchase:
+[J7jRwTAd…](https://testnet.nearblocks.io/txns/J7jRwTAdYE49epXJTcNerohUC6AzekkKx1Khr8tyxMiw).
 
 ## Fix
 

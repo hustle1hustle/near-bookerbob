@@ -174,12 +174,15 @@ export class Demo {
     step(1, "preflight");
     await this.preflight();
     const hex6 = randomBytes(3).toString("hex");
-    // opts.implicit (make try): a one-time implicit account, its id the hex of a fresh key,
-    // created by the treasury's transfer alone; the seed stays in KEYS_DIR/testers.
+    // The default: a one-time implicit account, its id the hex of a fresh key, which also serves
+    // as the verdict's cnf, created by the treasury's transfer alone; the seed stays in
+    // KEYS_DIR/testers. DEMO_NAMED=1 (or implicit: false) gives a named subaccount of the treasury,
+    // whose name shows its parent; `make leak` fails on a new one.
+    const implicit = opts.implicit ?? process.env.DEMO_NAMED !== "1";
     let id = testerId(c, hex6);
     let dir = join(c.testersDir, id);
     let key;
-    if (opts.implicit) {
+    if (implicit) {
       const tmp = join(c.testersDir, `implicit-${hex6}`);
       mkdirSync(tmp, { recursive: true });
       key = newSeed(join(tmp, "account.seed"));
@@ -191,11 +194,11 @@ export class Demo {
       key = newSeed(join(dir, "account.seed"));
     }
     const tester = { id, key };
-    const rec = { tester: id, merchant: c.merchant, date: new Date().toISOString().slice(0, 10), txs: {} };
+    const rec = { tester: id, merchant: c.merchant, date: new Date().toISOString().slice(0, 10), txs: {}, ...(implicit && { dir: `implicit-${hex6}` }) };
     const save = () => writeFileSync(join(c.testersDir, `${id}.json`), JSON.stringify(rec, null, 2) + "\n");
-    step(2, opts.implicit ? `fund a one-time implicit account ${id.slice(0, 12)}..` : `create ${id}`);
-    const create = opts.implicit ? [{ type: "Transfer", deposit: TESTER_FUND }] : [{ type: "CreateAccount" }, { type: "Transfer", deposit: TESTER_FUND }, { type: "AddKey", public_key_hex: tester.key.pub, permission: "FullAccess" }];
-    rec.txs.account = (await this.direct(opts.implicit ? "fund implicit tester" : "create tester", c.treasury, this.treasury, id, create)).hash;
+    step(2, implicit ? `fund a one-time implicit account ${id.slice(0, 12)}..` : `create ${id}`);
+    const create = implicit ? [{ type: "Transfer", deposit: TESTER_FUND }] : [{ type: "CreateAccount" }, { type: "Transfer", deposit: TESTER_FUND }, { type: "AddKey", public_key_hex: tester.key.pub, permission: "FullAccess" }];
+    rec.txs.account = (await this.direct(implicit ? "fund implicit tester" : "create tester", c.treasury, this.treasury, id, create)).hash;
     save();
     step(3, "storage: bazaar escrow entry and dUSDC registration, paid by the treasury");
     rec.txs.escrow_entry = (await this.direct("bazaar storage_deposit", c.treasury, this.treasury, c.bazaar, [fc("storage_deposit", { account_id: id }, 10n * MILLI, 30n * TGAS)])).hash;
@@ -383,9 +386,10 @@ export class Demo {
 
   async resume(id) {
     await this.preflight();
-    const dir = join(this.c.testersDir, id);
     const recPath = join(this.c.testersDir, `${id}.json`);
     const rec = JSON.parse(readFileSync(recPath, "utf8"));
+    const dir = join(this.c.testersDir, rec.dir ?? id);
+    if (rec.dir) (this.implicit ??= new Set()).add(id);
     if (!rec.txs.settle) throw new Error(`${id} has not settled; start a new tester instead`);
     const tester = { id, key: keyFromSeed(readFileSync(join(dir, "account.seed"), "utf8")) };
     const save = () => writeFileSync(recPath, JSON.stringify(rec, null, 2) + "\n");
