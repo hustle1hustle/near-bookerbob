@@ -6,7 +6,7 @@
 //                                     lacks, or when a stale phrase is back in the docs
 // Status words: live (on testnet, re-derived by make verify-live), built (tests or make verify,
 // not on testnet), stub (an interface with a test double), planned, archived.
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const root = new URL("..", import.meta.url).pathname;
 const rows = JSON.parse(readFileSync(root + "docs/status.json", "utf8"));
@@ -28,8 +28,31 @@ export const STALE = [
   "not run (no deploy)",
   "waits on the testnet deploy",
   "The proven standing scores are not yet posted",
+  "6 dUSDC settles",
+  "6 settles",
+  "32 of 32",
+  "32/32",
 ];
-const DOCS = ["README.md", "docs/judge-guide.md", "AGENTS.md", "CLAUDE.md"];
+const DOCS = ["README.md", "docs/judge-guide.md", "AGENTS.md", "CLAUDE.md", "RESUME.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md"];
+
+// Features with code in the tree. A doc that calls one planned or not built is drift. Each
+// entry names the file and the code that proves it shipped; if that code is gone, the entry
+// itself fails, so the list cannot outlive the code.
+export const SHIPPED = [
+  { what: "arbiter threshold", file: "contract/src/lib.rs", code: "pub fn set_arbiter_threshold", claims: [/2-of-3 arbiter is planned/i, /arbiter is one registered key/i, /an arbiter set[^.]*neither is built/i] },
+  { what: "sealed referee input", file: "worker/src/sealed.rs", code: "pub fn seal", claims: [/sealed \(not built\)/i, /sealed to the\s+worker key\. Not built/i] },
+  { what: "settle-only function-call key", file: "scripts/fc-key-check.mjs", code: "", claims: [/planned function-call\s+key/i, /Not built: function-call keys/i] },
+  { what: "relayer sending", file: "relayer/near.mjs", code: "", claims: [/the NEP-366 relayer sending/i] },
+  { what: "anchor timelock", file: "contract/src/lib.rs", code: "pub fn execute_anchor", claims: [/timelock[^.\n]*\b(planned|not built)\b/i] },
+  { what: "market fee", file: "contract/src/lib.rs", code: "pub fn sweep_fees", claims: [/market fee[^.\n]*\b(planned|not built)\b/i] },
+  { what: "certified eval", file: "contract/src/lib.rs", code: "pub fn submit_eval_certificate", claims: [/certified (private )?eval[^.\n]*\b(planned|not built)\b/i] },
+];
+
+// Numbers the docs repeat that a fixture already holds.
+export function counted(m, liveRun) {
+  const single = (m.testers ?? []).length, group = (m.groups ?? []).reduce((a, g) => a + g.members.length, 0);
+  return { purchases: single + group, single, signatures: (liveRun.calls ?? []).length };
+}
 
 export function render(rs) {
   const head = "| feature | track ids | where | status |\n|---|---|---|---|";
@@ -38,7 +61,7 @@ export function render(rs) {
 
 const at = (o, path) => path.split(".").reduce((x, k) => (x == null ? x : x[k]), o);
 
-export function problems(readme, rs, m, docs) {
+export function problems(readme, rs, m, docs, src = {}, n = null) {
   const out = [];
   const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
   if (a < 0 || b < 0) out.push("README has no status markers");
@@ -49,6 +72,18 @@ export function problems(readme, rs, m, docs) {
     if (r.status === "live" && !(r.evidence ?? []).length && !/reads `bookerbob\.testnet`/.test(r.detail)) out.push(`"${r.feature.slice(0, 40)}": live with no evidence named`);
   }
   for (const [f, text] of Object.entries(docs)) for (const p of STALE) if (text.includes(p)) out.push(`${f}: stale phrase "${p}"`);
+  for (const s of SHIPPED) {
+    if (!(s.file in src) || !src[s.file].includes(s.code)) { out.push(`SHIPPED "${s.what}": ${s.file} no longer has ${s.code || "the file"}; fix the list`); continue; }
+    for (const [f, text] of Object.entries(docs)) for (const re of s.claims) if (re.test(text)) out.push(`${f}: calls ${s.what} planned or not built, but ${s.file} has it`);
+  }
+  // A planned or stub row whose named method exists in the contract is drift too.
+  const lib = src["contract/src/lib.rs"] ?? "";
+  for (const r of rs) if (["planned", "stub"].includes(r.status)) for (const [, fn] of r.where.matchAll(/`([a-z_]+)`/g)) if (lib.includes(`pub fn ${fn}(`)) out.push(`"${r.feature.slice(0, 40)}": ${r.status}, but lib.rs has pub fn ${fn}`);
+  if (n) for (const [f, text] of Object.entries(docs)) {
+    for (const [, x] of text.matchAll(/\b(\d+) dUSDC purchases/g)) if (Number(x) !== n.purchases) out.push(`${f}: "${x} dUSDC purchases", the manifest has ${n.purchases}`);
+    for (const [, x, y] of text.matchAll(/\b(\d+) purchases \((\d+) single settles/g)) if (Number(x) !== n.purchases || Number(y) !== n.single) out.push(`${f}: "${x} purchases (${y} single", the manifest has ${n.purchases} and ${n.single}`);
+    for (const [, x, y] of text.matchAll(/\b(\d+)(?:\/| of )(\d+) (?:response )?signatures(?: verified| valid)/g)) if (!(Number(x) === Number(y) && [n.signatures, 20].includes(Number(x)))) out.push(`${f}: "${x}/${y} signatures", the live run has ${n.signatures}`);
+  }
   return out;
 }
 
@@ -56,7 +91,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const readme = readFileSync(root + "README.md", "utf8");
   if (process.argv.includes("--check")) {
     const docs = Object.fromEntries(DOCS.map((f) => [f, readFileSync(root + f, "utf8")]));
-    const p = problems(readme, rows, manifest, docs);
+    const src = Object.fromEntries([...new Set(SHIPPED.map((s) => s.file).concat("contract/src/lib.rs"))].filter((f) => existsSync(root + f)).map((f) => [f, readFileSync(root + f, "utf8")]));
+    const liveRun = JSON.parse(readFileSync(root + "agents/out/live-run.json", "utf8"));
+    const p = problems(readme, rows, manifest, docs, src, counted(manifest, liveRun));
     const n = rows.reduce((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {});
     if (p.length) {
       for (const x of p) console.log(`FAIL  status: ${x}`);
