@@ -12,3 +12,4 @@ node_modules/
 /tools/dcap-spike/target/
 /zk/bin/bookerbob-zk-*
 !/zk/bin/*.xz
+/site/

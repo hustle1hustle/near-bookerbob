@@ -60,6 +60,10 @@ verify-offline:
 cheat:
 	node scripts/cheat.mjs run
 
+# site/ for GitHub Pages: board, receipts, eval over public RPC with snapshot fallbacks (Pages turns on with the flip).
+site:
+	node scripts/site.mjs
+
 # One purchase rebuilt from public data, and its price recomputed four ways (scripts/audit.mjs).
 NULLIFIER ?=
 audit:
