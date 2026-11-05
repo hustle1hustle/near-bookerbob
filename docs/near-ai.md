@@ -100,8 +100,9 @@ or anything about the GPUs after the capture.
 
 ## Not checked yet
 
-- The NVIDIA payload of the attestation report (NRAS).
 - Whether all instances of a model share one key (docs say so).
+- The GPU evidence on chain: NRAS is checked off chain only (`node scripts/nras.mjs verify`, in
+  `make verify`).
 
 ## What a valid TDX quote does not prove here
 
@@ -115,9 +116,13 @@ or anything about the GPUs after the capture.
   2026-11-04 capture; comparing them with NEAR AI's published reproducible-build values is
   not done. The pin runs off chain, before `register_model_attestation`; the contract does not
   store the measurement.
-- **The GPU is not attested.** The NVIDIA evidence in the report is not checked.
-- **`tcb_status` on chain is written by the owner** when it registers the model attestation
-  (`register_model_attestation`), after the off-chain check. The contract enforces the floor
-  (`min_tcb`) on what the owner wrote; it does not parse the quote.
+- **The GPU is attested off chain only.** The NVIDIA NRAS result in the report is checked by
+  `scripts/nras.mjs` (the ES384 JWT, its x5c chain to the pinned NVIDIA root, every GPU in the
+  token set, our nonce); the contract does not see it.
+- **`tcb_status` on chain comes from the on-chain quote check** since 2026-11-05: with a quote
+  verifier set (`spike.bookerbob.testnet`, tools/dcap-spike), the bazaar registers a model key
+  only through `register_model_attestation_verified`, which takes the TCB status from the
+  verifier's finalized verification and refuses the owner-written path. The `min_tcb` floor
+  applies to that value.
 - When a TEE output and a Jolt output disagree on the same value, the contract refuses; today
   they cover different outputs (NEAR AI: predicates; Jolt: standing, price, referee, cohort).

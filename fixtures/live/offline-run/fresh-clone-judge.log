@@ -1,13 +1,16 @@
-node scripts/judge.mjs
-make judge: fast path (Node only; deep path: make verify, make zk-verify)
+# fresh clone of ae99df7, JUDGE_OFFLINE=1, 2026-11-05
+make judge: fast path (Node and the committed Jolt verifier; deep path: make verify, make zk-verify)
 
 SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)
-PASS  testnet snapshot: committed RPC responses match their sha256  (c4fbfe0eb9f2..)
-PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T09:29:26.415Z  (57 checks; rerun with network for the live chain)
+PASS  testnet snapshot: committed RPC responses match their sha256  (696ba1c6c63e..)
+PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T13:37:11.500Z  (80 checks; rerun with network for the live chain)
 PASS  docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log
+PASS  NVIDIA GPU evidence (NRAS): 8 GPU tokens and the platform verdict signed by NVIDIA, bound to the request nonce  (12 checks)
 PASS  REP Eval: 3 model certificates, every TEE signature and the issuer signature verify  (3 models)
 PASS  REP Eval v2 (referee claims, truth from the referee's code, 600 tokens: the budget result): 3 certificates, every TEE signature verifies, cut replies graded as no answer  (3 models)
 PASS  REP Eval v3 (referee claims, truth from the referee's code, 2,000 tokens: the accuracy result): 3 certificates, every TEE signature verifies, cut replies graded as no answer  (3 models)
+PASS  REP Eval v4 (referee claims, truth from the referee's code, 40 harder items, 4,000 tokens): 2 certificates, every TEE signature verifies, cut replies graded as no answer  (2 models)
+SKIP  code parity: no network (DEPLOYED.json names cGHGTgUvuN.., tag bazaar-2026-11-05)
 PASS  jolt standing: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 8.94 s, proof 92716 B)
 PASS  jolt standing-testnet: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 3.32 s, proof 84796 B)
 PASS  jolt standing-testnet-2: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.71 s, proof 84796 B)
@@ -15,9 +18,7 @@ PASS  jolt standing-testnet-3: committed output equals the input's expected valu
 PASS  jolt price: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 1.27 s, proof 80380 B)
 PASS  jolt referee: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.26 s, proof 84796 B)
 PASS  jolt cohort: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.91 s, proof 84724 B)
-PASS  JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK  (87 tests passed, 0 failed)
+PASS  Jolt proofs verified with the committed prebuilt verifier (sha256-checked)  (zk-verify-prebuilt: 7 Jolt proofs verify with the committed aarch64-apple-darwin verifier (sha256 62d80a5f827a..))
+PASS  JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK  (90 tests passed, 0 failed)
 
-PASS  make judge in 0.6 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain), make zk-verify (Jolt verifier).
-real 0.59
-user 1.79
-sys 0.35
+PASS  make judge in 1.6 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain; make verify-offline with no network), make zk-verify-prebuilt (Jolt verifier).

@@ -304,7 +304,7 @@
           "rank": 1,
           "merchant": "h05.bookerbob.testnet",
           "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -327,7 +327,7 @@
           "rank": 2,
           "merchant": "h08.bookerbob.testnet",
           "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -349,7 +349,7 @@
           "rank": 3,
           "merchant": "h07.bookerbob.testnet",
           "persona": "The One Palacio Da Anunciada, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 277/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -369,7 +369,7 @@
           "rank": 4,
           "merchant": "h02.bookerbob.testnet",
           "persona": "Memmo Principe Real, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 336/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -389,7 +389,7 @@
           "rank": 5,
           "merchant": "h06.bookerbob.testnet",
           "persona": "Pestana Palace Lisboa, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 435/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -409,7 +409,7 @@
           "rank": 6,
           "merchant": "h03.bookerbob.testnet",
           "persona": "Olissippo Lapa Palace, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 373/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Welcome Amenity",
             "USD100 Restaurant Credit"
@@ -424,7 +424,7 @@
           "rank": 7,
           "merchant": "h04.bookerbob.testnet",
           "persona": "Valverde Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. elite 484/night x 3, before tax (no base rate)",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "Room upgrade (subject to availability)",
             "Early Check In (subject to availability)",
@@ -444,7 +444,7 @@
           "rank": 8,
           "merchant": "h01.bookerbob.testnet",
           "persona": "Bairro Alto Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 531/night x 3, incl. tax",
-          "source": "JMPR rates, 2026-11-04, comparison prices",
+          "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
           "perks": [
             "USD100 Restaurant Credit"
           ],
