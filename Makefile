@@ -57,6 +57,10 @@ verify-offline:
 
 # REP Eval: every TEE signature, the answers hash, the issuer signature, the CI's correct
 # vector and the on-chain score, from fixtures/live/eval/rep-eval.json (no keys).
+# Who can change a bazaar's code, over public RPC (panel action 8). `node scripts/no-owner.mjs plan` prints the staged steps.
+no-owner:
+	node scripts/no-owner.mjs
+
 eval-verify:
 	node scripts/rep-eval.mjs verify
 	node scripts/rep-eval-v2.mjs verify
