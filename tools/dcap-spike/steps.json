@@ -1,0 +1,23 @@
+{
+  "step_parse_collateral": {
+    "ok": true,
+    "value": 5985,
+    "tgas": 4.309,
+    "tx": "AiaiBUEpA2iiQTkQiA7fjvK1JftgyYxDqe4y6kH34Kj3",
+    "error": ""
+  },
+  "step_parse_quote": {
+    "ok": true,
+    "value": 632,
+    "tgas": 3.114,
+    "tx": "FcPk66e52a2nmShwsoZckNYVYbLUYhgJJB4C6Rifa5rK",
+    "error": ""
+  },
+  "step_one_p256": {
+    "ok": true,
+    "value": true,
+    "tgas": 34.282,
+    "tx": "Cp81xxrn1J92wK3WajRDgba2SSqAfLReDMKQK1DB1xHC",
+    "error": ""
+  }
+}
