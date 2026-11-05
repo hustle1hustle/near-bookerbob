@@ -100,9 +100,7 @@ zk-verify:
 # The same proof check with the committed prebuilt verifier (macOS arm64, built from zk/ at
 # jolt 997c1543e), no Jolt build needed. Both hashes in zk/bin/SHA256 are checked first.
 zk-verify-prebuilt:
-	cd zk/bin && shasum -a 256 -c --ignore-missing SHA256 && xz -dkc bookerbob-zk-aarch64-apple-darwin.xz > bookerbob-zk && chmod +x bookerbob-zk
-	test "$$(shasum -a 256 zk/bin/bookerbob-zk | cut -c1-64)" = "$$(grep uncompressed zk/bin/SHA256 | cut -c1-64)"
-	cd zk && for g in standing price referee cohort; do ./bin/bookerbob-zk verify $$g ../fixtures/zk/$$g-input.json out/$$g || exit 1; done
+	sh scripts/zk-verify-prebuilt.sh
 
 # Inputs for the Jolt guests (zk/), from the contract's own data.
 zk-inputs:

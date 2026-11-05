@@ -19,7 +19,7 @@ const line = (ok, what, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${what}${detail ? `  (${detail})` : ""}`);
 };
 
-console.log("make judge: fast path (Node only; deep path: make verify, make zk-verify)\n");
+console.log("make judge: fast path (Node and the committed Jolt verifier; deep path: make verify, make zk-verify)\n");
 
 // 1. testnet
 // No network (a sandboxed judge): SKIP the live checks, replay the committed RPC snapshot,
@@ -92,6 +92,14 @@ const zk = (g, input) => {
   line(program && out && proof === r.proof_bytes, `jolt ${g}: committed output equals the input's expected value, program hash = sha256(preprocessing)`, `proved in ${r.prove_seconds.toFixed(2)} s, proof ${proof} B`);
 };
 for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["standing-testnet-3", "standing-testnet-3-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
+
+// 2b. The Jolt proofs themselves, with the committed prebuilt verifier for this platform.
+{
+  const zv = spawnSync("sh", ["scripts/zk-verify-prebuilt.sh"], { cwd: root, encoding: "utf8", timeout: 300_000 });
+  const last = (zv.stdout || zv.stderr || "").trim().split("\n").pop();
+  if (zv.status === 3) console.log(last);
+  else line(zv.status === 0, "Jolt proofs verified with the committed prebuilt verifier (sha256-checked)", last.replace(/^(PASS|FAIL)\s+/, ""));
+}
 
 // 3. JS suites
 const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs", "scripts/nras.test.mjs"].filter((f) => existsSync(root + f));
