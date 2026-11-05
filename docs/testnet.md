@@ -523,3 +523,14 @@ stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.m
 - `proven_score` (above, 2026-11-05 morning) no longer exists: the chain keeps the root and the
   scores hash only. The scores still follow from the public events and sit in the update's tx
   args, so the tree is a compact rank check, not score privacy.
+
+## The market takes model keys only through the on-chain quote verifier (2026-11-05)
+
+Two DAO proposals on `market.bookerbob.testnet`, each an anchor change that waited out the
+market's 5-minute delay in public before anyone executed it (`node scripts/market-bazaar.mjs
+quote`): `set_quote_verifier(spike.bookerbob.testnet)`, then
+`register_model_attestation_verified` for the NEAR AI model key against its finalized on-chain
+TDX verification (tools/dcap-spike/README.md). A first proposal that batched both failed,
+because the verifier was still queued when the registration ran: the timelock doing its job.
+The lock (`node scripts/market-bazaar.mjs lock`) now deletes the full-access keys of both the
+market and the verifier.

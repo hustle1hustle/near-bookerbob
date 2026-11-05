@@ -45,7 +45,7 @@ async function tx(label, signer, key, receiver, actions) {
 
 /** One DAO proposal with several bazaar calls, voted by c1 and c2 (2 of 3): executes on the second vote. */
 async function viaDao(label, calls) {
-  const actions = calls.map(([method, args, deposit = "0"]) => ({ method_name: method, args: Buffer.from(JSON.stringify(args)).toString("base64"), deposit, gas: String(20n * TGAS) }));
+  const actions = calls.map(([method, args, deposit = "0", gas = 20n]) => ({ method_name: method, args: Buffer.from(JSON.stringify(args)).toString("base64"), deposit, gas: String(gas * TGAS) }));
   const kind = { FunctionCall: { receiver_id: MARKET, actions } };
   const p = await tx(`c1 proposes: ${label}`, ID.c1, K.c1, DAO, [fc("add_proposal", { proposal: { description: label, kind } }, near(1), 50n * TGAS)]);
   await tx(`c1 votes on ${p.value}`, ID.c1, K.c1, DAO, [fc("act_proposal", { id: p.value, action: "VoteApprove", proposal: kind }, 0n, 100n * TGAS)]);
@@ -133,18 +133,71 @@ async function merchants() {
   console.log(`   anchor_delay ${await client.view(MARKET, "anchor_delay", {})} ms`);
 }
 
+/** Run a queued anchor change once its public delay has passed (anyone may; c1 does here). */
+async function executeQueued(label, logsFrom) {
+  const q = logsFrom.map((l) => (l.startsWith("EVENT_JSON:") ? JSON.parse(l.slice(11)) : null)).find((e) => e?.event === "anchor_queued")?.data?.[0];
+  if (!q) return null;
+  const wait = q.ready_ms - Date.now() + 5000;
+  if (wait > 0) {
+    console.log(`   ${label}: queued as ${q.id}, waiting ${Math.ceil(wait / 1000)} s for the anchor delay`);
+    await new Promise((ok) => setTimeout(ok, wait));
+  }
+  return (await tx(`execute_anchor ${q.id} (${label}) after the delay`, ID.c1, K.c1, MARKET, [fc("execute_anchor", { id: q.id }, 0n, 50n * TGAS)])).hash;
+}
+
+/** DAO proposals 3 and 4: the market takes model keys only through the on-chain quote verifier.
+ * Both changes are anchors, so each waits out the market's delay in public before it applies. */
+async function quote() {
+  st.quote = st.quote ?? {};
+  const run = JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8"));
+  const cap = JSON.parse(readFileSync("fixtures/live/near-ai/capture.json", "utf8"));
+  const att = { model: cap.model, nonce: cap.nonce, report_hash: cap.envelope.attestation.report_hash, tcb_status: "UpToDate" };
+  if (!(await client.view(MARKET, "quote_verifier", {}))) {
+    st.quote.verifier = await viaDao("market bazaar: the on-chain TDX quote verifier (spike.bookerbob.testnet)", [["set_quote_verifier", { verifier: SPIKE }]]);
+    save();
+    st.quote.verifier_execute = await executeQueued("set_quote_verifier", await logsOf(st.quote.verifier.execute));
+    save();
+  }
+  if (!(await client.view(MARKET, "model_attestation", { signing_key: cap.signing_address }))) {
+    st.quote.register = await viaDao("market bazaar: the NEAR AI model key, against its finalized on-chain quote verification", [["register_model_attestation_verified", { signing_key: cap.signing_address, attestation: att, verification_id: run.real.id }, "0", 80n]]);
+    save();
+    st.quote.register_execute = await executeQueued("model_attestation", await logsOf(st.quote.register.execute));
+    save();
+  }
+  console.log(`   quote verifier ${await client.view(MARKET, "quote_verifier", {})}; model key ${JSON.stringify(await client.view(MARKET, "model_attestation", { signing_key: cap.signing_address }))?.slice(0, 70)}`);
+}
+
+async function logsOf(hash) {
+  const r = await client.rpc("tx", { tx_hash: hash, sender_account_id: ID.c2, wait_until: "FINAL" });
+  return [r.result.transaction_outcome, ...r.result.receipts_outcome].flatMap((o) => o.outcome.logs);
+}
+
+export const SPIKE = "spike.bookerbob.testnet";
+
+/** IRREVERSIBLE: the market's and the quote verifier's full-access keys go; no one can redeploy either. */
 async function lock() {
   const key = seedKey(join(dir, "market.seed"));
-  if (!(await client.accessKey(MARKET, key.pub))) return console.log("   the temporary key is already gone");
-  st.txs.delete_key = (await tx(`IRREVERSIBLE: delete ${MARKET}'s only full-access key ${nearPublicKey(key.pub)}`, MARKET, key, MARKET, [{ type: "DeleteKey", public_key_hex: key.pub }])).hash;
-  save();
+  if (await client.accessKey(MARKET, key.pub)) {
+    st.txs.delete_key = (await tx(`IRREVERSIBLE: delete ${MARKET}'s only full-access key ${nearPublicKey(key.pub)}`, MARKET, key, MARKET, [{ type: "DeleteKey", public_key_hex: key.pub }])).hash;
+    save();
+  } else console.log(`   ${MARKET}: its full-access key is already gone`);
+  // The verifier's key sits in the near-cli keychain (it was created with save-to-keychain).
+  const r = await client.rpc("query", { request_type: "view_access_key_list", finality: "final", account_id: SPIKE });
+  for (const k of (r.result?.keys ?? []).filter((x) => x.access_key.permission === "FullAccess")) {
+    const o = spawnSync("near", ["account", "delete-keys", SPIKE, "public-keys", k.public_key, "network-config", "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
+    const h = `${o.stdout}${o.stderr}`.match(/Transaction ID: ([1-9A-HJ-NP-Za-km-z]{43,44})/)?.[1];
+    if (!h) throw new Error(`delete ${SPIKE} key ${k.public_key}: ${`${o.stdout}${o.stderr}`.slice(-200)}`);
+    console.log(`   ok IRREVERSIBLE: deleted ${SPIKE}'s full-access key ${k.public_key}  ${link(h)}`);
+    st.txs.spike_delete_key = h;
+    save();
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cmd = process.argv[2];
-  const go = { setup, anchors, merchants, lock }[cmd];
+  const go = { setup, anchors, merchants, quote, lock }[cmd];
   if (!go) {
-    console.error("usage: market-bazaar.mjs setup | anchors | merchants | lock");
+    console.error("usage: market-bazaar.mjs setup | anchors | merchants | quote | lock");
     process.exit(2);
   }
   go().then(() => {

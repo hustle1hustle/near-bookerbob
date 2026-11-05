@@ -59,5 +59,5 @@ function plan() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   if (args[0] === "plan") plan();
-  else for (const a of args.length ? args : [MARKET, "bookerbob.testnet"]) await inspect(a);
+  else for (const a of args.length ? args : [MARKET, "spike.bookerbob.testnet", "bookerbob.testnet"]) await inspect(a);
 }
