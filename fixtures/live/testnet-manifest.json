@@ -646,6 +646,71 @@
       }
     ]
   },
+  "gate": {
+    "gate": "gate.bookerbob.testnet",
+    "bazaar": "bookerbob.testnet",
+    "consumers": [
+      {
+        "dao": "lisbon-travellers.sputnikv2.testnet",
+        "role": "traveller",
+        "predicate": "airbnb_frequent",
+        "context": "bookerbob:v0:demo-hoodie",
+        "members": [
+          "t-4fdc17.bookerbob-demo.testnet"
+        ]
+      },
+      {
+        "dao": "one-human.sputnikv2.testnet",
+        "role": "human",
+        "predicate": "world_id_human",
+        "context": null,
+        "members": [
+          "t-22c72f.bookerbob-demo.testnet"
+        ]
+      }
+    ],
+    "txs": {
+      "create_lisbon-travellers": "298cZnRfZyvvQag3p2DLR7rfHwcjKxVM3RUgvy586NYT",
+      "propose_lisbon-travellers": "AaspSRxhgj5CF6EkeASSx5EFp19uuiV2Ewt2DzKPqyvx",
+      "vote_lisbon-travellers": "F7N8NpBPBC5U4bowptXjmDWTf28v7iHhEEb2VPibysGV",
+      "create_one-human": "Anuymd6QTA74kib6Dkvta9XH6JAzJ4Bo4uyTzULmsrLp",
+      "propose_one-human": "APYgDsqyaqLfnT1jw55SgQW3sZb5wAe596N4r99sUAF4",
+      "vote_one-human": "BdfBqS63XX1Hw6RGqFrbmNPd1L1ijHnBTRAZVbt2B1rn",
+      "fund_t-4fdc17": "AaZd49QYetJbqhVrz7ddPX14CUemHT5rbzmzpiZW1g1n",
+      "fund_t-22c72f": "DpMzZ4qihF4V6mSkG3ZYJYcSUJLC5hd7NAu5VP6PHkaj",
+      "fund_t-3f71c2": "HZMYEvU5bfaTEX2mR3D7X6BVPtM8dhaJ6JZJJSLcBM1A",
+      "refuse_thief": "5gbpD7KK4G8oajwS28jpto7zzVrDFSyvKRAdxzsMcXK2",
+      "refuse_reuse": "H3WxG5GdCqpEsiGbojCGy6zTQHWCBPxLNQSuB8vAFZir",
+      "refuse_sealed": "7XZKVZQXnx33LTmfczBns3xegKHo4WtJBiuhq3pbDQ22"
+    },
+    "joins": {
+      "lisbon-travellers": {
+        "tester": "t-4fdc17.bookerbob-demo.testnet",
+        "tx": "CvJoNKBZfsccMqfyFE2tnqBvZBb5HgeDGaKz4oQqb3yq"
+      },
+      "one-human": {
+        "tester": "t-22c72f.bookerbob-demo.testnet",
+        "tx": "6MDRNSw6Qqp8swjzpNBqEjVks1fqFvq3VPRhf8xd3NCA"
+      }
+    },
+    "refusals": {
+      "refuse_thief": {
+        "tx": "5gbpD7KK4G8oajwS28jpto7zzVrDFSyvKRAdxzsMcXK2",
+        "signer": "t-22c72f.bookerbob-demo.testnet",
+        "reason": "the verdict belongs to another agent"
+      },
+      "refuse_reuse": {
+        "tx": "H3WxG5GdCqpEsiGbojCGy6zTQHWCBPxLNQSuB8vAFZir",
+        "signer": "t-4fdc17.bookerbob-demo.testnet",
+        "reason": "this verdict already admitted an agent to this role"
+      },
+      "refuse_sealed": {
+        "tx": "7XZKVZQXnx33LTmfczBns3xegKHo4WtJBiuhq3pbDQ22",
+        "signer": "t-3f71c2.bookerbob-demo.testnet",
+        "reason": "a sealed verdict reveals no predicate on chain"
+      }
+    }
+  },
   "group_dao": {
     "dao": "lisbon-g1.sputnikv2.testnet",
     "group": "397774e681c0b40ff194066f3410078e7d14701ae99636c1863fbba0ac9e3b55",

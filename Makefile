@@ -127,6 +127,7 @@ fixtures-check:
 wasm:
 	cd contract && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
 	cd dusdc && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
+	cd gate && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
 
 clean:
 	$(CARGO) clean

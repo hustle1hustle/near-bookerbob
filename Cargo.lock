@@ -252,6 +252,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bookerbob-gate"
+version = "0.1.0"
+dependencies = [
+ "near-sdk",
+ "serde_json",
+]
+
+[[package]]
 name = "bookerbob-graph"
 version = "0.1.0"
 dependencies = [

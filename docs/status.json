@@ -311,6 +311,16 @@
     "evidence": []
   },
   {
+    "feature": "Verdict Gate: a Sputnik DAO grants a role to an agent whose verdict reveals a predicate; the DAO opts in by its own proposal and gives the gate only `add_member_to_role` propose and approve",
+    "tracks": "social, agents, privacy",
+    "where": "`gate/src/lib.rs`, `scripts/gate-demo.mjs`, `docs/gate.md`",
+    "status": "live",
+    "detail": "`gate.bookerbob.testnet` with two consumer DAOs (`lisbon-travellers`: airbnb_frequent, `one-human`: world_id_human), one member admitted to each; refused on chain: another agent's verdict, a reused verdict, a sealed verdict; both DAOs' council is REP's; 3 unit tests, `make verify-live`",
+    "evidence": [
+      "gate"
+    ]
+  },
+  {
     "feature": "buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount",
     "tracks": "swarms, privacy, social",
     "where": "`contract/src/lib.rs` (`post_intent`, `offer_group`, `settle_group_demo`), `scripts/demo-tester.mjs group`",

@@ -303,6 +303,20 @@ for (const f of ["run", "public-test"]) {
     return [ok, `verdict ${v?.tier}, ${round.revealed.length} revealed bids, builder line ${line}, NEAR AI chat ${p.near_ai.chat_id.slice(0, 12)}..`];
   });
 }
+if (m.gate) {
+  const g = m.gate;
+  await attempt(`Verdict Gate: ${g.consumers.length} Sputnik DAOs grant a role on a BookerBob verdict; refused: another agent's verdict, a reused verdict, a sealed verdict`, async () => {
+    const rows = [];
+    for (const x of g.consumers) {
+      const [rule, pol] = await Promise.all([view(g.gate, "rule", { dao: x.dao, role: x.role }), view(x.dao, "get_policy", {})]);
+      const members = pol.roles.find((r) => r.name === x.role)?.kind?.Group ?? [];
+      const gateRole = pol.roles.find((r) => r.name === "gate");
+      rows.push(rule?.predicate === x.predicate && x.members.every((a) => members.includes(a)) && gateRole?.kind?.Group?.includes(g.gate) && gateRole.permissions.every((p) => p.startsWith("add_member_to_role:")));
+    }
+    const refusals = await Promise.all(Object.values(g.refusals).map((x) => tx(x.tx, x.signer).then((t) => !t.ok && JSON.stringify(t).includes(x.reason), () => false)));
+    return [rows.every(Boolean) && refusals.every(Boolean), `${g.consumers.map((x) => `${x.dao.split(".")[0]} ${x.role} <- ${x.predicate}: ${x.members.length} member`).join("; ")}; 3 refusals failed on chain`];
+  });
+}
 if (m.rep_eval) {
   const r = m.rep_eval;
   await attempt(`REP Eval held-out set ${r.set_root.slice(0, 12)}..: ${r.models.length} certificates, each eval_score on chain equals its committed bucket`, async () => {

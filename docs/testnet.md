@@ -485,3 +485,7 @@ not that the buyer holds it. The run on your own `/user` is the same command wit
 - The REP notary on Fly signed a 4,326-byte presentation revealing 3 fields; the facts went sealed to NEAR AI `z-ai/glm-5.3-flash` (chat `884c610c58af…`, TEE signature valid), which named `github_builder`.
 - Tester `t-388a34`: sealed verdict (hashes only) [AvQWy1vp…](https://testnet.nearblocks.io/txns/AvQWy1vpqfkBMM5tG7u9yYoi3xaVHS4hpoesZ5UZ3YkQ), referee receipt at 28 [DtnucFUz…](https://testnet.nearblocks.io/txns/DtnucFUzgq59iaX3Px47SJfiVxdxnsEcgMUiUowpvVma), settle_demo to builders [37tzjNdL…](https://testnet.nearblocks.io/txns/37tzjNdLaY8Y6HVsedf9m9tu11i95EnBJaRNchJ4R6Lk), replay refused [KEzA2ZeX…](https://testnet.nearblocks.io/txns/KEzA2ZeXdbcmLXoP6i4c2naKWa1dzW7odDAs7w3boss). Without the builder line builders would have charged 36; house bid 42.75.
 - `make leak` before and after: the lines are in `fixtures/live/prove-me/public-test.json`; L5b (sealed predicates in tx args) stays clean, L6 counts one more single amount (28 x1).
+
+## Verdict Gate: two DAOs grant roles on verdicts (2026-11-05)
+
+`gate.bookerbob.testnet` and its two consumer DAOs, every tx: docs/gate.md.
