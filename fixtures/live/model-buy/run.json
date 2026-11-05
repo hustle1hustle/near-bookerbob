@@ -1,0 +1,37 @@
+{
+  "note": "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so anyone can open the sealed answer; the sealed request, which holds the facts, stays sealed to the model key.",
+  "tester": "t-f7883a.bookerbob-demo.testnet",
+  "merchant": "m01.bookerbob.testnet",
+  "nullifier": "19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0",
+  "price": "36000000",
+  "issuer": "near-ai:5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+  "gate_merchant": "vetted.bookerbob-demo.testnet",
+  "near_ai": {
+    "model": "z-ai/glm-5.3-flash",
+    "signing_key": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+    "chat_id": "dad184a319724369a78158806e69b9a9",
+    "request_sha256": "dc5b20c7ab3bb5d6be15d0a06674425506c5ed9471452dec117e93b1a12620a2",
+    "response_sha256": "33d2f42245728a6baeaf5613730f3ba3fe6efe334c76f0f5c7e4dd940b934ed7",
+    "client_x25519_secret": "78df644bf6e17b3e69727b2d37893d5a724c74b3669a9f123938472ab1175669",
+    "attested": [
+      "airbnb_frequent",
+      "booking_genius",
+      "claude_spender",
+      "world_id_human"
+    ]
+  },
+  "txs": {
+    "account": "CubiPgB1DLUoN1EnYXUxgkjg1nER3FvxCFnZ39c6Qn4M",
+    "escrow_entry": "8n9wp7mhGAX5rydhjRnPZorkTzdaVFGz1isfwHarusPq",
+    "dusdc_storage": "9FPv4SBf4HBFJ1HKrxyq4HzwbfEkAAsPU4T6db6Z6C4G",
+    "mint": "GdLfMrrLXYkFzvMJ7b17A4imiycrdzkyRDXmbBba4AX4",
+    "world": "9CymXg1obHsMh3BWpkNmvdSd23XsPM337q2Df3XkTQpT",
+    "verdict": "8JfM9iTSKr4pczSiuUMTmFDsL2cD5c4tBjne7fgAhVDD",
+    "gate_refused": "EUwhYvwE3k6gqj5UXDz3y9BdL91WEC3PcjeG5BGmFQTy",
+    "receipt": "6kfqMysvac75Hbwb647XXa74xAN5Wwoc6eztyro1pAPy",
+    "escrow": "2EDg6HmHCY3uPz1XRRQCPMxo1ymtLJYc53AqAVKL9HqC",
+    "settle": "DN5yP2kHGFGidcDrr9t6WfuKwcngDeACrjJfC2ouxTDa",
+    "replay": "GMRPqyWDh9dYsGew9grovjNu9WTKHRAq6Tam2XfycRUZ",
+    "review_join": "W6E3hYeq9sbZS4VmT5DaDd6q1QUUF89mpUzms5kipow"
+  }
+}

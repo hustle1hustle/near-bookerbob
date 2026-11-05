@@ -73,6 +73,12 @@ export function openWith(wireHex, xSecretRaw) {
   const key = Buffer.from(hkdfSync("sha256", shared, Buffer.alloc(0), INFO, 32));
   return xchachaOpen(key, b.subarray(32, 56), b.subarray(56)).toString();
 }
+/** The per-field key a buyer discloses so anyone can open one sealed answer (hex). */
+export function fieldKey(wireHex, xSecretRaw) {
+  const b = Buffer.from(wireHex, "hex");
+  const shared = diffieHellman({ privateKey: xPriv(xSecretRaw), publicKey: xPub(b.subarray(0, 32)) });
+  return Buffer.from(hkdfSync("sha256", shared, Buffer.alloc(0), INFO, 32)).toString("hex");
+}
 export function clientKey() {
   const seed = randomBytes(32);
   const ed = createPrivateKey({ key: Buffer.concat([ED_PKCS8, seed]), format: "der", type: "pkcs8" });

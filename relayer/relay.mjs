@@ -71,7 +71,7 @@ export const DEMO_DAILY_ACTIONS = 20;
 export const DEMO_MAX_GAS = 300n * TGAS;
 const MILLI = 10n ** 21n;
 export const DEMO_METHODS = {
-  bazaar: { attest_human: 10n * MILLI, submit_verdict: 50n * MILLI, submit_referee_result: 0n, settle_demo: 0n, join_review_group: 20n * MILLI, post_intent: 20n * MILLI, settle_group_demo: 0n, bind_group_treasury: 10n * MILLI, pledge_group_demo: 10n * MILLI },
+  bazaar: { attest_human: 10n * MILLI, submit_verdict: 50n * MILLI, submit_near_ai_verdict: 50n * MILLI, submit_referee_result: 0n, settle_demo: 0n, join_review_group: 20n * MILLI, post_intent: 20n * MILLI, settle_group_demo: 0n, bind_group_treasury: 10n * MILLI, pledge_group_demo: 10n * MILLI },
   dusdc: { mint: 0n, ft_transfer_call: 1n },
 };
 

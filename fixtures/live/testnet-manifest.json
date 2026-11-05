@@ -285,6 +285,29 @@
         "replay": "3mD4MSWVYRPUaia3GEMnGL8TkKy9t4UDKBa9xpdRftAc",
         "review_join": "UyfP8AkDFwpkxqr83Erqbs91EMUANRiXDzGMR1Cnd8j"
       }
+    },
+    {
+      "tester": "t-f7883a.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0",
+      "price": "36000000",
+      "cohort_k": 25,
+      "model_issued": "z-ai/glm-5.3-flash",
+      "shopify_order": "#1069",
+      "txs": {
+        "account": "CubiPgB1DLUoN1EnYXUxgkjg1nER3FvxCFnZ39c6Qn4M",
+        "escrow_entry": "8n9wp7mhGAX5rydhjRnPZorkTzdaVFGz1isfwHarusPq",
+        "dusdc_storage": "9FPv4SBf4HBFJ1HKrxyq4HzwbfEkAAsPU4T6db6Z6C4G",
+        "mint": "GdLfMrrLXYkFzvMJ7b17A4imiycrdzkyRDXmbBba4AX4",
+        "world": "9CymXg1obHsMh3BWpkNmvdSd23XsPM337q2Df3XkTQpT",
+        "verdict": "8JfM9iTSKr4pczSiuUMTmFDsL2cD5c4tBjne7fgAhVDD",
+        "gate_refused": "EUwhYvwE3k6gqj5UXDz3y9BdL91WEC3PcjeG5BGmFQTy",
+        "receipt": "6kfqMysvac75Hbwb647XXa74xAN5Wwoc6eztyro1pAPy",
+        "escrow": "2EDg6HmHCY3uPz1XRRQCPMxo1ymtLJYc53AqAVKL9HqC",
+        "settle": "DN5yP2kHGFGidcDrr9t6WfuKwcngDeACrjJfC2ouxTDa",
+        "replay": "GMRPqyWDh9dYsGew9grovjNu9WTKHRAq6Tam2XfycRUZ",
+        "review_join": "W6E3hYeq9sbZS4VmT5DaDd6q1QUUF89mpUzms5kipow"
+      }
     }
   ],
   "unfinished": [
@@ -750,6 +773,27 @@
     "finalize_tx": "DswLxceMNRZxjuhk5BMWDY8WANLMaxBUFNrwFgjFgTuj",
     "proof": "zk/out/standing-testnet-3",
     "input": "fixtures/zk/standing-testnet-3-input.json"
+  },
+  "model_buy": {
+    "tester": "t-f7883a.bookerbob-demo.testnet",
+    "nullifier": "19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0",
+    "issuer": "near-ai:5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+    "model": "z-ai/glm-5.3-flash",
+    "chat_id": "dad184a319724369a78158806e69b9a9",
+    "txs": {
+      "account": "CubiPgB1DLUoN1EnYXUxgkjg1nER3FvxCFnZ39c6Qn4M",
+      "escrow_entry": "8n9wp7mhGAX5rydhjRnPZorkTzdaVFGz1isfwHarusPq",
+      "dusdc_storage": "9FPv4SBf4HBFJ1HKrxyq4HzwbfEkAAsPU4T6db6Z6C4G",
+      "mint": "GdLfMrrLXYkFzvMJ7b17A4imiycrdzkyRDXmbBba4AX4",
+      "world": "9CymXg1obHsMh3BWpkNmvdSd23XsPM337q2Df3XkTQpT",
+      "verdict": "8JfM9iTSKr4pczSiuUMTmFDsL2cD5c4tBjne7fgAhVDD",
+      "gate_refused": "EUwhYvwE3k6gqj5UXDz3y9BdL91WEC3PcjeG5BGmFQTy",
+      "receipt": "6kfqMysvac75Hbwb647XXa74xAN5Wwoc6eztyro1pAPy",
+      "escrow": "2EDg6HmHCY3uPz1XRRQCPMxo1ymtLJYc53AqAVKL9HqC",
+      "settle": "DN5yP2kHGFGidcDrr9t6WfuKwcngDeACrjJfC2ouxTDa",
+      "replay": "GMRPqyWDh9dYsGew9grovjNu9WTKHRAq6Tam2XfycRUZ",
+      "review_join": "W6E3hYeq9sbZS4VmT5DaDd6q1QUUF89mpUzms5kipow"
+    }
   },
   "quote_verification": {
     "spike": "spike.bookerbob.testnet",

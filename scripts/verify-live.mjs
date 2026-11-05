@@ -288,6 +288,14 @@ await attempt("every spent nullifier is in the manifest: spent_count on chain eq
   const n = await view(m.bazaar, "spent_count", {});
   return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
 });
+if (existsSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url))) {
+  const p = JSON.parse(readFileSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url)));
+  await attempt(`a model-issued verdict bought on testnet: ${p.near_ai.model} issued it (submit_near_ai_verdict, not the issuer key), the eval-gated merchant refused it, m01 settled ${Number(p.price) / 1e6} dUSDC`, async () => {
+    const [v, att, sub, refused, settle] = await Promise.all([view(m.bazaar, "verdict", { nullifier: p.nullifier }), view(m.bazaar, "model_attestation", { signing_key: p.near_ai.signing_key }), tx(p.txs.verdict, m.treasury), tx(p.txs.gate_refused, m.treasury), tx(p.txs.settle, m.treasury)]);
+    const ok = v?.issuer === `near-ai:${p.near_ai.signing_key}` && v.spent && att?.model === p.near_ai.model && sub.ok && sub.methods.includes("submit_near_ai_verdict") && !refused.ok && String(refused.error).includes("does not pass") && settle.ok;
+    return [ok, `issuer ${v?.issuer?.slice(0, 20)}.., model key registered (${att?.tcb_status}), gate refusal: ${String(refused.error).match(/does not pass \d+/)?.[0]}, chat ${p.near_ai.chat_id.slice(0, 12)}..`];
+  });
+}
 if (existsSync(new URL("../fixtures/live/eval-gate/run.json", import.meta.url))) {
   const { verifyGate } = await import("./eval-gate.mjs");
   const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;

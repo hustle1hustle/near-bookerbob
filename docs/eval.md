@@ -199,9 +199,13 @@ set_root, threshold)`. `None` clears it. On testnet (`make eval-gate`, also in `
 - A fresh tester with an ordinary sealed verdict (signed by the issuer key, not a model) asked
   for a receipt from it, and the contract refused: "merchant's eval gate: the verdict was not
   issued by a NEAR AI model key" [AH8Yuaou…](https://testnet.nearblocks.io/txns/AH8YuaournDh8erCyQvPAprY4tju83YH82AJVNRD1hjp).
-- **Not run live:** the passing purchase, a verdict through `submit_near_ai_verdict` from a
-  model at 70 or more. The live purchases use the issuer key; the model-issued path and the gate
-  together are covered on near-sdk's mocked chain (`certified_eval`: refused under the
+- **A model-issued verdict on the gate, live** (`make model-buy`): glm-5.3-flash issued a
+  buyer's verdict through `submit_near_ai_verdict`; the same verdict asked `vetted` for a receipt
+  and was refused ("z-ai/glm-5.3-flash@4000tok/referee-v4 does not pass 70"), then bought from
+  m01, which has no gate, and settled 36 dUSDC (`fixtures/live/model-buy/run.json`).
+- **Not run live:** a purchase that passes the gate. It needs a model at 70 or more with its key
+  registered on the bazaar; DeepSeek (bucket 70) is not registered. The pass is covered on
+  near-sdk's mocked chain (`certified_eval`: refused under the
   threshold, accepted at it, an unregistered model key refused, only a registered merchant sets
   a gate, the set must be committed, a cleared gate takes any issuer).
 

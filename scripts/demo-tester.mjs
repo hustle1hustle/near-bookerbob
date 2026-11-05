@@ -216,8 +216,20 @@ export class Demo {
     const file = (n) => JSON.parse(readFileSync(join(live, n), "utf8"));
     step(6, "attest_human");
     rec.txs.world = (await this.relay("attest_human", tester, c.bazaar, fc("attest_human", { attestation: file("world.json") }, 10n * MILLI))).hash;
-    step(7, "submit_verdict");
-    rec.txs.verdict = (await this.relay("submit_verdict", tester, c.bazaar, fc("submit_verdict", { verdict: file("verdict.json") }, 50n * MILLI))).hash;
+    if (opts.nearAi) {
+      // A model-issued verdict (make model-buy): the model derives the predicates from the facts
+      // sealed to its attested key; the envelope replaces the issuer-signed one.
+      step(7, "submit_near_ai_verdict (the model issued it, not the issuer key)");
+      const v = file("verdict.json");
+      const { envelope, proof, record } = await opts.nearAi(v.envelope);
+      writeFileSync(join(live, "verdict.json"), JSON.stringify({ ...v, envelope }, null, 2) + "\n", { mode: 0o600 });
+      rec.near_ai = record;
+      rec.txs.verdict = (await this.relay("submit_near_ai_verdict", tester, c.bazaar, fc("submit_near_ai_verdict", { envelope, proof }, 50n * MILLI, 150n * TGAS))).hash;
+      if (opts.beforeReceipt) await opts.beforeReceipt({ tester, rec, live, d: this });
+    } else {
+      step(7, "submit_verdict");
+      rec.txs.verdict = (await this.relay("submit_verdict", tester, c.bazaar, fc("submit_verdict", { verdict: file("verdict.json") }, 50n * MILLI))).hash;
+    }
     step(8, "referee receipt");
     // The live quote: once k >= 5 verdicts in the context reveal the cohort predicate, the
     // group price unlocks on chain, and the referee must price with the same k.
