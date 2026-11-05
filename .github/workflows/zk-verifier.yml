@@ -32,6 +32,7 @@ jobs:
           xz -9e -kc zk/bin/bookerbob-zk-$t > zk/bin/bookerbob-zk-$t.xz
           echo "$(sha256sum zk/bin/bookerbob-zk-$t.xz | cut -c1-64)  bookerbob-zk-$t.xz" > sha256-$t.txt
           echo "$(sha256sum zk/bin/bookerbob-zk-$t | cut -c1-64)  bookerbob-zk-$t (uncompressed)" >> sha256-$t.txt
+          sed -i "/bookerbob-zk-$t/d" zk/bin/SHA256
           cat sha256-$t.txt >> zk/bin/SHA256
           sh scripts/zk-verify-prebuilt.sh
       - uses: actions/upload-artifact@v4
@@ -66,6 +67,7 @@ jobs:
           xz -9e -kc zk/bin/bookerbob-zk-$t > zk/bin/bookerbob-zk-$t.xz
           echo "$(sha256sum zk/bin/bookerbob-zk-$t.xz | cut -c1-64)  bookerbob-zk-$t.xz" > sha256-$t.txt
           echo "$(sha256sum zk/bin/bookerbob-zk-$t | cut -c1-64)  bookerbob-zk-$t (uncompressed)" >> sha256-$t.txt
+          sed -i "/bookerbob-zk-$t/d" zk/bin/SHA256
           cat sha256-$t.txt >> zk/bin/SHA256
           sh scripts/zk-verify-prebuilt.sh
       - uses: actions/upload-artifact@v4
