@@ -42,5 +42,5 @@ const pub = {
   low_merchant: low.merchant,
 };
 mkdirSync("fixtures/live/standing-root", { recursive: true });
-writeFileSync("fixtures/live/standing-root/run.json", JSON.stringify(pub, null, 2) + "\n");
+if (process.env.DEMO_RUN !== "1") writeFileSync("fixtures/live/standing-root/run.json", JSON.stringify(pub, null, 2) + "\n");
 console.log("\nstanding root: PASS  fixtures/live/standing-root/run.json");

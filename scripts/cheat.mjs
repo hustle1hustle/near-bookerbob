@@ -69,7 +69,7 @@ async function run() {
   const after = await client.view(BAZAAR, "merchant", { merchant: h05.account });
   pub.cheat = { merchant: h05.account, inflated_base: inflated.base_price, anchor: pub.anchors[h05.account].max_base, tx: cheat.hash, refused, schedule_unchanged: after.schedule.base_price === cur.schedule.base_price, approved_after: after.approved };
   mkdirSync("fixtures/live/cheat", { recursive: true });
-  writeFileSync(OUT, JSON.stringify(pub, null, 2) + "\n");
+  if (process.env.DEMO_RUN !== "1") writeFileSync(OUT, JSON.stringify(pub, null, 2) + "\n");
   console.log(`\ncheat: PASS  the inflated base was refused; h05's schedule unchanged (${Number(after.schedule.base_price) / 1e6}), still approved ${after.approved}; ${OUT}`);
 }
 

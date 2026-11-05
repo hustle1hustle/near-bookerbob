@@ -79,6 +79,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (process.env.BOOKERBOB_RELAYER_URL && p.outcome === "winner") {
     const r = await fetch(`${process.env.BOOKERBOB_RELAYER_URL}/buy`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ask, winner: p.winner }) });
     console.log(JSON.stringify(await r.json(), null, 2));
+  } else if (a.run && process.env.DEMO_RUN === "1") {
+    console.log(`${a.why} (plan only in the demo run: no transaction)`);
   } else if (a.run) {
     console.log(a.why);
     const r = spawnSync("node", ["scripts/demo-tester.mjs", ...(a.run === "hotel-demo" ? ["hotel", a.merchant] : ["run"])], { stdio: "inherit" });
