@@ -297,7 +297,7 @@
     "tracks": "privacy, security",
     "where": "`core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed`",
     "status": "live",
-    "detail": "one sealed purchase on testnet (synthetic facts, 38.40 dUSDC); `make verify-live` checks that its tx, event and record carry no predicate, tier or cap; 6 contract and 3 worker tests. The device run uses this path",
+    "detail": "one sealed purchase on testnet (synthetic facts, 38.40 dUSDC); `make verify-live` checks that its tx, event and record carry no predicate, tier or cap; 6 contract and 3 worker tests. The device run would use this path (parked: no phone presentation, docs/device-run.md)",
     "evidence": [
       "testers"
     ]
