@@ -45,5 +45,5 @@ test("purchase totals come from the manifest (spent_count's list), check counts 
   const stale = { "README.md": "14 dUSDC purchases. On testnet, 6 purchases settled. ran 6 times in dUSDC. `PASS  NEAR AI verdict: 14 checks`. 6 replays refused" };
   const p = problems(readme, rows, {}, stale, src, c);
   for (const w of ["dUSDC purchases", "On testnet", "single settles", "NEAR AI verdict checks", "replays refused"]) assert.ok(p.some((x) => x.includes(w) || x.includes("14 dUSDC")), `${w}: ${p.join("; ")}`);
-  assert.deepEqual(problems(readme, rows, {}, { "README.md": "26 dUSDC purchases, NEAR AI verdict: 17 checks" }, src, c), []);
+  assert.deepEqual(problems(readme, rows, {}, { "README.md": `${c.purchases} dUSDC purchases, NEAR AI verdict: 17 checks` }, src, c), []);
 });
