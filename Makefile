@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -69,6 +69,13 @@ demo-live:
 # build in zk/: cargo build --release). make verify checks the outputs natively instead.
 zk-verify:
 	cd zk && for g in standing price referee cohort; do ./target/release/bookerbob-zk verify $$g ../fixtures/zk/$$g-input.json out/$$g || exit 1; done
+
+# The same proof check with the committed prebuilt verifier (macOS arm64, built from zk/ at
+# jolt 997c1543e), no Jolt build needed. Both hashes in zk/bin/SHA256 are checked first.
+zk-verify-prebuilt:
+	cd zk/bin && shasum -a 256 -c --ignore-missing SHA256 && xz -dkc bookerbob-zk-aarch64-apple-darwin.xz > bookerbob-zk && chmod +x bookerbob-zk
+	test "$$(shasum -a 256 zk/bin/bookerbob-zk | cut -c1-64)" = "$$(grep uncompressed zk/bin/SHA256 | cut -c1-64)"
+	cd zk && for g in standing price referee cohort; do ./bin/bookerbob-zk verify $$g ../fixtures/zk/$$g-input.json out/$$g || exit 1; done
 
 # Inputs for the Jolt guests (zk/), from the contract's own data.
 zk-inputs:

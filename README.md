@@ -111,8 +111,14 @@ instead of crates.io. Logged run on 2026-11-05, commit `d18ff5d`: a fresh `git c
 `CARGO_HOME`, and every connection except localhost denied by the macOS sandbox
 (`sandbox-exec`; `curl` to the RPC returned nothing). `make verify-offline` passed in 66 s
 (`ALL PASS (26 checks)`), and `make judge` passed in 0.3 s on the snapshot path. Logs:
-`fixtures/live/offline-run/`. Not done yet: the same run in a Linux container, and a prebuilt
-Jolt verifier for `make zk-verify` (Jolt itself still needs its git dependencies).
+`fixtures/live/offline-run/`. Not done yet: the same run in a Linux container.
+
+**The Jolt proofs without building Jolt:** `make zk-verify-prebuilt` uses the committed
+verifier (`zk/bin/bookerbob-zk-aarch64-apple-darwin.xz`, macOS arm64 only). It checks the
+archive's sha256 and the binary's (`ea00251f…`, `zk/bin/SHA256`) before it runs. The same binary
+passed `make zk-verify` on 2026-11-05: 12 of 12, the program hash, the proof and the native match
+for each of the 4 guests. Other platforms build it with `make zk-verify`, which needs Jolt's git
+dependencies, so network on the first build.
 
 1. Run `make verify`.
    See one line per link of the chain, each `PASS` or `FAIL`, ending in `nullifier spent`

@@ -8,3 +8,4 @@ node_modules/
 .DS_Store
 /out/
 /vendor/crates/
+/zk/bin/bookerbob-zk
