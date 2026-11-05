@@ -1,0 +1,47 @@
+{
+  "market": "market.bookerbob.testnet",
+  "owner": "bookerbob-gov.sputnikv2.testnet",
+  "decided": "2026-11-05, by the coordinating session on the founder's delegation (testnet, no money)",
+  "wasm_sha256": "2ef4db8627e114039cad29c447e750320b8e4faaaf6ecb986f8766addbaa3039",
+  "txs": {
+    "create": "4vKrCcqpu8tuePkeRoHQKYydkizxyWSn3J4CFgxNmTTX",
+    "deploy": "Ev2g3obUoZkSuLUoQjA9hmF9PFszjEWL45ZtF6kWRkad",
+    "dusdc_storage": "Fpws8PEYNyT2JSpWohhQBWQ8QoUmTLY66jPMZeiSx5e1",
+    "redeploy": "5PQgAiNvbujGNbUjTiDAeNEbUFoNwbXKGLpBQdbCAnVJ"
+  },
+  "anchors": {
+    "proposal": 3,
+    "propose": "4xTSh3Kkd5XDZEZESgBfTTR89g5RoJUbhdtfpfYd7CMx",
+    "execute": "AYSG6YdVKdmx8TKddZsPVBPJ2g9YFCUEcr9ddA6MFvoe"
+  },
+  "merchants": {
+    "m01.bookerbob.testnet": "DPUhXw8DMW1Qa3oJSrJ8RjS7tDT1Jy9L7ZgKoYiqqDhn",
+    "h05.bookerbob.testnet": "4QsRc5fm38jRKESFWoya9KnJMd15Ev2oant5GSTYJEBG"
+  },
+  "approve": {
+    "proposal": 4,
+    "propose": "5vwNVMHXUYWYepAFoaYW3UZJ3c9MeEAW3hrVWZVGN1DY",
+    "execute": "DLsYaEK9DAC4v5QTRoeqmr5R9csS1HLpnguSpZrXW9Us"
+  },
+  "purchase": {
+    "tester": "t-fb06d2.bookerbob-demo.testnet",
+    "merchant": "m01.bookerbob.testnet",
+    "nullifier": "a1624d76a4e23265a1517cab1a704ee40ba6e8a0a612fecd4ef08d7e36178244",
+    "price": "38400000",
+    "txs": {
+      "account": "BXdATnwGettWgMkButPdY6vRkw63jzuMrKkykbTnanf1",
+      "escrow_entry": "9zsZXpJpKPhw6CNnb44DTS2m4cdZt5EUnu3xkse92kNc",
+      "dusdc_storage": "8SLE8BwTRq5VkAY4ri6mEAFWkCZUhYNsEWDpUX3FAECW",
+      "mint": "28CKVG75mnZFCWND85TZPnMDVnYaERW67nDnYQDa2sxq",
+      "world": "42HdEwTMQiqrtVL5d6ks4vTV6RTd81uYmDdgPsVk5hZg",
+      "verdict": "9e5ECcqwCR1KVd54nArvKauQpbXAFheenBnX7fRnsGES",
+      "receipt": "7asCwjYqssJRoj5UKvuwR268pxjN9fcmnyoE1XiSgWj3",
+      "escrow": "6WJryiiYFymatdTveUnF6vpRUubb66osTwExVvikDPHp",
+      "settle": "3FmakCAmra7B1h9GFNGA1qsDSiiDDcHg6gooAk3KB7Vh",
+      "replay": "H9mheSfDQUvSPGfpnbxsbibYrUzT4oqpnskc47zSoooT",
+      "review_join": "9PKnY6KU9S2BnB3RNobknxhtMtTMS44wQriTh6as9TdX"
+    },
+    "shopify_order": "#1065"
+  },
+  "locked": false
+}

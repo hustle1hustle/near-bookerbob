@@ -489,3 +489,19 @@ not that the buyer holds it. The run on your own `/user` is the same command wit
 ## Verdict Gate: two DAOs grant roles on verdicts (2026-11-05)
 
 `gate.bookerbob.testnet` and its two consumer DAOs, every tx: docs/gate.md.
+
+## market.bookerbob.testnet: a bazaar the DAO owns from block one (2026-11-05)
+
+Decided on 2026-11-05 by the coordinating session on the founder's delegation ("think which is the
+stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.mjs`,
+`fixtures/live/market/state.json`.
+
+- Created with one temporary full-access key, deployed and initialised with
+  `new(owner = bookerbob-gov.sputnikv2.testnet)`: the DAO is the owner from the first call.
+- Trust anchors went in by one 2-of-3 council proposal (demo token, issuer, referee, World
+  verifier, arbiter, 1% fee to the DAO); a second approved m01 and h05, set h05's public price
+  anchor and the anchor delay to 5 minutes.
+- One live purchase on it: `t-fb06d2` paid 38.40 dUSDC to m01, replay refused, Shopify #1065.
+- **Not done yet: deleting the temporary full-access key**, the last, irreversible step. Until
+  it is deleted, `make no-owner` shows one full-access key, REP's; after it, none.
+  `bookerbob.testnet` stays as the "before" exhibit with its single REP key.

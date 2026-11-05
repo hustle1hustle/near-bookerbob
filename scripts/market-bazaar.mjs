@@ -1,0 +1,159 @@
+#!/usr/bin/env node
+// Panel round 4, action 8 (the coordinating session's decision on the founder's delegation, 2026-11-05):
+// market.bookerbob.testnet is a bazaar owned by the Sputnik DAO bookerbob-gov from block one.
+// Every trust anchor goes in by a 2-of-3 council vote, the anchor delay is set above 0, and
+// then the account's only full-access key is deleted, so no one can redeploy its code.
+//
+//   node scripts/market-bazaar.mjs setup      create, deploy + init (owner = DAO), dUSDC storage
+//   node scripts/market-bazaar.mjs anchors    DAO proposal 1: demo token, issuer, referee, World
+//                                             verifier, arbiter, fee
+//   node scripts/market-bazaar.mjs merchants  m01 and h05 register; DAO proposal 2: approve them,
+//                                             h05's price anchor, anchor delay 5 min
+//   node scripts/market-bazaar.mjs lock       DeleteKey of the temporary full-access key (IRREVERSIBLE)
+// Testnet only. Keys: KEYS_DIR/market/market.seed (temporary), KEYS_DIR/dao/{c1,c2}.seed.
+import { createHash, randomBytes } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { config } from "./demo-tester.mjs";
+import { keyFromSeed, near, nearPublicKey, rpcClient, send } from "../relayer/near.mjs";
+
+const TGAS = 10n ** 12n;
+const c = config({ ...process.env, BAZAAR_ACCOUNT_ID: "bookerbob.testnet" });
+export const MARKET = "market.bookerbob.testnet";
+const DAO = "bookerbob-gov.sputnikv2.testnet";
+const OPS = "bookerbob-dao-ops.testnet";
+const USDC = "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af";
+const client = rpcClient(c.rpc);
+const dir = join(c.keysDir, "market");
+mkdirSync(dir, { recursive: true });
+const statePath = join(dir, "state.json");
+const st = existsSync(statePath) ? JSON.parse(readFileSync(statePath, "utf8")) : { txs: {} };
+const save = () => writeFileSync(statePath, JSON.stringify(st, null, 2) + "\n", { mode: 0o600 });
+const seedKey = (p) => keyFromSeed(readFileSync(p, "utf8"));
+const K = { c1: seedKey(join(c.keysDir, "dao", "c1.seed")), c2: seedKey(join(c.keysDir, "dao", "c2.seed")) };
+const ID = { c1: `c1.${OPS}`, c2: `c2.${OPS}` };
+const fc = (method_name, args, deposit = 0n, gas = 100n * TGAS) => ({ type: "FunctionCall", method_name, args, gas, deposit });
+const link = (h) => `https://testnet.nearblocks.io/txns/${h}`;
+
+async function tx(label, signer, key, receiver, actions) {
+  const r = await send(client, { signer_id: signer, key, receiver_id: receiver, actions });
+  console.log(`   ${r.ok ? "ok" : "FAILED"} ${label}  ${link(r.hash)}`);
+  if (!r.ok) throw new Error(`${label}: ${r.error}`);
+  return r;
+}
+
+/** One DAO proposal with several bazaar calls, voted by c1 and c2 (2 of 3): executes on the second vote. */
+async function viaDao(label, calls) {
+  const actions = calls.map(([method, args, deposit = "0"]) => ({ method_name: method, args: Buffer.from(JSON.stringify(args)).toString("base64"), deposit, gas: String(20n * TGAS) }));
+  const kind = { FunctionCall: { receiver_id: MARKET, actions } };
+  const p = await tx(`c1 proposes: ${label}`, ID.c1, K.c1, DAO, [fc("add_proposal", { proposal: { description: label, kind } }, near(1), 50n * TGAS)]);
+  await tx(`c1 votes on ${p.value}`, ID.c1, K.c1, DAO, [fc("act_proposal", { id: p.value, action: "VoteApprove", proposal: kind }, 0n, 100n * TGAS)]);
+  const v = await tx(`c2 votes on ${p.value}: executes`, ID.c2, K.c2, DAO, [fc("act_proposal", { id: p.value, action: "VoteApprove", proposal: kind }, 0n, 300n * TGAS)]);
+  const pr = await client.view(DAO, "get_proposal", { id: p.value });
+  if (pr.status !== "Approved") throw new Error(`proposal ${p.value}: ${pr.status}`);
+  return { proposal: p.value, propose: p.hash, execute: v.hash };
+}
+
+/** Sign as a keychain account with near-cli, broadcast over RPC (so a failure still has a hash). */
+async function asKeychain(signer, receiver, method, args, deposit) {
+  const o = spawnSync("near", ["contract", "call-function", "as-transaction", receiver, method, "json-args", JSON.stringify(args), "prepaid-gas", "50.0 Tgas", "attached-deposit", deposit, "sign-as", signer, "network-config", "testnet", "sign-with-keychain", "display"], { encoding: "utf8" });
+  const b64 = `${o.stdout}${o.stderr}`.replace(/\x1b\[[0-9;]*m/g, "").split("serialized as base64):")[1]?.trim().split(/\s/)[0];
+  if (!b64) throw new Error(`could not sign ${method} as ${signer}`);
+  const r = await client.rpc("send_tx", { signed_tx_base64: b64, wait_until: "FINAL" });
+  const res = r.result;
+  const fail = res ? [res.transaction_outcome, ...res.receipts_outcome].map((x) => x.outcome.status.Failure).find(Boolean) ?? res.status.Failure : r.error;
+  console.log(`   ${fail ? "FAILED" : "ok"} ${signer.split(".")[0]} ${method}  ${link(res?.transaction?.hash)}`);
+  if (fail) throw new Error(`${method}: ${JSON.stringify(fail).slice(0, 300)}`);
+  return res.transaction.hash;
+}
+
+async function setup() {
+  const seedPath = join(dir, "market.seed");
+  if (!existsSync(seedPath)) writeFileSync(seedPath, randomBytes(32).toString("hex") + "\n", { mode: 0o600 });
+  const key = seedKey(seedPath);
+  if (!(await client.account(MARKET))) {
+    const o = spawnSync("near", ["account", "create-account", "fund-myself", MARKET, "9 NEAR", "use-manually-provided-public-key", nearPublicKey(key.pub), "sign-as", "bookerbob.testnet", "network-config", "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
+    st.txs.create = `${o.stdout}${o.stderr}`.match(/Transaction ID: ([1-9A-HJ-NP-Za-km-z]{43,44})/)?.[1];
+    if (!(await client.account(MARKET))) throw new Error(`create ${MARKET} failed`);
+    console.log(`   ok create ${MARKET} with one temporary full-access key ${nearPublicKey(key.pub)}  ${link(st.txs.create)}`);
+    save();
+  }
+  if (!st.txs.deploy) {
+    const code = readFileSync("target/near/bookerbob_bazaar.wasm");
+    st.wasm_sha256 = createHash("sha256").update(code).digest("hex");
+    st.txs.deploy = (await tx(`deploy the bazaar (wasm sha256 ${st.wasm_sha256.slice(0, 16)}..) and new(owner = ${DAO})`, MARKET, key, MARKET, [{ type: "DeployContract", code }, fc("new", { owner: DAO, usdc: USDC }, 0n, 100n * TGAS)])).hash;
+    save();
+  }
+  if (!(await client.view(c.dusdc, "storage_balance_of", { account_id: MARKET }))) {
+    const t = seedKey(join(c.keysDir, "treasury.seed"));
+    st.txs.dusdc_storage = (await tx("dUSDC storage for the market (treasury pays)", c.treasury, t, c.dusdc, [fc("storage_deposit", { account_id: MARKET, registration_only: true }, 1250n * 10n ** 18n, 30n * TGAS)])).hash;
+    save();
+  }
+}
+
+async function anchors() {
+  if (st.anchors) return console.log("   anchors already set by proposal", st.anchors.proposal);
+  const live = (m, a = {}) => client.view("bookerbob.testnet", m, a);
+  const issuer = (await live("issuers")).find(([, l]) => l === "testnet issuer")[0];
+  const referee = (await live("referees"))[0][0];
+  const pub = (n) => seedKey(join(c.keysDir, `${n}.seed`)).pub;
+  st.anchors = await viaDao("market bazaar trust anchors: demo token, issuer, referee, World verifier, arbiter, 1% fee to the DAO", [
+    ["set_demo_token", { token: c.dusdc }],
+    ["register_issuer", { key_id: issuer, label: "testnet issuer" }],
+    ["register_referee", { key_hex: referee, label: "testnet referee" }],
+    ["register_world_verifier", { key_hex: pub("world"), action: c.worldAction, label: "testnet World verifier (placeholder action)" }],
+    ["register_arbiter", { key_hex: pub("arbiter"), label: "testnet arbiter (REP)" }],
+    ["set_fee", { bps: 100, treasury: DAO }],
+  ]);
+  save();
+  console.log(`   issuers ${JSON.stringify((await client.view(MARKET, "issuers", {})).map((x) => x[1]))}, fee ${JSON.stringify(await client.view(MARKET, "fee", {}))}`);
+}
+
+async function merchants() {
+  const all = JSON.parse(readFileSync("agents/merchants.json", "utf8"));
+  const pick = ["m01.bookerbob.testnet", "h05.bookerbob.testnet"].map((a) => all.find((m) => m.account === a));
+  st.merchants = st.merchants ?? {};
+  for (const m of pick) {
+    if (st.merchants[m.account]) continue;
+    st.merchants[m.account] = await asKeychain(m.account, MARKET, "register_merchant", { schedule: m.schedule, category: m.category, payout: null }, "0.02 NEAR");
+    save();
+  }
+  if (!st.approve) {
+    const rates = JSON.parse(readFileSync("fixtures/live/cheat/run.json", "utf8")).anchors["h05.bookerbob.testnet"];
+    st.approve = await viaDao("market bazaar: approve m01 and h05, h05's public price anchor, anchor delay 5 minutes", [
+      ["approve_merchant", { merchant: "m01.bookerbob.testnet" }],
+      ["approve_merchant", { merchant: "h05.bookerbob.testnet" }],
+      ["set_price_anchor", { merchant: "h05.bookerbob.testnet", max_base: rates.max_base, source: rates.source }],
+      ["set_anchor_delay", { ms: 300000 }],
+    ]);
+    save();
+  }
+  for (const m of pick) console.log(`   ${m.account}: approved ${(await client.view(MARKET, "merchant", { merchant: m.account })).approved}`);
+  console.log(`   anchor_delay ${await client.view(MARKET, "anchor_delay", {})} ms`);
+}
+
+async function lock() {
+  const key = seedKey(join(dir, "market.seed"));
+  if (!(await client.accessKey(MARKET, key.pub))) return console.log("   the temporary key is already gone");
+  st.txs.delete_key = (await tx(`IRREVERSIBLE: delete ${MARKET}'s only full-access key ${nearPublicKey(key.pub)}`, MARKET, key, MARKET, [{ type: "DeleteKey", public_key_hex: key.pub }])).hash;
+  save();
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const cmd = process.argv[2];
+  const go = { setup, anchors, merchants, lock }[cmd];
+  if (!go) {
+    console.error("usage: market-bazaar.mjs setup | anchors | merchants | lock");
+    process.exit(2);
+  }
+  go().then(() => {
+    mkdirSync("fixtures/live/market", { recursive: true });
+    const f = "fixtures/live/market/state.json";
+    const prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {};
+    writeFileSync(f, JSON.stringify({ ...prev, market: MARKET, owner: DAO, wasm_sha256: st.wasm_sha256, txs: st.txs, anchors: st.anchors, merchants: st.merchants, approve: st.approve, locked: Boolean(st.txs.delete_key) }, null, 2) + "\n");
+  }).catch((e) => {
+    console.error(`market: FAIL ${e.message}`);
+    process.exit(1);
+  });
+}
