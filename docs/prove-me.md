@@ -50,6 +50,24 @@ Needs: the tlsn-extension checkout next to this repo (for `tools/prove-me`, prio
 PRIOR_WORK.md), a GitHub token in a file (`PROVE_ME_TOKEN_FILE`; a fine-grained token with no
 permissions is enough for `/user`), the testnet keys, and a NEAR AI key for step 4.
 
+## make try: you are the buyer
+
+```
+make try TOKEN=~/my-github.token          # TRY_DRY=1 stops before the first transaction
+```
+
+The same path with three changes: the token file is yours (a fine-grained token with no
+permissions; revoke it after), the notary runs in PROXY mode (`TRY_MPC=1` for MPC-TLS;
+`PROVE_ME_NOTARY_URL` / `PROVE_ME_NOTARY_KEY` select the Phala TDX notary when it is up), and
+the buyer is a one-time implicit account: its id is a fresh key, the treasury funds it with one
+transfer, and the relayer pays gas only for implicit ids it funded in that run. The record goes
+to `fixtures/live/prove-me/try-<time>.json` and `make verify-live` re-checks every one.
+
+It ran live once as a pipeline test on a public profile (`try-public-test.json`: proxy notary,
+a fresh NEAR AI verdict, implicit account `71e8a4ea..`, builders at 28 dUSDC, the replay
+refused). The run on your own `/user` needs your token. The local path needs this machine:
+the testnet keys and the tlsn-extension checkout; a hosted lane for judges is not built.
+
 ## Not claimed
 
 - That the notary is attested (it is not), or that REP cannot sign a false presentation (it

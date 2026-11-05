@@ -121,7 +121,7 @@ export class Demo {
     const signed = await delegateFor(this.client, { sender_id: tester.id, key: tester.key, receiver_id, actions: [action] });
     const header = await this.client.block();
     const used = this.used.get(tester.id) ?? 0;
-    const ok = checkDemo(signed, { bazaar: this.c.bazaar, dusdc: this.c.dusdc, treasury: this.c.treasury, block_height: header.height }, used);
+    const ok = checkDemo(signed, { bazaar: this.c.bazaar, dusdc: this.c.dusdc, treasury: this.c.treasury, block_height: header.height, implicit: this.implicit }, used);
     if (!ok.ok) throw new Error(`relayer refused ${step}: ${ok.reason}`);
     this.used.set(tester.id, used + 1);
     return this.direct(`${step} (relayed)`, this.c.treasury, this.treasury, tester.id, [{ type: "Delegate", ...signed }]);
@@ -174,14 +174,28 @@ export class Demo {
     step(1, "preflight");
     await this.preflight();
     const hex6 = randomBytes(3).toString("hex");
-    const id = testerId(c, hex6);
-    const dir = join(c.testersDir, id);
-    mkdirSync(dir, { recursive: true });
-    const tester = { id, key: newSeed(join(dir, "account.seed")) };
+    // opts.implicit (make try): a one-time implicit account, its id the hex of a fresh key,
+    // created by the treasury's transfer alone; the seed stays in KEYS_DIR/testers.
+    let id = testerId(c, hex6);
+    let dir = join(c.testersDir, id);
+    let key;
+    if (opts.implicit) {
+      const tmp = join(c.testersDir, `implicit-${hex6}`);
+      mkdirSync(tmp, { recursive: true });
+      key = newSeed(join(tmp, "account.seed"));
+      id = key.pub;
+      dir = tmp;
+      (this.implicit ??= new Set()).add(id);
+    } else {
+      mkdirSync(dir, { recursive: true });
+      key = newSeed(join(dir, "account.seed"));
+    }
+    const tester = { id, key };
     const rec = { tester: id, merchant: c.merchant, date: new Date().toISOString().slice(0, 10), txs: {} };
     const save = () => writeFileSync(join(c.testersDir, `${id}.json`), JSON.stringify(rec, null, 2) + "\n");
-    step(2, `create ${id}`);
-    rec.txs.account = (await this.direct("create tester", c.treasury, this.treasury, id, [{ type: "CreateAccount" }, { type: "Transfer", deposit: TESTER_FUND }, { type: "AddKey", public_key_hex: tester.key.pub, permission: "FullAccess" }])).hash;
+    step(2, opts.implicit ? `fund a one-time implicit account ${id.slice(0, 12)}..` : `create ${id}`);
+    const create = opts.implicit ? [{ type: "Transfer", deposit: TESTER_FUND }] : [{ type: "CreateAccount" }, { type: "Transfer", deposit: TESTER_FUND }, { type: "AddKey", public_key_hex: tester.key.pub, permission: "FullAccess" }];
+    rec.txs.account = (await this.direct(opts.implicit ? "fund implicit tester" : "create tester", c.treasury, this.treasury, id, create)).hash;
     save();
     step(3, "storage: bazaar escrow entry and dUSDC registration, paid by the treasury");
     rec.txs.escrow_entry = (await this.direct("bazaar storage_deposit", c.treasury, this.treasury, c.bazaar, [fc("storage_deposit", { account_id: id }, 10n * MILLI, 30n * TGAS)])).hash;

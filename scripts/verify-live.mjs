@@ -4,7 +4,7 @@
 // hashes, expected values) and checks each against chain state and tx outcomes now.
 //   NEAR_RPC=<url> make verify-live     another public testnet RPC (fallback list below)
 import { createHash, createPublicKey, verify as edVerify } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 
 // Public testnet RPCs that answer as of 2026-11-05 (rpc.testnet.near.org and pagoda are
 // deprecated, lava discontinued). The archival host also serves old txs.
@@ -288,11 +288,11 @@ await attempt("every spent nullifier is in the manifest: spent_count on chain eq
   const n = await view(m.bazaar, "spent_count", {});
   return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
 });
-for (const f of ["run", "public-test"]) {
+for (const f of ["run", "public-test", ...(existsSync(new URL("../fixtures/live/prove-me/", import.meta.url)) ? readdirSync(new URL("../fixtures/live/prove-me/", import.meta.url)).filter((x) => /^try-.*\.json$/.test(x)).map((x) => x.slice(0, -5)).sort() : [])]) {
   const u = new URL(`../fixtures/live/prove-me/${f}.json`, import.meta.url);
   if (!existsSync(u)) continue;
   const p = JSON.parse(readFileSync(u));
-  await attempt(`make prove-me (${p.authenticated ? "your own account, GET /user" : "pipeline test, a public profile"}): sealed verdict on chain, ${p.merchant.split(".")[0]} won blind round ${p.round} on its github_builder line, settled ${Number(p.price) / 1e6} dUSDC`, async () => {
+  await attempt(`make ${f.startsWith("try") ? "try" : "prove-me"} (${p.authenticated ? "your own account, GET /user" : "pipeline test, a public profile"}${p.notary_mode === "proxy" ? ", proxy notary" : ""}${/^[0-9a-f]{64}$/.test(p.tester) ? ", a one-time implicit account" : ""}): sealed verdict on chain, ${p.merchant.split(".")[0]} won blind round ${p.round} on its github_builder line, settled ${Number(p.price) / 1e6} dUSDC`, async () => {
     const [v, round, mer, settle] = await Promise.all([view(m.bazaar, "verdict", { nullifier: p.nullifier }), view(m.bazaar, "round", { round_id: p.round }), view(m.bazaar, "merchant", { merchant: p.merchant }), tx(p.txs.settle, p.tester)]);
     const sealed = v && v.predicates.length === 0 && v.tier === "sealed" && v.spent;
     const line = mer.schedule.rules.some((r) => r.predicate === "github_builder");

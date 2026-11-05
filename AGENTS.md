@@ -75,7 +75,7 @@ Real, and checked by code in this repo:
 - The `bazaar` contract code. `make verify` runs it against near-sdk's MockedBlockchain
   (nearcore VM logic for host functions such as `ed25519_verify` and `p256_verify`). It is
   also live on testnet at `bookerbob.testnet`: `make verify-live` re-derives the testnet
-  claims (20 dUSDC purchases, 12 sealed reviews over 2 rounds, a challenged standing update) over public RPC.
+  claims (21 dUSDC purchases, 12 sealed reviews over 2 rounds, a challenged standing update) over public RPC.
 - Prices: always `core/src/price.rs`. No model sets a price.
 - NEAR AI verdict: `fixtures/live/near-ai/` is a live E2EE v2 capture (synthetic facts); `make verify` checks its TDX quote, report_data, TEE signature, sealed answer and envelope binding offline.
 - NEAR AI Cloud: `agents/out/live-run.json` is a recorded live run, 33 of 33 response

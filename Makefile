@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: try site audit eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -59,6 +59,10 @@ verify-offline:
 # A merchant inflates its base price to fake a discount: refused on testnet (docs/unit-economics.md).
 cheat:
 	node scripts/cheat.mjs run
+
+# You are the buyer: your GitHub token file proves the fact behind one testnet purchase (docs/prove-me.md).
+try:
+	node scripts/try.mjs $(TOKEN)
 
 # site/ for GitHub Pages: board, receipts, eval over public RPC with snapshot fallbacks (Pages turns on with the flip).
 site:

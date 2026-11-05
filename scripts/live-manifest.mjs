@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { config } from "./demo-tester.mjs";
 
 const c = config(process.env);
-const recs = readdirSync(c.testersDir).filter((f) => /^t-.*\.json$/.test(f)).map((f) => JSON.parse(readFileSync(join(c.testersDir, f), "utf8")));
+const recs = readdirSync(c.testersDir).filter((f) => /^(t-.*|[0-9a-f]{64})\.json$/.test(f)).map((f) => JSON.parse(readFileSync(join(c.testersDir, f), "utf8")));
 const done = recs.filter((r) => r.txs?.settle && r.txs?.replay).sort((a, b) => (a.review?.size ?? 99) - (b.review?.size ?? 99));
 const states = readdirSync(c.testersDir).filter((f) => /^reviews-state(-\d+)?\.json$/.test(f)).map((f) => JSON.parse(readFileSync(join(c.testersDir, f), "utf8"))).filter((x) => x.publish_tx);
 // Public view of a round: senders and txs sorted, so the manifest itself never pairs a rating

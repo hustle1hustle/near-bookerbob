@@ -167,25 +167,31 @@ async function setup(c, round) {
   writeFileSync(join(c.keysDir, "rounds", `prove-me-${round}.json`), JSON.stringify(state, null, 2) + "\n", { mode: 0o600 });
 }
 
-async function run(c, round, dry, publicLogin) {
+/** opts (make try): tokenFile, proxy (the notary's PROXY mode), implicit (a one-time implicit
+ *  buyer), out (the public record's name). The notary is PROVE_ME_NOTARY_URL / _KEY when set
+ *  (the Phala TDX notary), else the REP notary on Fly. */
+export async function run(c, round, dry, publicLogin, opts = {}) {
+  const notaryUrl = process.env.PROVE_ME_NOTARY_URL || NOTARY_URL;
+  const notaryKey = process.env.PROVE_ME_NOTARY_KEY || NOTARY_KEY;
+  const viaRep = notaryUrl === NOTARY_URL;
   const dir = join(c.keysDir, "zktls");
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   const before = leak();
   console.log(`1. make leak before: ${before.ok ? "PASS" : "FAIL"} (${before.lines.length} lines)`);
   const file = join(dir, `github-${Date.now()}.presentation`);
-  const proveArgs = [file, ...(publicLogin ? ["--public", publicLogin] : [])];
-  const p = JSON.parse(sh(PROVE_ME, proveArgs, publicLogin ? {} : { PROVE_ME_TOKEN_FILE: tokenFile(c) }));
+  const proveArgs = [file, ...(opts.proxy ? ["--proxy"] : []), ...(publicLogin ? ["--public", publicLogin] : [])];
+  const p = JSON.parse(sh(PROVE_ME, proveArgs, publicLogin ? {} : { PROVE_ME_TOKEN_FILE: opts.tokenFile ?? tokenFile(c) }));
   const bytes = readFileSync(file);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
-  console.log(`2. notarized ${SERVER} through the REP notary: ${bytes.length} bytes, sha256 ${sha256.slice(0, 16)}..`);
-  const v = JSON.parse(execFileSync(REP_VERIFY, ["/dev/stdin", NOTARY_KEY, "--json"], { input: bytes, encoding: "utf8" }));
+  console.log(`2. notarized ${SERVER} through ${viaRep ? "the REP notary" : notaryUrl} (${opts.proxy ? "proxy" : "MPC-TLS"}): ${bytes.length} bytes, sha256 ${sha256.slice(0, 16)}..`);
+  const v = JSON.parse(execFileSync(REP_VERIFY, ["/dev/stdin", notaryKey, "--json"], { input: bytes, encoding: "utf8" }));
   if (!v.key_matches || v.server_name !== SERVER) throw new Error(`not ${SERVER} under the pinned notary key`);
   const kind = requestKind(v.sent ?? "");
   if (!publicLogin && !kind.authenticated) throw new Error("expected the authenticated GET /user");
   const bad = privacyProblems(`${v.sent ?? ""}\n${v.recv ?? ""}`);
   if (bad.length) throw new Error(`the presentation reveals personal data (${bad.join(", ")}): stop`);
   const facts = deriveGithub(v.recv ?? "", v.time_secs);
-  console.log(`3. verified (rep-verify, key ${NOTARY_KEY.slice(0, 12)}..), ${kind.authenticated ? "GET /user (your own account)" : `GET /users/${kind.login} (public test, not ownership)`}; only 3 fields revealed; privacy scan clean`);
+  console.log(`3. verified (rep-verify, key ${notaryKey.slice(0, 12)}..), ${kind.authenticated ? "GET /user (your own account)" : `GET /users/${kind.login} (public test, not ownership)`}; only 3 fields revealed; privacy scan clean`);
   const holds = facts.account_age_years >= MIN_AGE_YEARS;
   console.log(`   facts: account_age_years, public_repos, followers; github_builder ${holds ? "holds" : `does NOT hold (< ${MIN_AGE_YEARS} years)`}`);
   if (!holds) throw new Error("github_builder does not hold: nothing to buy with");
@@ -212,11 +218,14 @@ async function run(c, round, dry, publicLogin) {
   const pub = {
     note: publicLogin
       ? "prove-me PIPELINE TEST on a public GitHub profile (no token): it proves a fact about a public account, not that the prover holds it. The rest of the proof set is synthetic."
-      : "prove-me: one real fact from the prover's own GitHub account (authenticated GET /user), MPC-TLS through the REP notary on Fly (pinned key, not TEE-attested), 3 fields revealed. The rest of the proof set is synthetic. The presentation stays with the prover; only its hash is here.",
+      : `prove-me: one real fact from the prover's own GitHub account (authenticated GET /user), ${opts.proxy ? "proxy mode" : "MPC-TLS"} through ${viaRep ? "the REP notary on Fly (pinned key, not TEE-attested)" : `${notaryUrl} (pinned key; its TDX quote is not checked here)`}, 3 fields revealed. The rest of the proof set is synthetic. The presentation stays with the prover; only its hash is here.`,
     authenticated: kind.authenticated,
     presentation_sha256: sha256,
     server_name: v.server_name,
-    notary_key: NOTARY_KEY,
+    notary_url: notaryUrl,
+    notary_key: notaryKey,
+    notary_mode: opts.proxy ? "proxy" : "mpc",
+    // The REP notary is one pinned key. A TDX notary's quote is not checked by this script.
     notary_attested: false,
     revealed_fields: ["created_at", "public_repos", "followers"],
     rule: `github account_age_years >= ${MIN_AGE_YEARS} gives github_builder`,
@@ -229,17 +238,20 @@ async function run(c, round, dry, publicLogin) {
     console.log("\ndry run: stopping before any testnet transaction");
     return;
   }
-  console.log("6. the purchase, as a fresh tester (gasless, dUSDC, sealed verdict):");
+  console.log(`6. the purchase, as a fresh ${opts.implicit ? "one-time implicit account" : "tester"} (gasless, dUSDC, sealed verdict):`);
   const d = new Demo({ ...c, merchant: bids[0].merchant, category: "open" });
   process.env.BOOKERBOB_REVEAL = REVEAL;
-  const rec = await d.run({ proofs: join(runDir, "proofs.json"), fixturesDir: runDir, sealed: true }).finally(() => delete process.env.BOOKERBOB_REVEAL);
+  const rec = await d.run({ proofs: join(runDir, "proofs.json"), fixturesDir: runDir, sealed: true, implicit: Boolean(opts.implicit) }).finally(() => delete process.env.BOOKERBOB_REVEAL);
+  // Tag the tester's local record so live-manifest lists this purchase as a prove-me run.
+  const recPath = join(c.testersDir, `${rec.tester}.json`);
+  if (existsSync(recPath)) writeFileSync(recPath, JSON.stringify({ ...JSON.parse(readFileSync(recPath, "utf8")), prove_me: opts.out ?? (publicLogin ? "public-test" : "run") }, null, 2) + "\n");
   const onChain = await d.client.view(c.bazaar, "verdict", { nullifier: rec.nullifier });
   if (onChain.predicates.length || onChain.tier !== "sealed") throw new Error("the verdict on chain is not sealed");
   const after = leak();
   console.log(`7. make leak after: ${after.ok ? "PASS" : "FAIL"}`);
   Object.assign(pub, { merchant: bids[0].merchant, price: rec.price, verdict_on_chain: "sealed: hashes only", tester: rec.tester, nullifier: rec.nullifier, txs: rec.txs, leak_after: after });
   mkdirSync("fixtures/live/prove-me", { recursive: true });
-  const out = `fixtures/live/prove-me/${publicLogin ? "public-test" : "run"}.json`;
+  const out = `fixtures/live/prove-me/${opts.out ?? (publicLogin ? "public-test" : "run")}.json`;
   writeFileSync(out, JSON.stringify(pub, null, 2) + "\n");
   console.log(`\nprove-me: PASS  ${out} (hashes, txs; no presentation, no token)`);
 }

@@ -78,7 +78,9 @@ export const DEMO_METHODS = {
 export function checkDemo(signed, ctx, used = 0) {
   const d = signed.delegate_action;
   const tester = new RegExp(`^t-[0-9a-f]{6}\\.${ctx.treasury.replace(/\./g, "\\.")}$`);
-  if (!tester.test(d.sender_id)) return { ok: false, reason: `sender ${d.sender_id} is not a demo tester account` };
+  // A one-time implicit tester (make try): its id is its own key, and the treasury funded it.
+  const implicit = /^[0-9a-f]{64}$/.test(d.sender_id) && d.sender_id === d.public_key_hex && Boolean(ctx.implicit?.has(d.sender_id));
+  if (!tester.test(d.sender_id) && !implicit) return { ok: false, reason: `sender ${d.sender_id} is not a demo tester account` };
   const role = d.receiver_id === ctx.bazaar ? "bazaar" : d.receiver_id === ctx.dusdc ? "dusdc" : null;
   if (!role) return { ok: false, reason: `receiver ${d.receiver_id} is not the bazaar or dUSDC` };
   if (!Array.isArray(d.actions) || d.actions.length !== 1) return { ok: false, reason: "exactly one action" };

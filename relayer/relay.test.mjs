@@ -107,6 +107,13 @@ test("demo: another receiver, method, sender, deposit or budget is refused", () 
   refused(checkDemo(demoDelegate({ receiver_id: BAZAAR }, { method_name: "settle", deposit: "0" }), demoCtx), /not relayed/);
   refused(checkDemo(demoDelegate({ sender_id: "agent.bookerbob.testnet" }), demoCtx), /not a demo tester/);
   refused(checkDemo(demoDelegate({ sender_id: "t-a1b2c3.evil.testnet" }), demoCtx), /not a demo tester/);
+  // make try: a one-time implicit tester, only when its id is its key and the treasury funded it
+  const imp = demoDelegate();
+  const hexId = imp.delegate_action.public_key_hex;
+  const asImplicit = demoDelegate({ sender_id: hexId });
+  refused(checkDemo(asImplicit, demoCtx), /not a demo tester/);
+  assert.equal(checkDemo(asImplicit, { ...demoCtx, implicit: new Set([hexId]) }).ok, true);
+  refused(checkDemo(demoDelegate({ sender_id: "ab".repeat(32) }), { ...demoCtx, implicit: new Set(["ab".repeat(32)]) }), /not a demo tester/);
   refused(checkDemo(demoDelegate({}, { deposit: "2" }), demoCtx), /demo cap/);
   refused(checkDemo(demoDelegate({}, { args: { receiver_id: "evil.testnet", amount: "1", msg: "" } }), demoCtx), /only to the bazaar/);
   refused(checkDemo(demoDelegate({ receiver_id: BAZAAR }, { method_name: "submit_verdict", deposit: "60000000000000000000000" }), demoCtx), /demo cap/);
