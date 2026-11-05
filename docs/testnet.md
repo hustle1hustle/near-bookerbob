@@ -472,3 +472,16 @@ What is not done: the bazaar does not check that the DAO's council is the group'
 member binds it once, before any pledge, and pledging is consent to that DAO). The pot is held
 by the bazaar, not by the DAO account, so the DAO controls only release and refund. No board
 view of the group's k yet.
+
+## make prove-me: the pipeline on a public GitHub profile (2026-11-05)
+
+A test of the whole `make prove-me` path (docs/prove-me.md) before the run on a real
+account: no token, so it proves api.github.com/users/octocat, a fact about a public account,
+not that the buyer holds it. The run on your own `/user` is the same command with a token.
+
+- The contract was redeployed for the new predicate `github_builder` ([Gt2fRa7D…](https://testnet.nearblocks.io/txns/Gt2fRa7D4QcfKSBYkDf4sBWJxfh75KEsqNiEND1g6jHb)), state kept.
+- `builders.bookerbob-demo.testnet` joined the open category with no owner step: register [HxuoN4Rz…](https://testnet.nearblocks.io/txns/HxuoN4RzyV4N4DBQVJ5szE4qFQ5BE1iVAuywKj1uUSn2), 10 dUSDC bond [4eWVneod…](https://testnet.nearblocks.io/txns/4eWVneodYKJv8CJZHb64Jkd6fYyobSAuackygDqJQyx9). Its schedule: base 40, 20% for `github_builder`, 10% for a World-bound agent, cap 30%.
+- Blind round `builder-1` opened [6KtoJenk…](https://testnet.nearblocks.io/txns/6KtoJenkcgpATMNqUsYWrAuZZUme2v93voj4HHMYBduq); builders committed [5dHnjRYV…](https://testnet.nearblocks.io/txns/5dHnjRYVq7dCmr2vtPo9z5E3ydDHR8bK5xd4QhYywn2f) and revealed [85wuGrrv…](https://testnet.nearblocks.io/txns/85wuGrrv2DPKVysMhiawpK8TLEUaAKAoKxfUissjtETY); house committed [H8GAgeNh…](https://testnet.nearblocks.io/txns/H8GAgeNhQvwDaZ1rT2Rjv1aP1AhHhjYUoSScNbNo69Ks) and revealed [HMgdE4Cp…](https://testnet.nearblocks.io/txns/HMgdE4Cp9s2CqHnXQHzxTBnDR2qydKJLbsS2N2LQHi75).
+- The REP notary on Fly signed a 4,326-byte presentation revealing 3 fields; the facts went sealed to NEAR AI `z-ai/glm-5.3-flash` (chat `884c610c58af…`, TEE signature valid), which named `github_builder`.
+- Tester `t-388a34`: sealed verdict (hashes only) [AvQWy1vp…](https://testnet.nearblocks.io/txns/AvQWy1vpqfkBMM5tG7u9yYoi3xaVHS4hpoesZ5UZ3YkQ), referee receipt at 28 [DtnucFUz…](https://testnet.nearblocks.io/txns/DtnucFUzgq59iaX3Px47SJfiVxdxnsEcgMUiUowpvVma), settle_demo to builders [37tzjNdL…](https://testnet.nearblocks.io/txns/37tzjNdLaY8Y6HVsedf9m9tu11i95EnBJaRNchJ4R6Lk), replay refused [KEzA2ZeX…](https://testnet.nearblocks.io/txns/KEzA2ZeXdbcmLXoP6i4c2naKWa1dzW7odDAs7w3boss). Without the builder line builders would have charged 36; house bid 42.75.
+- `make leak` before and after: the lines are in `fixtures/live/prove-me/public-test.json`; L5b (sealed predicates in tx args) stays clean, L6 counts one more single amount (28 x1).
