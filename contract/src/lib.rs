@@ -576,6 +576,21 @@ fn eval_scores() -> LookupMap<String, u8> {
     LookupMap::new(b"S")
 }
 
+/// A merchant's eval gate: it sells only to a buyer whose verdict was issued by a NEAR AI model
+/// key whose model passes `eval_passes(model + subject_suffix, set_root, threshold)`.
+#[near(serializers = [json, borsh])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct EvalGate {
+    pub set_root: String,
+    /// e.g. "@4000tok/referee-v4": the certificate subject is the model id plus this.
+    pub subject_suffix: String,
+    pub threshold: u8,
+}
+
+fn eval_gates() -> LookupMap<AccountId, EvalGate> {
+    LookupMap::new(b"E")
+}
+
 /// Who committed an eval set: the account that made it (`commit_eval_set`), or the bazaar owner
 /// (`register_eval_set`).
 /// A merchant's public price ceiling: (the most its base price may be, where the number comes from).
@@ -853,6 +868,48 @@ impl Bazaar {
 
     pub fn eval_score(&self, subject: String, set_root: String) -> Option<u8> {
         eval_scores().get(&format!("{subject}|{set_root}")).copied()
+    }
+
+    /// A registered merchant requires (or, with `None`, stops requiring) that the model behind a
+    /// buyer's verdict passes an eval: checked when a referee receipt names this merchant.
+    #[payable]
+    pub fn set_eval_gate(&mut self, gate: Option<EvalGate>) {
+        let before = env::storage_usage();
+        let merchant = env::predecessor_account_id();
+        require!(self.merchants.contains_key(&merchant), "only a registered merchant sets its eval gate");
+        let mut g = eval_gates();
+        match gate {
+            Some(x) => {
+                require!(x.threshold <= 100 && x.threshold % 10 == 0, "threshold is a score bucket (0, 10, .. 100)");
+                require!(eval_sets().contains_key(&x.set_root), "unknown eval set");
+                require!(!x.subject_suffix.is_empty() && x.subject_suffix.len() <= 64, "bad subject suffix");
+                emit("eval_gate_set", serde_json::json!({ "merchant": merchant, "set_root": x.set_root, "subject_suffix": x.subject_suffix, "threshold": x.threshold }));
+                g.insert(merchant, x);
+            }
+            None => {
+                g.remove(&merchant);
+                emit("eval_gate_cleared", serde_json::json!({ "merchant": merchant }));
+            }
+        }
+        g.flush();
+        charge_storage(before);
+    }
+
+    pub fn eval_gate(&self, merchant: AccountId) -> Option<EvalGate> {
+        eval_gates().get(&merchant).cloned()
+    }
+
+    /// Why a verdict cannot buy from a gated merchant, or None when it can.
+    fn eval_gate_refusal(&self, merchant: &AccountId, issuer: &str) -> Option<String> {
+        let g = eval_gates().get(merchant).cloned()?;
+        let Some(key) = issuer.strip_prefix("near-ai:") else {
+            return Some("merchant's eval gate: the verdict was not issued by a NEAR AI model key".into());
+        };
+        let Some(model) = self.model_attestations.get(key).map(|a| a.model.clone()) else {
+            return Some("merchant's eval gate: the model key is not registered".into());
+        };
+        let subject = format!("{model}{}", g.subject_suffix);
+        (!self.eval_passes(subject.clone(), g.set_root.clone(), g.threshold)).then(|| format!("merchant's eval gate: {subject} does not pass {} on {}", g.threshold, g.set_root))
     }
 
     /// The predicate a buyer or a merchant checks: `eval_score_gte(threshold)` for a subject.
@@ -2407,6 +2464,11 @@ impl Bazaar {
         let merchant: AccountId = b.merchant.parse().unwrap_or_else(|_| env::panic_str("bad merchant"));
         let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
         let current = self.verdicts.get(&b.nullifier).cloned().unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        if b.outcome == "receipt" {
+            if let Some(why) = self.eval_gate_refusal(&merchant, &current.issuer) {
+                env::panic_str(&why);
+            }
+        }
         let sealed = current.tier == bookerbob_core::SEALED_TIER;
         // A sealed verdict: the referee opened its disclosure and priced it (the digest binds
         // the commitment); the contract accepts only a price its own code can produce.

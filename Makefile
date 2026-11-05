@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: try site audit eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: try site audit eval-gate eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -88,6 +88,10 @@ eval-verify:
 	node scripts/rep-eval-v2.mjs verify
 	REP_EVAL_PROTOCOL=v3 node scripts/rep-eval-v2.mjs verify
 	REP_EVAL_PROTOCOL=v4 node scripts/rep-eval-v2.mjs verify
+
+# A merchant that sells only to a verdict from a model passing REP Eval v4 (docs/eval.md).
+eval-gate:
+	node scripts/eval-gate.mjs verify
 
 verify-live:
 	node scripts/verify-live.mjs

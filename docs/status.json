@@ -420,6 +420,16 @@
     ]
   },
   {
+    "feature": "REP Eval v4 and the eval gate: 40 harder referee-claim items (truth from the referee's code, protocol frozen before the set), and `set_eval_gate`: a merchant sells only to a verdict issued by a NEAR AI model whose certificate passes `eval_passes`",
+    "tracks": "agents, security, open",
+    "where": "`scripts/rep-eval-v2.mjs` (`REP_EVAL_PROTOCOL=v4`), `scripts/eval-gate.mjs`, `contract/src/lib.rs` (`set_eval_gate`), `docs/eval.md`",
+    "status": "live",
+    "detail": "v4 on testnet: DeepSeek-V4.1-Flash 29/40 (bucket 70), glm-5.3-flash 22/40 (bucket 50, the first wrong finished answer in any run); `vetted` gates on v4 at 70, an ordinary verdict's receipt was refused on chain; the passing model-issued purchase runs on the mocked chain only; `make eval-gate`, `make eval-verify`",
+    "evidence": [
+      "rep_eval"
+    ]
+  },
+  {
     "feature": "NEAR INTENTS / 1Click top-up from any chain",
     "tracks": "realworld, agents",
     "where": "`docs/`",

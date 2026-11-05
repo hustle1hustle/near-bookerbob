@@ -1,0 +1,41 @@
+{
+  "merchant": "vetted.bookerbob-demo.testnet",
+  "txs": {
+    "account": "4Bio4etPNHb4UJRbXHdNKsVJiqfChmvjCKY6mqgafhxH",
+    "register": "3JfkCWQpgkMHDqZMDsG3ExucAe1dr2ErKvu3u4GMahXZ",
+    "gate": "7y4q5ZAkM8CJjkppQCL4ZDfqp6ezm3VZreToeX3c5GUg"
+  },
+  "gate": {
+    "set_root": "af82187494d180ed9112613df06a76df39591d49f98c33f5a3b64cb0f7213ee1",
+    "subject_suffix": "@4000tok/referee-v4",
+    "threshold": 70
+  },
+  "schedule": {
+    "base_price": "48000000",
+    "rules": [
+      {
+        "predicate": "claude_spender",
+        "bps": 1000
+      },
+      {
+        "predicate": "world_id_human",
+        "bps": 800
+      },
+      {
+        "predicate": "airbnb_frequent",
+        "bps": 500
+      }
+    ],
+    "cap_bps": 2000,
+    "cohort": {
+      "predicate": "world_id_human",
+      "k_min": 5,
+      "bps": 500
+    }
+  },
+  "refusal": {
+    "tester": "bookerbob-demo.testnet",
+    "tx": "AH8YuaournDh8erCyQvPAprY4tju83YH82AJVNRD1hjp",
+    "error": "merchant's eval gate: the verdict was not issued by a NEAR AI model key"
+  }
+}

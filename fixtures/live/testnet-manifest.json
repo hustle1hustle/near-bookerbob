@@ -293,6 +293,10 @@
       "reason": "stopped before the verdict"
     },
     {
+      "tester": "t-102bde.bookerbob-demo.testnet",
+      "reason": "stopped before the verdict"
+    },
+    {
       "tester": "t-261435.bookerbob-demo.testnet",
       "reason": "stopped before the verdict"
     },

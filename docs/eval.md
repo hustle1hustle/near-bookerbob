@@ -186,6 +186,25 @@ The generator was committed (`6d23772`) before any model saw an item.
   `6d23772`; no model had seen an item.
 - **Cost:** about $0.16 of existing NEAR AI credit; no 402.
 
+## The eval gate: a merchant requires a passing model (testnet, 2026-11-05)
+
+`set_eval_gate({set_root, subject_suffix, threshold})`, called by a registered merchant: a
+referee receipt naming that merchant is refused unless the buyer's verdict was issued by a NEAR
+AI model key (`submit_near_ai_verdict`) whose model passes `eval_passes(model + suffix,
+set_root, threshold)`. `None` clears it. On testnet (`make eval-gate`, also in `make judge`):
+
+- `vetted.bookerbob-demo.testnet` registered with m01's schedule and set the gate to the v4
+  root, `@4000tok/referee-v4`, 70: [7y4q5ZAk…](https://testnet.nearblocks.io/txns/7y4q5ZAkM8CJjkppQCL4ZDfqp6ezm3VZreToeX3c5GUg).
+- `eval_passes` on chain: DeepSeek (bucket 70) passes, glm (bucket 50) does not.
+- A fresh tester with an ordinary sealed verdict (signed by the issuer key, not a model) asked
+  for a receipt from it, and the contract refused: "merchant's eval gate: the verdict was not
+  issued by a NEAR AI model key" [AH8Yuaou…](https://testnet.nearblocks.io/txns/AH8YuaournDh8erCyQvPAprY4tju83YH82AJVNRD1hjp).
+- **Not run live:** the passing purchase, a verdict through `submit_near_ai_verdict` from a
+  model at 70 or more. The live purchases use the issuer key; the model-issued path and the gate
+  together are covered on near-sdk's mocked chain (`certified_eval`: refused under the
+  threshold, accepted at it, an unregistered model key refused, only a registered merchant sets
+  a gate, the set must be committed, a cleared gate takes any issuer).
+
 ## The calibration set (tuned, not the headline)
 
 The first sealed set (root `758b21ccd7edc046…`) chose the budget. Its 400-token run is also

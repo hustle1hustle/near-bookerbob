@@ -2824,6 +2824,90 @@ mod certified_eval {
         c.commit_eval_set(ROOT.into(), 99, "mine now".into());
     }
 
+    const SUFFIX: &str = "@4000tok/referee-v4";
+    const MODEL_KEY: &str = "4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d";
+
+    fn gated() -> Bazaar {
+        let mut c = with_set();
+        set("m01.bazaar.testnet");
+        c.set_eval_gate(Some(EvalGate { set_root: ROOT.into(), subject_suffix: SUFFIX.into(), threshold: 70 }));
+        c
+    }
+
+    fn model_key(c: &mut Bazaar) {
+        set_no_deposit("owner.testnet");
+        c.register_model_attestation(MODEL_KEY.into(), ModelAttestation { model: "z-ai/glm-5.3-flash".into(), nonce: "aa".repeat(32), report_hash: "bb".repeat(32), tcb_status: "UpToDate".into() });
+    }
+
+    #[test]
+    #[should_panic(expected = "merchant's eval gate: the verdict was not issued by a NEAR AI model key")]
+    fn a_gated_merchant_refuses_a_verdict_no_model_issued() {
+        let mut c = gated();
+        assert_eq!(c.eval_gate(acc("m01.bazaar.testnet")).unwrap().threshold, 70);
+        let e = envelope(1, "agent.testnet");
+        set(e.cnf.as_str());
+        c.submit_verdict(sign_ed(e.clone()));
+        c.submit_referee_result(referee_result(&e, honest_claims(), &referee_key()));
+    }
+
+    #[test]
+    fn a_gated_merchant_takes_a_model_only_once_its_certificate_passes() {
+        let mut c = gated();
+        model_key(&mut c);
+        let m = acc("m01.bazaar.testnet");
+        let issuer = format!("near-ai:{MODEL_KEY}");
+        let why = c.eval_gate_refusal(&m, &issuer).unwrap();
+        assert!(why.contains("z-ai/glm-5.3-flash@4000tok/referee-v4 does not pass 70"), "{why}");
+        let mut low = cert(12, 60);
+        low.subject = format!("z-ai/glm-5.3-flash{SUFFIX}");
+        let (k, sig) = signed(&low, &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(low, k, sig);
+        assert!(c.eval_gate_refusal(&m, &issuer).is_some(), "60 is under the gate's 70");
+        let mut ok = cert(15, 70);
+        ok.subject = format!("z-ai/glm-5.3-flash{SUFFIX}");
+        let (k, sig) = signed(&ok, &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(ok, k, sig);
+        assert_eq!(c.eval_gate_refusal(&m, &issuer), None);
+        // An ungated merchant takes any issuer.
+        assert_eq!(c.eval_gate_refusal(&acc("other.bazaar.testnet"), "ed25519:00"), None);
+    }
+
+    #[test]
+    fn an_unregistered_model_key_does_not_pass_a_gate() {
+        let c = gated();
+        assert!(c.eval_gate_refusal(&acc("m01.bazaar.testnet"), &format!("near-ai:{MODEL_KEY}")).unwrap().contains("not registered"));
+    }
+
+    #[test]
+    #[should_panic(expected = "only a registered merchant sets its eval gate")]
+    fn only_a_registered_merchant_sets_an_eval_gate() {
+        let mut c = with_set();
+        set("stranger.testnet");
+        c.set_eval_gate(Some(EvalGate { set_root: ROOT.into(), subject_suffix: SUFFIX.into(), threshold: 70 }));
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown eval set")]
+    fn an_eval_gate_names_a_committed_set() {
+        let mut c = with_set();
+        set("m01.bazaar.testnet");
+        c.set_eval_gate(Some(EvalGate { set_root: "ff".repeat(32), subject_suffix: SUFFIX.into(), threshold: 70 }));
+    }
+
+    #[test]
+    fn a_merchant_clears_its_eval_gate() {
+        let mut c = gated();
+        set("m01.bazaar.testnet");
+        c.set_eval_gate(None);
+        assert_eq!(c.eval_gate(acc("m01.bazaar.testnet")), None);
+        let e = envelope(1, "agent.testnet");
+        set(e.cnf.as_str());
+        c.submit_verdict(sign_ed(e.clone()));
+        assert!(c.submit_referee_result(referee_result(&e, honest_claims(), &referee_key())));
+    }
+
     #[test]
     fn the_bazaar_owner_is_on_record_for_a_registered_set() {
         let c = with_set();

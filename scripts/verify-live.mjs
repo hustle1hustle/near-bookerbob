@@ -288,6 +288,14 @@ await attempt("every spent nullifier is in the manifest: spent_count on chain eq
   const n = await view(m.bazaar, "spent_count", {});
   return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
 });
+if (existsSync(new URL("../fixtures/live/eval-gate/run.json", import.meta.url))) {
+  const { verifyGate } = await import("./eval-gate.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  await attempt("eval gate: a merchant requires REP Eval v4 >= 70 of the model behind a verdict; DeepSeek passes, glm does not, an ordinary verdict was refused on chain", async () => {
+    const lines = await verifyGate(view, raw);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+}
 for (const f of ["run", "public-test", ...(existsSync(new URL("../fixtures/live/prove-me/", import.meta.url)) ? readdirSync(new URL("../fixtures/live/prove-me/", import.meta.url)).filter((x) => /^try-.*\.json$/.test(x)).map((x) => x.slice(0, -5)).sort() : [])]) {
   const u = new URL(`../fixtures/live/prove-me/${f}.json`, import.meta.url);
   if (!existsSync(u)) continue;
