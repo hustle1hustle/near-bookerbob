@@ -27,11 +27,15 @@ const PRICE = { "z-ai/glm-5.3-flash": [0.08, 0.5], "deepseek-ai/DeepSeek-V4.1-Fl
 // tokens glm and DeepSeek scored 95% and 100%, so the set did not discriminate; 400 tokens put
 // them near the 40 to 80% band in probes. The Qwen models reason at length and run out of any
 // tight budget, which the certificate reports as it is.
-export const BUDGET_TOKENS = Number(process.env.REP_EVAL_BUDGET ?? 400);
+// Frozen on 2026-11-05 before the held-out set existed (this commit precedes it): 400 tokens,
+// the same 3 models, one run. The held-out set's certificates are the headline.
+export const BUDGET_TOKENS = 400;
 const SPEND_CAP_USD = 1;
 const PER_LEVEL = 30;
 const TAG = Buffer.from("bookerbob/eval-certificate/v0\x00", "latin1");
-const PUBLIC = "fixtures/live/eval/rep-eval.json";
+// The headline: the fresh held-out set. The tuned set's runs stay as calibration files
+// (rep-eval-calibration-1000.json, rep-eval-calibration-400.json).
+const PUBLIC = process.env.REP_EVAL_PUBLIC ?? "fixtures/live/eval/rep-eval.json";
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const r = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
 const modpow = (b, e, m) => { let x = 1n, B = BigInt(b) % BigInt(m), E = BigInt(e); const M = BigInt(m); while (E > 0n) { if (E & 1n) x = (x * B) % M; B = (B * B) % M; E >>= 1n; } return x; };
@@ -45,7 +49,7 @@ export const LEVELS = {
 
 const keysDir = process.env.KEYS_DIR || `${process.env.HOME}/.rep-secrets/bookerbob-testnet`;
 const dir = join(keysDir, "eval");
-const setPath = join(dir, "rep-eval-120.json");
+const setPath = join(dir, process.env.REP_EVAL_SET_FILE ?? "rep-eval-heldout-120.json");
 const bazaar = process.env.BAZAAR_ACCOUNT_ID || "bookerbob.testnet";
 
 function issuerKey() {
@@ -139,8 +143,8 @@ const call = (method, args, deposit = "0 NEAR") => near(["contract", "call-funct
 async function onchain() {
   const pub = JSON.parse(readFileSync(PUBLIC, "utf8"));
   pub.txs = pub.txs ?? {};
-  if (!pub.txs.register_issuer) pub.txs.register_issuer = call("register_issuer", { key_id: pub.issuer_key, label: "REP Eval issuer (separate from the set owner and the verdict issuer)" });
-  if (!pub.txs.register_set) pub.txs.register_set = call("register_eval_set", { set_root: pub.set_root, n: pub.n, label: `REP Eval 120: 4 levels x ${pub.per_level}, ${pub.budget_tokens}-token budget` });
+  if (!pub.txs.register_issuer && !process.env.REP_EVAL_ISSUER_DONE) pub.txs.register_issuer = call("register_issuer", { key_id: pub.issuer_key, label: "REP Eval issuer (separate from the set owner and the verdict issuer)" });
+  if (!pub.txs.register_set) pub.txs.register_set = call("register_eval_set", { set_root: pub.set_root, n: pub.n, label: `REP Eval 120 held-out: 4 levels x ${pub.per_level}, ${pub.budget_tokens}-token budget, frozen before the set was made` });
   for (const m of pub.models) {
     if (m.submit_tx) continue;
     m.submit_tx = call("submit_eval_certificate", { certificate: m.certificate, issuer_key: pub.issuer_key, signature: m.signature }, "0.01 NEAR");
