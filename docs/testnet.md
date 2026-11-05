@@ -534,3 +534,18 @@ TDX verification (tools/dcap-spike/README.md). A first proposal that batched bot
 because the verifier was still queued when the registration ran: the timelock doing its job.
 The lock (`node scripts/market-bazaar.mjs lock`) now deletes the full-access keys of both the
 market and the verifier.
+
+## The market runs the final code before the lock (2026-11-05)
+
+`node scripts/market-bazaar.mjs upgrade`. The bazaar has no upgrade method, so a DAO cannot
+redeploy it; the redeploy used the market's temporary full-access key, the one the lock deletes
+[cuH7na89…](https://testnet.nearblocks.io/txns/cuH7na898gYGg8LFc8vcMDG8ZTCkSfM23Yi9XRGDisM). The
+market and `bookerbob.testnet` now run the same code (`5RuheNFC…`, the eval gate included). The
+state carried over: no stored type changed except a pending graph update, and the market holds none.
+
+Then DAO proposal 8 registered the REP Eval issuer key (an anchor: queued, executed after the
+5-minute delay, [9fzRWoQx…](https://testnet.nearblocks.io/txns/9fzRWoQxSgLJt6YBKj87brSMbHds8AYSXR54LN2Rh1cK)),
+the set owner committed the v4 root on the market, and both v4 certificates went in: on the market
+`eval_passes(DeepSeek, v4, 70)` is true and glm's is false, so a market merchant can set an eval
+gate. `make verify-live` checks the code parity, the issuer and the scores. After the lock, this
+code is final: no key can replace it.

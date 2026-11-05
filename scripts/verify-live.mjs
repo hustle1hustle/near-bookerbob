@@ -288,6 +288,17 @@ await attempt("every spent nullifier is in the manifest: spent_count on chain eq
   const n = await view(m.bazaar, "spent_count", {});
   return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
 });
+if (existsSync(new URL("../fixtures/live/market/state.json", import.meta.url))) {
+  const st = JSON.parse(readFileSync(new URL("../fixtures/live/market/state.json", import.meta.url)));
+  const v4 = JSON.parse(readFileSync(new URL("../fixtures/live/eval/rep-eval-v4.json", import.meta.url)));
+  await attempt("the DAO-owned market runs the same code as bookerbob.testnet (eval gate included); the REP Eval issuer came in by a DAO vote; v4 scores on the market", async () => {
+    const acct = async (a) => (await rpc("query", { request_type: "view_account", finality: "final", account_id: a })).result;
+    const [mk, main, issuers, ...scores] = await Promise.all([acct(st.market), acct(m.bazaar), view(st.market, "issuers", {}), ...v4.models.map((x) => view(st.market, "eval_passes", { subject: x.certificate.subject, set_root: v4.set_root, threshold: 70 }))]);
+    const want = v4.models.map((x) => x.certificate.score_bucket >= 70);
+    const ok = mk.code_hash === main.code_hash && issuers.some(([k]) => k === v4.issuer_key) && scores.every((x, i) => x === want[i]);
+    return [ok, `code ${mk.code_hash.slice(0, 10)}.. on both; eval issuer registered; eval_passes at 70: ${scores.join(", ")}`];
+  });
+}
 if (existsSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url))) {
   const p = JSON.parse(readFileSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url)));
   await attempt(`a model-issued verdict bought on testnet: ${p.near_ai.model} issued it (submit_near_ai_verdict, not the issuer key), the eval-gated merchant refused it, m01 settled ${Number(p.price) / 1e6} dUSDC`, async () => {

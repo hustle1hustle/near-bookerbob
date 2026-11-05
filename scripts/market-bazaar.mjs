@@ -167,6 +167,46 @@ async function quote() {
   console.log(`   quote verifier ${await client.view(MARKET, "quote_verifier", {})}; model key ${JSON.stringify(await client.view(MARKET, "model_attestation", { signing_key: cap.signing_address }))?.slice(0, 70)}`);
 }
 
+/** Before the lock: the market runs the bazaar's current code (redeployed with the temporary
+ *  key, the one the lock deletes; the bazaar has no upgrade method, so a DAO cannot redeploy it),
+ *  then DAO proposal 5 registers the REP Eval issuer (an anchor: it waits out the delay), the set
+ *  owner commits the v4 root and the v4 certificates go in, so a market merchant can set an eval gate. */
+async function upgrade() {
+  const { createHash } = await import("node:crypto");
+  const { b58encode: base58 } = await import("../relayer/near.mjs");
+  const wasm = readFileSync("target/near/bookerbob_bazaar.wasm");
+  const hash = createHash("sha256").update(wasm).digest();
+  const acct = await client.account(MARKET);
+  if (acct.code_hash !== base58(hash)) {
+    const key = seedKey(join(dir, "market.seed"));
+    const n = Object.keys(st.txs).filter((k) => k.startsWith("redeploy")).length + 1;
+    st.txs[`redeploy_${n}`] = (await tx(`redeploy ${MARKET} with the current bazaar code (sha256 ${hash.toString("hex").slice(0, 12)}..), temporary key, before the lock`, MARKET, key, MARKET, [{ type: "DeployContract", code: wasm }])).hash;
+    st.wasm_sha256 = hash.toString("hex");
+    save();
+  } else console.log(`   ${MARKET} already runs this code (sha256 ${hash.toString("hex").slice(0, 12)}..)`);
+  const v4 = JSON.parse(readFileSync("fixtures/live/eval/rep-eval-v4.json", "utf8"));
+  st.eval = st.eval ?? {};
+  if (!(await client.view(MARKET, "issuers", {})).some(([k]) => k === v4.issuer_key)) {
+    st.eval.issuer = await viaDao("market bazaar: the REP Eval issuer key (signs eval certificates only)", [["register_issuer", { key_id: v4.issuer_key, label: "REP Eval issuer" }]]);
+    save();
+    st.eval.issuer_execute = await executeQueued("register_issuer (eval)", await logsOf(st.eval.issuer.execute));
+    save();
+  }
+  const ownerId = `evalset.${c.treasury}`;
+  const owner = seedKey(join(c.keysDir, "eval", `${ownerId}.seed`));
+  if (!(await client.view(MARKET, "eval_set", { set_root: v4.set_root }))) {
+    st.eval.commit = (await tx("commit_eval_set v4 (by the set owner)", ownerId, owner, MARKET, [fc("commit_eval_set", { set_root: v4.set_root, n: v4.n, label: "REP Eval v4: 40 harder referee-claim items, 2 tiers, truth from the referee check, 4000 tokens, protocol frozen before the set" }, 10n ** 22n)])).hash;
+    save();
+  }
+  const relayer = seedKey(join(c.keysDir, "treasury.seed"));
+  for (const m of v4.models) {
+    if ((await client.view(MARKET, "eval_score", { subject: m.certificate.subject, set_root: v4.set_root })) != null) continue;
+    st.eval[m.model] = (await tx(`${m.model}: v4 certificate`, c.treasury, relayer, MARKET, [fc("submit_eval_certificate", { certificate: m.certificate, issuer_key: v4.issuer_key, signature: m.signature }, 10n ** 22n)])).hash;
+    save();
+  }
+  for (const m of v4.models) console.log(`   ${MARKET}: eval_passes(${m.model.split("/")[1]}, v4, 70) = ${await client.view(MARKET, "eval_passes", { subject: m.certificate.subject, set_root: v4.set_root, threshold: 70 })}`);
+}
+
 async function logsOf(hash) {
   const r = await client.rpc("tx", { tx_hash: hash, sender_account_id: ID.c2, wait_until: "FINAL" });
   return [r.result.transaction_outcome, ...r.result.receipts_outcome].flatMap((o) => o.outcome.logs);
@@ -195,16 +235,16 @@ async function lock() {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cmd = process.argv[2];
-  const go = { setup, anchors, merchants, quote, lock }[cmd];
+  const go = { setup, anchors, merchants, quote, upgrade, lock }[cmd];
   if (!go) {
-    console.error("usage: market-bazaar.mjs setup | anchors | merchants | quote | lock");
+    console.error("usage: market-bazaar.mjs setup | anchors | merchants | quote | upgrade | lock");
     process.exit(2);
   }
   go().then(() => {
     mkdirSync("fixtures/live/market", { recursive: true });
     const f = "fixtures/live/market/state.json";
     const prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {};
-    writeFileSync(f, JSON.stringify({ ...prev, market: MARKET, owner: DAO, wasm_sha256: st.wasm_sha256, txs: st.txs, anchors: st.anchors, merchants: st.merchants, approve: st.approve, locked: Boolean(st.txs.delete_key) }, null, 2) + "\n");
+    writeFileSync(f, JSON.stringify({ ...prev, market: MARKET, owner: DAO, wasm_sha256: st.wasm_sha256, txs: st.txs, anchors: st.anchors, merchants: st.merchants, approve: st.approve, eval: st.eval, locked: Boolean(st.txs.delete_key) }, null, 2) + "\n");
   }).catch((e) => {
     console.error(`market: FAIL ${e.message}`);
     process.exit(1);
