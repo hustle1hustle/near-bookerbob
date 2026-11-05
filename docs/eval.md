@@ -56,6 +56,37 @@ is its snapshot fallback). `make eval-verify` checks every TEE signature, the an
 issuer signature, the bucket from the published correct vector and the on-chain score. It
 takes about a second and runs in `make judge`.
 
+
+## Protocol v2 (frozen 2026-11-05, before its set exists)
+
+Written and committed before any v2 item was generated or any model saw one. The run that
+follows it happens once; nothing below changes after seeing a result.
+
+- **The task: referee claims.** Each item is a small proof set (facts), the rule table, the
+  revealed predicates and a numbered list of merchant claims with citations. The answer is
+  the number of the first claim the referee must refuse, or 0 if every claim holds.
+- **The truth comes from code.** Each item's answer is what `zkcore::referee::check` returns
+  claim by claim (the same check the referee worker and the Jolt referee guest run), via
+  `bookerbob eval-truth`. No answer is hand-labelled.
+- **The set:** 60 items in 3 tiers of 20:
+  - `t1`: 3 facts, 2 claims, plain mistakes (a value that differs, a fact not in the set);
+  - `t2`: 5 facts, 3 claims, near misses (the right value under another field, a value at
+    or just under the rule's minimum, a line not revealed);
+  - `t3`: 6 facts, 4 claims, the referee's text rules (an unproven status word, another
+    platform's name, a number in the text that is not an asserted value, a window number
+    that is allowed) mixed with the t2 mistakes.
+  About a quarter of the items have every claim holding (answer 0).
+- **Budget:** 600 output tokens, reasoning included, temperature 0, one request per item.
+- **Truncation counts as no answer.** A reply cut at the budget (`finish_reason` = `length`)
+  is graded as no answer, even if it happens to end in a number, and the count is reported
+  apart. (v1 graded the last integer of a cut reply; v2 does not.)
+- **Models:** the same three TEE-signed models. Qwen3.6 is reported as a **budget probe**:
+  certified and listed, not ranked, because v1 showed it spends the whole budget reasoning.
+- **Grading and CI:** unchanged (`worker/src/eval.rs`: exact integer, bootstrap 95% CI).
+- **The set owner:** the set root is committed with `commit_eval_set` by the account that made
+  the set, not by the bazaar owner; the contract records who committed it.
+- **Target:** the top model at 60 to 85%. If it lands outside, that is reported, not tuned.
+
 ## Calibration, stated plainly
 
 - **The 1,000-token run** on the calibration set (`rep-eval-calibration-1000.json`, not on
