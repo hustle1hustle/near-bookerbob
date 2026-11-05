@@ -65,11 +65,11 @@ if (existsSync(`${root}fixtures/live/eval/rep-eval.json`)) {
   const rows = (ev.stdout.match(/^PASS /gm) ?? []).length;
   line(ev.status === 0, "REP Eval: 3 model certificates, every TEE signature and the issuer signature verify" + (online ? ", scores on chain match" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
 }
-for (const [v, what] of [["v2", "600 tokens: the budget result"], ["v3", "2,000 tokens: the accuracy result"], ["v4", "40 harder items, 4,000 tokens"]]) {
+for (const [v, what] of [["v2", "600 tokens: the budget result"], ["v3", "2,000 tokens: the accuracy result"], ["v4", "40 harder items, 4,000 tokens"], ["v5", "120 items, 8,000 tokens, the gate on the Wilson lower bound"]]) {
   if (!existsSync(`${root}fixtures/live/eval/rep-eval-${v}.json`)) continue;
   const ev = spawnSync("node", ["scripts/rep-eval-v2.mjs", "verify"], { cwd: root, encoding: "utf8", env: { ...process.env, REP_EVAL_PROTOCOL: v, ...(online ? {} : { JUDGE_OFFLINE: "1" }) }, timeout: 120_000 });
   const rows = (ev.stdout.match(/^PASS /gm) ?? []).length;
-  line(ev.status === 0, `REP Eval ${v} (referee claims, truth from the referee's code, ${what}): ${v === "v4" ? 2 : 3} certificates, every TEE signature verifies, cut replies graded as no answer` + (online ? ", scores on chain match, set committed by its own owner" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
+  line(ev.status === 0, `REP Eval ${v} (referee claims, truth from the referee's code, ${what}): ${v >= "v4" ? 2 : 3} certificates, every TEE signature verifies, cut replies graded as no answer` + (online ? ", scores on chain match, set committed by its own owner" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
 }
 
 // 1b. the code both bazaars run is the committed, tagged build (contract/DEPLOYED.json)

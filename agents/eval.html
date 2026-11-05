@@ -32,6 +32,12 @@
     <thead><tr><th>model</th><th class="num">correct</th><th>score and 95% CI</th><th>by level (of 30)</th><th class="num">on chain</th></tr></thead>
     <tbody id="t"></tbody>
   </table></div>
+  <h2 style="margin-top:28px">REP Eval v5: the gate reads the lower bound</h2>
+  <div class="sub" id="sub5">not run yet</div>
+  <div class="panel"><table>
+    <thead><tr><th>model</th><th class="num">correct</th><th>Wilson 95%</th><th class="num">cut replies</th><th>gate, read from chain</th></tr></thead>
+    <tbody id="t5"></tbody>
+  </table></div>
   <footer id="foot"></footer>
 </main>
 <script>
@@ -42,6 +48,22 @@ async function view(account_id, method_name, args) {
   if (j.error || j.result?.error) throw new Error("rpc");
   return JSON.parse(new TextDecoder().decode(new Uint8Array(j.result.result)) || "null");
 }
+async function v5() {
+  let d;
+  try { d = await (await fetch("eval-v5.json")).json(); } catch { return; }
+  document.getElementById("sub5").textContent = `${d.n} sealed items, ${d.budget_tokens} tokens, threshold ${d.threshold} fixed before the set existed. A model passes when its lower bound is at or above it; a cut reply counts as not correct.`;
+  const t = document.getElementById("t5");
+  for (const m of d.models) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${m.model}</td><td class="num">${m.correct}/${d.n}</td><td>${m.wilson95[0].toFixed(1)} to ${m.wilson95[1].toFixed(1)}</td><td class="num">${m.truncated}</td><td data-gate></td>`;
+    t.appendChild(tr);
+    const cell = tr.querySelector("[data-gate]");
+    let s = m.passes, live = false;
+    try { s = await view(d.bazaar, "eval_passes", { subject: m.gate_subject, set_root: d.set_root, threshold: d.threshold }); live = true; } catch {}
+    cell.innerHTML = `<span class="${s ? "ok" : "no"}">${s ? "passes" : "does not pass"}</span>${live ? "" : ' <span class="dim">(snapshot)</span>'}`;
+  }
+}
+v5();
 (async () => {
   let d;
   try { d = await (await fetch("eval.json")).json(); } catch { document.getElementById("sub").textContent = "eval.json not found: run node scripts/rep-eval.mjs onchain"; return; }

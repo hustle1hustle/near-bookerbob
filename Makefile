@@ -108,6 +108,7 @@ eval-verify:
 	node scripts/rep-eval-v2.mjs verify
 	REP_EVAL_PROTOCOL=v3 node scripts/rep-eval-v2.mjs verify
 	REP_EVAL_PROTOCOL=v4 node scripts/rep-eval-v2.mjs verify
+	REP_EVAL_PROTOCOL=v5 node scripts/rep-eval-v2.mjs verify
 
 # One testnet purchase whose verdict a NEAR AI model issued, through the eval gate (docs/eval.md).
 model-buy:

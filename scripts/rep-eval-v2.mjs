@@ -25,18 +25,34 @@ const PRICE = { "z-ai/glm-5.3-flash": [0.08, 0.5], "deepseek-ai/DeepSeek-V4.1-Fl
 // REP_EVAL_PROTOCOL=v3: the same items at 2,000 tokens (docs/eval.md, "Protocol v3").
 // REP_EVAL_PROTOCOL=v4: a new, harder set of 40 items in tiers t4 and t5 at 4,000 tokens, two
 // models (docs/eval.md, "Protocol v4", frozen before the set existed).
-export const PROTOCOL = ["v3", "v4"].includes(process.env.REP_EVAL_PROTOCOL) ? process.env.REP_EVAL_PROTOCOL : "v2";
-export const BUDGET_TOKENS = { v2: 600, v3: 2000, v4: 4000 }[PROTOCOL];
+// REP_EVAL_PROTOCOL=v5: 120 new items from the v4 generator at 8,000 tokens; the gate reads the
+// Wilson 95% lower bound, certified apart (docs/eval-v5-protocol.md, committed before this code).
+export const PROTOCOL = ["v3", "v4", "v5"].includes(process.env.REP_EVAL_PROTOCOL) ? process.env.REP_EVAL_PROTOCOL : "v2";
+export const BUDGET_TOKENS = { v2: 600, v3: 2000, v4: 4000, v5: 8000 }[PROTOCOL];
 export const BUDGET_PROBE = "Qwen/Qwen3.6-35B-A3B-FP8";
-export const TIERS = PROTOCOL === "v4" ? { t4: { facts: 7, claims: 6 }, t5: { facts: 7, claims: 8 } } : { t1: { facts: 3, claims: 2 }, t2: { facts: 5, claims: 3 }, t3: { facts: 6, claims: 4 } };
-const RUN_MODELS = PROTOCOL === "v4" ? MODELS.filter((m) => m !== BUDGET_PROBE) : MODELS;
-const PER_TIER = 20;
-const SPEND_CAP_USD = 1.5;
+const HARD = ["v4", "v5"].includes(PROTOCOL);
+export const TIERS = HARD ? { t4: { facts: 7, claims: 6 }, t5: { facts: 7, claims: 8 } } : { t1: { facts: 3, claims: 2 }, t2: { facts: 5, claims: 3 }, t3: { facts: 6, claims: 4 } };
+const RUN_MODELS = HARD ? MODELS.filter((m) => m !== BUDGET_PROBE) : MODELS;
+const PER_TIER = PROTOCOL === "v5" ? 60 : 20;
+const SPEND_CAP_USD = PROTOCOL === "v5" ? 2 : 1.5;
+export const GATE_THRESHOLD = 70;
+
+/** The Wilson 95% score interval for k of n, in percent (v5). */
+export function wilson(k, n, z = 1.96) {
+  const p = k / n;
+  const d = 1 + (z * z) / n;
+  const mid = p + (z * z) / (2 * n);
+  const half = z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n));
+  return [(100 * (mid - half)) / d, (100 * (mid + half)) / d];
+}
+/** The count a ci95-lower certificate carries: derived from the interval, not right answers. */
+export const lowerCount = (k, n) => Math.floor((n * wilson(k, n)[0]) / 100);
+const bucketOf = (k, n) => Math.floor((k * 100) / n / 10) * 10;
 const TAG = Buffer.from("bookerbob/eval-certificate/v0\x00", "latin1");
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const keysDir = process.env.KEYS_DIR || `${process.env.HOME}/.rep-secrets/bookerbob-testnet`;
 const dir = join(keysDir, "eval");
-const setPath = join(dir, PROTOCOL === "v4" ? "rep-eval-v4-40.json" : "rep-eval-v2-60.json");
+const setPath = join(dir, { v4: "rep-eval-v4-40.json", v5: "rep-eval-v5-120.json" }[PROTOCOL] ?? "rep-eval-v2-60.json");
 const PUBLIC = `fixtures/live/eval/rep-eval-${PROTOCOL}.json`;
 const bazaar = process.env.BAZAAR_ACCOUNT_ID || "bookerbob.testnet";
 
@@ -247,7 +263,12 @@ async function run() {
   const priv = {};
   for (const model of RUN_MODELS) {
     console.log(`\n${model}: ${items.length} items, at most 6 in flight`);
-    const answers = await pool(items, 6, (it) => ask(model, it, KEY, spend));
+    let done = 0;
+    const answers = await pool(items, 6, async (it) => {
+      const a = await ask(model, it, KEY, spend);
+      if (++done % 20 === 0) console.log(`   ${done}/${items.length}, about $${spend.usd.toFixed(3)}`);
+      return a;
+    }).catch((e) => { throw new Error(`${e.message}; ${model} stopped at ${done}/${items.length}, about $${spend.usd.toFixed(3)} spent, no certificate for it`); });
     const valid = answers.filter((a) => a.signature_valid).length;
     if (valid !== answers.length) throw new Error(`${model}: ${answers.length - valid} TEE signatures did not verify; no certificate`);
     const p = join(dir, `grade-${PROTOCOL}-${Date.now()}.json`);
@@ -259,6 +280,16 @@ async function run() {
     const signature = sign(null, createHash("sha256").update(Buffer.concat([TAG, Buffer.from(certificateJson(cert))])).digest(), iss.priv).toString("hex");
     console.log(`   ${g.n_correct}/${items.length} (95% CI ${g.ci95[0].toFixed(1)} to ${g.ci95[1].toFixed(1)}), by tier ${JSON.stringify(byLevel)}; no answer (cut at the budget) ${noAnswer}${model === BUDGET_PROBE ? "; budget probe" : ""}`);
     pub.models.push({ model, budget_probe: model === BUDGET_PROBE, correct: g.n_correct, ci95: g.ci95, by_level: byLevel, truncated: noAnswer, correct_vector: g.correct, answers: answers.map(({ reply, ...a }) => a), certificate: cert, signature });
+    if (PROTOCOL === "v5") {
+      const row = pub.models[pub.models.length - 1];
+      const finished = answers.length - noAnswer;
+      const c = lowerCount(g.n_correct, items.length);
+      const lower = { ...cert, subject: `${cert.subject}/ci95-lower`, correct: c, score_bucket: bucketOf(c, items.length) };
+      row.wilson95 = wilson(g.n_correct, items.length);
+      row.finished = { n: finished, correct: g.n_correct, wilson95: finished ? wilson(g.n_correct, finished) : null };
+      row.gate = { threshold: GATE_THRESHOLD, passes: row.wilson95[0] >= GATE_THRESHOLD, certificate: lower, signature: sign(null, createHash("sha256").update(Buffer.concat([TAG, Buffer.from(certificateJson(lower))])).digest(), iss.priv).toString("hex") };
+      console.log(`   Wilson ${row.wilson95[0].toFixed(1)} to ${row.wilson95[1].toFixed(1)}; gate at ${GATE_THRESHOLD}: ${row.gate.passes ? "passes" : "does not pass"}; finished ${finished}, right among them ${g.n_correct}`);
+    }
     priv[model] = answers.map((a) => a.reply);
   }
   pub.cost_usd = Number(spend.usd.toFixed(4));
@@ -297,8 +328,19 @@ async function onchain() {
     if (m.submit_tx) continue;
     m.submit_tx = ok(`${m.model}: certificate`, await as(c.treasury, relayerKey, [fc("submit_eval_certificate", { certificate: m.certificate, issuer_key: pub.issuer_key, signature: m.signature }, 10n ** 22n)]));
   }
+  if (PROTOCOL === "v5") {
+    for (const m of pub.models) {
+      if (m.gate.submit_tx) continue;
+      m.gate.submit_tx = ok(`${m.model}: ci95-lower certificate`, await as(c.treasury, relayerKey, [fc("submit_eval_certificate", { certificate: m.gate.certificate, issuer_key: pub.issuer_key, signature: m.gate.signature }, 10n ** 22n)]));
+    }
+    // The leaderboard's data: agents/eval.html reads eval_passes live and falls back to this.
+    const board = { bazaar, set_root: pub.set_root, n: pub.n, budget_tokens: BUDGET_TOKENS, threshold: GATE_THRESHOLD, models: pub.models.map((m) => ({ model: m.model, subject: m.certificate.subject, gate_subject: m.gate.certificate.subject, correct: m.correct, wilson95: m.wilson95, truncated: m.truncated, finished: m.finished.n, passes: m.gate.passes })) };
+    writeFileSync("agents/eval-v5.json", JSON.stringify(board, null, 2) + "\n");
+  }
   writeFileSync(PUBLIC, JSON.stringify(pub, null, 2) + "\n");
 }
+
+const issuerSigned = (cert, sig, key) => verify(null, createHash("sha256").update(Buffer.concat([TAG, Buffer.from(certificateJson(cert))])).digest(), createPublicKey({ key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(key.replace("ed25519:", ""), "hex")]), format: "der", type: "spki" }), Buffer.from(sig, "hex"));
 
 export async function verifyPublic(pub, view) {
   const lines = [];
@@ -313,6 +355,15 @@ export async function verifyPublic(pub, view) {
     const cutOk = m.answers.every((a, i) => a.finish !== "length" || !m.correct_vector[i]);
     const chain = view ? await view(bazaar, "eval_score", { subject: m.certificate.subject, set_root: pub.set_root }) : null;
     const ok = sigs === pub.n && hashOk && certOk && cutOk && k === m.certificate.correct && bucket === m.certificate.score_bucket && merkleRoot(pub.item_hashes) === pub.set_root && (view ? chain === bucket && owner?.[2] === pub.set_owner : true);
+    if (m.gate) {
+      // v5: the bound is recomputed from the public vector, so the issuer cannot state another.
+      const c = lowerCount(k, pub.n);
+      const g = m.gate.certificate;
+      const signed = issuerSigned(g, m.gate.signature, pub.issuer_key);
+      const passes = wilson(k, pub.n)[0] >= m.gate.threshold;
+      const onChain = view ? await view(bazaar, "eval_passes", { subject: g.subject, set_root: pub.set_root, threshold: m.gate.threshold }) : passes;
+      lines.push([signed && g.correct === c && g.score_bucket === bucketOf(c, pub.n) && g.answers_hash === m.certificate.answers_hash && passes === m.gate.passes && onChain === passes, `v5 gate ${m.model}: Wilson lower bound ${wilson(k, pub.n)[0].toFixed(1)}, ${passes ? "passes" : "does not pass"} ${m.gate.threshold}${view ? ", eval_passes on chain agrees" : ""}`]);
+    }
     lines.push([ok, `${pub.protocol ?? "v2"} ${m.model}${m.budget_probe ? " (budget probe)" : ""}: ${k}/${pub.n} (CI ${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)}), ${sigs}/${pub.n} TEE signatures valid, ${m.truncated} cut replies graded as no answer${view ? `, eval_score on chain ${chain}, set committed by ${owner?.[2]}` : ""}`]);
   }
   return lines;

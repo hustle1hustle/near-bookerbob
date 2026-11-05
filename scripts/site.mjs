@@ -6,7 +6,7 @@
 import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-const FILES = ["board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "live.json", "out/live-run.json"];
+const FILES = ["board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "eval-v5.json", "live.json", "out/live-run.json"];
 mkdirSync("site/out", { recursive: true });
 for (const f of FILES) {
   mkdirSync(dirname(join("site", f)), { recursive: true });
