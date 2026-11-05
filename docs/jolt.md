@@ -28,7 +28,7 @@ The contract cannot afford to recompute standing over the whole hire graph on ch
 and OutLayer's output is capped at 900 bytes. Jolt proves an arbitrary Rust computation
 (RISC-V) and the proof is checked off chain; the chain keeps a root and a signed result.
 
-## Guests (planned in this order)
+## Guests
 
 | guest | proves | status |
 |---|---|---|
@@ -43,6 +43,18 @@ functions, so a proof covers exactly what the chain runs. The guest inputs come 
 contract's own data (`bookerbob zk-inputs`, `fixtures/zk/`, checked in `make verify`): the
 price input reproduces the contract's quote (36 USDC), the cohort input reproduces its
 `cohort_root` (k = 6), the honest referee input passes and the injected one is refused.
+
+## What each guest reads, and what stays private (built without the `zk` feature)
+
+Jolt 997c1543e is built here without its optional `zk` feature, so a proof is succinct but not
+zero-knowledge: treat everything a guest reads as visible to whoever holds the proof.
+
+| guest | reads | where that input already is | private? |
+|---|---|---|---|
+| `standing` | graph events (hire edges, released review seeds) | logged on chain as `graph_event`, hashed into `graph_root` | no, all public |
+| `price` | the merchant schedule, the revealed predicates, the cohort size | schedule and predicates on chain; k from `cohort_root` | no, all public |
+| `referee` | the proof set (fact ids and values) and the agent's claims | synthetic fixtures only | would leak real facts, so the referee guest is not run on real data until the `zk` feature is on; real facts go to the sealed TEE referee instead |
+| `cohort` | the members' nullifiers | on chain, per verdict | no, all public |
 
 ## What is built and tested (no Jolt needed)
 
