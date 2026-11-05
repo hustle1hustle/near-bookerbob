@@ -2,6 +2,30 @@
 
 merchants compete for you. none of them learns who you are.
 
+**What it is.** A market on NEAR: a buyer's agent reveals a few proven bits (like
+`airbnb_frequent`) inside a signed verdict, merchant agents bid blind, code computes the price,
+and a contract burns a nullifier and pays the winner in USDC against a referee receipt.
+
+**Check it in 3 commands** (Node 22; the first two need no keys and no build):
+
+| command | what you see |
+|---|---|
+| `make judge` | about 30 s, every check on committed data, ends `PASS  make judge` (works offline) |
+| `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live` |
+| `make verify` | the contract on near-sdk's mocked chain (Rust), ends `ALL PASS (26 checks)` |
+
+**3 live testnet transactions** (dUSDC, a testnet demo token with no value):
+
+- a 3-night hotel stay, h05 paid 408: [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)
+- a sealed verdict (hashes only on chain) settled at 38.40: [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS)
+- a buying group's own DAO treasury paying h05 for 5 members: [5A8LgNQn…](https://testnet.nearblocks.io/txns/5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A)
+
+**What is synthetic.** Every fact behind every verdict (no real account was proven; the phone
+run is parked, docs/device-run.md), the World ID action (a placeholder, our verifier key), and
+the money (dUSDC on testnet; nothing is on mainnet). Every trust key is REP's today: the
+issuer, the referee, the one live arbiter (and the three test arbiters) and the nullifier key
+(see "Who can lie" below).
+
 **A certified result over private data, settled on a shared ledger.** Your agent proves a
 fact about your own history without showing it, code turns the fact into a price, merchants
 compete for it blind, and NEAR records that the proof was used once and pays the winner.
@@ -307,6 +331,34 @@ functions only); on testnet every tx's real gas is on nearblocks (docs/testnet.m
 | `settle (+ ft_transfer receipt)` | agent (gas; bytes from the record reserve) | 14 | 0.00014 | 39.836 |
 
 ## Threat model and trust
+
+### Who can lie, what catches it, who holds the key
+
+Rows in bold are keys REP holds today. All of them are.
+
+| who can lie | the lie | what catches it | who holds the key |
+|---|---|---|---|
+| **the verdict issuer** | predicates the facts do not prove | the referee refuses any claim the proof set does not back; on the NEAR AI path the TDX quote and TEE signature bind the answer to the attested model | **REP** (the testnet issuer seed; the NEAR AI model key is attested, its registration is REP's) |
+| **the referee and the Jolt worker** | a false receipt or a false standing update | the contract accepts only a price its own schedule code produces; an arbiter re-runs the receipt check; a standing update can be challenged with a bond and a false one slashes the worker | **REP** (seeds; the OutLayer attested key is not registered yet) |
+| **the dispute arbiter** | uphold a false update or overturn an honest receipt | nothing on chain beyond its signature; a threshold of distinct arbiters is built (2 of 3 in tests) | **REP**: the one live arbiter key (threshold 1) and all three test keys |
+| a merchant agent | a pitch or a claim the buyer never proved | code computes the price, the referee refuses unproven claims, an open-category merchant posts a bond | the merchant |
+| **the owner and the full-access key** | change the rules or redeploy the code | anchor changes can wait out a public delay (0 on the live bazaar); a DAO owns a test bazaar; nothing stops a redeploy by the full-access key | **REP** (one key on `bookerbob.testnet`) |
+| **the nullifier issuer** | link one person's accounts across contexts | nothing yet: the nullifier is an HMAC under a REP key | **REP** (VOPRF nullifiers are chosen, not built) |
+
+### Who sees plaintext, and how many share it
+
+Set size: how many testnet buyers share the value, so how far it narrows a buyer down
+(`agents/live.json`, `docs/leak.md`).
+
+| field | who sees it in plaintext | set size on testnet today |
+|---|---|---|
+| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); never the chain | not public |
+| revealed predicates | everyone, for an ordinary verdict; nobody on chain for a sealed one (the referee reads its opening) | the cohort: 23 verdicts on chain reveal `world_id_human` in the demo context (`cohort_size`) |
+| settled amount | everyone | 38.40 x4, 36.00 x4, 32.40 x5, 367.20 x5, 408 x1: the hotel buyer is alone (L6) |
+| merchant and checkout_ref | everyone | m01: 13 buyers, h05: 6 |
+| the agent account | everyone | 1: one account per purchase links its verdict, settle and review join (L1) |
+| a rating | everyone, after release, sorted by hash | the review group, at least 5 (Semaphore, k floor) |
+| the person behind the nullifier | REP (the HMAC key) | 1 |
 
 ### Trust anchors
 
