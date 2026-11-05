@@ -114,6 +114,7 @@ pub fn run(dir: &Path) -> ExitCode {
             claims,
             proofs: proofs.clone(),
             cohort_k: q.cohort.as_ref().map_or(0, |co| co.k),
+            sealed_verdict: None,
         };
         serde_json::from_str::<bookerbob_core::WorkerResult>(&run_worker(&input, &referee).expect("worker")).expect("json")
     };

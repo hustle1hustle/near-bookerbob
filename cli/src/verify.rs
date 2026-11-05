@@ -335,6 +335,7 @@ pub fn run(dir: &Path) -> ExitCode {
             claims: claims.to_vec(),
             proofs: proofs.clone(),
             cohort_k,
+            sealed_verdict: None,
         };
         let stdout = run_worker(&input, &worker_key)?;
         serde_json::from_str(&stdout).map_err(|x| x.to_string())

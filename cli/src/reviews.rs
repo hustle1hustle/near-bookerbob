@@ -96,6 +96,7 @@ pub(crate) fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::Wor
         claims,
         proofs: fixtures::proofs(),
         cohort_k,
+        sealed_verdict: None,
     };
     let key = key_from_seed_hex(&fixtures::referee_seed_hex()).expect("seed");
     let result = serde_json::from_str(&run_worker(&input, &key)?).map_err(|x| x.to_string())?;

@@ -108,6 +108,7 @@ pub fn collect() -> (Vec<Row>, std::time::Duration) {
         claims: fixtures::honest_claims(),
         proofs: fixtures::proofs(),
         cohort_k: 0,
+        sealed_verdict: None,
     };
     let started = Instant::now();
     let out = run_worker(&input, &referee_key).expect("worker runs");

@@ -328,6 +328,25 @@ fn demo_escrow() -> LookupMap<AccountId, u128> {
     LookupMap::new(b"D")
 }
 
+/// Sealed verdicts: nullifier to the `disclosure` commitment (predicates, tier, cap, salt).
+fn disclosures() -> LookupMap<String, String> {
+    LookupMap::new(b"Z")
+}
+
+/// Every price the code can produce for `schedule` from some subset of its discount
+/// predicates, with no cohort. `world_id_human` counts only for a World-bound agent.
+/// A sealed verdict's receipt price must be one of these.
+fn achievable_price(schedule: &Schedule, price: u128, human: bool) -> bool {
+    let preds: Vec<String> = schedule.rules.iter().map(|r| r.predicate.clone()).filter(|p| human || p != "world_id_human").collect();
+    require!(preds.len() <= 8, "schedule too large for a sealed verdict");
+    (0u32..1 << preds.len()).any(|mask| {
+        let mut set: Vec<String> = preds.iter().enumerate().filter(|(i, _)| mask >> i & 1 == 1).map(|(_, p)| p.clone()).collect();
+        set.sort();
+        set.dedup();
+        bookerbob_core::quote(schedule, &set).price == price
+    })
+}
+
 /// Records paid in the demo token (absent means USDC).
 fn demo_paid() -> LookupMap<String, bool> {
     LookupMap::new(b"T")
@@ -590,6 +609,7 @@ impl Bazaar {
 
     /// Code-computed quote including the group unlock for the verdict's context.
     fn quote_for(&self, schedule: &Schedule, record: &VerdictRecord) -> Quote {
+        require!(record.tier != bookerbob_core::SEALED_TIER, "a sealed verdict is priced by the referee from its opening");
         quote_in_cohort(schedule, &record.predicates, |p| *self.cohorts.get(&Self::cohort_key(&record.context, p)).unwrap_or(&0))
     }
 
@@ -1298,6 +1318,7 @@ impl Bazaar {
         let r = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(r.agent == env::predecessor_account_id(), "agent mismatch");
         require!(!r.spent, "nullifier spent");
+        require!(r.tier != bookerbob_core::SEALED_TIER, "a sealed verdict reveals no predicates, so it cannot join a buying group");
         let person = self.humans.get(&r.agent).cloned().unwrap_or_else(|| env::panic_str("only a World-bound buyer joins a buying group"));
         let mut preds = r.predicates.clone();
         preds.sort();
@@ -1703,6 +1724,11 @@ impl Bazaar {
             paid: false,
         };
         self.verdicts.insert(e.nullifier.clone(), record);
+        if let Some(d) = &e.disclosure {
+            let mut ds = disclosures();
+            ds.insert(e.nullifier.clone(), d.clone());
+            ds.flush();
+        }
         for p in &e.predicates {
             let k = Self::cohort_key(&e.context, p);
             let n = *self.cohorts.get(&k).unwrap_or(&0);
@@ -1717,6 +1743,7 @@ impl Bazaar {
                 "commitment": e.commitment,
                 "predicates": e.predicates,
                 "tcb_status": e.attestation.tcb_status,
+                "disclosure": e.disclosure,
             }),
         );
         self.verdicts.flush();
@@ -1732,8 +1759,15 @@ impl Bazaar {
         }
     }
 
+    /// For a sealed verdict the record holds hashes only: no predicates, tier `sealed`, and a
+    /// cap of 0 until the referee's receipt fixes the price (then cap = that price).
     pub fn verdict(&self, nullifier: String) -> Option<VerdictRecord> {
         self.verdicts.get(&nullifier).cloned()
+    }
+
+    /// A sealed verdict's commitment to its predicates, tier and cap; None for an ordinary one.
+    pub fn disclosure(&self, nullifier: String) -> Option<String> {
+        disclosures().get(&nullifier).cloned()
     }
 
     pub fn spent_count(&self) -> u64 {
@@ -1995,16 +2029,28 @@ impl Bazaar {
         let merchant: AccountId = b.merchant.parse().unwrap_or_else(|_| env::panic_str("bad merchant"));
         let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
         let current = self.verdicts.get(&b.nullifier).cloned().unwrap_or_else(|| env::panic_str("unknown nullifier"));
-        let q = self.quote_for(&m.schedule, &current);
+        let sealed = current.tier == bookerbob_core::SEALED_TIER;
+        // A sealed verdict: the referee opened its disclosure and priced it (the digest binds
+        // the commitment); the contract accepts only a price its own code can produce.
+        let price = if sealed {
+            require!(achievable_price(&m.schedule, b.price, self.humans.contains_key(&current.agent)), "referee price is not one the schedule can produce");
+            b.price
+        } else {
+            self.quote_for(&m.schedule, &current).price
+        };
         let record = self.verdicts.get_mut(&b.nullifier).expect("checked above");
         require!(!record.spent, "nullifier spent");
         require!(record.digest == b.verdict_digest, "referee result is for another verdict");
-        require!(q.price == b.price, "referee price differs from quote");
+        require!(price == b.price, "referee price differs from quote");
         match b.outcome.as_str() {
             "receipt" => {
+                if sealed {
+                    // The referee checked the price against the hidden cap.
+                    record.max_spend = U128(price);
+                }
                 record.receipt = Some(RefereeReceipt {
                     merchant: merchant.clone(),
-                    price: U128(q.price),
+                    price: U128(price),
                     receipt_hash: b.detail.clone(),
                     referee: result.worker_key.clone(),
                     result_sha256: hex::encode(env::sha256_array(b.signing_message())),

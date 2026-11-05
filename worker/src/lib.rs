@@ -33,14 +33,42 @@ pub struct WorkerInput {
     /// `cohort_size` view). 0 when there is no cohort.
     #[serde(default)]
     pub cohort_k: u32,
+    /// A sealed verdict (hashes only on chain): its envelope and the opening of its
+    /// `disclosure`. The worker checks both against `verdict_digest`, prices from the opening
+    /// with no cohort, and refuses a price over the opening's cap.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sealed_verdict: Option<SealedVerdictInput>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SealedVerdictInput {
+    pub envelope: bookerbob_core::Envelope,
+    pub opening: bookerbob_core::Opening,
+}
+
+/// The checks on a sealed verdict's opening; Ok(cap) when it is the one the chain holds.
+fn check_opening(input: &WorkerInput, s: &SealedVerdictInput) -> Result<u128, String> {
+    if hex::encode(s.envelope.digest()) != input.verdict_digest {
+        return Err("sealed envelope is not the verdict named".into());
+    }
+    s.opening.validate()?;
+    if s.envelope.disclosure.as_deref() != Some(s.opening.commitment().as_str()) {
+        return Err("opening does not match the verdict's disclosure".into());
+    }
+    if input.revealed != s.opening.predicates || input.cohort_k != 0 {
+        return Err("a sealed verdict is priced from its opening, with no cohort".into());
+    }
+    Ok(s.opening.max_spend)
 }
 
 pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
     if input.v != 0 {
         return Err("unsupported input version".into());
     }
+    let cap = input.sealed_verdict.as_ref().map(|s| check_opening(input, s)).transpose()?;
     let q = quote_in_cohort(&input.schedule, &input.revealed, |_| input.cohort_k);
     let (outcome, detail) = match referee(&input.proofs, &input.revealed, &q, &input.claims) {
+        RefereeOutcome::Receipt { .. } if cap.is_some_and(|c| q.price > c) => ("refused", "price over the sealed cap".to_string()),
         RefereeOutcome::Receipt { receipt_hash } => ("receipt", receipt_hash),
         RefereeOutcome::Refused { reason } => ("refused", reason.chars().take(120).collect()),
     };
@@ -177,6 +205,7 @@ mod tests {
             revealed: vec!["airbnb_frequent".into()],
             claims,
             cohort_k: 0,
+            sealed_verdict: None,
             proofs: ProofSet {
                 facts: vec![Fact { id: "F1".into(), platform: "airbnb".into(), field: "trips_12m".into(), value: 7, proof_ref: "cc".repeat(32) }],
             },
@@ -226,10 +255,52 @@ mod tests {
             max_spend: 100_000_000,
             issued_at_ms: 1,
             expires_at_ms: 2,
+            disclosure: None,
         };
         let k = SigningKey::from_bytes(&[8u8; 32]);
         let sig = hex::encode(k.sign(&e.digest()).to_bytes());
         SignedVerdict { envelope: e, alg: SigAlg::Ed25519, issuer_key: hex::encode(k.verifying_key().to_bytes()), signature: sig }
+    }
+
+    fn sealed_input(cap: u128) -> WorkerInput {
+        let opening = bookerbob_core::Opening { predicates: vec!["airbnb_frequent".into()], tier: "silver".into(), max_spend: cap, salt: "5a".repeat(32) };
+        let mut e = signed_verdict().envelope;
+        e.predicates.clear();
+        e.tier = bookerbob_core::SEALED_TIER.into();
+        e.max_spend = 0;
+        e.disclosure = Some(opening.commitment());
+        let mut inp = input(vec![Claim { line: "airbnb_frequent".into(), text: "x".into(), citations: vec![cite("F1", "trips_12m", 7)] }]);
+        inp.verdict_digest = hex::encode(e.digest());
+        inp.sealed_verdict = Some(SealedVerdictInput { envelope: e, opening });
+        inp
+    }
+
+    #[test]
+    fn a_sealed_verdict_is_priced_from_its_opening() {
+        let r: WorkerResult = serde_json::from_str(&run(&sealed_input(50_000_000), &key()).unwrap()).unwrap();
+        assert_eq!((r.body.outcome.as_str(), r.body.price), ("receipt", 45_600_000));
+    }
+
+    #[test]
+    fn a_sealed_verdict_over_its_hidden_cap_is_refused() {
+        let r: WorkerResult = serde_json::from_str(&run(&sealed_input(40_000_000), &key()).unwrap()).unwrap();
+        assert_eq!((r.body.outcome.as_str(), r.body.detail.as_str()), ("refused", "price over the sealed cap"));
+    }
+
+    #[test]
+    fn a_wrong_opening_or_a_cohort_is_refused() {
+        let mut inp = sealed_input(50_000_000);
+        inp.sealed_verdict.as_mut().unwrap().opening.max_spend += 1;
+        assert_eq!(run(&inp, &key()).unwrap_err(), "opening does not match the verdict's disclosure");
+        let mut inp = sealed_input(50_000_000);
+        inp.revealed.push("claude_spender".into());
+        assert!(run(&inp, &key()).unwrap_err().contains("priced from its opening"));
+        let mut inp = sealed_input(50_000_000);
+        inp.cohort_k = 6;
+        assert!(run(&inp, &key()).unwrap_err().contains("no cohort"));
+        let mut inp = sealed_input(50_000_000);
+        inp.verdict_digest = "aa".repeat(32);
+        assert_eq!(run(&inp, &key()).unwrap_err(), "sealed envelope is not the verdict named");
     }
 
     fn dispute(claims_judged: Vec<Claim>, outcome_override: Option<&str>) -> DisputeInput {

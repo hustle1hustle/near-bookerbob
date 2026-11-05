@@ -119,10 +119,35 @@ pub fn graph_resolve(dir: &Path, root: &str, scores_hash: &str, proof_sha256: &s
 /// The device run's purchase: as `sign_tester`, over a proof set read from `proofs` (the
 /// fixture set with the real fact from a notary-signed presentation in it).
 pub fn sign_real(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path, proofs: &Path) -> Result<String, String> {
+    sign_real_as(dir, agent, replay, action, now_ms, out, proofs, false)
+}
+
+/// `sign_real`, sealed: the verdict on chain carries hashes only (no predicates, tier or cap);
+/// `opening.json` (mode 600) holds what it hides, for the referee and the chosen merchant.
+pub fn sign_real_sealed(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path, proofs: &Path) -> Result<String, String> {
+    sign_real_as(dir, agent, replay, action, now_ms, out, proofs, true)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn sign_real_as(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path, proofs: &Path, seal: bool) -> Result<String, String> {
     let set: bookerbob_core::ProofSet = serde_json::from_str(&std::fs::read_to_string(proofs).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
     let n = crate::fixtures::nullifier(&format!("device-run|{agent}"));
-    sign_purchase_over(dir, agent, replay, action, now_ms, out, Some(n.clone()), &format!("device-run|{agent}"), Some(&set))?;
+    sign_purchase_inner(dir, agent, replay, action, now_ms, out, Some(n.clone()), &format!("device-run|{agent}"), Some(&set), seal)?;
     Ok(n)
+}
+
+/// Turn an ordinary envelope into a sealed one; returns the opening it commits to.
+pub fn seal(e: &mut bookerbob_core::Envelope, salt: [u8; 32]) -> bookerbob_core::Opening {
+    let o = bookerbob_core::Opening {
+        predicates: std::mem::take(&mut e.predicates),
+        tier: std::mem::take(&mut e.tier),
+        max_spend: e.max_spend,
+        salt: hex::encode(salt),
+    };
+    e.tier = bookerbob_core::SEALED_TIER.into();
+    e.max_spend = 0;
+    e.disclosure = Some(o.commitment());
+    o
 }
 
 pub fn sign_tester(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path) -> Result<String, String> {
@@ -148,7 +173,25 @@ fn sign_purchase_over(
     person: &str,
     set: Option<&bookerbob_core::ProofSet>,
 ) -> Result<(), String> {
+    sign_purchase_inner(dir, agent, wallet2, action, now_ms, out, nullifier, person, set, false)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn sign_purchase_inner(
+    dir: &Path,
+    agent: &str,
+    wallet2: &str,
+    action: &str,
+    now_ms: u64,
+    out: &Path,
+    nullifier: Option<String>,
+    person: &str,
+    set: Option<&bookerbob_core::ProofSet>,
+    sealed: bool,
+) -> Result<(), String> {
     use ed25519_dalek::Signer;
+    let salt: [u8; 32] = rand_salt()?;
+    let opening = std::cell::RefCell::new(None);
     let issuer = load_seed(dir, "issuer")?;
     let world = load_seed(dir, "world")?;
     let sign = |agent: &str| {
@@ -161,6 +204,9 @@ fn sign_purchase_over(
         }
         e.issued_at_ms = now_ms;
         e.expires_at_ms = now_ms + 7 * 24 * 3600 * 1000;
+        if sealed {
+            *opening.borrow_mut() = Some(seal(&mut e, salt));
+        }
         let digest = e.digest();
         bookerbob_core::SignedVerdict {
             envelope: e,
@@ -182,7 +228,24 @@ fn sign_purchase_over(
     write("verdict.json", serde_json::to_string_pretty(&sign(agent)).unwrap())?;
     write("verdict-replay.json", serde_json::to_string_pretty(&sign(wallet2)).unwrap())?;
     write("world.json", serde_json::to_string_pretty(&att).unwrap())?;
+    if let Some(o) = opening.into_inner() {
+        let p = out.join("opening.json");
+        write("opening.json", serde_json::to_string_pretty(&o).unwrap())?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o600)).map_err(|e| e.to_string())?;
+        }
+    }
     Ok(())
+}
+
+/// 32 bytes from the OS (the opening's salt hides a small predicate set from guessing).
+fn rand_salt() -> Result<[u8; 32], String> {
+    use std::io::Read;
+    let mut b = [0u8; 32];
+    std::fs::File::open("/dev/urandom").and_then(|mut f| f.read_exact(&mut b)).map_err(|e| format!("urandom: {e}"))?;
+    Ok(b)
 }
 
 #[cfg(test)]

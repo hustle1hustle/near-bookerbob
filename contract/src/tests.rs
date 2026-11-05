@@ -51,6 +51,7 @@ fn envelope(nullifier_byte: u8, agent: &str) -> Envelope {
         max_spend: 200_000_000,
         issued_at_ms: NOW_MS - 1000,
         expires_at_ms: NOW_MS + 3_600_000,
+        disclosure: None,
     }
 }
 
@@ -142,6 +143,7 @@ fn referee_result(e: &Envelope, claims: Vec<Claim>, key: &SigningKey) -> WorkerR
         claims,
         proofs: proofs(),
         cohort_k: 0,
+        sealed_verdict: None,
     };
     serde_json::from_str(&run_referee(&input, key).unwrap()).unwrap()
 }
@@ -2799,5 +2801,125 @@ mod certified_eval {
         let (k, sig) = signed(&cert, &ed_key());
         set("relayer.testnet");
         c.submit_eval_certificate(cert, k, sig);
+    }
+}
+
+/// Panel round 3, action 1 prep: a sealed verdict puts hashes only on chain. The predicates,
+/// tier and cap travel in an opening to the referee (and the chosen merchant), never in a tx.
+mod sealed_verdict {
+    use super::*;
+    use bookerbob_core::Opening;
+    use bookerbob_referee_worker::SealedVerdictInput;
+
+    fn opening(cap: u128) -> Opening {
+        Opening { predicates: vec!["airbnb_frequent".into(), "world_id_human".into()], tier: "silver".into(), max_spend: cap, salt: "5a".repeat(32) }
+    }
+
+    fn sealed(n: u8, agent: &str, o: &Opening) -> Envelope {
+        let mut e = envelope(n, agent);
+        e.predicates.clear();
+        e.tier = bookerbob_core::SEALED_TIER.into();
+        e.max_spend = 0;
+        e.disclosure = Some(o.commitment());
+        e
+    }
+
+    /// The real worker, opening the sealed verdict.
+    fn sealed_result(e: &Envelope, o: &Opening) -> WorkerResult {
+        let input = WorkerInput {
+            v: 0,
+            verdict_digest: hex::encode(e.digest()),
+            nullifier: e.nullifier.clone(),
+            merchant: "m01.bazaar.testnet".into(),
+            schedule: schedule(),
+            revealed: o.predicates.clone(),
+            claims: honest_claims(),
+            proofs: proofs(),
+            cohort_k: 0,
+            sealed_verdict: Some(SealedVerdictInput { envelope: e.clone(), opening: o.clone() }),
+        };
+        serde_json::from_str(&run_referee(&input, &referee_key()).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn a_sealed_verdict_puts_hashes_only_on_chain_and_settles() {
+        let mut c = setup();
+        let o = opening(200_000_000);
+        let e = sealed(1, "agent.testnet", &o);
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(e.clone()));
+        let n = e.nullifier.clone();
+        let v = c.verdict(n.clone()).unwrap();
+        assert!(v.predicates.is_empty() && v.tier == "sealed" && v.max_spend.0 == 0);
+        assert_eq!(c.disclosure(n.clone()), Some(o.commitment()));
+        let logs = get_logs().join("\n");
+        assert!(!logs.contains("airbnb_frequent") && !logs.contains("200000000"), "{logs}");
+        // No cohort counts it: nothing was revealed.
+        assert_eq!(c.cohort_size(e.context.clone(), "airbnb_frequent".into()), 0);
+        assert!(c.submit_referee_result(sealed_result(&e, &o)));
+        let v = c.verdict(n.clone()).unwrap();
+        assert_eq!(v.receipt.as_ref().unwrap().price.0, 151_200_000);
+        assert_eq!(v.max_spend.0, 151_200_000, "the cap becomes the receipt price the referee checked");
+        set("agent.testnet");
+        let _ = c.settle(n.clone(), acc("m01.bazaar.testnet"), "order-s".into(), U128(151_200_000));
+        assert_eq!(c.nullifier_status(n), NullifierStatus::Spent);
+    }
+
+    #[test]
+    #[should_panic(expected = "a sealed verdict is priced by the referee from its opening")]
+    fn quote_refuses_a_sealed_verdict() {
+        let mut c = setup();
+        let o = opening(200_000_000);
+        let e = sealed(1, "agent.testnet", &o);
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(e.clone()));
+        let _ = c.quote(acc("m01.bazaar.testnet"), e.nullifier);
+    }
+
+    #[test]
+    #[should_panic(expected = "referee price is not one the schedule can produce")]
+    fn a_referee_price_the_code_cannot_produce_is_refused() {
+        let mut c = setup();
+        let o = opening(200_000_000);
+        let e = sealed(1, "agent.testnet", &o);
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(e.clone()));
+        let mut r = sealed_result(&e, &o);
+        r.body.price = 100_000_000;
+        r.signature = hex::encode(referee_key().sign(&r.body.signing_message()).to_bytes());
+        c.submit_referee_result(r);
+    }
+
+    #[test]
+    #[should_panic(expected = "referee price is not one the schedule can produce")]
+    fn the_world_discount_needs_a_world_bound_agent() {
+        let mut c = setup();
+        let o = opening(200_000_000);
+        // other.testnet has no World attestation, so a price with the World line is refused.
+        let e = sealed(2, "other.testnet", &o);
+        set("other.testnet");
+        c.submit_verdict(sign_ed(e.clone()));
+        c.submit_referee_result(sealed_result(&e, &o));
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot join a buying group")]
+    fn a_sealed_verdict_cannot_join_a_buying_group() {
+        let mut c = setup();
+        let o = opening(200_000_000);
+        let e = sealed(1, "agent.testnet", &o);
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(e.clone()));
+        let _ = c.post_intent(e.nullifier, "hoodie".into(), "77".repeat(32));
+    }
+
+    #[test]
+    #[should_panic(expected = "a sealed verdict carries no predicates, tier or cap in the clear")]
+    fn a_sealed_verdict_with_plaintext_predicates_is_refused() {
+        let mut c = setup();
+        let mut e = envelope(1, "agent.testnet");
+        e.disclosure = Some(opening(1).commitment());
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(e));
     }
 }

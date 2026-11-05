@@ -63,6 +63,59 @@ pub struct Envelope {
     pub max_spend: u128,
     pub issued_at_ms: u64,
     pub expires_at_ms: u64,
+    /// A sealed verdict: commitment to the revealed predicates, tier and cap (`Opening`).
+    /// Then `predicates` is empty, `tier` is `sealed` and `max_spend` is 0, so the chain
+    /// holds hashes only; the referee opens it off chain. Absent on an ordinary verdict,
+    /// whose signed bytes are unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disclosure: Option<String>,
+}
+
+pub const DISCLOSURE_TAG: &[u8] = b"bookerbob/disclosure/v0\x00";
+pub const SEALED_TIER: &str = "sealed";
+
+/// What a sealed verdict hides: the revealed predicates, the tier and the cap, plus a salt.
+/// It goes to the referee (sealed to the worker key) and to the chosen merchant, never on chain.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Opening {
+    pub predicates: Vec<String>,
+    pub tier: String,
+    #[serde(with = "crate::u128_str")]
+    pub max_spend: u128,
+    /// 32 random bytes, hex.
+    pub salt: String,
+}
+
+impl Opening {
+    /// The `disclosure` a sealed envelope carries.
+    pub fn commitment(&self) -> String {
+        let mut b = DISCLOSURE_TAG.to_vec();
+        b.extend(serde_json::to_vec(self).expect("serializes"));
+        crate::sha256_hex(&b)
+    }
+
+    /// The same predicate rules an ordinary envelope follows, and a 32-byte salt.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if !crate::is_hex32(&self.salt) {
+            return Err("bad opening salt");
+        }
+        check_predicates(&self.predicates)
+    }
+}
+
+fn check_predicates(ps: &[String]) -> Result<(), &'static str> {
+    if ps.len() > crate::KNOWN_PREDICATES.len() {
+        return Err("too many predicates");
+    }
+    for (i, p) in ps.iter().enumerate() {
+        if !crate::is_known_predicate(p) {
+            return Err("unknown predicate");
+        }
+        if i > 0 && ps[i - 1] >= *p {
+            return Err("predicates not sorted and unique");
+        }
+    }
+    Ok(())
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -123,15 +176,13 @@ impl Envelope {
         if !crate::is_hex32(&self.attestation.report_hash) {
             return Err("bad attestation hash");
         }
-        if self.predicates.len() > crate::KNOWN_PREDICATES.len() {
-            return Err("too many predicates");
-        }
-        for (i, p) in self.predicates.iter().enumerate() {
-            if !crate::is_known_predicate(p) {
-                return Err("unknown predicate");
+        check_predicates(&self.predicates)?;
+        if let Some(d) = &self.disclosure {
+            if !crate::is_hex32(d) {
+                return Err("bad disclosure");
             }
-            if i > 0 && self.predicates[i - 1] >= *p {
-                return Err("predicates not sorted and unique");
+            if !self.predicates.is_empty() || self.tier != SEALED_TIER || self.max_spend != 0 {
+                return Err("a sealed verdict carries no predicates, tier or cap in the clear");
             }
         }
         if self.cnf.is_empty() || self.cnf.len() > 64 {
@@ -172,6 +223,27 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_sealed_verdict_holds_hashes_only() {
+        let o = Opening { predicates: vec!["claude_spender".into()], tier: "silver".into(), max_spend: 60_000_000, salt: "ab".repeat(32) };
+        assert!(o.validate().is_ok());
+        let mut e = sample();
+        let plain = e.signing_message();
+        e.disclosure = Some(o.commitment());
+        assert_eq!(e.validate(), Err("a sealed verdict carries no predicates, tier or cap in the clear"));
+        e.predicates.clear();
+        e.tier = SEALED_TIER.into();
+        e.max_spend = 0;
+        assert!(e.validate().is_ok());
+        assert_ne!(e.signing_message(), plain);
+        // Any change to the opening changes the commitment.
+        let mut o2 = o.clone();
+        o2.max_spend += 1;
+        assert_ne!(o2.commitment(), o.commitment());
+        // An ordinary envelope's signed bytes do not mention the field at all.
+        assert!(!String::from_utf8_lossy(&plain).contains("disclosure"));
+    }
+
+    #[test]
     fn tcb_order_and_floor() {
         assert!(tcb_meets("UpToDate", "UpToDate", false));
         assert!(!tcb_meets("OutOfDate", "UpToDate", false));
@@ -198,6 +270,7 @@ mod tests {
             max_spend: 200_000_000,
             issued_at_ms: 1,
             expires_at_ms: 2,
+            disclosure: None,
         }
     }
 

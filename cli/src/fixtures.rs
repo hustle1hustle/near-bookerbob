@@ -174,6 +174,7 @@ pub fn envelope_over(agent: &str, p: &ProofSet) -> Envelope {
         max_spend: MAX_SPEND,
         issued_at_ms: NOW_MS,
         expires_at_ms: EXPIRES_MS,
+        disclosure: None,
     }
 }
 

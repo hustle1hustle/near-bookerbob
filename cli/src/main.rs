@@ -103,6 +103,29 @@ fn worker_input(dir: &Path, verdict: Option<&Path>, cohort_k: u32) -> ExitCode {
         claims: load(dir.join("claims-honest.json")),
         proofs: load(dir.join("proofs.json")),
         cohort_k,
+        sealed_verdict: None,
+    };
+    println!("{}", serde_json::to_string(&input).unwrap());
+    ExitCode::SUCCESS
+}
+
+/// The referee input for a sealed verdict: priced from its opening, no cohort.
+fn worker_input_sealed(dir: &Path, verdict: &Path, opening: &Path) -> ExitCode {
+    let read = |p: &Path| std::fs::read_to_string(p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()));
+    let v: bookerbob_core::SignedVerdict = serde_json::from_str(&read(verdict)).expect("verdict");
+    let o: bookerbob_core::Opening = serde_json::from_str(&read(opening)).expect("opening");
+    let ms: Vec<fixtures::MerchantFixture> = serde_json::from_str(&read(&dir.join("merchants.json"))).expect("merchants");
+    let input = bookerbob_referee_worker::WorkerInput {
+        v: 0,
+        verdict_digest: hex::encode(v.envelope.digest()),
+        nullifier: v.envelope.nullifier.clone(),
+        merchant: ms[0].account.clone(),
+        schedule: ms[0].schedule.clone(),
+        revealed: o.predicates.clone(),
+        claims: serde_json::from_str(&read(&dir.join("claims-honest.json"))).expect("claims"),
+        proofs: serde_json::from_str(&read(&dir.join("proofs.json"))).expect("proofs"),
+        cohort_k: 0,
+        sealed_verdict: Some(bookerbob_referee_worker::SealedVerdictInput { envelope: v.envelope, opening: o }),
     };
     println!("{}", serde_json::to_string(&input).unwrap());
     ExitCode::SUCCESS
@@ -189,9 +212,11 @@ fn main() -> ExitCode {
         },
         // graph-sign <keys-dir> <program-hash> <input.json> <out-args.json>
         // sign-real <keys-dir> <agent> <replay-account> <world-action> <out-dir> <proofs.json>: the device run
-        Some("sign-real") if args.len() >= 7 => {
+        // sign-real[-sealed] <keys-dir> <tester> <replay-account> <world-action> <out-dir> <proofs.json>
+        Some(cmd @ ("sign-real" | "sign-real-sealed")) if args.len() >= 7 => {
             let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
-            match keys::sign_real(Path::new(&args[1]), &args[2], &args[3], &args[4], now, Path::new(&args[5]), Path::new(&args[6])) {
+            let f = if cmd == "sign-real" { keys::sign_real } else { keys::sign_real_sealed };
+            match f(Path::new(&args[1]), &args[2], &args[3], &args[4], now, Path::new(&args[5]), Path::new(&args[6])) {
                 Ok(n) => {
                     println!("{n}");
                     ExitCode::SUCCESS
@@ -274,9 +299,11 @@ fn main() -> ExitCode {
             println!("{}", e.near_ai_bind());
             ExitCode::SUCCESS
         }
-        Some("worker-input") if args.len() >= 2 => {
-            worker_input(Path::new(&args[1]), args.get(2).map(Path::new), args.get(3).and_then(|k| k.parse().ok()).unwrap_or(0))
-        }
+        // worker-input <fixtures-dir> [verdict.json] [cohort_k | opening.json]
+        Some("worker-input") if args.len() >= 2 => match args.get(3).filter(|a| a.ends_with(".json")) {
+            Some(o) => worker_input_sealed(Path::new(&args[1]), Path::new(&args[2]), Path::new(o)),
+            None => worker_input(Path::new(&args[1]), args.get(2).map(Path::new), args.get(3).and_then(|k| k.parse().ok()).unwrap_or(0)),
+        },
         Some("evals") if args.len() >= 5 => evals::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4])),
         Some("swarm") if args.len() >= 4 => swarm::run(Path::new(&args[1]), Path::new(&args[2]), Path::new(&args[3]), args.iter().any(|a| a == "--check")),
         _ => usage(),
