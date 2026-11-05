@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-05T20:16:53.609Z",
+  "when": "2026-11-05T21:41:38.179Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
@@ -106,6 +106,12 @@
       "anonymity_set": 1
     },
     {
+      "rule": "L1 same account",
+      "what": "814fd60ee56e11cf3b831972b5ec3642a0f36fe3f8f3488ea0b265587ce48142: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
       "rule": "L2 timing order",
       "what": "each sealed rating to the buyer who joined in the same position",
       "linked": false,
@@ -117,8 +123,8 @@
       "rule": "L3 funding",
       "what": "review senders and buyers share one funder (the relayer)",
       "linked": false,
-      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 17 here",
-      "anonymity_set": 17
+      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 18 here",
+      "anonymity_set": 18
     },
     {
       "rule": "L4 reveal",
@@ -129,37 +135,37 @@
     },
     {
       "rule": "L5 plaintext facts",
-      "what": "the proof set's fields and proof refs in the args of 187 tester txs",
+      "what": "the proof set's fields and proof refs in the args of 199 tester txs",
       "linked": false,
       "note": "none: facts never left the buyer side in tx args",
-      "anonymity_set": 17
+      "anonymity_set": 18
     },
     {
       "rule": "L5b sealed predicates",
       "what": "predicate names or tier in the verdict tx of 4 sealed buyer(s)",
       "linked": false,
       "note": "none: hashes only (the disclosure commitment)",
-      "anonymity_set": 17
+      "anonymity_set": 18
     },
     {
       "rule": "L6 amount oracle",
-      "what": "settled amounts of 27 buyers: 36 x9, 38.4 x5, 32.4 x5, 367.2 x5, 28 x2, 408 x1",
+      "what": "settled amounts of 28 buyers: 36 x10, 38.4 x5, 32.4 x5, 367.2 x5, 28 x2, 408 x1",
       "linked": true,
       "note": "smallest set sharing an amount 1; under 5: 3 buyer(s), all settled before the gate: true",
       "anonymity_set": 1
     },
     {
       "rule": "L7 funding set",
-      "what": "who funded each of 27 buyer accounts: bookerbob-demo.testnet x27",
+      "what": "who funded each of 28 buyer accounts: bookerbob-demo.testnet x28",
       "linked": false,
-      "anonymity_set": 27
+      "anonymity_set": 28
     },
     {
       "rule": "L8 account name",
-      "what": "27 buyers: 25 named under bookerbob-demo.testnet, 2 one-time implicit; 0 account(s) used twice",
+      "what": "28 buyers: 25 named under bookerbob-demo.testnet, 3 one-time implicit; 0 account(s) used twice",
       "linked": false,
       "note": "25 named before implicit became the default (2026-11-06), listed in fixtures/live/leak-before-implicit.json; 0 since",
-      "anonymity_set": 2
+      "anonymity_set": 3
     }
   ],
   "rating_to_buyer_linked": false,

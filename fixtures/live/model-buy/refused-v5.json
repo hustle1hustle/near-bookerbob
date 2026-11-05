@@ -1,0 +1,37 @@
+{
+  "note": "deepseek-ai/DeepSeek-V4.1-Flash-1017's verdict refused by the eval-gated merchant under the v5 lower bound (@8000tok/referee-v5/ci95-lower, 70), then bought from m01, which has no gate. Facts are the synthetic fixture proof set.",
+  "tester": "814fd60ee56e11cf3b831972b5ec3642a0f36fe3f8f3488ea0b265587ce48142",
+  "merchant": "m01.bookerbob.testnet",
+  "nullifier": "574155944ab4228b6536c5e48129e6ae0b244c17242b8748cac95abf7e0112ee",
+  "price": "36000000",
+  "issuer": "near-ai:236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+  "gate_merchant": "vetted.bookerbob-demo.testnet",
+  "near_ai": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+    "chat_id": "chatcmpl-f9fd1bde-5a03-42f2-bd93-f09acb221803",
+    "request_sha256": "f51676654c7baf188e85de065fbfd7167e04d8037a7f4465d59696a8075fa5b0",
+    "response_sha256": "52e090d7f0a5404bce0774457d2c950f81feae7c222973a91f07d21ac958cf2e",
+    "client_x25519_secret": "30196a8be92203c7256f0862f5a6e7ee3b3d23212063be9b972c4fc101f46440",
+    "attested": [
+      "airbnb_frequent",
+      "booking_genius",
+      "claude_spender",
+      "world_id_human"
+    ]
+  },
+  "txs": {
+    "account": "2YEryoTgmQE89jZN8rts3qJU6yyvsosQc1qBb7eiDvpD",
+    "escrow_entry": "CTtsXPrTgjYue7kkhQaEc9fcxPqqK5ARNGK6foJ1kWEJ",
+    "dusdc_storage": "DPuqsEpJeB8NfRcRyaUMUx3aHznRWtMopW4uVsrqKVh8",
+    "mint": "8GW7fAycTDeymmpNCCmBgqvPnZjWT7xbUhuyfzACVByp",
+    "world": "8Z557uyj4zH8wT8XRW1xm2NTcsqZjMZzbjFDHZZjSwq3",
+    "verdict": "DCqyqPjEGT4RHpgphvR8y6iMBDpartwhutBqRXBGLWnb",
+    "gate_refused": "DsnWnVwPo7pehqrJAZcTmHh6hFZ1fWDc2kBHpTzHxXtW",
+    "receipt": "BBzawPPvDPxFS6YSGAvYu3pHbQCgmLoKowiA3qgbRL3v",
+    "escrow": "8d613uL54j4rLRug9gRFtA9Y9fzoDC4o8xpF2uFMKgA",
+    "settle": "5QXG948nqsu3iMgjHop8WLeSFH4wk5JzBYQtGBm558dH",
+    "replay": "1HxvdsVDVZhtLmJbheFjz3p1x5hG5McpZRtxM6sqjVM",
+    "review_join": "98Hh5551hBjAMQS1RFV6rEUNK1M1Bwz7neTwiHK2X7is"
+  }
+}

@@ -334,10 +334,10 @@ Where testnet stands, as of 2026-11-04:
   and the referee receipt
   ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
   38.40 USDC: one buyer on testnet, so no group price), three hire edges and a standing update for them (a Jolt proof, signed by a worker).
-- Done in demo mode (dUSDC): 27 purchases (17 single settles: one with the 1% fee, two with a
-  sealed verdict, two with a verdict a NEAR AI model issued (one refused by an eval gate, one passing it), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 17 replays refused, a settle-only function-call key
+- Done in demo mode (dUSDC): 28 purchases (18 single settles: one with the 1% fee, two with a
+  sealed verdict, three with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 18 replays refused, a settle-only function-call key
   that cannot withdraw, 18 sealed reviews released over 3 rounds at k >= 5 (12 for m01, 6 for h05), the group price at k >= 5, a
-  standing update with nonzero merchants, 17 orders in the Shopify test store.
+  standing update with nonzero merchants, 18 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee (its registration waits on the founder). The NEP-366
   relayer sends on testnet: it paid every demo purchase call and every sealed rating.
 - Demo mode: [docs/demo-mode.md](docs/demo-mode.md), `make demo-tester`.

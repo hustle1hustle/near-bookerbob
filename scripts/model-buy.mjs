@@ -8,8 +8,8 @@
 //     digest of every envelope field it does not compute. Its TEE signature covers both wire hashes.
 //  3. submit_near_ai_verdict: the contract checks the registered key, the attestation nonce, the
 //     TEE signature, the binding and that every revealed predicate is one the model attested.
-//  4. The gate: the same verdict asks vetted (eval gate: REP Eval v4 >= 70) for a receipt. The
-//     model is glm at bucket 50, so the contract refuses it.
+//  4. The gate: the same verdict asks vetted (its eval gate, fixtures/live/eval-gate/run.json) for
+//     a receipt, and the contract refuses it.
 //  5. m01 (no gate): receipt, escrow, settle in dUSDC, the replay refused.
 //  6. fixtures/live/model-buy/run.json: hashes and txs; the one-time client secret is disclosed
 //     so anyone can open the sealed answer (the sealed request, with the facts, stays sealed).
@@ -24,10 +24,14 @@ const API = process.env.NEAR_AI_BASE ?? "https://cloud-api.near.ai/v1";
 const CAPTURE = JSON.parse(readFileSync("fixtures/live/near-ai/capture.json", "utf8"));
 // MODEL_BUY_MODEL=<model id>: a model registered with scripts/register-model.mjs; it must pass the
 // eval gate, so the purchase goes to the gated merchant directly (the positive path).
-const PASSING = process.env.MODEL_BUY_MODEL;
-const REG = PASSING ? JSON.parse(readFileSync(`fixtures/live/near-ai/models/${PASSING.replace(/[^A-Za-z0-9.-]+/g, "_")}/run.json`, "utf8")) : null;
+// MODEL_BUY_EXPECT=refused: that model is refused by the gate and buys from m01 instead, and the
+// refusal goes in fixtures/live/eval-gate/run.json (DeepSeek under the v5 lower bound).
+const MODEL = process.env.MODEL_BUY_MODEL;
+const REFUSED = MODEL && process.env.MODEL_BUY_EXPECT === "refused";
+const PASSING = MODEL && !REFUSED ? MODEL : null;
+const REG = MODEL ? JSON.parse(readFileSync(`fixtures/live/near-ai/models/${MODEL.replace(/[^A-Za-z0-9.-]+/g, "_")}/run.json`, "utf8")) : null;
 const MODEL_KEY = REG?.signing_key ?? CAPTURE.signing_address;
-const OUT = PASSING ? "fixtures/live/model-buy/passing.json" : "fixtures/live/model-buy/run.json";
+const OUT = REFUSED ? "fixtures/live/model-buy/refused-v5.json" : PASSING ? "fixtures/live/model-buy/passing.json" : "fixtures/live/model-buy/run.json";
 // The rule table the model applies (core/src/tier.rs RULES), as in scripts/near-ai-verdict.mjs.
 const RULES = [
   ["airbnb", "trips_12m", 3, "airbnb_frequent"],
@@ -100,25 +104,30 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const out = { note: "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so anyone can open the sealed answer; the sealed request, which holds the facts, stays sealed to the model key." };
   const beforeReceipt = async ({ tester, rec, live, d: demo }) => {
-    // The same verdict asks the eval-gated merchant first: refused, glm is under its threshold.
+    // The same verdict asks the eval-gated merchant first: refused, the model is under its gate.
     const dir = gatedDir;
     const q = await demo.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
     const input = execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", "worker-input", dir, join(live, "verdict.json"), String(q?.cohort?.k ?? 0)], { encoding: "utf8" });
     const seed = readFileSync(join(c.keysDir, "referee.seed"), "utf8").trim();
     const result = JSON.parse(execFileSync("cargo", ["run", "-q", "-p", "bookerbob-referee-worker"], { input, encoding: "utf8", env: { ...process.env, REFEREE_SIGNING_SEED: seed } }));
-    console.log(`   the eval gate: ${gate.merchant.split(".")[0]} requires v4 >= ${gate.gate.threshold}; the same verdict asks it for a receipt`);
+    console.log(`   the eval gate: ${gate.merchant.split(".")[0]} requires ${gate.gate.subject_suffix} >= ${gate.gate.threshold}; the same verdict asks it for a receipt`);
     try {
       await demo.relay("submit_referee_result (gated merchant)", tester, c.bazaar, { type: "FunctionCall", method_name: "submit_referee_result", args: { result }, gas: 100n * 10n ** 12n, deposit: 0n });
       throw new Error("the gated merchant accepted a model under its threshold");
     } catch (e) {
       if (!String(e.message).includes("does not pass")) throw e;
       rec.txs.gate_refused = demo.log.at(-1).hash;
+      if (REFUSED) {
+        gate.refused_v5 = { model: MODEL, tester: rec.tester, tx: rec.txs.gate_refused };
+        writeFileSync("fixtures/live/eval-gate/run.json", JSON.stringify(gate, null, 2) + "\n");
+      }
       console.log("   refused on chain as expected: the model does not pass the gate");
     }
   };
   const rec = await d.run({ nearAi: (base) => issue(d.client, c.bazaar, base, "fixtures/proofs.json", c.keysDir), ...(PASSING ? { fixturesDir: gatedDir } : { beforeReceipt }) });
   const v = await d.client.view(c.bazaar, "verdict", { nullifier: rec.nullifier });
   if (v.issuer !== `near-ai:${MODEL_KEY}`) throw new Error(`the verdict's issuer is ${v.issuer}`);
+  if (REFUSED) out.note = `${REG.model}'s verdict refused by the eval-gated merchant under the v5 lower bound (${gate.gate.subject_suffix}, ${gate.gate.threshold}), then bought from m01, which has no gate. Facts are the synthetic fixture proof set.`;
   if (PASSING) out.note = `One testnet purchase at the eval-gated merchant (REP Eval v4 >= ${gate.gate.threshold}), with a verdict ${REG.model} issued; its key was registered against its TDX quote verified on chain (scripts/register-model.mjs). Facts are the synthetic fixture proof set.`;
   Object.assign(out, { tester: rec.tester, merchant: PASSING ? gate.merchant : c.merchant, nullifier: rec.nullifier, price: rec.price, issuer: v.issuer, gate_merchant: gate.merchant, near_ai: rec.near_ai, txs: rec.txs });
   mkdirSync("fixtures/live/model-buy", { recursive: true });

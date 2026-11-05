@@ -203,7 +203,7 @@ claim holding), committed by its own owner [9VsgCw8z…](https://testnet.nearblo
 - **The models do not separate here.** Their intervals overlap almost entirely. v4's gap of 72.5
   against 55 on 40 items did not hold up at three times the items.
 - **DeepSeek's live pass on `vetted` stands as what it was:** a 70 gate on the v4 point bucket.
-  Under the v5 rule it would be refused. That gate still reads v4; it has not been moved.
+  Under the v5 rule it is refused, and `vetted` now applies that rule (below).
 - **Truncation apart:** t4 is finished and right for both, 60 of 60. Every miss on glm but one and
   26 of DeepSeek's 29 are replies cut on the 8-claim t5 items, even at twice the budget. Among
   finished answers: DeepSeek 91 of 94 (Wilson 91.0 to 98.9), glm 88 of 89 (93.9 to 99.8).
@@ -225,6 +225,14 @@ referee receipt naming that merchant is refused unless the buyer's verdict was i
 AI model key (`submit_near_ai_verdict`) whose model passes `eval_passes(model + suffix,
 set_root, threshold)`. `None` clears it. On testnet (`make eval-gate`, also in `make judge`):
 
+**Since 2026-11-06 the gate reads the lower bound.** `vetted` now gates on the v5 root,
+`@8000tok/referee-v5/ci95-lower`, at the frozen 70 ([CFn5LtYq…](https://testnet.nearblocks.io/txns/CFn5LtYqKXjrGLZghHANNLC557av5quWWqh6uLHdF4qJ)), so `eval_passes` is false
+for both models and both are refused live. DeepSeek's own verdict, from the same registered key,
+was refused: "does not pass 70" ([DsnWnVwP…](https://testnet.nearblocks.io/txns/DsnWnVwPo7pehqrJAZcTmHh6hFZ1fWDc2kBHpTzHxXtW)), then bought from m01, which has no gate
+(`fixtures/live/model-buy/refused-v5.json`). `make eval-gate` asserts the gate, both `false`s and the
+refusal, and fails if a model starts passing. No merchant on the market bazaar has this gate, so
+no DAO proposal was needed. The list below is the v4 history, kept as it happened.
+
 - `vetted.bookerbob-demo.testnet` registered with m01's schedule and set the gate to the v4
   root, `@4000tok/referee-v4`, 70: [7y4q5ZAk…](https://testnet.nearblocks.io/txns/7y4q5ZAkM8CJjkppQCL4ZDfqp6ezm3VZreToeX3c5GUg).
 - `eval_passes` on chain: DeepSeek (bucket 70) passes, glm (bucket 50) does not.
@@ -235,14 +243,14 @@ set_root, threshold)`. `None` clears it. On testnet (`make eval-gate`, also in `
   buyer's verdict through `submit_near_ai_verdict`; the same verdict asked `vetted` for a receipt
   and was refused ("z-ai/glm-5.3-flash@4000tok/referee-v4 does not pass 70"), then bought from
   m01, which has no gate, and settled 36 dUSDC (`fixtures/live/model-buy/run.json`).
-- **The gate passing, live** (`MODEL_BUY_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017 make model-buy`):
+- **Passed under the v4 point-bucket rule; the v5 lower-bound rule would refuse it** (2026-11-05, `MODEL_BUY_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017 make model-buy`):
   DeepSeek's key was registered on the bazaar only against its TDX quote verified on chain
   (`scripts/register-model.mjs`, 5 calls, UpToDate); DeepSeek issued the buyer's verdict; `vetted`
   took it and settled 36 dUSDC (`fixtures/live/model-buy/passing.json`). The first settle failed
   because `vetted` had no dUSDC storage registration; it was registered and the settle sent again.
 - **The threshold was chosen after the results.** The 70 on `vetted` was set after the v4 scores
   were known (DeepSeek 70, glm 50), so this gate shows the mechanism, not a threshold fixed in
-  advance. A v5 freezes the threshold with the protocol, before any run. The pass and the refusal
+  advance. v5 froze the same 70 with its protocol, before any run. The pass and the refusal
   are also covered on near-sdk's mocked chain (`certified_eval`: refused under the
   threshold, accepted at it, an unregistered model key refused, only a registered merchant sets
   a gate, the set must be committed, a cleared gate takes any issuer).

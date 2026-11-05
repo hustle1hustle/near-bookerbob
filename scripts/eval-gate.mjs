@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 // `make eval-gate`: a merchant that sells only to a buyer whose verdict was issued by a model
-// that passes REP Eval v4 (docs/eval.md). Testnet only.
+// whose Wilson 95% lower bound on REP Eval v5 is at least 70 (docs/eval-v5-protocol.md). Testnet
+// only. No model passes today: the refusal is the result.
 //
 //   node scripts/eval-gate.mjs setup    vetted.<treasury> registers with m01's schedule and sets
-//                                       eval_gate {v4 root, "@4000tok/referee-v4", 70}
+//                                       eval_gate {v5 root, "@8000tok/referee-v5/ci95-lower", 70}
 //   node scripts/eval-gate.mjs refuse   a fresh tester with an ordinary (issuer key) sealed
 //                                       verdict asks for a receipt from it: refused on chain
-//   node scripts/eval-gate.mjs verify   public check (views and the refusal tx), no keys
+//   node scripts/eval-gate.mjs verify   public check (views and the refusal txs), no keys
 //
-// What a pass needs, and is not run live: a verdict through submit_near_ai_verdict from a model
-// whose v4 certificate is at 70 or more (DeepSeek, 70; glm is 50 and does not pass). That path is
-// covered on near-sdk's mocked chain (contract/src/tests.rs, certified_eval).
+// The gate read the v4 point bucket until 2026-11-06; run.json keeps it under `v4_gate`, and the
+// DeepSeek purchase that passed it (fixtures/live/model-buy/passing.json) stays a dated record.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { keyFromSeed, near, nearPublicKey, rpcClient, send } from "../relayer/near.mjs";
 
 const OUT = "fixtures/live/eval-gate/run.json";
-const V4 = "fixtures/live/eval/rep-eval-v4.json";
-const SUFFIX = "@4000tok/referee-v4";
+const V5 = "fixtures/live/eval/rep-eval-v5.json";
+const SUFFIX = "@8000tok/referee-v5/ci95-lower";
 const THRESHOLD = 70;
 const TGAS = 10n ** 12n;
 const fc = (method_name, args, deposit = 0n, gas = 100n * TGAS) => ({ type: "FunctionCall", method_name, args, gas, deposit });
@@ -44,9 +44,10 @@ async function setup(c) {
   const as = (actions) => send(client, { signer_id: merchant, key, receiver_id: c.bazaar, actions });
   const schedule = (await client.view(c.bazaar, "merchant", { merchant: "m01.bookerbob.testnet" })).schedule;
   if (!(await client.view(c.bazaar, "merchant", { merchant }))) out.txs.register = ok("register_merchant (m01's schedule, category hoodie)", await as([fc("register_merchant", { schedule, category: "hoodie", payout: null }, near(0.05))]));
-  const pub = JSON.parse(readFileSync(V4, "utf8"));
+  const pub = JSON.parse(readFileSync(V5, "utf8"));
   const gate = { set_root: pub.set_root, subject_suffix: SUFFIX, threshold: THRESHOLD };
-  out.txs.gate = ok(`set_eval_gate (v4 root ${pub.set_root.slice(0, 12)}.., ${SUFFIX}, ${THRESHOLD})`, await as([fc("set_eval_gate", { gate }, near(0.01))]));
+  if (out.gate?.subject_suffix === "@4000tok/referee-v4") out.v4_gate = { ...out.gate, tx: out.txs.gate, until: "2026-11-06", rule: "the v4 point bucket" };
+  out.txs.gate = ok(`set_eval_gate (v5 root ${pub.set_root.slice(0, 12)}.., ${SUFFIX}, ${THRESHOLD})`, await as([fc("set_eval_gate", { gate }, near(0.01))]));
   Object.assign(out, { merchant, gate, schedule });
   mkdirSync("fixtures/live/eval-gate", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n");
@@ -75,18 +76,24 @@ async function refuse(c) {
 
 export async function verifyGate(view, tx) {
   const out = JSON.parse(readFileSync(OUT, "utf8"));
-  const pub = JSON.parse(readFileSync(V4, "utf8"));
+  const pub = JSON.parse(readFileSync(V5, "utf8"));
   const lines = [];
   const g = await view("bookerbob.testnet", "eval_gate", { merchant: out.merchant });
-  lines.push([g?.set_root === pub.set_root && g.threshold === THRESHOLD && g.subject_suffix === SUFFIX, `eval_gate on ${out.merchant.split(".")[0]}: v4 root ${pub.set_root.slice(0, 12)}.., ${SUFFIX}, threshold ${THRESHOLD}`]);
+  lines.push([g?.set_root === pub.set_root && g.threshold === THRESHOLD && g.subject_suffix === SUFFIX, `eval_gate on ${out.merchant.split(".")[0]}: v5 root ${pub.set_root.slice(0, 12)}.., ${SUFFIX}, threshold ${THRESHOLD}`]);
   for (const m of pub.models) {
-    const passes = await view("bookerbob.testnet", "eval_passes", { subject: m.certificate.subject, set_root: pub.set_root, threshold: THRESHOLD });
-    lines.push([passes === m.certificate.score_bucket >= THRESHOLD, `eval_passes(${m.model.split("/")[1]}${SUFFIX}, v4, ${THRESHOLD}) = ${passes} (bucket ${m.certificate.score_bucket})`]);
+    const passes = await view("bookerbob.testnet", "eval_passes", { subject: m.gate.certificate.subject, set_root: pub.set_root, threshold: THRESHOLD });
+    // Both models sit under the frozen threshold, so a true here is a failure until a new set says otherwise.
+    lines.push([passes === false && m.gate.passes === false, `eval_passes(${m.model.split("/")[1]}${SUFFIX}, v5, ${THRESHOLD}) = ${passes} (lower bound ${m.wilson95[0].toFixed(1)}, point bucket ${m.certificate.score_bucket})`]);
   }
   if (out.refusal && tx) {
     const t = await tx(out.refusal.tx, out.refusal.tester);
     const fail = JSON.stringify([t.transaction_outcome, ...t.receipts_outcome].map((o) => o.outcome.status.Failure).find(Boolean) ?? "");
     lines.push([fail.includes("not issued by a NEAR AI model key"), `an ordinary verdict's receipt for the gated merchant was refused on chain (${out.refusal.tx.slice(0, 8)}..)`]);
+  }
+  if (out.refused_v5 && tx) {
+    const t = await tx(out.refused_v5.tx, out.refused_v5.tester);
+    const fail = JSON.stringify([t.transaction_outcome, ...t.receipts_outcome].map((o) => o.outcome.status.Failure).find(Boolean) ?? "");
+    lines.push([fail.includes(`${out.refused_v5.model}${SUFFIX} does not pass ${THRESHOLD}`), `${out.refused_v5.model.split("/")[1]}'s verdict refused on chain under the lower bound (${out.refused_v5.tx.slice(0, 8)}..)`]);
   }
   return lines;
 }

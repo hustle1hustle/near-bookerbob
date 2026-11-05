@@ -379,6 +379,29 @@
         "replay": "9pPRjCbGLqyHAviLX9H4NFi1EDQi5TJN1jj52mW2fj3x",
         "review_join": "BzVLJAoJv3es6Cg1aktrzoSQrBv7wce7ia2ipyu7CukM"
       }
+    },
+    {
+      "tester": "814fd60ee56e11cf3b831972b5ec3642a0f36fe3f8f3488ea0b265587ce48142",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "574155944ab4228b6536c5e48129e6ae0b244c17242b8748cac95abf7e0112ee",
+      "price": "36000000",
+      "cohort_k": 29,
+      "model_issued": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "shopify_order": "#1073",
+      "txs": {
+        "account": "2YEryoTgmQE89jZN8rts3qJU6yyvsosQc1qBb7eiDvpD",
+        "escrow_entry": "CTtsXPrTgjYue7kkhQaEc9fcxPqqK5ARNGK6foJ1kWEJ",
+        "dusdc_storage": "DPuqsEpJeB8NfRcRyaUMUx3aHznRWtMopW4uVsrqKVh8",
+        "mint": "8GW7fAycTDeymmpNCCmBgqvPnZjWT7xbUhuyfzACVByp",
+        "world": "8Z557uyj4zH8wT8XRW1xm2NTcsqZjMZzbjFDHZZjSwq3",
+        "verdict": "DCqyqPjEGT4RHpgphvR8y6iMBDpartwhutBqRXBGLWnb",
+        "gate_refused": "DsnWnVwPo7pehqrJAZcTmHh6hFZ1fWDc2kBHpTzHxXtW",
+        "receipt": "BBzawPPvDPxFS6YSGAvYu3pHbQCgmLoKowiA3qgbRL3v",
+        "escrow": "8d613uL54j4rLRug9gRFtA9Y9fzoDC4o8xpF2uFMKgA",
+        "settle": "5QXG948nqsu3iMgjHop8WLeSFH4wk5JzBYQtGBm558dH",
+        "replay": "1HxvdsVDVZhtLmJbheFjz3p1x5hG5McpZRtxM6sqjVM",
+        "review_join": "98Hh5551hBjAMQS1RFV6rEUNK1M1Bwz7neTwiHK2X7is"
+      }
     }
   ],
   "unfinished": [

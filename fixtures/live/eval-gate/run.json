@@ -3,11 +3,11 @@
   "txs": {
     "account": "4Bio4etPNHb4UJRbXHdNKsVJiqfChmvjCKY6mqgafhxH",
     "register": "3JfkCWQpgkMHDqZMDsG3ExucAe1dr2ErKvu3u4GMahXZ",
-    "gate": "7y4q5ZAkM8CJjkppQCL4ZDfqp6ezm3VZreToeX3c5GUg"
+    "gate": "CFn5LtYqKXjrGLZghHANNLC557av5quWWqh6uLHdF4qJ"
   },
   "gate": {
-    "set_root": "af82187494d180ed9112613df06a76df39591d49f98c33f5a3b64cb0f7213ee1",
-    "subject_suffix": "@4000tok/referee-v4",
+    "set_root": "3001d46569c9d36e9ff3168bc193e39f059d728bc6472f3de37de6bd988b8e0b",
+    "subject_suffix": "@8000tok/referee-v5/ci95-lower",
     "threshold": 70
   },
   "schedule": {
@@ -37,5 +37,18 @@
     "tester": "bookerbob-demo.testnet",
     "tx": "AH8YuaournDh8erCyQvPAprY4tju83YH82AJVNRD1hjp",
     "error": "merchant's eval gate: the verdict was not issued by a NEAR AI model key"
+  },
+  "v4_gate": {
+    "set_root": "af82187494d180ed9112613df06a76df39591d49f98c33f5a3b64cb0f7213ee1",
+    "subject_suffix": "@4000tok/referee-v4",
+    "threshold": 70,
+    "tx": "7y4q5ZAkM8CJjkppQCL4ZDfqp6ezm3VZreToeX3c5GUg",
+    "until": "2026-11-06",
+    "rule": "the v4 point bucket"
+  },
+  "refused_v5": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "tester": "814fd60ee56e11cf3b831972b5ec3642a0f36fe3f8f3488ea0b265587ce48142",
+    "tx": "DsnWnVwPo7pehqrJAZcTmHh6hFZ1fWDc2kBHpTzHxXtW"
   }
 }

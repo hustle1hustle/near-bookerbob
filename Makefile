@@ -114,7 +114,7 @@ eval-verify:
 model-buy:
 	node scripts/model-buy.mjs
 
-# A merchant that sells only to a verdict from a model passing REP Eval v4 (docs/eval.md).
+# A merchant gated on the REP Eval v5 lower bound at 70: no model passes, the refusal is checked (docs/eval.md).
 eval-gate:
 	node scripts/eval-gate.mjs verify
 
