@@ -358,7 +358,7 @@
     "tracks": "agents, privacy, security, open",
     "where": "`scripts/rep-eval.mjs`, `worker/src/eval.rs`, `agents/eval.html`, `docs/eval.md`",
     "status": "live",
-    "detail": "glm-5.3-flash 61/120 (CI 41.7 to 60.0), DeepSeek-V4.1-Flash 115/120, Qwen3.6-35B 0/120 (out of budget on every item); all 360 TEE signatures valid; `make eval-verify` in about a second. Only one model lands in the 40 to 80% target band",
+    "detail": "headline on a held-out set made after the protocol was frozen: glm-5.3-flash 58/120 (CI 39.2 to 56.7), DeepSeek-V4.1-Flash 112/120, Qwen3.6-35B 0/120 (budget-bound, out of tokens on every item); all 360 TEE signatures valid; the tuned calibration set's run is on chain too and within 3 items; `make eval-verify` in about a second. Only one model lands in the 40 to 80% band",
     "evidence": [
       "rep_eval"
     ]

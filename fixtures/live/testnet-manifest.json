@@ -599,27 +599,27 @@
     "score_bucket": 100
   },
   "rep_eval": {
-    "set_root": "758b21ccd7edc046b754d5edae7223ffa7a98beac4ba77a4d9f37c59660fe5ec",
+    "set_root": "b7b6094074b1b70a2abb4ec05847ec07975402b986965d24038d443c86d33539",
     "issuer_key": "ed25519:4e338d29c21b55ecb80aadeccd8f5764756867d7fc089b897203a434756b340b",
     "txs": {
       "register_issuer": "BdA6CyxUFKZoPJNHyjtu3vJk4x9N5nQ8ZEozQgJe8DQm",
-      "register_set": "HCajhUbQiYBWzidX5mqbF4uDnLXpCWheKytKR6Zah1de"
+      "register_set": "BV746aRYyUjwKG6NKAdcGwXmKktaHhk1Pph1FBVMTnJo"
     },
     "models": [
       {
         "subject": "z-ai/glm-5.3-flash@400tok",
-        "bucket": 50,
-        "submit_tx": "EtSwDati96iGjiqhxfHdp3wyK6ERFKu4aqdComFW3xRA"
+        "bucket": 40,
+        "submit_tx": "2zdTRPaRaXUYkkoq9CybbKHhgnqaWuE5mGBqinPSGaC6"
       },
       {
         "subject": "deepseek-ai/DeepSeek-V4.1-Flash-1017@400tok",
         "bucket": 90,
-        "submit_tx": "EhhCrk4fUeEd2P5sA6qFLFhHqfaUA4a9vsr5nuvAhAtd"
+        "submit_tx": "Ep4ctyYWkkhcquuP97Y2XcxrJcu6L7DM2knib2bxRHCW"
       },
       {
         "subject": "Qwen/Qwen3.6-35B-A3B-FP8@400tok",
         "bucket": 0,
-        "submit_tx": "BGMA7X7cJd2sQt7Q5CGyyfpMXevobJQLiJfPLevXMnvm"
+        "submit_tx": "5WLGhB6NpFCpxxvNfgeCjRxNvUKJcJg9GXVvyu3Z1NiY"
       }
     ]
   },

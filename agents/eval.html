@@ -45,13 +45,13 @@ async function view(account_id, method_name, args) {
 (async () => {
   let d;
   try { d = await (await fetch("eval.json")).json(); } catch { document.getElementById("sub").textContent = "eval.json not found: run node scripts/rep-eval.mjs onchain"; return; }
-  document.getElementById("sub").textContent = `${d.n} sealed items (${d.levels.join(", ")}; 30 each), answered in a ${d.budget_tokens}-token budget. Set root ${d.set_root.slice(0, 16)}.. on ${d.bazaar}. The items stay private; every answer carries a NEAR AI TEE signature.`;
+  document.getElementById("sub").textContent = `${d.n} sealed items (${d.levels.join(", ")}; 30 each), answered in a ${d.budget_tokens}-token budget${d.heldout ? ", a held-out set made after the protocol was frozen" : ""}. Set root ${d.set_root.slice(0, 16)}.. on ${d.bazaar}. The items stay private; every answer carries a NEAR AI TEE signature.`;
   const rows = [...d.models].sort((a, b) => b.correct - a.correct);
   const t = document.getElementById("t");
   for (const m of rows) {
     const pct = (100 * m.correct) / d.n;
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${m.model}</td><td class="num">${m.correct}/${d.n}</td><td>${pct.toFixed(1)}% <span class="dim">(${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)})</span><div class="bar"><span style="left:${m.ci95[0]}%;width:${m.ci95[1] - m.ci95[0]}%"></span><i style="left:${pct}%"></i></div></td><td>${Object.entries(m.by_level).map(([k, v]) => `${k} ${v}`).join(" &middot; ")}</td><td class="num" data-model="${m.model}"><span class="dim">bucket ${m.bucket} (snapshot)</span></td>`;
+    tr.innerHTML = `<td>${m.model}${m.budget_bound ? ' <span class="dim">(budget-bound: out of tokens on every item)</span>' : ""}</td><td class="num">${m.correct}/${d.n}</td><td>${pct.toFixed(1)}% <span class="dim">(${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)})</span><div class="bar"><span style="left:${m.ci95[0]}%;width:${m.ci95[1] - m.ci95[0]}%"></span><i style="left:${pct}%"></i></div></td><td>${Object.entries(m.by_level).map(([k, v]) => `${k} ${v}`).join(" &middot; ")}</td><td class="num" data-model="${m.model}"><span class="dim">bucket ${m.bucket} (snapshot)</span></td>`;
     t.appendChild(tr);
   }
   let live = 0;

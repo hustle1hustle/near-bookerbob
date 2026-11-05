@@ -152,7 +152,7 @@ async function onchain() {
   }
   writeFileSync(PUBLIC, JSON.stringify(pub, null, 2) + "\n");
   // The leaderboard page's data (agents/eval.html reads the scores live and falls back to this).
-  const board = { bazaar, set_root: pub.set_root, n: pub.n, levels: pub.levels, budget_tokens: pub.budget_tokens, issuer_key: pub.issuer_key, models: pub.models.map((m) => ({ model: m.model, subject: m.certificate.subject, correct: m.correct, ci95: m.ci95, by_level: m.by_level, bucket: m.certificate.score_bucket, submit_tx: m.submit_tx })) };
+  const board = { bazaar, set_root: pub.set_root, n: pub.n, levels: pub.levels, budget_tokens: pub.budget_tokens, issuer_key: pub.issuer_key, models: pub.models.map((m) => ({ model: m.model, subject: m.certificate.subject, correct: m.correct, ci95: m.ci95, by_level: m.by_level, bucket: m.certificate.score_bucket, budget_bound: m.truncated === pub.n, submit_tx: m.submit_tx })), heldout: Boolean(pub.heldout) };
   writeFileSync("agents/eval.json", JSON.stringify(board, null, 2) + "\n");
 }
 
