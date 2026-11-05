@@ -1,8 +1,8 @@
 make judge: fast path (Node only; deep path: make verify, make zk-verify)
 
 SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)
-PASS  testnet snapshot: committed RPC responses match their sha256  (388ba4246ae9..)
-PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T08:53:18.959Z  (58 checks; rerun with network for the live chain)
+PASS  testnet snapshot: committed RPC responses match their sha256  (c4fbfe0eb9f2..)
+PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T09:29:26.415Z  (57 checks; rerun with network for the live chain)
 PASS  docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log
 PASS  REP Eval: 3 model certificates, every TEE signature and the issuer signature verify  (3 models)
 PASS  REP Eval v2 (referee claims, truth from the referee's code, 600 tokens: the budget result): 3 certificates, every TEE signature verifies, cut replies graded as no answer  (3 models)
@@ -10,6 +10,7 @@ PASS  REP Eval v3 (referee claims, truth from the referee's code, 2,000 tokens: 
 PASS  jolt standing: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 8.94 s, proof 92716 B)
 PASS  jolt standing-testnet: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 3.32 s, proof 84796 B)
 PASS  jolt standing-testnet-2: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.71 s, proof 84796 B)
+PASS  jolt standing-testnet-3: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 4.05 s, proof 84796 B)
 PASS  jolt price: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 1.27 s, proof 80380 B)
 PASS  jolt referee: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.26 s, proof 84796 B)
 PASS  jolt cohort: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.91 s, proof 84724 B)

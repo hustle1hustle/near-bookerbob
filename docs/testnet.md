@@ -505,3 +505,21 @@ stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.m
 - **Not done yet: deleting the temporary full-access key**, the last, irreversible step. Until
   it is deleted, `make no-owner` shows one full-access key, REP's; after it, none.
   `bookerbob.testnet` stays as the "before" exhibit with its single REP key.
+
+## A second merchant with standing, and the proven standing tree (2026-11-05)
+
+- h05's buyers joined its review group through the normal path: the hotel buyer and the 5 who
+  paid h05 through the lisbon-g1 group treasury (`scripts/seed-h05.mjs`; each a fresh Semaphore
+  identity, relayed). Six people, so the round could release: 6 sealed ratings, mean 4.5, score
+  3.81, and a Seed event into the graph ([CgrCbDCk…](https://testnet.nearblocks.io/txns/CgrCbDCkbfrwNqx9t33T489ZoydeNevjwFVp9rW73WYc)).
+- The live graph (6 events, root `c1a80ccb…`) was proved in Jolt (`zk/out/standing-testnet-3`,
+  the same standing program), signed by the worker key, submitted
+  ([7W5kBY3r…](https://testnet.nearblocks.io/txns/7W5kBY3rw7a8EYUJtMaMLWRoy2W9ZVCgJT5a9JZoFk2n)), left
+  unchallenged for its window and finalized
+  ([DswLxceM…](https://testnet.nearblocks.io/txns/DswLxceMNRZxjuhk5BMWDY8WANLMaxBUFNrwFgjFgTuj)).
+- On finalize the bazaar rebuilt the score hash from the stored list, refused nothing, and built
+  the standing tree itself: root `885a8152…`, 2 merchants, no score stored. `in_top(m01, 50%)` is
+  true; h05's account on m01's path is refused (`scripts/standing-root.mjs`).
+- `proven_score` (above, 2026-11-05 morning) no longer exists: the chain keeps the root and the
+  scores hash only. The scores still follow from the public events and sit in the update's tx
+  args, so the tree is a compact rank check, not score privacy.

@@ -15,6 +15,8 @@ The referee row was re-proved on 2026-11-05 after the rule `github account_age_y
 
 Challengeable on chain since 2026-11-05: an update is posted pending with sha256 of its proof; anyone can challenge it inside one review round with a 0.1 NEAR bond; a registered arbiter re-runs the verifier and signs the resolution; a false update slashes the worker's 0.5 NEAR bond to the challenger. Run live once (valid, docs/testnet.md). Round 2 (3 hires + 2 seeds, `zk/out/standing-testnet-2`): prove 2.71 s, verify 61 ms, proof 84,796 B, peak RSS 999 MB.
 
+Live testnet graph 3 (3 hires, m01's 2 seeds, h05's first seed; `zk/out/standing-testnet-3`, 2026-11-05): prove 4.05 s, verify 64 ms; finalized on chain after its challenge window, and the bazaar built the proven standing tree from its score list (m01 rank 1, h05 rank 2).
+
 Live testnet graph (3 hires + 1 seed, root `ad42980d…`, `zk/out/standing-testnet`): prove 3.32 s, verify 66 ms, proof 84,796 B, peak RSS 998 MB (on battery); its worker-signed update was accepted on chain (tx `5Us18yJb…`, docs/testnet.md).
 
 Standing was re-proved on 2026-11-05 after `publish_reviews` started pushing the Seed graph event: the fixture graph is now 20 hires and 1 seed (before, hires only, so the standing list was empty). Same program hash.

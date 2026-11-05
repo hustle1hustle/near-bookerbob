@@ -85,7 +85,7 @@ const zk = (g, input) => {
   const proof = existsSync(`${dir}/proof.bin`) ? readFileSync(`${dir}/proof.bin`).length : 0;
   line(program && out && proof === r.proof_bytes, `jolt ${g}: committed output equals the input's expected value, program hash = sha256(preprocessing)`, `proved in ${r.prove_seconds.toFixed(2)} s, proof ${proof} B`);
 };
-for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
+for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["standing-testnet-3", "standing-testnet-3-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
 
 // 3. JS suites
 const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs"].filter((f) => existsSync(root + f));

@@ -1,0 +1,35 @@
+{
+  "note": "The proven standing tree: its root is built by the bazaar from the score list of a Jolt-proven, challengeable graph update; no score is stored. The scores follow from public events, so the root is a compact rank check, not score privacy. Only the top merchant's opening is published here.",
+  "standing_root": "885a81526ea7e9a3918cbb6636b5504b1c3c101534d3cd368bfa97345c49ea85",
+  "n": 2,
+  "scores_hash": "0327ed15cde22e0e97792cb01ff285b8dbf7ea70b8ef4da1f0b6831ca6cfc3ff",
+  "graph_root": "c1a80ccb166e47ae4e8bd53e00fd7f2f005ae8b46ad8e13a1dd2c2c9c73a1e5e",
+  "ranks": [
+    [
+      "m01.bookerbob.testnet",
+      1
+    ],
+    [
+      "h05.bookerbob.testnet",
+      2
+    ]
+  ],
+  "published_opening": {
+    "merchant": "m01.bookerbob.testnet",
+    "rank": 1,
+    "n": 2,
+    "score_commit": "fd16c2bc3bed2f064baa1d0cab49d771da9e1bf2d8f74b2e4ab1743e0897118d",
+    "path": [
+      [
+        "36b602ad170da13f4f2e9c69195cc2b726810a613bc5dc7eca57752d973fd3c4",
+        false
+      ]
+    ]
+  },
+  "pct": 50,
+  "low_merchant": "h05.bookerbob.testnet",
+  "submit_tx": "7W5kBY3rw7a8EYUJtMaMLWRoy2W9ZVCgJT5a9JZoFk2n",
+  "finalize_tx": "DswLxceMNRZxjuhk5BMWDY8WANLMaxBUFNrwFgjFgTuj",
+  "proof": "zk/out/standing-testnet-3",
+  "input": "fixtures/zk/standing-testnet-3-input.json"
+}

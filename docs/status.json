@@ -331,11 +331,11 @@
     ]
   },
   {
-    "feature": "committed standing list: one root per context on chain, no scores; a merchant proves \"rank r of n\" against it, so the chain answers \"is X in the top N%\" (`in_top`) while the list stays off chain",
+    "feature": "proven standing tree: the bazaar builds one root from the score list of a Jolt-proven, challengeable graph update and stores no scores; a merchant proves \"rank r of n\" against it, so the chain answers \"is X in the top N%\" (`in_top`)",
     "tracks": "privacy, social, security",
-    "where": "`core/src/standing.rs`, `contract/src/lib.rs` (`post_standing_root`, `in_top`), `bookerbob standing-commit`, `scripts/standing-root.mjs`",
+    "where": "`zkcore/src/standing.rs`, `core/src/standing.rs`, `contract/src/lib.rs` (`apply_graph_update`, `standing_root`, `in_top`), `bookerbob standing-proofs`, `scripts/standing-root.mjs`",
     "status": "live",
-    "detail": "hoodie context, 22 merchants, root posted by the bonded worker key; in_top(m01, 5%) true, a low merchant claiming rank 1 refused; 5 tests; the Jolt-proven standing update still stores plain scores (`proven_score`), and the tree's ranks are the worker's word, not proven in Jolt",
+    "detail": "live graph of 6 events (hires, m01's two review rounds, h05's first: its 5 group-treasury buyers and the hotel buyer joined its review group), proved in Jolt (zk/out/standing-testnet-3), submitted, unchallenged, finalized: m01 rank 1, h05 rank 2; in_top(m01, 50%) true, h05 on m01's path refused; apply refuses a list that differs from the proven scores hash (test); salts come from the graph root because the scores follow from public events: a rank check, not score privacy",
     "evidence": [
       "standing_root"
     ]
