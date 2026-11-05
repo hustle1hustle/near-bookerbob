@@ -34,7 +34,7 @@ export const STALE = [
   "32 of 32",
   "32/32",
 ];
-const DOCS = ["README.md", "docs/judge-guide.md", "AGENTS.md", "CLAUDE.md", "RESUME.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md"];
+const DOCS = ["README.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "CLAUDE.md", "RESUME.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md"];
 
 // Features with code in the tree. A doc that calls one planned or not built is drift. Each
 // entry names the file and the code that proves it shipped; if that code is gone, the entry

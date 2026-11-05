@@ -60,6 +60,10 @@ verify-offline:
 cheat:
 	node scripts/cheat.mjs run
 
+# If REP turned malicious: each REP-held key's worst case, read live where it can be (README, "Who can lie").
+rep-is-evil:
+	node scripts/rep-is-evil.mjs
+
 # Who can change a bazaar's code, over public RPC (panel action 8). `node scripts/no-owner.mjs plan` prints the staged steps.
 no-owner:
 	node scripts/no-owner.mjs

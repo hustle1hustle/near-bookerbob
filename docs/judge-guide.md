@@ -23,7 +23,7 @@ chain, offline.
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only, about 10 s online (up to a minute if public RPC rate-limits), under a second offline
+make judge           # Node 22 only: under a second offline, about a minute online (longer when public RPC rate-limits)
 make verify          # Rust stable; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
