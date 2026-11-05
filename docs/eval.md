@@ -134,6 +134,35 @@ The accuracy result, next to v2's budget result; neither replaces the other.
 - Qwen3.6 reached 2,000 tokens on every item too.
 - **Cost:** about $0.22 (v2 and v3 together about $0.33).
 
+## Protocol v4 (frozen 2026-11-05, after v3, before any v4 item exists)
+
+v3 showed the referee-claim set is too easy: 192 finished answers, no wrong one. v4 asks for
+a set that separates models by accuracy. Committed before any v4 item is generated or sent:
+
+- **The same task and prompt** as v2/v3 (the first claim the referee must refuse, or 0), the
+  same eight rules stated the same way, the truth from `zkcore::referee::check` via
+  `bookerbob eval-truth`. No item is hand-labelled.
+- **A new set of 40 items in 2 harder tiers of 20**, generated once:
+  - `t4`: 7 facts (two of them on one platform, one at or under the rule's minimum), 6
+    claims, each citing 1 to 3 facts; 2 or 3 planted mistakes per item (the first one decides
+    the answer), drawn from the v2 near misses and a cited fact that proves another line;
+  - `t5`: the t4 shape with 8 claims and text near misses that the split rule decides
+    (`gold-plated` is refused, `golden` holds; `superb` holds, `uber` on another line is
+    refused; a decimal like `3.5` carries the numbers 3 and 5; a text of exactly 280
+    characters holds and 281 is refused; one non-ASCII letter is refused).
+  About a fifth of the items have every claim holding (answer 0).
+- **Budget: 4,000 output tokens,** temperature 0, one request per item. A cut reply is no
+  answer, reported apart.
+- **Models:** glm-5.3-flash and DeepSeek-V4.1-Flash. Qwen3.6 is dropped: it hit the budget on
+  every item in v1, v2 and v3, so a v4 run would only spend credit.
+- **Target:** the top model at 40 to 80%. Outside that band is reported, not tuned.
+- **Spend:** existing NEAR AI credit only, capped at 1 USD; a 402 stops the run, and the
+  partial result is reported as partial.
+- **The set owner** commits the root with `commit_eval_set`; certificates under the subject
+  `<model>@4000tok/referee-v4` on that root.
+- **What it is for:** a merchant can require `eval_passes(subject, set_root, threshold)` of
+  the model that issued a buyer's verdict (the `eval_gate`, built after this freeze).
+
 ## The calibration set (tuned, not the headline)
 
 The first sealed set (root `758b21ccd7edc046…`) chose the budget. Its 400-token run is also
