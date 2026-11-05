@@ -55,6 +55,7 @@ function liveBanner(l) {
   if (!l) return "live.json not found. run node scripts/live-snapshot.mjs";
   const d = l.data;
   const spent = d.purchases.filter((p) => p.status === "Spent").length;
+  const paid = d.purchases.filter((p) => p.kind !== "refunded").length;
   const when = l.source === "live" ? `live from ${d.bazaar} over public RPC, block ${l.block}` : `public RPC unreachable: the snapshot of ${l.at.slice(0, 16).replace("T", " ")} UTC (block ${l.block})`;
-  return `${when}. ${d.spent_count} nullifiers spent on chain; ${spent} of the ${d.purchases.length} purchases listed here settled; ${d.merchants.filter((m) => m.approved).length} approved merchants. dUSDC is a testnet demo token, the facts are synthetic.`;
+  return `${when}. ${d.spent_count} nullifiers spent on chain, ${spent} of them listed here: ${paid} paid purchases and ${d.purchases.length - paid} group pledge refunded by its DAO; ${d.merchants.filter((m) => m.approved).length} approved merchants. dUSDC is a testnet demo token, the facts are synthetic.`;
 }

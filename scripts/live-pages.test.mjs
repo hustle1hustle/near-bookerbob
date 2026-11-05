@@ -27,6 +27,7 @@ test("the snapshot covers every testnet purchase in the manifest", () => {
   assert.deepEqual(snap.purchases.map((p) => p.nullifier), purchases(m).map((p) => p.nullifier));
   assert.ok(snap.purchases.every((p) => p.tx && p.paid), "every row carries the tx that paid");
   assert.match(snap.taken_at, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(snap.purchases.length, snap.spent_count, "every spent nullifier is listed");
 });
 
 test("live: statuses and counts come from the chain, not the snapshot", async () => {
@@ -35,7 +36,7 @@ test("live: statuses and counts come from the chain, not the snapshot", async ()
   assert.equal(l.source, "live");
   assert.equal(l.data.spent_count, 77);
   assert.ok(l.data.purchases.every((p) => p.status === "Pending"));
-  assert.match(ctx.liveBanner(l), /^live from bookerbob\.testnet over public RPC, block 999\. 77 nullifiers spent/);
+  assert.match(ctx.liveBanner(l), /^live from bookerbob\.testnet over public RPC, block 999\. 77 nullifiers spent on chain, 0 of them listed here/);
 });
 
 test("RPC down: the dated snapshot, said plainly", async () => {

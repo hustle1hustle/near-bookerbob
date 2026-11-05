@@ -285,5 +285,21 @@ if (m.eval) {
     return [sigs && hashOk && score === e.score_bucket && c.ok, `${run.answers.length} TEE signatures valid, answers hash matches the certificate, eval_score on chain ${score}`];
   });
 }
+await attempt("every spent nullifier is in the manifest: spent_count on chain equals the listed purchases (paid, plus the one refunded group pledge)", async () => {
+  const { purchases } = await import("./live-snapshot.mjs");
+  const rows = purchases(m);
+  const n = await view(m.bazaar, "spent_count", {});
+  return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
+});
+if (m.rep_eval) {
+  const r = m.rep_eval;
+  await attempt(`REP Eval held-out set ${r.set_root.slice(0, 12)}..: ${r.models.length} certificates, each eval_score on chain equals its committed bucket`, async () => {
+    const pub = JSON.parse(readFileSync(new URL("../fixtures/live/eval/rep-eval.json", import.meta.url)));
+    const reg = await tx(r.txs.register_set, m.bazaar);
+    const rows = await Promise.all(r.models.map(async (x) => [x, await view(m.bazaar, "eval_score", { subject: x.subject, set_root: r.set_root }), await tx(x.submit_tx, m.bazaar)]));
+    const ok = reg.ok && pub.set_root === r.set_root && rows.every(([x, score, t]) => score === x.bucket && t.ok);
+    return [ok, rows.map(([x, score]) => `${x.subject.split("/").pop()} ${score}`).join(", ")];
+  });
+}
 console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
 process.exit(failed ? 1 : 0);

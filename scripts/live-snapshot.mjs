@@ -11,7 +11,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 export const RPC = process.env.NEAR_RPC ?? "https://rpc.testnet.fastnear.com";
 
-/** Every testnet purchase in the manifest, one row per buyer, with the tx that paid. */
+/**
+ * Every nullifier the testnet purchases burned, one row per buyer, with the tx that paid (or,
+ * for the one refunded pledge, the tx that refunded it). Its length must equal the contract's
+ * spent_count; verify-live checks that.
+ */
 export function purchases(m) {
   const rows = m.testers.map((t) => ({
     kind: t.sealed ? "sealed" : t.merchant.startsWith("h") ? "hotel" : "single",
@@ -26,8 +30,11 @@ export function purchases(m) {
   }
   const d = m.group_dao;
   if (d) {
-    for (const x of d.members.filter((x) => x.tester !== d.dropout)) {
-      rows.push({ kind: "group-dao", tester: x.tester, merchant: d.offer.merchant, nullifier: x.nullifier, paid: d.offer.price, tx: d.txs.release_vote4, dao: d.dao });
+    for (const x of d.members) {
+      // The dropout's pledge burned its nullifier; the DAO refunded the dUSDC, and the
+      // nullifier stays spent (a refund is not a second use of the proof).
+      const refunded = x.tester === d.dropout;
+      rows.push({ kind: refunded ? "refunded" : "group-dao", tester: x.tester, merchant: d.offer.merchant, nullifier: x.nullifier, paid: refunded ? "0" : d.offer.price, tx: refunded ? d.txs.refund_vote4 : d.txs.release_vote4, dao: d.dao });
     }
   }
   return rows;
