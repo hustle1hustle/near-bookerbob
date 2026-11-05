@@ -41,7 +41,10 @@ if [ -d "$SECRETS_DIR" ]; then
   node -e '
     const fs = require("fs"), p = require("path"), want = /^(private_key|secret_key|seed|seed_phrase|master_seed_phrase|salt|question|password|token|api_key)$/;
     const out = [];
-    const scan = (o, k) => Array.isArray(o) ? o.forEach((x) => scan(x, k)) : o && typeof o === "object" ? Object.entries(o).forEach(([kk, v]) => scan(v, kk)) : typeof o === "string" && want.test(k) && o.length >= 16 && out.push(o.replace(/^ed25519:/, ""));
+    // A multi-line value (a REP Eval v2 prompt) shares its rule text with the public script, so
+    // only its item-specific lines are searched: the numbered claims with their citations.
+    const add = (v) => { if (!v.includes("\n")) { if (v.length >= 16) out.push(v.replace(/^ed25519:/, "")); return; } for (const l of v.split("\n")) if (/^[0-9]+\. line .*cites /.test(l)) out.push(l); };
+    const scan = (o, k) => Array.isArray(o) ? o.forEach((x) => scan(x, k)) : o && typeof o === "object" ? Object.entries(o).forEach(([kk, v]) => scan(v, kk)) : typeof o === "string" && want.test(k) && add(o);
     const walk = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const q = p.join(d, f.name); if (f.isDirectory()) walk(q); else if (f.name.endsWith(".json") && fs.statSync(q).size < 1e6) { try { scan(JSON.parse(fs.readFileSync(q, "utf8")), ""); } catch {} } } };
     for (const d of process.argv.slice(1)) if (fs.existsSync(d)) walk(d);
     console.log(out.join("\n"));
