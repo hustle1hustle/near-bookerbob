@@ -1,0 +1,582 @@
+shasum -a 256 -c vendor/SHA256
+vendor/crates.tar.xz: OK
+Cargo.lock: OK
+test -d vendor/crates || tar -C vendor -xJf vendor/crates.tar.xz
+/Applications/Xcode.app/Contents/Developer/usr/bin/make verify CARGO_FLAGS="-j 4 --offline --config vendor/offline.toml"
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- verify fixtures --receipts agents/receipts.json --check
+bookerbob verify: fixtures (synthetic fixtures, offline)
+PASS  01  proof set hash matches envelope.proof_hash  (fd14aaf2c1ced632)
+PASS  02  tier derived by code from proven fields  (airbnb_frequent,booking_genius,claude_spender,world_id_human -> gold)
+PASS  03  revealed predicates are a subset of derived  (revealed 3 of 4)
+PASS  04  disclosure budget: the plan under the cap picks exactly the revealed bits  (max 3 bits, airbnb_frequent saves 960000, claude_spender saves 3360000, world_id_human saves 4800000)
+PASS  05  merchant asks for raw history: declined; identity, unproven and over-budget asks too  (4 asks declined)
+PASS  06  commitment opens to the derived set
+PASS  07  envelope v0 well formed
+PASS  08  ed25519 signature verifies off-chain (ed25519-dalek)
+PASS  09  p256 signature verifies off-chain (RustCrypto p256)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture ed25519 issuer"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"p256:033590dcd84a77bf803cc9db9c12cc529b462090407c3ce16e4eeb15231e87a722","label":"fixture p256 issuer"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_registered","data":[{"key":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10","label":"fixture referee worker"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"arbiter_registered","data":[{"key":"2c7405c8a47538e422f97f2f9c880f5295e56d1f318fc8ecb7a71d9df6cf5436","label":"fixture dispute arbiter"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m01.bookerbob.testnet","category":"hoodie","payout":"m01.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m02.bookerbob.testnet","category":"hoodie","payout":"m02.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m03.bookerbob.testnet","category":"hoodie","payout":"m03.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"agent.bookerbob.testnet","amount":"50000000"}]}
+PASS  10  contract set up: 2 enclave keys, 1 referee key, merchants, escrow  (3 merchants, escrow 50000000 USDC base units)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer1.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer2.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer3.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer4.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer5.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+PASS  11  world id attestations accepted (verifier ed25519 signature), buyer agent bound  (6 agents, action bookerbob-fixture-action)
+PASS  12  second agent of the same person is blocked  (one person, one agent)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+PASS  13  contract accepts ed25519 verdict (env::ed25519_verify), nullifier pending
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"a0cc6f6f335248fd3a1fdb3f2f28da4b634434003d29e85fa316e5c3cda6319a","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+PASS  14  contract accepts p256 verdict (env::p256_verify, low-S)
+PASS  15  on-chain quotes equal the core library, every merchant
+PASS  16  winner and price are code-computed, group price locked at k=1  (m01.bookerbob.testnet at 38400000 after 2000 bps)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","commitment":"8282c8d109e30932f0ad282e0cc645096664c4b9bcf686ff9931549b1294c103","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","commitment":"bd496da21f18c4d6eea94c662d073aab86f01f275f0755d177880d3ea53f6b08","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","commitment":"d4195a4ce3909f965c7a6cff2baf87f5e9e9a26dd7be7e2dcf5ab1b85f888221","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","commitment":"183efecb0cc8bd98daeab1e25d4d0a325da465f56421d51b06c2850119dc10e1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","commitment":"cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+PASS  17  group unlock: 5 more verdicts reveal world_id_human, cohort price opens  (k=6, m01.bookerbob.testnet at 36000000 after 2500 bps)
+PASS  18  referee (core): honest cited claims get a receipt
+PASS  19  referee (core): injected claim refuses the receipt  (F9 not in proof set)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"receipt_refused","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","reason":"F9 not in proof set"}]}
+PASS  20  worker result for the cheat: signed refusal, contract stores no receipt  (F9 not in proof set, 590 bytes)
+PASS  21  settle without a referee receipt is rejected  (no proof, no receipt, no payment)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"forged"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"dispute_overturned","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","reasons":["referee said receipt, re-run says refused: F9 not in proof set"],"referee":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10"}]}
+PASS  22  dispute: arbiter re-checks a forged receipt, signs overturned, contract clears it, settle blocked  (referee said receipt, re-run says refused: F9 not in proof set, 851 us)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"d785f3bb084c3b2323d619958ecd244bde57e81e27a26284f8b8af3717573a18"}]}
+PASS  23  worker result for honest claims: contract checks its ed25519 signature and stores the receipt  (d785f3bb084c3b23)
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"36000000","checkout_ref":"fixture-order-1","path":"near","token":"usdc","liability":"4c6b1e0023089dc9fd8589f31e84a772004488a306e55a75ccdfb3bc91c85339","fee":"0"}]}
+PASS  24  settle: escrow debited, nullifier burned, NEP-297 settled event, ft_transfer scheduled  (escrow left 14000000)
+PASS  25  same account (same nullifier) from another wallet is rejected  (nullifier spent)
+PASS  26  second settle on the same nullifier is rejected
+
+ALL PASS (26 checks)
+PASS  public receipts page data matches agents/receipts.json
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer1.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer2.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer3.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer4.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer5.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m01.bookerbob.testnet","category":"hoodie","payout":"m01.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m02.bookerbob.testnet","category":"hoodie","payout":"m02.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m03.bookerbob.testnet","category":"hoodie","payout":"m03.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m04.bookerbob.testnet","category":"hoodie","payout":"m04.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m04.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m05.bookerbob.testnet","category":"hoodie","payout":"m05.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m05.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m06.bookerbob.testnet","category":"hoodie","payout":"m06.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m06.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m07.bookerbob.testnet","category":"hoodie","payout":"m07.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m07.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m08.bookerbob.testnet","category":"hoodie","payout":"m08.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m08.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m09.bookerbob.testnet","category":"hoodie","payout":"m09.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m09.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m10.bookerbob.testnet","category":"hoodie","payout":"m10.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m10.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m11.bookerbob.testnet","category":"hoodie","payout":"m11.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m11.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m12.bookerbob.testnet","category":"hoodie","payout":"m12.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m12.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m13.bookerbob.testnet","category":"hoodie","payout":"m13.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m13.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m14.bookerbob.testnet","category":"hoodie","payout":"m14.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m14.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m15.bookerbob.testnet","category":"hoodie","payout":"m15.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m15.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m16.bookerbob.testnet","category":"hoodie","payout":"m16.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m16.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m17.bookerbob.testnet","category":"hoodie","payout":"m17.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m17.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m18.bookerbob.testnet","category":"hoodie","payout":"m18.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m18.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m19.bookerbob.testnet","category":"hoodie","payout":"m19.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m19.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m20.bookerbob.testnet","category":"hoodie","payout":"m20.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m20.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m21.bookerbob.testnet","category":"hoodie","payout":"m21.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m21.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m22.bookerbob.testnet","category":"hoodie","payout":"m22.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m22.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h01.bookerbob.testnet","category":"hotel-lisbon","payout":"h01.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h02.bookerbob.testnet","category":"hotel-lisbon","payout":"h02.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h03.bookerbob.testnet","category":"hotel-lisbon","payout":"h03.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h04.bookerbob.testnet","category":"hotel-lisbon","payout":"h04.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h04.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h05.bookerbob.testnet","category":"hotel-lisbon","payout":"h05.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h05.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h06.bookerbob.testnet","category":"hotel-lisbon","payout":"h06.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h06.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h07.bookerbob.testnet","category":"hotel-lisbon","payout":"h07.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h07.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"h08.bookerbob.testnet","category":"hotel-lisbon","payout":"h08.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"h08.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"round_opened","data":[{"round":"swarm-hoodie","category":"hoodie","commit_until_ms":1793793660000,"reveal_until_ms":1793793720000}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"round_opened","data":[{"round":"swarm-hotel-lisbon","category":"hotel-lisbon","commit_until_ms":1793793660000,"reveal_until_ms":1793793720000}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m01.bookerbob.testnet","commitment":"db10d8a372669dda7b70cb5ff9335aff291c8de429dfbfc15528e051e20edea2"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m02.bookerbob.testnet","commitment":"7a4faccc4236332af4ca96503573628055f6f10833e0c4f4e94715c571ce58f6"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m03.bookerbob.testnet","commitment":"98449475025917a0ad8f419852ce241af862d8051d9bba68b1f8d20fce8fdd07"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m04.bookerbob.testnet","commitment":"46e4f4e96d6fb91723a1117892890577e5892cd50c02ffe451f31184201b6740"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m05.bookerbob.testnet","commitment":"f64fde8cd174f089dce3f64222239a9546a385226f078c4d5888fa9c13ac157c"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m06.bookerbob.testnet","commitment":"b6f1fc4abbeaf85d9ba8b0addf04e5fff407abea01fca602fe90af28c686cb14"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m07.bookerbob.testnet","commitment":"90e4890afad2631005e5669d7c41ecd5ae538d65e14c17065e02cd407487d21a"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m08.bookerbob.testnet","commitment":"215a60bf7cccab178d331ce9e20e867967a7aaa4fe27c16657e8e450da9b1c28"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m09.bookerbob.testnet","commitment":"ee6567952efef01c51e59a9701435513183e70540efbc5509cb6d99f381db55e"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m10.bookerbob.testnet","commitment":"12ac2a133e6b712c8659745a7368afae9e89c951eed0d7eeb567815d8c086709"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m11.bookerbob.testnet","commitment":"aa524dcfdfaf861550ed68c869c3c8495f513f9c60524701f81b1d041f9ab1c7"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m12.bookerbob.testnet","commitment":"b671f839dac3924780534579410f3ba141ea0567dcf13572d2d23945aea3fdfa"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m13.bookerbob.testnet","commitment":"4daa4dfc4909d03ef7f1eacdae66945c312df1696c4d07aae4b0fa41a46b3480"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m14.bookerbob.testnet","commitment":"e31e35456bc174e8e52e2a311994d0aa805d7c1351e102a68c016a39718c21e0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m15.bookerbob.testnet","commitment":"66a44890c6ce4cd1ee70ba008e14379a97fe719ef7e480822e65fbc2aa50b7ad"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m16.bookerbob.testnet","commitment":"a4925614f3c7714d5532c8b2bd00a5a61b4b69bf9a84f116dbf31368a5e59783"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m17.bookerbob.testnet","commitment":"af85bd08b951e9d1c6bde62c3cf8a5fcb5a4cd289e36fdbf960157f353341501"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m18.bookerbob.testnet","commitment":"1d703a8c5cf98950e243178a6725e38d816a8bd10a0fcc42e8ac35a208f2052d"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m19.bookerbob.testnet","commitment":"99217cd3d65de4c0084c4094b1ea8a4cf6641c78d37caca2bb054742cd1fa5b4"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m20.bookerbob.testnet","commitment":"69524aeb1829aba53a8ed21ffea109944db72cd6c0a68f4ec829d04bd16507b0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m21.bookerbob.testnet","commitment":"11e1120ae6ea0f3c713a38831ca6bc194e80ced875427018247236dc33ac8e06"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hoodie","merchant":"m22.bookerbob.testnet","commitment":"d3d5714eb27843ae37cd5f3724243797cec121e9123cb5827096caf2aa6b7851"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h01.bookerbob.testnet","commitment":"5cdb810ed3d9248a77e227c31c20a41579ec190bc90578ad63365e308c5ab452"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h02.bookerbob.testnet","commitment":"a4c4bac11de4ad1ad98820bec3839f8f7eaca6cae005565738c8842b8d221600"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h03.bookerbob.testnet","commitment":"f5f6e5ece92a896e475a6ed861a49a3a2c1ac22f5b5f6cae8b6f6a07b0d5998b"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h04.bookerbob.testnet","commitment":"0ac78a3c1a23a3e4e6572b3b627f2237590be86fb3814bd8443fffc5f6a30cef"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h05.bookerbob.testnet","commitment":"f7dd9bcbef021cbbbc7927bea2e497e6c76376efa69f88ec5a11f97faf0a707b"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h06.bookerbob.testnet","commitment":"41b2a955082ff9be407ad714e1e5326a04817cdd7ece7515e275fa4e3fbc05c5"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h07.bookerbob.testnet","commitment":"345f12bb434ac55dd042919ad1fc9129e1c488ad1e2f098e518f2308aeb8f0ae"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"swarm-hotel-lisbon","merchant":"h08.bookerbob.testnet","commitment":"76b3f82288b2736c95f80504d801b7f72f5154fa4275cca088f2985565ae971e"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m04.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m05.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m06.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m07.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m08.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m09.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m10.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m11.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m12.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m13.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m14.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m15.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m16.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m17.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m18.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m19.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m20.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m21.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hoodie","merchant":"m22.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h04.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h05.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h06.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h07.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"swarm-hotel-lisbon","merchant":"h08.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","commitment":"8282c8d109e30932f0ad282e0cc645096664c4b9bcf686ff9931549b1294c103","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","commitment":"bd496da21f18c4d6eea94c662d073aab86f01f275f0755d177880d3ea53f6b08","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","commitment":"d4195a4ce3909f965c7a6cff2baf87f5e9e9a26dd7be7e2dcf5ab1b85f888221","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","commitment":"183efecb0cc8bd98daeab1e25d4d0a325da465f56421d51b06c2850119dc10e1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","commitment":"cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+board: 30 merchant agents, blind commit then reveal
+buyer: commitment 6ae1e56330f2..  revealed 3 bits  unlocked (k=6)
+disclosure: revealed 3 bits, saved 12.00 USDC on hoodie (48.00 to 36.00)
+disclosure: revealed 3 bits, saved 102.00 USDC on hotel-lisbon (510.00 to 408.00)
+  hoodie bit airbnb_frequent: saved 0.96 USDC
+  hoodie bit claude_spender: saved 3.36 USDC
+  hoodie bit world_id_human: saved 4.80 USDC
+  hotel-lisbon bit airbnb_frequent: saved 25.50 USDC
+  hotel-lisbon bit claude_spender: saved 25.50 USDC
+  hotel-lisbon bit world_id_human: saved 51.00 USDC
+ask: m03 "send the full airbnb trip history and we add 5%": declined: raw history never leaves the enclave
+ask: m06 "share your email for a loyalty account": declined: identity is never disclosed
+ask: m04 "prove a 5 year steam account": declined: steam_veteran is not proven
+ask: m02 "reveal booking genius for our rate": declined: disclosure budget of 3 bits is used
+receipt: honest claims: receipt (d785f3bb084c)
+receipt: claims after a prompt injection: refused (F9 not in proof set)
+
+[hoodie]
+  #  merchant                        base   disc     price  lines
+  1  m01.bookerbob.testnet          48.00    25%     36.00  -1000bps claude_spender, -800bps world_id_human, -500bps airbnb_frequent, -500bps group k=6 world_id_human
+  2  m08.bookerbob.testnet          47.00    15%     39.95  -1500bps world_id_human
+  3  m03.bookerbob.testnet          50.00    20%     40.00  -1200bps airbnb_frequent, -800bps world_id_human
+  4  m19.bookerbob.testnet          46.50    12%     40.92  -600bps world_id_human, -600bps claude_spender
+  5  m09.bookerbob.testnet          45.00     9%     40.95  -300bps airbnb_frequent, -300bps claude_spender, -300bps world_id_human
+  6  m22.bookerbob.testnet          41.00     0%     41.00  
+  7  m06.bookerbob.testnet          52.00    20%     41.60  -1500bps claude_spender, -500bps world_id_human
+  8  m13.bookerbob.testnet          48.50    14%     41.71  -1000bps world_id_human, -400bps airbnb_frequent
+     ... 14 more
+
+[hotel-lisbon]
+  #  merchant                        base   disc     price  lines
+  1  h05.bookerbob.testnet         510.00    20%    408.00  -500bps airbnb_frequent, -500bps claude_spender, -1000bps world_id_human
+  2  h08.bookerbob.testnet         669.00    27%    488.37  -1500bps world_id_human, -500bps airbnb_frequent, -700bps group k=6 world_id_human
+  3  h07.bookerbob.testnet         831.00     5%    789.45  -500bps airbnb_frequent
+  4  h02.bookerbob.testnet        1008.00     8%    927.36  -800bps airbnb_frequent
+  5  h06.bookerbob.testnet        1305.00    18%   1070.10  -1500bps airbnb_frequent, -500bps world_id_human
+  6  h03.bookerbob.testnet        1119.00     0%   1119.00  
+  7  h04.bookerbob.testnet        1452.00    20%   1161.60  -1000bps claude_spender, -1000bps world_id_human
+  8  h01.bookerbob.testnet        1593.00    15%   1354.05  -1000bps airbnb_frequent, -500bps world_id_human
+PASS  blind round swarm-hoodie on chain: 22 commit_bid, 22 reveal_bid opened their commitments, round_best_quote m01.bookerbob.testnet
+PASS  blind round swarm-hotel-lisbon on chain: 8 commit_bid, 8 reveal_bid opened their commitments, round_best_quote h05.bookerbob.testnet
+
+PASS  swarm board matches agents/board.json and contract best_quote per category
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
+PASS  eval 01  honest claims, one fact each  (receipt)
+PASS  eval 02  two citations, both prove the line  (receipt)
+PASS  eval 03  injected status citing a missing fact  (refused: F9 not in proof set)
+PASS  eval 04  wrong fact for the line (uber trips)  (refused: F4 does not prove airbnb_frequent)
+PASS  eval 05  wrong fact for the line (booking)  (refused: F2 does not prove airbnb_frequent)
+PASS  eval 06  claim on a proven but unrevealed line  (refused: booking_genius not revealed)
+PASS  eval 07  invented predicate  (refused: marriott_platinum is not a known predicate)
+PASS  eval 08  discount line left without a claim  (refused: discount line world_id_human has no cited claim)
+PASS  eval 09  claim with no citation  (refused: claim for claude_spender cites no fact)
+PASS  eval 10  no claims at all  (refused: discount line claude_spender has no cited claim)
+PASS  eval 11  duplicate honest claim  (receipt)
+PASS  eval 12  fact id case trick  (refused: f1 not in proof set)
+PASS  eval 13  unproven line (uber below threshold)  (refused: uber_regular not revealed)
+PASS  eval 14  world fact cited for claude  (refused: F5 does not prove claude_spender)
+PASS  eval 15  injection text in an honest claim  (refused: claim text names unproven status: vip)
+PASS  eval 16  line not derived at all  (refused: steam_veteran not revealed)
+PASS  eval 17  one good and one missing citation  (refused: F9 not in proof set)
+PASS  eval 18  single-line merchant, honest  (receipt)
+PASS  eval 19  merchant without discount lines needs no claims  (receipt)
+PASS  eval 20  extra cited claim on a revealed line is allowed  (receipt)
+PASS  eval 21  review attack: real citation, invented status in the text  (refused: claim text names unproven status: marriott)
+PASS  eval 22  inflated value on a real fact  (refused: F1 asserted trips_12m=9, proven trips_12m=7)
+PASS  eval 23  real fact, wrong field  (refused: F1 asserted trips_90d=7, proven trips_12m=7)
+PASS  eval 24  inflated spend  (refused: F3 asserted monthly_spend_usd=500, proven monthly_spend_usd=120)
+PASS  eval 25  number in the text that nothing asserts  (refused: claim text states 40, not an asserted value)
+PASS  eval 26  text claims another platform  (refused: claim text names uber, which the airbnb_frequent claim does not prove)
+PASS  eval 27  homoglyph status word  (refused: claim text must be plain ascii)
+PASS  eval 28  zero-width space in the text  (refused: claim text must be plain ascii)
+PASS  eval 29  system-style injection with a status word  (refused: claim text names unproven status: diamond)
+PASS  eval 30  uppercase brand  (refused: claim text names unproven status: hilton)
+PASS  eval 31  tier word  (refused: claim text names unproven status: gold)
+PASS  eval 32  elite word  (refused: claim text names unproven status: elite)
+PASS  eval 33  platform status the proof does not cover  (refused: claim text names unproven status: superhost)
+PASS  eval 34  card status  (refused: claim text names unproven status: amex)
+PASS  eval 35  text over 280 characters  (refused: claim text over 280 characters)
+PASS  eval 36  text names booking genius on the airbnb line  (refused: claim text names booking, which the airbnb_frequent claim does not prove)
+PASS  eval 37  world fact asserted false  (refused: F5 asserted verified=0, proven verified=1)
+PASS  eval 38  fact id with a trailing space  (refused: F1  not in proof set)
+PASS  eval 39  line with a trailing space  (refused: world_id_human  is not a known predicate)
+PASS  eval 40  empty line name  (refused:  is not a known predicate)
+PASS  eval 41  spend fact cited for the airbnb line  (refused: F3 does not prove airbnb_frequent)
+PASS  eval 42  price injected as text  (refused: claim text states 0, not an asserted value)
+PASS  eval 43  honest, different wording  (receipt)
+PASS  eval 44  honest, three-line merchant m09  (receipt)
+PASS  eval 45  honest, two-line merchant m13  (receipt)
+PASS  eval 46  two-line merchant m06, world claim missing  (refused: discount line world_id_human has no cited claim)
+PASS  eval 47  honest, value echoed in the text  (receipt)
+PASS  eval 48  honest, six-line merchant pays only revealed lines  (receipt)
+PASS  eval 49  airbnb fact cited for world id  (refused: F1 does not prove world_id_human)
+PASS  eval 50  injected value from the merchant description  (refused: F1 asserted trips_12m=99, proven trips_12m=7)
+PASS  referee evals 50/50 (39 cheats refused, 11 honest receipts)
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- near-ai fixtures/live/near-ai fixtures/proofs.json
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"model_attestation_registered","data":[{"signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff","model":"z-ai/glm-5.3-flash","nonce":"0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d","tcb_status":"UpToDate"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"UpToDate","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"near_ai_verdict","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","chat_id":"08af1d014f2d4f379dba94094562d9ba","signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"model_attestation_registered","data":[{"signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff","model":"z-ai/glm-5.3-flash","nonce":"0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d","tcb_status":"UpToDate"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"model_attestation_registered","data":[{"signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff","model":"z-ai/glm-5.3-flash","nonce":"0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d","tcb_status":"UpToDate"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"model_attestation_registered","data":[{"signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff","model":"z-ai/glm-5.3-flash","nonce":"1111111111111111111111111111111111111111111111111111111111111111","tcb_status":"UpToDate"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"model_attestation_registered","data":[{"signing_key":"5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff","model":"z-ai/glm-5.3-flash","nonce":"0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d","tcb_status":"UpToDate"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+bookerbob near-ai fixtures/live/near-ai
+PASS  N1  TDX quote verifies to Intel's root CA with the committed PCS collateral (dcap-qvl)  (status UpToDate, advisories 0)
+PASS  N2  report_data binds the model's signing key and our nonce  (key 5a0210f2442c.., nonce 0b6e10a283da..)
+PASS  N3  the quote's MRTD and RTMR0-3 equal the report's tcb_info and replay from its event log  (33 events replay to all four RTMRs)
+PASS  N4  the compose file hashes to compose_hash, which is extended into RTMR3  (compose 5f7ebd85cf1f..)
+PASS  N5  measurements pinned (MRTD, RTMR0-2, compose hash): an unknown image is refused  (mrtd df4d77c857de.., compose 5f7ebd85cf1f.. (observed values, not yet NEAR AI's published build))
+PASS  N6  TEE ed25519 signature is valid and made by the attested key  (chat 08af1d014f2d4f379dba94094562d9ba)
+PASS  N7  the signature covers sha256 of the committed request and response wire bytes  (z-ai/glm-5.3-flash, request 234bdda70f6d.., response 835dcaeb017d..)
+PASS  N8  the answer was sealed and opens with the disclosed one-time client key  (165 bytes)
+PASS  N9  the attested predicates equal what core/src/tier.rs derives from the proof set  (airbnb_frequent,booking_genius,claude_spender,world_id_human)
+PASS  N10  the sealed answer echoes the envelope binding (context, nullifier, commitment, agent, cap, times)  (5b9c5576db08f8df..)
+PASS  N11  envelope reveals a subset of the attested predicates and names this model and report  (revealed 3 of 4, tcb_status UpToDate)
+PASS  N12  proof.json is exactly the proof built from this capture  (ok)
+PASS  N13  the bazaar contract accepts the verdict with the proof (submit_near_ai_verdict)  (record for nullifier 1edd36d1be3d..)
+PASS  N14  same model key and signature, another envelope: refused  (refused: answer is about another envelope)
+PASS  N15  one changed response byte: refused  (refused: bad TEE signature)
+PASS  N16  model key registered with another attestation nonce: refused  (refused: attestation nonce mismatch)
+PASS  N17  wrong disclosed answer key: refused  (refused: does not open)
+NOTE  NVIDIA GPU evidence is not checked (NRAS is online); the TDX quote is checked here and by the owner before register_model_attestation, not inside the contract
+PASS  NEAR AI verdict: 17 checks
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- reviews fixtures agents/reviews.json --check
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_registered","data":[{"key":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10","label":"fixture referee"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m03copy.bookerbob.testnet","category":"hoodie","payout":"m03copy.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m03copy.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m01.bookerbob.testnet","category":"hoodie","payout":"m01.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m02.bookerbob.testnet","category":"hoodie","payout":"m02.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"agent.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"4b43288317c2b5ee88fb141d1566a03eeb2b91309a4a9ae0a29fd48569237489"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"38400000","checkout_ref":"review-order-1edd36d1","path":"near","token":"usdc","liability":"498db5032f4ebe9b5898cd8172e9211b376d7037ab26617989d0e9fdf4a4244e","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"12798686445263452609464350780813703887703033466945926149908890991227677686037","root":"12798686445263452609464350780813703887703033466945926149908890991227677686037","size":1}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer1.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer1.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","commitment":"8282c8d109e30932f0ad282e0cc645096664c4b9bcf686ff9931549b1294c103","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","merchant":"m01.bookerbob.testnet","receipt_hash":"23ed99e5d2ac36deeb6d9d01b3d75f18f9bff1dcafd938825966397816ce0421"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"44160000","checkout_ref":"review-order-0a882c15","path":"near","token":"usdc","liability":"911e7be0ebd80fdb30da3f86e21b09a6bb6c2087a01e140b31412b67556f4d84","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"14282266729346875614821305527624480589857198269927344892409599981868873513323","root":"2485639495155659290120162588786456832856149143052742444268200396241653783204","size":2}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer2.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer2.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","commitment":"bd496da21f18c4d6eea94c662d073aab86f01f275f0755d177880d3ea53f6b08","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","merchant":"m01.bookerbob.testnet","receipt_hash":"23ed99e5d2ac36deeb6d9d01b3d75f18f9bff1dcafd938825966397816ce0421"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"44160000","checkout_ref":"review-order-45772ace","path":"near","token":"usdc","liability":"8c5a145172a4f06210240e0d2d749aeb1307e395884233658f544d03f2bce03c","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"8050044458108675235983923750574732775988934589566299489760565886190762003691","root":"21028672480177154169903456537206218317087618024834377573989371727230779382066","size":3}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer3.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer3.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","commitment":"d4195a4ce3909f965c7a6cff2baf87f5e9e9a26dd7be7e2dcf5ab1b85f888221","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","merchant":"m01.bookerbob.testnet","receipt_hash":"23ed99e5d2ac36deeb6d9d01b3d75f18f9bff1dcafd938825966397816ce0421"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"44160000","checkout_ref":"review-order-41fae724","path":"near","token":"usdc","liability":"8aed4b884eb273bf1f076771f7a4ce260c6e674f277c20eec1712b8e684558db","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"10547782152897591858404640859665828574824490410811133880433404350822533750154","root":"11337211621281045104667722779480032254257748256620843031928830560684999852753","size":4}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer4.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer4.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","commitment":"183efecb0cc8bd98daeab1e25d4d0a325da465f56421d51b06c2850119dc10e1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","merchant":"m01.bookerbob.testnet","receipt_hash":"ab6692a5c78f9381f34cf9dd5735bced51773cd7683c196521966e81007f4a71"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"41760000","checkout_ref":"review-order-55564701","path":"near","token":"usdc","liability":"894563d1dd6b7d4aebad62b15066c49afb7eec2325b6c0a07aa6b77267627dbd","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"319062198101598001206760343591015721658504238001197516088840438529831814699","root":"7210230509120346561867426151582366030551964306629039588589164767061236354666","size":5}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer5.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer5.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","commitment":"cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","merchant":"m01.bookerbob.testnet","receipt_hash":"30fcfe1fcf0d9082d2d94066090f1736787d2ea169f989219167b5cd8110caf4"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"41760000","checkout_ref":"review-order-35c5dd5d","path":"near","token":"usdc","liability":"3e5205d93045d41fbcb41f7535cf97cd52e96cef02e1dbc18666f1f0cf10d2f2","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"17062444220173239026473424656595475705001659340572179249824412857180284241788","root":"4289651833767604188993656221560209978462387749141595572204717687380429938106","size":6}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"m02buyer0.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"m02buyer0.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"3dbe40ebff4ff60182b6324875c323d88c5cb396564872ddebe62c886d777caf","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"3dbe40ebff4ff60182b6324875c323d88c5cb396564872ddebe62c886d777caf","merchant":"m02.bookerbob.testnet","receipt_hash":"1133d0ea7989348eaf1264cf6ee38c569a385516f27fdd86df1869b2959c2664"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"3dbe40ebff4ff60182b6324875c323d88c5cb396564872ddebe62c886d777caf","merchant":"m02.bookerbob.testnet","payout":"m02.bookerbob.testnet","amount":"42000000","checkout_ref":"review-order-3dbe40eb","path":"near","token":"usdc","liability":"a1bffdde8807181b0dcaddf4f35cce6028ec86d4712ba51dccecf3bb91eee373","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m02.bookerbob.testnet","identity_commitment":"12798686445263452609464350780813703887703033466945926149908890991227677686037","root":"12798686445263452609464350780813703887703033466945926149908890991227677686037","size":1}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"m02buyer1.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"m02buyer1.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"ebb854eda22992a5512a19310d7bef3a52c4529374e8d63c9e0c07c5eb5ba60f","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"ebb854eda22992a5512a19310d7bef3a52c4529374e8d63c9e0c07c5eb5ba60f","merchant":"m02.bookerbob.testnet","receipt_hash":"1133d0ea7989348eaf1264cf6ee38c569a385516f27fdd86df1869b2959c2664"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"ebb854eda22992a5512a19310d7bef3a52c4529374e8d63c9e0c07c5eb5ba60f","merchant":"m02.bookerbob.testnet","payout":"m02.bookerbob.testnet","amount":"42000000","checkout_ref":"review-order-ebb854ed","path":"near","token":"usdc","liability":"dc37d02fcac6b96ee2458c93ab76ea22edbc58e5b4d72ca408ecd496352cb18c","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m02.bookerbob.testnet","identity_commitment":"14282266729346875614821305527624480589857198269927344892409599981868873513323","root":"2485639495155659290120162588786456832856149143052742444268200396241653783204","size":2}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"m02buyer2.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"m02buyer2.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"e589b0a173bd750be687d44d12d907c5ed16368c02c97706e0a7b688caf166f4","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"e589b0a173bd750be687d44d12d907c5ed16368c02c97706e0a7b688caf166f4","merchant":"m02.bookerbob.testnet","receipt_hash":"1133d0ea7989348eaf1264cf6ee38c569a385516f27fdd86df1869b2959c2664"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"e589b0a173bd750be687d44d12d907c5ed16368c02c97706e0a7b688caf166f4","merchant":"m02.bookerbob.testnet","payout":"m02.bookerbob.testnet","amount":"42000000","checkout_ref":"review-order-e589b0a1","path":"near","token":"usdc","liability":"1c60297dd71e8399cad63f989376cd9e5dc04d4b7bc31cbf301e6afc8af0651f","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m02.bookerbob.testnet","identity_commitment":"8050044458108675235983923750574732775988934589566299489760565886190762003691","root":"21028672480177154169903456537206218317087618024834377573989371727230779382066","size":3}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"m02buyer3.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"m02buyer3.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"14f50b2ec80b73838383681dac25b0c3997dac0a7804e80fb16ed6916077d6f0","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"14f50b2ec80b73838383681dac25b0c3997dac0a7804e80fb16ed6916077d6f0","merchant":"m02.bookerbob.testnet","receipt_hash":"1133d0ea7989348eaf1264cf6ee38c569a385516f27fdd86df1869b2959c2664"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"14f50b2ec80b73838383681dac25b0c3997dac0a7804e80fb16ed6916077d6f0","merchant":"m02.bookerbob.testnet","payout":"m02.bookerbob.testnet","amount":"42000000","checkout_ref":"review-order-14f50b2e","path":"near","token":"usdc","liability":"642e55b5986e89a108b2d6ab60fee189fbca5854fc5f58851c2a7846b9e13164","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m02.bookerbob.testnet","identity_commitment":"10547782152897591858404640859665828574824490410811133880433404350822533750154","root":"11337211621281045104667722779480032254257748256620843031928830560684999852753","size":4}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m02.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m02.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m02.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m02.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":1,"event":"02150000006d30312e626f6f6b6572626f622e746573746e657406000000000000001700000000000000","root":"23ac02084f69d686b92200bcd7e31e5e59f70b99e6220baa10b06d4dc20b5b25"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"reviews_published","data":[{"merchant":"m01.bookerbob.testnet","round":20761,"ratings":6,"sealed":6,"members":6}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"m01.bookerbob.testnet","sub_agent":"sub1.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":2,"event":"01150000006d30312e626f6f6b6572626f622e746573746e657416000000737562312e626f6f6b6572626f622e746573746e6574","root":"3db8cb93dca3221edb43c4f9b45fba92e71956b6ae7a89d70aff55404a0d8315"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub1.bookerbob.testnet","sub_agent":"sub2.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":3,"event":"0116000000737562312e626f6f6b6572626f622e746573746e657416000000737562322e626f6f6b6572626f622e746573746e6574","root":"efacf15d2ec12b29eaf254912be5c93d9432f1bb91a8eeac6eb05dc2edbbc822"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub1.bookerbob.testnet","sub_agent":"sub4.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":4,"event":"0116000000737562312e626f6f6b6572626f622e746573746e657416000000737562342e626f6f6b6572626f622e746573746e6574","root":"c962fa6b1de7875417d095d37f24203349d58a476af5e83c1ade64ef49f2a5da"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub2.bookerbob.testnet","sub_agent":"sub3.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":5,"event":"0116000000737562322e626f6f6b6572626f622e746573746e657416000000737562332e626f6f6b6572626f622e746573746e6574","root":"ddb401f55470e547ee1c75b35101c9be5b15d28f712bd9e794a91a5414c0f49b"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub2.bookerbob.testnet","sub_agent":"sub5.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":6,"event":"0116000000737562322e626f6f6b6572626f622e746573746e657416000000737562352e626f6f6b6572626f622e746573746e6574","root":"3159ba0f701ea58f29898d0ddf7d6b95010942d8b14fdfe80969525e19aaac09"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub3.bookerbob.testnet","sub_agent":"sub4.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":7,"event":"0116000000737562332e626f6f6b6572626f622e746573746e657416000000737562342e626f6f6b6572626f622e746573746e6574","root":"4221c3084b3280440d7a339455de683fb62a329ce6ca187e78adb372b7b554fb"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub3.bookerbob.testnet","sub_agent":"sub6.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":8,"event":"0116000000737562332e626f6f6b6572626f622e746573746e657416000000737562362e626f6f6b6572626f622e746573746e6574","root":"211297ea72d09e0747507ff127283643c9b3a42b65645d2e012c7ded3252c3db"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub4.bookerbob.testnet","sub_agent":"sub5.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":9,"event":"0116000000737562342e626f6f6b6572626f622e746573746e657416000000737562352e626f6f6b6572626f622e746573746e6574","root":"cfe5f8f2ede82dec8b41956f85387c8303e44afca185b98c82f8af8a072edaf6"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub4.bookerbob.testnet","sub_agent":"sub7.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":10,"event":"0116000000737562342e626f6f6b6572626f622e746573746e657416000000737562372e626f6f6b6572626f622e746573746e6574","root":"f3aa4ae04de72ef7a4f3e9842e7445f27928da7549a8583c2bd32e494b428829"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub5.bookerbob.testnet","sub_agent":"sub6.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":11,"event":"0116000000737562352e626f6f6b6572626f622e746573746e657416000000737562362e626f6f6b6572626f622e746573746e6574","root":"b050e94e36281a7526d3dae4659175f970e7cad0b129300d2a865e6aaa63d6eb"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub5.bookerbob.testnet","sub_agent":"sub8.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":12,"event":"0116000000737562352e626f6f6b6572626f622e746573746e657416000000737562382e626f6f6b6572626f622e746573746e6574","root":"6052b0ffcf55a8a0945410c9ad6e3989e7d23a228426a6386881b045ad69a6e3"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub6.bookerbob.testnet","sub_agent":"sub7.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":13,"event":"0116000000737562362e626f6f6b6572626f622e746573746e657416000000737562372e626f6f6b6572626f622e746573746e6574","root":"06c470ab5c0bfdb422e3f5181ee53ce820da37e167ed42804f1ae99e36844500"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub6.bookerbob.testnet","sub_agent":"sub1.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":14,"event":"0116000000737562362e626f6f6b6572626f622e746573746e657416000000737562312e626f6f6b6572626f622e746573746e6574","root":"f51fc2ba92ba8dd7a1f82a479ac02c4026d0c216f39f9fd3fd895ead08e51120"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub7.bookerbob.testnet","sub_agent":"sub8.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":15,"event":"0116000000737562372e626f6f6b6572626f622e746573746e657416000000737562382e626f6f6b6572626f622e746573746e6574","root":"0e7572ab2694b76f0e7435a3c03f76bb8b62f31397b48c2ef95e4f6f571df510"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub7.bookerbob.testnet","sub_agent":"sub2.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":16,"event":"0116000000737562372e626f6f6b6572626f622e746573746e657416000000737562322e626f6f6b6572626f622e746573746e6574","root":"240b59efda91cd136fb690e7acda162d62cd634fd27832cb336c75200d652473"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub8.bookerbob.testnet","sub_agent":"sub1.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":17,"event":"0116000000737562382e626f6f6b6572626f622e746573746e657416000000737562312e626f6f6b6572626f622e746573746e6574","root":"70b53d730a650d09b7664d4e3aa4146284ac14239b47b9d3e1ddfe11fad403af"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub8.bookerbob.testnet","sub_agent":"sub3.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":18,"event":"0116000000737562382e626f6f6b6572626f622e746573746e657416000000737562332e626f6f6b6572626f622e746573746e6574","root":"72d730cb91e4e72db0313e4d6b5ec8c99c98ca6bcfa9997dfe9f15fe4e727139"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub8.bookerbob.testnet","sub_agent":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":19,"event":"0116000000737562382e626f6f6b6572626f622e746573746e6574150000006d30312e626f6f6b6572626f622e746573746e6574","root":"c14b437b748d66b496f7ef6c7910de5da89375361a82c989a31ed8e3d88be339"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"x1.bookerbob.testnet","sub_agent":"x2.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":20,"event":"011400000078312e626f6f6b6572626f622e746573746e65741400000078322e626f6f6b6572626f622e746573746e6574","root":"1b31394fb63306801802bcaa5c2c76516db48a494d56ddc897372b6e1e7ec7e3"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"x2.bookerbob.testnet","sub_agent":"x1.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":21,"event":"011400000078322e626f6f6b6572626f622e746573746e65741400000078312e626f6f6b6572626f622e746573746e6574","root":"add0866162656ea8b9407840246b7483be26354ed34cd99cab0b043d9e8ad297"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"reviews_held","data":[{"merchant":"m02.bookerbob.testnet","round":20761,"members":4,"k_min":5}]}
+bookerbob reviews fixtures
+PASS  R1  10 settled purchases join their merchant's Semaphore group; the contract's root equals the JS group's  (m01: 6 members, m02: 4, root 428965183376..)
+PASS  R2  a sealed rating swapped under a real proof is refused  (refused: invalid Semaphore proof)
+PASS  R3  6 buyers post sealed ratings for m01 with Semaphore proofs (Groth16 on alt_bn128), from relayer accounts  (6 sealed hashes, no rating on chain yet)
+PASS  R4  a second rating by the same member in the round is refused  (refused: already rated this round)
+PASS  R5  a valid proof from outside the group is refused  (refused: proof is not for this merchant's group)
+PASS  R6  ratings stay sealed while the round is open  (reviews(m01) = none)
+PASS  R7  a reveal that does not open the sealed rating is refused  (refused: no sealed rating opens to this)
+PASS  R8  after the round, m01's members reveal; m02 (4 members) cannot reveal  (6 revealed; m02 refused: group below k)
+PASS  R9  after the reveal window, m01's 6 ratings are released together, sorted by hash (k >= 5)  (mean 3.83, delivered 83%, score 3.45)
+PASS  R10  conserved delegation (w = 1/2): a spawned ring of 8 sub-agents gains at most w/(1-w) of m01's seed; an unseeded ring gets nothing  (seed 6.00, conferred 5.9998 on 9 accounts, bound 6.00)
+PASS  R11  graph events from the contract's logs hash to its graph_root (the Jolt guest's input)  (21 events, root add0866162656ea8..)
+PASS  R12  fixtures/graph/standing-events.json matches the contract's events  (ok)
+PASS  R13  best_quote: equal price goes to the better-reviewed merchant; min_score filters  (tie -> m01.bookerbob.testnet, min 3.50 -> none)
+PASS  R14  m02 has 4 members: its ratings stay sealed (k-floor)  (held, 4 < 5)
+PASS  R15  public reviews page data matches agents/reviews.json  (ok)
+GAS   join_review_group (LeanIMT insert, Poseidon): 1.09 Tgas mocked host gas (mean of 10)
+GAS   publish_reviews (6 ratings): 1.04 Tgas mocked host gas (mean of 1)
+GAS   reveal_review: 0.74 Tgas mocked host gas (mean of 6)
+GAS   submit_review (Groth16 on alt_bn128): 33.26 Tgas mocked host gas (mean of 10)
+PASS  sealed reviews: 15 checks
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- scenario fixtures
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_registered","data":[{"key":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10","label":"fixture referee"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture world verifier"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m01.bookerbob.testnet","category":"hoodie","payout":"m01.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m02.bookerbob.testnet","category":"hoodie","payout":"m02.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m03.bookerbob.testnet","category":"hoodie","payout":"m03.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"round_opened","data":[{"round":"scenario","category":"hoodie","commit_until_ms":1793793660000,"reveal_until_ms":1793793720000}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"scenario","merchant":"m01.bookerbob.testnet","commitment":"69c88d8f6b1f39803dd40b1a27666c1af0ec9fc85e695b6318d734359bb8b785"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"scenario","merchant":"m02.bookerbob.testnet","commitment":"a7d22deaa2fae2aff7738a51c84cc3a578573a830ccd7eb5db8276f973562dbe"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_committed","data":[{"round":"scenario","merchant":"m03.bookerbob.testnet","commitment":"c7677603849a18bac00750c7efe8640b4de1c5df4a020c77659cbe86d95d9ee6"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"scenario","merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"scenario","merchant":"m02.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"bid_revealed","data":[{"round":"scenario","merchant":"m03.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"agent.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"receipt_refused","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","reason":"F9 not in proof set"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"4b43288317c2b5ee88fb141d1566a03eeb2b91309a4a9ae0a29fd48569237489"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"38400000","checkout_ref":"scenario-1","path":"near","token":"usdc","liability":"498db5032f4ebe9b5898cd8172e9211b376d7037ab26617989d0e9fdf4a4244e","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer1.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer1.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","commitment":"8282c8d109e30932f0ad282e0cc645096664c4b9bcf686ff9931549b1294c103","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","merchant":"m01.bookerbob.testnet","receipt_hash":"23ed99e5d2ac36deeb6d9d01b3d75f18f9bff1dcafd938825966397816ce0421"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"44160000","checkout_ref":"review-order-0a882c15","path":"near","token":"usdc","liability":"911e7be0ebd80fdb30da3f86e21b09a6bb6c2087a01e140b31412b67556f4d84","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer2.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer2.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","commitment":"bd496da21f18c4d6eea94c662d073aab86f01f275f0755d177880d3ea53f6b08","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","merchant":"m01.bookerbob.testnet","receipt_hash":"23ed99e5d2ac36deeb6d9d01b3d75f18f9bff1dcafd938825966397816ce0421"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"44160000","checkout_ref":"review-order-45772ace","path":"near","token":"usdc","liability":"8c5a145172a4f06210240e0d2d749aeb1307e395884233658f544d03f2bce03c","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer3.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer3.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","commitment":"d4195a4ce3909f965c7a6cff2baf87f5e9e9a26dd7be7e2dcf5ab1b85f888221","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","merchant":"m01.bookerbob.testnet","receipt_hash":"23ed99e5d2ac36deeb6d9d01b3d75f18f9bff1dcafd938825966397816ce0421"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"44160000","checkout_ref":"review-order-41fae724","path":"near","token":"usdc","liability":"8aed4b884eb273bf1f076771f7a4ce260c6e674f277c20eec1712b8e684558db","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer4.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer4.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","commitment":"183efecb0cc8bd98daeab1e25d4d0a325da465f56421d51b06c2850119dc10e1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","merchant":"m01.bookerbob.testnet","receipt_hash":"ab6692a5c78f9381f34cf9dd5735bced51773cd7683c196521966e81007f4a71"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"41760000","checkout_ref":"review-order-55564701","path":"near","token":"usdc","liability":"894563d1dd6b7d4aebad62b15066c49afb7eec2325b6c0a07aa6b77267627dbd","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer5.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"escrow_deposit","data":[{"account":"peer5.bookerbob.testnet","amount":"50000000"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","commitment":"cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","merchant":"m01.bookerbob.testnet","receipt_hash":"30fcfe1fcf0d9082d2d94066090f1736787d2ea169f989219167b5cd8110caf4"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"41760000","checkout_ref":"review-order-35c5dd5d","path":"near","token":"usdc","liability":"3e5205d93045d41fbcb41f7535cf97cd52e96cef02e1dbc18666f1f0cf10d2f2","fee":"0"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"12798686445263452609464350780813703887703033466945926149908890991227677686037","root":"12798686445263452609464350780813703887703033466945926149908890991227677686037","size":1}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"14282266729346875614821305527624480589857198269927344892409599981868873513323","root":"2485639495155659290120162588786456832856149143052742444268200396241653783204","size":2}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"8050044458108675235983923750574732775988934589566299489760565886190762003691","root":"21028672480177154169903456537206218317087618024834377573989371727230779382066","size":3}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"10547782152897591858404640859665828574824490410811133880433404350822533750154","root":"11337211621281045104667722779480032254257748256620843031928830560684999852753","size":4}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"319062198101598001206760343591015721658504238001197516088840438529831814699","root":"7210230509120346561867426151582366030551964306629039588589164767061236354666","size":5}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_member_added","data":[{"merchant":"m01.bookerbob.testnet","identity_commitment":"17062444220173239026473424656595475705001659340572179249824412857180284241788","root":"4289651833767604188993656221560209978462387749141595572204717687380429938106","size":6}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"review_sealed","data":[{"merchant":"m01.bookerbob.testnet","round":20761}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":1,"event":"02150000006d30312e626f6f6b6572626f622e746573746e657406000000000000001700000000000000","root":"23ac02084f69d686b92200bcd7e31e5e59f70b99e6220baa10b06d4dc20b5b25"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"reviews_published","data":[{"merchant":"m01.bookerbob.testnet","round":20761,"ratings":6,"sealed":6,"members":6}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"m01.bookerbob.testnet","sub_agent":"sub1.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":2,"event":"01150000006d30312e626f6f6b6572626f622e746573746e657416000000737562312e626f6f6b6572626f622e746573746e6574","root":"3db8cb93dca3221edb43c4f9b45fba92e71956b6ae7a89d70aff55404a0d8315"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub1.bookerbob.testnet","sub_agent":"sub2.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":3,"event":"0116000000737562312e626f6f6b6572626f622e746573746e657416000000737562322e626f6f6b6572626f622e746573746e6574","root":"efacf15d2ec12b29eaf254912be5c93d9432f1bb91a8eeac6eb05dc2edbbc822"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"hired","data":[{"agent":"sub2.bookerbob.testnet","sub_agent":"sub1.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"graph_event","data":[{"index":4,"event":"0116000000737562322e626f6f6b6572626f622e746573746e657416000000737562312e626f6f6b6572626f622e746573746e6574","root":"c0f6469600de3bd823dc54d1c48b71e8a7184495b9910cc328955165471f25d6"}]}
+bookerbob scenario fixtures
+PASS  S1  prove: code derives the predicates, the verdict reveals a subset, the commitment opens  (revealed 3 of 4)
+PASS  S2  bids: every merchant commits a sealed schedule, then reveals it after the deadline  (3 committed, 3 opened)
+PASS  S3  verdict: signature checked on chain, one agent per person, nullifier pending  (ed25519_verify, attest_human)
+PASS  S4  cheat refused: 'guest is marriott platinum' gets a signed refusal and no payment  (F9 not in proof set; winner m01.bookerbob.testnet)
+PASS  S5  settle: the receipt price leaves escrow, the nullifier is spent, USDC goes to the merchant  (paid 38400000 to m01.bookerbob.testnet)
+PASS  S6  replay: a second verdict for the same account from another wallet is refused  (nullifier spent)
+PASS  S7  sealed reviews: 6 buyers who paid join, rate with Semaphore proofs, reveal after the round, released at k >= 5  (score 3.45, 6 ratings, no rater named)
+PASS  S8  multi-hop rank: a hired sub-agent ring gets at most w/(1-w) of the merchant's seed  (5.999990 of 6.000000 units (bound 6.000000))
+PASS  scenario: prove, bids, verdict, cheat refused, settle, replay refused, sealed reviews, multi-hop rank (8 stages, one chain)
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- zk-inputs fixtures --check
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"world_verifier_registered","data":[{"key":"9fa68a5a0d983e8db279e394cf827395ba4133774cfac72766def7e23708bb94","action":"bookerbob-fixture-action","label":"fixture"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_registered","data":[{"merchant":"m01.bookerbob.testnet","category":"hoodie","payout":"m01.bookerbob.testnet","approved":false}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"merchant_approved","data":[{"merchant":"m01.bookerbob.testnet"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"agent.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","commitment":"6ae1e56330f2c18eaa71a14f2f8bb1de82b3d23050c23406a54d6ef3ba7ec83d","predicates":["airbnb_frequent","claude_spender","world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer1.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"0a882c15097f1ccc57816f8a1dab699cac2fb96a618aeb95bd3f7d3ae28ab180","commitment":"8282c8d109e30932f0ad282e0cc645096664c4b9bcf686ff9931549b1294c103","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer2.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"45772ace147990a278b335fe689623a72858c6c9c3140e2db0d4f0ab9e27d550","commitment":"bd496da21f18c4d6eea94c662d073aab86f01f275f0755d177880d3ea53f6b08","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer3.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"41fae724f62ceb66a6574c9ebe13913b0339d88f55975ce24873f037a7084000","commitment":"d4195a4ce3909f965c7a6cff2baf87f5e9e9a26dd7be7e2dcf5ab1b85f888221","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer4.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"55564701f7cb45b3f0bb40469a664700507d9da772455b99171941c02cdffb3f","commitment":"183efecb0cc8bd98daeab1e25d4d0a325da465f56421d51b06c2850119dc10e1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"human_attested","data":[{"agent":"peer5.bookerbob.testnet","action":"bookerbob-fixture-action"}]}
+EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"verdict_submitted","data":[{"nullifier":"35c5dd5d62b6d9c9357fd8a0c6607d9044ee1db659c7eb9885d5f90baecc0a32","commitment":"cf4f3ec24f62cfd153c269355d43c9fcbb22fe8743f898932f8219578ccf93c1","predicates":["world_id_human"],"tcb_status":"fixture","disclosure":null}]}
+PASS  Jolt guest inputs match the contract (standing root, price quote, referee, cohort root): fixtures/zk up to date
+cargo run -j 4 --offline --config vendor/offline.toml -q -p bookerbob-cli -- zk-results fixtures zk/out
+PASS  zk standing: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 8.94 s, proof 92716 bytes, program c780ceabae4decfa..)
+PASS  zk price: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 1.27 s, proof 80380 bytes, program 6a35b5c3a8c1fe69..)
+PASS  zk referee: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 2.34 s, proof 84796 bytes, program a66f1c29e3b7199a..)
+PASS  zk cohort: committed Jolt output = native output, program hash = sha256(verifier preprocessing)  (proved in 2.91 s, proof 84724 bytes, program 50eb77d3d5c13c68..)
+PASS  Jolt results: 4 guests consistent with the contract's code (proof check: make zk-verify)

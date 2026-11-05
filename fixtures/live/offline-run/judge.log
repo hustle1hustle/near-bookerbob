@@ -1,0 +1,16 @@
+node scripts/judge.mjs
+make judge: fast path (Node only; deep path: make verify, make zk-verify)
+
+SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)
+PASS  testnet snapshot: committed RPC responses match their sha256  (6655d499f2d5..)
+PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T01:52:18.040Z  (44 checks; rerun with network for the live chain)
+PASS  docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase
+PASS  jolt standing: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 8.94 s, proof 92716 B)
+PASS  jolt standing-testnet: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 3.32 s, proof 84796 B)
+PASS  jolt standing-testnet-2: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.71 s, proof 84796 B)
+PASS  jolt price: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 1.27 s, proof 80380 B)
+PASS  jolt referee: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.34 s, proof 84796 B)
+PASS  jolt cohort: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.91 s, proof 84724 B)
+PASS  JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK  (72 tests passed, 0 failed)
+
+PASS  make judge in 0.3 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain), make zk-verify (Jolt verifier).

@@ -95,16 +95,24 @@ committed; `make verify` then re-checks it offline.
 
 ## Try it
 
-**Fastest (about a minute, Node 22 only, no keys, no build; under a second offline):** `make judge`. It re-derives every
+**Fastest (about 10 s to a minute online, depending on public RPC rate limits; Node 22 only, no keys, no build; under a second offline):** `make judge`. It re-derives every
 testnet claim over public RPC (`make verify-live`), checks the six committed Jolt proofs'
 outputs and program hashes, and runs the JS suites. With no network it prints SKIP for the
 live checks and re-derives the same claims from a committed RPC snapshot
 (`fixtures/live/rpc-snapshot/`, sha256-checked); `JUDGE_OFFLINE=1 make judge` forces that path.
 
 The deep path needs Rust (stable, 1.93 or newer) and `make`; `make test` also needs Node 22. No keys.
-Measured on an 11-core Apple M3 Pro: `make verify` takes 53 s from a fresh clone on 2026-11-05
-(a cold build with the crates already downloaded; a first run also fetches them from
-crates.io) and 2 s warm. After the first build it needs no network.
+Measured on an 11-core Apple M3 Pro: `make verify` takes about a minute from a fresh clone
+and about 11 s warm.
+
+**Offline (no network at all):** `make verify-offline` builds from the vendored crates
+(`vendor/crates.tar.xz`, 25 MB, checked against `vendor/SHA256`, which also pins `Cargo.lock`)
+instead of crates.io. Logged run on 2026-11-05, commit `d18ff5d`: a fresh `git clone`, an empty
+`CARGO_HOME`, and every connection except localhost denied by the macOS sandbox
+(`sandbox-exec`; `curl` to the RPC returned nothing). `make verify-offline` passed in 66 s
+(`ALL PASS (26 checks)`), and `make judge` passed in 0.3 s on the snapshot path. Logs:
+`fixtures/live/offline-run/`. Not done yet: the same run in a Linux container, and a prebuilt
+Jolt verifier for `make zk-verify` (Jolt itself still needs its git dependencies).
 
 1. Run `make verify`.
    See one line per link of the chain, each `PASS` or `FAIL`, ending in `nullifier spent`
