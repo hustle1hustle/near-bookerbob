@@ -28,12 +28,19 @@
   footer { color: var(--faint); font-size: 12px; margin-top: 16px; }
   .filter { margin-bottom: 12px; color: var(--dim); }
   .filter label { cursor: pointer; }
+  .live { color: var(--dim); font-size: 12px; margin: 8px 0 12px; }
+  .live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+  .st.Spent { color: var(--green); } .st.Pending { color: var(--blue); } .st.Unknown { color: var(--red); }
 </style>
 </head>
 <body>
 <main>
   <h1>bookerbob receipts</h1>
   <div class="sub">every verdict and purchase the bazaar contract logged. hashes and public payment fields only: no buyer, no predicates, no history.</div>
+  <h1 style="margin-top:8px;font-size:16px">testnet purchases</h1>
+  <div class="live" id="livebar">reading bookerbob.testnet ...</div>
+  <div class="panel" id="livepanel"><table id="lt"></table></div>
+  <h1 style="margin-top:28px;font-size:16px">offline run (make verify)</h1>
   <div class="filter"><label><input type="checkbox" id="only"> settled only</label></div>
   <div class="panel"><table id="t"></table></div>
   <h1 style="margin-top:28px;font-size:16px">sealed reviews</h1>
@@ -41,6 +48,7 @@
   <div class="panel"><table id="rv"></table></div>
   <footer id="foot"></footer>
 </main>
+<script src="live.js"></script>
 <script>
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const short = (h) => (h ? `${h.slice(0, 10)}..${h.slice(-6)}` : "");
@@ -57,6 +65,20 @@ async function renderReviews() {
     : `<tr><td>reviews.json not found. run make reviews</td></tr>`;
 }
 renderReviews();
+(async () => {
+  const l = await loadLive();
+  const bar = document.getElementById("livebar");
+  bar.textContent = liveBanner(l);
+  if (!l) return;
+  bar.classList.toggle("on", l.source === "live");
+  document.getElementById("lt").innerHTML =
+    `<tr><th>kind</th><th>buyer (fresh testnet account)</th><th>merchant</th><th>nullifier</th><th>on chain</th><th class="num">paid (dUSDC)</th><th>near tx</th></tr>` +
+    l.data.purchases.map((p) => `<tr>
+      <td>${esc(p.kind)}</td><td class="h">${esc(p.tester.split(".")[0])}</td><td>${esc(p.merchant.split(".")[0])}</td>
+      <td class="h" title="${esc(p.nullifier)}">${short(p.nullifier)}</td><td><span class="st ${esc(p.status)}">${esc(String(p.status).toLowerCase())}</span></td>
+      <td class="num">${usd(p.paid)}</td>
+      <td class="h">${p.tx ? `<a href="https://testnet.nearblocks.io/txns/${esc(p.tx)}">${short(p.tx)}</a>` : ""}</td></tr>`).join("");
+})();
 // #reviews: only the sealed reviews section (demo capture).
 if (location.hash === "#reviews") {
   document.querySelectorAll(".filter, .panel:not(:last-of-type)").forEach((e) => (e.style.display = "none"));

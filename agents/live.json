@@ -1,0 +1,348 @@
+{
+  "note": "what bookerbob.testnet said at taken_at; the pages read the chain live and fall back to this file only when public RPC is unreachable. dUSDC is a testnet demo token; the facts behind every verdict are synthetic",
+  "taken_at": "2026-11-05T06:26:30.187Z",
+  "block_height": 276305176,
+  "bazaar": "bookerbob.testnet",
+  "rpc": "https://rpc.testnet.fastnear.com",
+  "spent_count": 20,
+  "merchants": [
+    {
+      "account": "m01.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m02.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m03.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m04.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m05.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m06.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m07.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m08.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m09.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m10.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m11.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m12.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m13.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m14.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m15.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m16.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m17.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m18.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m19.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m20.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m21.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "m22.bookerbob.testnet",
+      "category": "hoodie",
+      "approved": true
+    },
+    {
+      "account": "h01.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h02.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h03.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h04.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h05.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h06.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h07.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "h08.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "approved": true
+    },
+    {
+      "account": "house.bookerbob-demo.testnet",
+      "category": "open",
+      "approved": true
+    },
+    {
+      "account": "threadline.bookerbob-demo.testnet",
+      "category": "open",
+      "approved": true
+    }
+  ],
+  "purchases": [
+    {
+      "kind": "single",
+      "tester": "t-4fdc17.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "bdd298215e2c251da1d158056dca625d2d09cdb3a08bda187b85acae93829039",
+      "paid": "38400000",
+      "tx": "BUjaQmrhZYJ879FK1vjSzKac8ViogwAtQXch91K1iSca",
+      "status": "Spent"
+    },
+    {
+      "kind": "hotel",
+      "tester": "t-b1de37.bookerbob-demo.testnet",
+      "merchant": "h05.bookerbob.testnet",
+      "nullifier": "62eb45b4d76cf237d069c5d4dda961407a4d50c67e08ea62c3bd14bd96ba3c3d",
+      "paid": "408000000",
+      "tx": "9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "t-22c72f.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "8fb04351e2f9e7ce150242a326aab7d27e9c3486360bd38378f83830bd6a7feb",
+      "paid": "38400000",
+      "tx": "EawcSzjMUL7RGZS5RUXcnkQ7Rq63hrGuPGZeRxb3u3Yi",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "t-744ca5.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "9182bf33fb2238bec33aa8dda4415b3a43b570fe21cec8d727986dfb5bbee680",
+      "paid": "38400000",
+      "tx": "FrXdUS467fCx96QkbH5BBi6xDmv1omYuyJ4KNiWY8ngu",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "t-1a2121.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "748a60f25809bcaa9bea98b799f04eb3c71acfa0ae5e7edd92fe193225540d76",
+      "paid": "36000000",
+      "tx": "47jRpLQT2x9BvjswUNMuNU1EA2zohgjb8Qkj3Qcotm9z",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "t-0a1423.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "12a93deedbb5d6bc2b3603e2c40f4ad23bdc0e23d8beab65138a371305063d3a",
+      "paid": "36000000",
+      "tx": "5pG4BGQmbvo8kgAYFP82fAwLS2dvYh1vjDdKiBrnzU1s",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "t-e29071.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "704403283689dea6568e4b43931cf7aadca9f5cae4561e710ee0d44566e2aec1",
+      "paid": "36000000",
+      "tx": "BUbUim6vGt9rvWPBt1ph6aohuWtqcCxDZ975L2HDh6R8",
+      "status": "Spent"
+    },
+    {
+      "kind": "single",
+      "tester": "t-7e261e.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "85a9b166704388b969c17248afc0fac211c8baf3b6493ada8d0520c9c65a2b92",
+      "paid": "36000000",
+      "tx": "3onZqGr3gGH8Ac8thA5RzuLxmTHbGdvq65gqm7HAE8Ra",
+      "status": "Spent"
+    },
+    {
+      "kind": "sealed",
+      "tester": "t-3f71c2.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "4e9d57b95ecefec7a7c5a3ad46e142d1715b5da71e8cd05b54c99414dff4e05f",
+      "paid": "38400000",
+      "tx": "2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS",
+      "status": "Spent"
+    },
+    {
+      "kind": "group",
+      "tester": "t-56c1fd.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "98800bf37ac53e334bf0306a2402a891dee229a7c6453d4e6feb4b12a9807877",
+      "paid": "32400000",
+      "tx": "6Fdav19gzszNCg8WgoR7VJ7VLL5dza59xW6Efhfe3D3p",
+      "status": "Spent"
+    },
+    {
+      "kind": "group",
+      "tester": "t-823cb3.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "562e6dcfdad1d968676e2ea982acccf58006a5c711903330a306eccd6ce15875",
+      "paid": "32400000",
+      "tx": "DgWpvrdxYEuxJRv1onknqwm3tzg6WAcwE794AxzEW4h7",
+      "status": "Spent"
+    },
+    {
+      "kind": "group",
+      "tester": "t-565d86.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "a3ea0b836eb8a9770d25cfb0142a7478b8eb6a0ed8f7b86c3146c2e38cc91051",
+      "paid": "32400000",
+      "tx": "F6tU9gsDQyPjxieaPFm5f8TKUWfm7KbSKpovG8gfwdiz",
+      "status": "Spent"
+    },
+    {
+      "kind": "group",
+      "tester": "t-fb6278.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "0d8dbce3bc8dfb0aa048a820a09e15f3aa96e20ebbfe19866747d88e347c8cf6",
+      "paid": "32400000",
+      "tx": "AvwxiquCPZvN4WhVEEf9ZY6yFYF8wyzG3iCWHCnfXSGh",
+      "status": "Spent"
+    },
+    {
+      "kind": "group",
+      "tester": "t-730490.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "39dd98486cc6b3c97fd41c1bf8f5c5c602e11ec614a907c840c09258ef6d608e",
+      "paid": "32400000",
+      "tx": "BfUHEC6V3paHQryVkM9SX5TqgrhMntnoxmohnDFg3Emh",
+      "status": "Spent"
+    },
+    {
+      "kind": "group-dao",
+      "tester": "t-44d549.bookerbob-demo.testnet",
+      "merchant": "h05.bookerbob.testnet",
+      "nullifier": "527e3e62c083f30c7c44b77208efb94927d18760866e1f89ac8e9d04a5109370",
+      "paid": "367200000",
+      "tx": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A",
+      "dao": "lisbon-g1.sputnikv2.testnet",
+      "status": "Spent"
+    },
+    {
+      "kind": "group-dao",
+      "tester": "t-7ea3ae.bookerbob-demo.testnet",
+      "merchant": "h05.bookerbob.testnet",
+      "nullifier": "a08f535cadd0e161a6d033d95fed9bf110793d0db17618bb62b64c5c8d2c266d",
+      "paid": "367200000",
+      "tx": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A",
+      "dao": "lisbon-g1.sputnikv2.testnet",
+      "status": "Spent"
+    },
+    {
+      "kind": "group-dao",
+      "tester": "t-f29860.bookerbob-demo.testnet",
+      "merchant": "h05.bookerbob.testnet",
+      "nullifier": "df47e9324b62e7b21d35fa5aecd26c96ffb5a36690ab84021bbad9785bec5c91",
+      "paid": "367200000",
+      "tx": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A",
+      "dao": "lisbon-g1.sputnikv2.testnet",
+      "status": "Spent"
+    },
+    {
+      "kind": "group-dao",
+      "tester": "t-963c60.bookerbob-demo.testnet",
+      "merchant": "h05.bookerbob.testnet",
+      "nullifier": "3554ef565a5c3cb0fb4b97cc107d1d975300edd8b712388ce2bc817247150942",
+      "paid": "367200000",
+      "tx": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A",
+      "dao": "lisbon-g1.sputnikv2.testnet",
+      "status": "Spent"
+    },
+    {
+      "kind": "group-dao",
+      "tester": "t-93140c.bookerbob-demo.testnet",
+      "merchant": "h05.bookerbob.testnet",
+      "nullifier": "4be4e712a72481158414e281f31328ee5876464a1533d97466d87692e52a778a",
+      "paid": "367200000",
+      "tx": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A",
+      "dao": "lisbon-g1.sputnikv2.testnet",
+      "status": "Spent"
+    }
+  ]
+}

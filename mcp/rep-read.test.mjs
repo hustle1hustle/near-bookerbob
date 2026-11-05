@@ -51,7 +51,7 @@ test("initialize, list tools, call nullifier_status", async () => {
     const init = await c.call("initialize", { protocolVersion: "2025-06-18" });
     assert.equal(init.result.serverInfo.name, "rep-read");
     const list = await c.call("tools/list", {});
-    assert.deepEqual(list.result.tools.map((t) => t.name), ["nullifier_status", "verdict", "quote", "best_quote", "merchants"]);
+    assert.deepEqual(list.result.tools.map((t) => t.name), ["nullifier_status", "verdict", "quote", "best_quote", "merchants", "buy"]);
     const n = "1e".repeat(32);
     const r = await c.call("tools/call", { name: "nullifier_status", arguments: { nullifier: n } });
     assert.equal(r.result.isError, false);
@@ -73,6 +73,25 @@ test("unknown tool is an error, missing contract is a tool error", async () => {
     const r = await c.call("tools/call", { name: "merchants", arguments: {} });
     assert.equal(r.result.isError, true);
     assert.match(r.result.content[0].text, /BAZAAR_ACCOUNT_ID/);
+  } finally {
+    c.close();
+  }
+});
+
+test("buy: the sdk/buy.mjs flow; a hotel ask never buys a hoodie, and no tx without BOOKERBOB_BUY", async () => {
+  const c = client({ BAZAAR_ACCOUNT_ID: "bookerbob.testnet", BOOKERBOB_BUY: "", BOOKERBOB_RELAYER_URL: "" });
+  try {
+    const call = async (ask) => JSON.parse((await c.call("tools/call", { name: "buy", arguments: { ask } })).result.content[0].text);
+    const hotel = await call("3 nights Lisbon under 450");
+    assert.equal(hotel.outcome, "winner");
+    assert.ok(hotel.bids.length && hotel.bids.every((b) => b.merchant.startsWith("h")), "hotel bids only");
+    assert.equal(hotel.next.run, "hotel-demo");
+    assert.equal(hotel.ran, null);
+    assert.match(hotel.note, /BOOKERBOB_BUY=1/);
+    const poor = await call("3 nights Lisbon under 100");
+    assert.equal(poor.outcome, "refused");
+    assert.match(poor.reason, /no bid fits a budget of 100/);
+    assert.equal(poor.ran, null);
   } finally {
     c.close();
   }

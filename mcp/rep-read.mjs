@@ -3,10 +3,20 @@
 // wraps the bazaar contract's view calls, so any MCP client (Claude, Codex) can check a
 // verdict. Read-only: no keys, no transactions. No dependencies.
 //
+// One more tool, `buy`, is the buyer flow of sdk/buy.mjs: the ask is parsed, every merchant in
+// its category is priced by the contract's own price code, and the cheapest bid that fits
+// wins or the ask is refused. By default it returns the plan only (still no keys, no
+// transactions). It runs the live testnet purchase only when the server was started with
+// BOOKERBOB_BUY=1 (the local demo keys, testnet dUSDC) or BOOKERBOB_RELAYER_URL (a hosted
+// relayer, once the founder OKs hosting).
+//
 //   BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs
 //
 // Env: BAZAAR_ACCOUNT_ID (required), NEAR_RPC (default testnet RPC).
 import { createInterface } from "node:readline";
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { action, DEMO_REVEALED, parseAsk, plan } from "../sdk/buy.mjs";
 
 const RPC = process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com";
 const BAZAAR = process.env.BAZAAR_ACCOUNT_ID ?? "";
@@ -45,6 +55,34 @@ export const TOOLS = [
   },
 ];
 
+export const BUY_TOOL = {
+  name: "buy",
+  description:
+    'Buy as the demo buyer, e.g. "3 nights Lisbon under 450" or "a hoodie under 45": prices every merchant in the category with the contract\'s price code for the revealed bits, picks the cheapest bid that fits, or refuses. Returns the plan; runs the live testnet purchase (dUSDC, a demo token) only if this server was started with BOOKERBOB_BUY=1 or a relayer.',
+  inputSchema: { type: "object", properties: { ask: { type: "string", description: "what you want and your budget in USD" } }, required: ["ask"] },
+};
+
+/** The plan for an ask, and what runs for it: the same functions as sdk/buy.mjs. */
+export function buyPlan(ask, merchants) {
+  const a = parseAsk(ask);
+  const p = plan(a, merchants);
+  return { ask: a, revealed: DEMO_REVEALED, bids: p.bids, outcome: p.outcome, winner: p.winner ?? null, reason: p.reason ?? null, next: action(p) };
+}
+
+async function buy(args) {
+  const merchants = JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url), "utf8"));
+  const out = buyPlan(String(args.ask ?? ""), merchants);
+  if (out.outcome !== "winner") return { ...out, ran: null };
+  if (process.env.BOOKERBOB_RELAYER_URL) {
+    const r = await fetch(`${process.env.BOOKERBOB_RELAYER_URL}/buy`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ask: out.ask, winner: out.winner }) });
+    return { ...out, ran: "relayer", relayer: await r.json() };
+  }
+  if (process.env.BOOKERBOB_BUY !== "1" || !out.next.run) return { ...out, ran: null, note: out.next.run ? "plan only: start the server with BOOKERBOB_BUY=1 to run the live testnet purchase" : out.next.why };
+  const cwd = new URL("..", import.meta.url).pathname;
+  const r = spawnSync(process.execPath, ["scripts/demo-tester.mjs", ...(out.next.run === "hotel-demo" ? ["hotel", out.next.merchant] : ["run"])], { cwd, encoding: "utf8", timeout: 600_000 });
+  return { ...out, ran: out.next.run, exit: r.status, log: `${r.stdout ?? ""}${r.stderr ?? ""}`.trim().split("\n").slice(-12) };
+}
+
 async function view(method_name, args) {
   if (!BAZAAR) throw new Error("BAZAAR_ACCOUNT_ID is not set");
   const body = {
@@ -78,7 +116,15 @@ async function handle(msg) {
     });
   }
   if (method === "ping") return reply(id, {});
-  if (method === "tools/list") return reply(id, { tools: TOOLS.map(({ view: _v, ...t }) => t) });
+  if (method === "tools/list") return reply(id, { tools: [...TOOLS.map(({ view: _v, ...t }) => t), BUY_TOOL] });
+  if (method === "tools/call" && params?.name === "buy") {
+    try {
+      const out = await buy(params.arguments ?? {});
+      return reply(id, { content: [{ type: "text", text: JSON.stringify(out) }], isError: out.ran != null && out.exit != null && out.exit !== 0 });
+    } catch (e) {
+      return reply(id, { content: [{ type: "text", text: `error: ${e.message}` }], isError: true });
+    }
+  }
   if (method === "tools/call") {
     const tool = TOOLS.find((t) => t.name === params?.name);
     if (!tool) return fail(id, -32602, `unknown tool ${params?.name}`);

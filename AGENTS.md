@@ -27,7 +27,8 @@ Needs Rust stable and Node 22. From the repo root:
 | live run, testnet | `make demo-live` | needs near-cli-rs, a deployed bazaar and seeds; refuses mainnet (exit 2) |
 | deploy plan, testnet | `DRY_RUN=1 scripts/deploy-testnet.sh` | every command printed, nothing sent |
 | contract wasm | `make wasm` | needs cargo-near |
-| pages | `python3 -m http.server -d agents` | `/board.html`, `/receipts.html` |
+| pages | `python3 -m http.server -d agents` | `/board.html`, `/receipts.html`: a green dot and `live from bookerbob.testnet over public RPC, block N`, or `public RPC unreachable: the snapshot of <date>` (`agents/live.json`, `node scripts/live-snapshot.mjs`) |
+| buy as an agent, testnet | `BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`, then call `buy` with `{"ask":"3 nights Lisbon under 450"}` | the plan: hotel bids only, winner `h05` at 408, `ran: null`; `under 100` is refused; `BOOKERBOB_BUY=1` runs the testnet purchase |
 
 CI (`.github/workflows/ci.yml`) runs `make test`, `make fixtures-check`
 and `make verify` on every push. `JOBS=2` keeps cargo light on a laptop.

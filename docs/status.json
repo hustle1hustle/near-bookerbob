@@ -177,11 +177,11 @@
     "evidence": []
   },
   {
-    "feature": "MCP tool \"REP Read for agents\": read-only contract views for any MCP client",
+    "feature": "MCP tool \"REP Read for agents\": read-only contract views for any MCP client, plus a `buy` tool on the sdk/buy.mjs flow",
     "tracks": "agents",
     "where": "`mcp/rep-read.mjs`",
     "status": "live",
-    "detail": "reads `bookerbob.testnet` over public RPC (`BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`); 2 tests on a fake RPC",
+    "detail": "reads `bookerbob.testnet` over public RPC (`BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`); `buy` plans by the contract's price code and refuses when no bid fits; it runs the live testnet purchase only with `BOOKERBOB_BUY=1` (local demo keys), plan only otherwise; 3 tests on a fake RPC",
     "evidence": []
   },
   {
