@@ -4,6 +4,8 @@
     "category": "hoodie",
     "persona": "shopify test store via UCP (the store the demo buys from)",
     "source": "shopify-ucp",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "48000000",
       "rules": [
@@ -33,6 +35,8 @@
     "category": "hoodie",
     "persona": "budget basics, booking travellers only",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "42000000",
       "rules": [
@@ -49,6 +53,8 @@
     "category": "hoodie",
     "persona": "travel bundle, likes frequent flyers",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "50000000",
       "rules": [
@@ -69,6 +75,8 @@
     "category": "hoodie",
     "persona": "gamer merch, rewards long steam accounts",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "46000000",
       "rules": [
@@ -85,6 +93,8 @@
     "category": "hoodie",
     "persona": "commuter wear, rewards uber regulars",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "44000000",
       "rules": [
@@ -101,6 +111,8 @@
     "category": "hoodie",
     "persona": "ai lab swag, loves claude spenders",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "52000000",
       "rules": [
@@ -121,6 +133,8 @@
     "category": "hoodie",
     "persona": "premium cotton, no discounts",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "55000000",
       "rules": [],
@@ -132,6 +146,8 @@
     "category": "hoodie",
     "persona": "verified humans only discount",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "47000000",
       "rules": [
@@ -148,6 +164,8 @@
     "category": "hoodie",
     "persona": "flat small stack",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "45000000",
       "rules": [
@@ -172,6 +190,8 @@
     "category": "hoodie",
     "persona": "high base, deep stack, tight cap",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "60000000",
       "rules": [
@@ -196,6 +216,8 @@
     "category": "hoodie",
     "persona": "nomad outfitter",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "49000000",
       "rules": [
@@ -216,6 +238,8 @@
     "category": "hoodie",
     "persona": "streetwear drop",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "51000000",
       "rules": [
@@ -236,6 +260,8 @@
     "category": "hoodie",
     "persona": "eco brand, humans first",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "48500000",
       "rules": [
@@ -256,6 +282,8 @@
     "category": "hoodie",
     "persona": "developer hoodie co",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "50500000",
       "rules": [
@@ -276,6 +304,8 @@
     "category": "hoodie",
     "persona": "airport kiosk",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "53000000",
       "rules": [
@@ -300,6 +330,8 @@
     "category": "hoodie",
     "persona": "discount warehouse",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "43500000",
       "rules": [
@@ -316,6 +348,8 @@
     "category": "hoodie",
     "persona": "loyalty club, rewards everything a little",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "49500000",
       "rules": [
@@ -352,6 +386,8 @@
     "category": "hoodie",
     "persona": "boutique, cap 10%",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "47500000",
       "rules": [
@@ -368,6 +404,8 @@
     "category": "hoodie",
     "persona": "conference merch",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "46500000",
       "rules": [
@@ -388,6 +426,8 @@
     "category": "hoodie",
     "persona": "outdoor gear",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "54000000",
       "rules": [
@@ -408,6 +448,8 @@
     "category": "hoodie",
     "persona": "late night pop-up",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "45500000",
       "rules": [
@@ -428,6 +470,8 @@
     "category": "hoodie",
     "persona": "second-hand vintage",
     "source": "config",
+    "operator": "REP-run",
+    "base": "unanchored base",
     "schedule": {
       "base_price": "41000000",
       "rules": [],
@@ -439,6 +483,8 @@
     "category": "hotel-lisbon",
     "persona": "Bairro Alto Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 531/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1593000000",
@@ -467,6 +513,8 @@
     "category": "hotel-lisbon",
     "persona": "Memmo Principe Real, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 336/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1008000000",
@@ -491,6 +539,8 @@
     "category": "hotel-lisbon",
     "persona": "Olissippo Lapa Palace, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 373/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1119000000",
@@ -516,6 +566,8 @@
     "category": "hotel-lisbon",
     "persona": "Valverde Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. elite 484/night x 3, before tax (no base rate)",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1452000000",
@@ -543,6 +595,8 @@
     "category": "hotel-lisbon",
     "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "510000000",
@@ -576,6 +630,8 @@
     "category": "hotel-lisbon",
     "persona": "Pestana Palace Lisboa, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 435/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "1305000000",
@@ -603,6 +659,8 @@
     "category": "hotel-lisbon",
     "persona": "The One Palacio Da Anunciada, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 277/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "831000000",
@@ -635,6 +693,8 @@
     "category": "hotel-lisbon",
     "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
     "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+    "operator": "REP-run",
+    "base": "public JMPR rate, anchored on chain",
     "schedule_source": "bookerbob config, not a JMPR offer",
     "schedule": {
       "base_price": "669000000",

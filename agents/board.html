@@ -135,7 +135,7 @@ function bids(cat, pitches) {
     `<tr><th>#</th><th>merchant agent</th><th class="num">base</th><th class="num">disc</th><th class="num">price</th><th>discount lines (code)</th></tr>` +
     cat.rows.slice(0, 10).map((r) => `<tr class="${r.rank === 1 ? "win" : ""}">
       <td class="rank">${r.rank}</td>
-      <td class="agent"><span class="who">${esc(r.merchant.split(".")[0])}</span>${ONCHAIN.has(r.merchant) ? ' <span class="chain" title="registered and approved on bookerbob.testnet">on chain</span>' : ""} <span class="bid">bid ${esc(r.bid_commitment.slice(0, 12))}</span><div class="pitch">${esc((r.source === "config" && pitches[r.merchant]) || r.persona)}</div>${r.perks?.length ? `<div class="pitch">perks: ${esc(r.perks.join(", "))}</div>` : ""}${r.source.startsWith("JMPR") ? `<div class="bid">${esc(r.source)}</div>` : ""}</td>
+      <td class="agent"><span class="who">${esc(r.merchant.split(".")[0])}</span>${ONCHAIN.has(r.merchant) ? ' <span class="chain" title="registered and approved on bookerbob.testnet">on chain</span>' : ""} <span class="bid">bid ${esc(r.bid_commitment.slice(0, 12))}</span> <span class="bid">${esc(r.operator)}, ${esc(r.base)}</span><div class="pitch">${esc((r.source === "config" && pitches[r.merchant]) || r.persona)}</div>${r.perks?.length ? `<div class="pitch">perks: ${esc(r.perks.join(", "))}</div>` : ""}${r.source.startsWith("JMPR") ? `<div class="bid">${esc(r.source)}</div>` : ""}</td>
       <td class="num">${usd(r.base_price)}</td>
       <td class="num">${(r.discount_bps / 100).toFixed(1)}%</td>
       <td class="num price">${usd(r.price)}</td>

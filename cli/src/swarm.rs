@@ -29,6 +29,10 @@ pub struct SwarmMerchant {
     pub category: String,
     pub persona: String,
     pub source: String,
+    /// Who runs this merchant agent: every row here is "REP-run"; outside agents bond in through open rounds.
+    pub operator: String,
+    /// Where the base price comes from; "unanchored base" means no public price caps it.
+    pub base: String,
     pub schedule: Schedule,
     /// Perks as text (JMPR elite perks); shown, never priced.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -41,6 +45,8 @@ pub struct BoardRow {
     pub merchant: String,
     pub persona: String,
     pub source: String,
+    pub operator: String,
+    pub base: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub perks: Vec<String>,
     pub bid_commitment: String,
@@ -238,6 +244,8 @@ pub fn build(
             merchant: m.account.clone(),
             persona: m.persona.clone(),
             source: m.source.clone(),
+            operator: m.operator.clone(),
+            base: m.base.clone(),
             perks: m.perks.clone(),
             bid_commitment: commit.clone(),
             base_price: q.base_price.to_string(),

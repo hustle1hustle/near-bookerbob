@@ -16,6 +16,8 @@
           "merchant": "m01.bookerbob.testnet",
           "persona": "shopify test store via UCP (the store the demo buys from)",
           "source": "shopify-ucp",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "db10d8a372669dda7b70cb5ff9335aff291c8de429dfbfc15528e051e20edea2",
           "base_price": "48000000",
           "lines": [
@@ -32,6 +34,8 @@
           "merchant": "m08.bookerbob.testnet",
           "persona": "verified humans only discount",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "215a60bf7cccab178d331ce9e20e867967a7aaa4fe27c16657e8e450da9b1c28",
           "base_price": "47000000",
           "lines": [
@@ -45,6 +49,8 @@
           "merchant": "m03.bookerbob.testnet",
           "persona": "travel bundle, likes frequent flyers",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "98449475025917a0ad8f419852ce241af862d8051d9bba68b1f8d20fce8fdd07",
           "base_price": "50000000",
           "lines": [
@@ -59,6 +65,8 @@
           "merchant": "m19.bookerbob.testnet",
           "persona": "conference merch",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "99217cd3d65de4c0084c4094b1ea8a4cf6641c78d37caca2bb054742cd1fa5b4",
           "base_price": "46500000",
           "lines": [
@@ -73,6 +81,8 @@
           "merchant": "m09.bookerbob.testnet",
           "persona": "flat small stack",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "ee6567952efef01c51e59a9701435513183e70540efbc5509cb6d99f381db55e",
           "base_price": "45000000",
           "lines": [
@@ -88,6 +98,8 @@
           "merchant": "m22.bookerbob.testnet",
           "persona": "second-hand vintage",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "d3d5714eb27843ae37cd5f3724243797cec121e9123cb5827096caf2aa6b7851",
           "base_price": "41000000",
           "lines": [],
@@ -99,6 +111,8 @@
           "merchant": "m06.bookerbob.testnet",
           "persona": "ai lab swag, loves claude spenders",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "b6f1fc4abbeaf85d9ba8b0addf04e5fff407abea01fca602fe90af28c686cb14",
           "base_price": "52000000",
           "lines": [
@@ -113,6 +127,8 @@
           "merchant": "m13.bookerbob.testnet",
           "persona": "eco brand, humans first",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "4daa4dfc4909d03ef7f1eacdae66945c312df1696c4d07aae4b0fa41a46b3480",
           "base_price": "48500000",
           "lines": [
@@ -127,6 +143,8 @@
           "merchant": "m02.bookerbob.testnet",
           "persona": "budget basics, booking travellers only",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "7a4faccc4236332af4ca96503573628055f6f10833e0c4f4e94715c571ce58f6",
           "base_price": "42000000",
           "lines": [],
@@ -138,6 +156,8 @@
           "merchant": "m18.bookerbob.testnet",
           "persona": "boutique, cap 10%",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "1d703a8c5cf98950e243178a6725e38d816a8bd10a0fcc42e8ac35a208f2052d",
           "base_price": "47500000",
           "lines": [
@@ -151,6 +171,8 @@
           "merchant": "m16.bookerbob.testnet",
           "persona": "discount warehouse",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "a4925614f3c7714d5532c8b2bd00a5a61b4b69bf9a84f116dbf31368a5e59783",
           "base_price": "43500000",
           "lines": [],
@@ -162,6 +184,8 @@
           "merchant": "m17.bookerbob.testnet",
           "persona": "loyalty club, rewards everything a little",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "af85bd08b951e9d1c6bde62c3cf8a5fcb5a4cd289e36fdbf960157f353341501",
           "base_price": "49500000",
           "lines": [
@@ -177,6 +201,8 @@
           "merchant": "m05.bookerbob.testnet",
           "persona": "commuter wear, rewards uber regulars",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "f64fde8cd174f089dce3f64222239a9546a385226f078c4d5888fa9c13ac157c",
           "base_price": "44000000",
           "lines": [],
@@ -188,6 +214,8 @@
           "merchant": "m11.bookerbob.testnet",
           "persona": "nomad outfitter",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "aa524dcfdfaf861550ed68c869c3c8495f513f9c60524701f81b1d041f9ab1c7",
           "base_price": "49000000",
           "lines": [
@@ -201,6 +229,8 @@
           "merchant": "m14.bookerbob.testnet",
           "persona": "developer hoodie co",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "e31e35456bc174e8e52e2a311994d0aa805d7c1351e102a68c016a39718c21e0",
           "base_price": "50500000",
           "lines": [
@@ -214,6 +244,8 @@
           "merchant": "m10.bookerbob.testnet",
           "persona": "high base, deep stack, tight cap",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "12ac2a133e6b712c8659745a7368afae9e89c951eed0d7eeb567815d8c086709",
           "base_price": "60000000",
           "lines": [
@@ -229,6 +261,8 @@
           "merchant": "m21.bookerbob.testnet",
           "persona": "late night pop-up",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "11e1120ae6ea0f3c713a38831ca6bc194e80ced875427018247236dc33ac8e06",
           "base_price": "45500000",
           "lines": [],
@@ -240,6 +274,8 @@
           "merchant": "m04.bookerbob.testnet",
           "persona": "gamer merch, rewards long steam accounts",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "46e4f4e96d6fb91723a1117892890577e5892cd50c02ffe451f31184201b6740",
           "base_price": "46000000",
           "lines": [],
@@ -251,6 +287,8 @@
           "merchant": "m20.bookerbob.testnet",
           "persona": "outdoor gear",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "69524aeb1829aba53a8ed21ffea109944db72cd6c0a68f4ec829d04bd16507b0",
           "base_price": "54000000",
           "lines": [
@@ -264,6 +302,8 @@
           "merchant": "m15.bookerbob.testnet",
           "persona": "airport kiosk",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "66a44890c6ce4cd1ee70ba008e14379a97fe719ef7e480822e65fbc2aa50b7ad",
           "base_price": "53000000",
           "lines": [
@@ -277,6 +317,8 @@
           "merchant": "m12.bookerbob.testnet",
           "persona": "streetwear drop",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "b671f839dac3924780534579410f3ba141ea0567dcf13572d2d23945aea3fdfa",
           "base_price": "51000000",
           "lines": [],
@@ -288,6 +330,8 @@
           "merchant": "m07.bookerbob.testnet",
           "persona": "premium cotton, no discounts",
           "source": "config",
+          "operator": "REP-run",
+          "base": "unanchored base",
           "bid_commitment": "90e4890afad2631005e5669d7c41ecd5ae538d65e14c17065e02cd407487d21a",
           "base_price": "55000000",
           "lines": [],
@@ -305,6 +349,8 @@
           "merchant": "h05.bookerbob.testnet",
           "persona": "Intercontinental Lisbon, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 170/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -328,6 +374,8 @@
           "merchant": "h08.bookerbob.testnet",
           "persona": "Myriad By Sana, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 223/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -350,6 +398,8 @@
           "merchant": "h07.bookerbob.testnet",
           "persona": "The One Palacio Da Anunciada, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 277/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -370,6 +420,8 @@
           "merchant": "h02.bookerbob.testnet",
           "persona": "Memmo Principe Real, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 336/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -390,6 +442,8 @@
           "merchant": "h06.bookerbob.testnet",
           "persona": "Pestana Palace Lisboa, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 435/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Daily Breakfast",
             "Room upgrade (subject to availability)",
@@ -410,6 +464,8 @@
           "merchant": "h03.bookerbob.testnet",
           "persona": "Olissippo Lapa Palace, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 373/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Welcome Amenity",
             "USD100 Restaurant Credit"
@@ -425,6 +481,8 @@
           "merchant": "h04.bookerbob.testnet",
           "persona": "Valverde Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. elite 484/night x 3, before tax (no base rate)",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "Room upgrade (subject to availability)",
             "Early Check In (subject to availability)",
@@ -445,6 +503,8 @@
           "merchant": "h01.bookerbob.testnet",
           "persona": "Bairro Alto Hotel, 5 stars. Lisbon 2026-12-10 to 2026-12-13. base 531/night x 3, incl. tax",
           "source": "public JMPR rate as of 2026-11-04; the discount schedule is BookerBob's config; the hotel is not a participant",
+          "operator": "REP-run",
+          "base": "public JMPR rate, anchored on chain",
           "perks": [
             "USD100 Restaurant Credit"
           ],
