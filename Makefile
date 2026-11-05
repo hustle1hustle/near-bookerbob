@@ -60,6 +60,11 @@ verify-offline:
 cheat:
 	node scripts/cheat.mjs run
 
+# One purchase rebuilt from public data, and its price recomputed four ways (scripts/audit.mjs).
+NULLIFIER ?=
+audit:
+	node scripts/audit.mjs $(NULLIFIER)
+
 # If REP turned malicious: each REP-held key's worst case, read live where it can be (README, "Who can lie").
 rep-is-evil:
 	node scripts/rep-is-evil.mjs

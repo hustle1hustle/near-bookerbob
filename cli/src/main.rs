@@ -343,6 +343,17 @@ fn main() -> ExitCode {
             );
             ExitCode::SUCCESS
         }
+        // quote <schedule-json> <pred,pred,..> <k>: the price by core (the contract's code) and by
+        // zkcore directly (the code the Jolt price guest proves), for make audit's parity check.
+        Some("quote") if args.len() >= 4 => {
+            let s: bookerbob_core::Schedule = serde_json::from_str(&args[1]).expect("schedule json");
+            let revealed: Vec<String> = args[2].split(',').filter(|x| !x.is_empty()).map(String::from).collect();
+            let k: u32 = args[3].parse().expect("k");
+            let core = bookerbob_core::quote_in_cohort(&s, &revealed, |_| k);
+            let z = bookerbob_zkcore::price::quote_in_cohort(&s.to_zk(), &revealed, |_| k);
+            println!("{}", serde_json::json!({ "core": core.price.to_string(), "zkcore": z.price.to_string(), "discount_bps": core.discount_bps }));
+            ExitCode::SUCCESS
+        }
         // eval-truth <items.json>: REP Eval v2's answers, from the referee's own check.
         // items: [{"proofs": ProofSet, "revealed": [..], "claims": [Claim]}]
         Some("eval-truth") if args.len() >= 2 => {
