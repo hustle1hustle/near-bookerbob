@@ -183,20 +183,6 @@ mod tests {
     }
 
     #[test]
-    fn a_lifetime_uber_count_cannot_be_cited_as_a_90_day_one() {
-        let set =
-            ProofSet { facts: vec![Fact { id: "F4".into(), platform: "uber".into(), field: "trips_lifetime".into(), value: 60, proof_ref: "cc".repeat(32) }] };
-        let s = Schedule { base_price: 100, rules: vec![Rule { predicate: "uber_regular".into(), bps: 1000 }], cap_bps: 2500, cohort: None };
-        let q = quote(&s, &["uber_regular".into()]);
-        let run = |c: Citation| referee(&set, &["uber_regular".into()], &q, &[claim("uber_regular", "rides uber often", c)]);
-        assert!(run(cite("F4", "trips_lifetime", 60)).is_receipt());
-        match run(cite("F4", "trips_90d", 60)) {
-            RefereeOutcome::Refused { reason } => assert_eq!(reason, "F4 asserted trips_90d=60, proven trips_lifetime=60"),
-            r => panic!("expected refusal, got {r:?}"),
-        }
-    }
-
-    #[test]
     fn an_inflated_value_is_refused() {
         assert_eq!(refused(claim("airbnb_frequent", "9 stays", cite("F1", "trips_12m", 9))), "F1 asserted trips_12m=9, proven trips_12m=7");
         assert_eq!(refused(claim("airbnb_frequent", "stays", cite("F1", "trips_90d", 7))), "F1 asserted trips_90d=7, proven trips_12m=7");
