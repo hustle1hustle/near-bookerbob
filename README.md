@@ -22,9 +22,10 @@ All pass. Logs: `fixtures/live/offline-run/`.
 
 **3 live testnet transactions** (dUSDC, a testnet demo token with no value):
 
-- a 3-night hotel stay, h05 paid 408: [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)
-- a sealed verdict (hashes only on chain) settled at 38.40: [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS)
-- a buying group's own DAO treasury paying h05 for 5 members: [5A8LgNQn…](https://testnet.nearblocks.io/txns/5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A)
+- a hotel buying group of 5 on one fixed tier: its own DAO treasury paid h05 367.20 for each
+  member, an amount 5 buyers share: [5A8LgNQn…](https://testnet.nearblocks.io/txns/5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A)
+- a sealed verdict (hashes only on chain) settled at 38.40, an amount 5 buyers share: [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS)
+- a buying group of 5 at the 10% tier on m01, 32.40 each (`make leak` gates every amount and funding set at k >= 5)
 
 **What is synthetic.** Every fact behind every verdict, with one exception: a `make prove-me`
 pipeline test notarized a public GitHub profile (a real fact about a public account, not proof
@@ -93,7 +94,7 @@ to parties that do not trust us or each other:
 ## What is live and what is offline
 
 Exact as of 2026-11-05. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
-tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 21 purchases
+tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 23 purchases
 settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 18 sealed
 reviews were released over 3 rounds and a standing update from a Jolt proof was accepted; `make verify-live`
 re-derives all of it over public RPC. "Live" means captured once from the real service and
@@ -108,7 +109,7 @@ The two tables of what is captured live and what runs offline: [docs/depth.md](d
 |---|---|---|---|
 | near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | **live**: unit tests and `make verify`; deployed at `bookerbob.testnet` |
 | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | **live**: every testnet verdict passed it |
-| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 11 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
+| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 13 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | **live**: every testnet tx above logs them |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | **built**: `make verify`, 50/50 referee evals |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | **built**: `make verify` checks 04 and 05 |
@@ -128,7 +129,7 @@ The two tables of what is captured live and what runs offline: [docs/depth.md](d
 | MCP tool "REP Read for agents": read-only contract views for any MCP client, plus a `buy` tool on the sdk/buy.mjs flow | agents | `mcp/rep-read.mjs` | **live**: reads `bookerbob.testnet` over public RPC (`BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`); `buy` plans by the contract's price code and refuses when no bid fits; it runs the live testnet purchase only with `BOOKERBOB_BUY=1` (local demo keys), plan only otherwise; 3 tests on a fake RPC |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | **live**: 15 tests; reads `settle_demo` txs from testnet and writes paid orders to the Shopify test store |
 | merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | **built**: cross-checked against the Rust board; used by the outside agent that won `open-1`; not listed (Agent Market is mainnet only) |
-| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 21 dUSDC purchases on testnet (11 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live` |
+| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 23 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live` |
 | paid orders in the Shopify test store through the Admin API (draft order completed as paid, `near_tx` in the note) | realworld | `ucp/src/near-usdc.mjs` | **live**: orders #1055 to #1060 |
 | review k counts distinct World-bound persons, not purchases (`review_persons`) | privacy, security | `contract/src/lib.rs` | **live** |
 | `make leak`: what a passive observer links from public testnet data; found 6 of 6 ratings linked by order, fixed, re-run: 1 of 6 (chance) | privacy | `scripts/leak.mjs`, `docs/leak.md` | **live**: run live before and after |
@@ -137,7 +138,7 @@ The two tables of what is captured live and what runs offline: [docs/depth.md](d
 | `min_tcb`: a verdict below the TDX TCB floor (UpToDate by default) is never quoted or paid | security, privacy | `core/src/envelope.rs` `tcb_meets`, `contract/src/lib.rs` | **live**: deployed; every testnet verdict is the synthetic `fixture` status, which passes only on a `.testnet` bazaar |
 | open market: an outside merchant is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal | swarms, agents, open | `contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md | **live**: a fresh agent with only AGENTS.md won round `open-1` |
 | `make market-eval`: 1,000 simulated rounds, no disclosure vs BookerBob vs full disclosure | swarms | `scripts/market-eval.mjs`, `docs/market-eval.md` | **built**: (a model, assumptions stated) |
-| sealed verdicts (hashes only on chain): the issuer signs an envelope with no predicates, tier or cap in the clear and a `disclosure` commitment to them; the opening goes to the referee, which prices from it and refuses a price over the hidden cap; the contract accepts only a receipt price its own schedule code can produce for some predicate subset (the World discount only for a World-bound agent) | privacy, security | `core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed` | **live**: two sealed purchases on testnet (38.40 dUSDC on synthetic facts; 28 in the `make prove-me` test); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (docs/device-run.md) |
+| sealed verdicts (hashes only on chain): the issuer signs an envelope with no predicates, tier or cap in the clear and a `disclosure` commitment to them; the opening goes to the referee, which prices from it and refuses a price over the hidden cap; the contract accepts only a receipt price its own schedule code can produce for some predicate subset (the World discount only for a World-bound agent) | privacy, security | `core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed` | **live**: four sealed purchases on testnet (38.40 dUSDC twice on synthetic facts; 28 in the `make prove-me` and `make try` pipeline tests); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (docs/device-run.md) |
 | `make prove-me`: your own GitHub account as the real fact. Authenticated `api.github.com/user` notarized with MPC-TLS through the REP notary (pinned key, not attested), 3 fields revealed, the facts sealed to NEAR AI (E2EE v2), a sealed verdict, a `github_builder` line that wins a blind round, one dUSDC settle, `make leak` before and after | privacy, realworld, security, agents | `tools/prove-me/`, `scripts/prove-me.mjs`, `docs/prove-me.md` | **built**: the whole pipeline ran live once as a test on a public profile (no token, so a fact about an account, not ownership): builders won `builder-1` at 28 dUSDC (36 without the builder line), `make verify-live` re-checks it; the run on your own `/user` waits on a token; 4 tests |
 | Verdict Gate: a Sputnik DAO grants a role to an agent whose verdict reveals a predicate; the DAO opts in by its own proposal and gives the gate only `add_member_to_role` propose and approve | social, agents, privacy | `gate/src/lib.rs`, `scripts/gate-demo.mjs`, `docs/gate.md` | **live**: `gate.bookerbob.testnet` with two consumer DAOs (`lisbon-travellers`: airbnb_frequent, `one-human`: world_id_human), one member admitted to each; refused on chain: another agent's verdict, a reused verdict, a sealed verdict; both DAOs' council is REP's; 3 unit tests, `make verify-live` |
 | base-price anchor: a merchant's base is capped at a public price from a named source (`set_price_anchor`), so a discount off an inflated base is refused; unit economics per purchase from measured testnet gas and storage | realworld, business, security | `contract/src/lib.rs` (`set_price_anchor`, `check_price_anchor`), `scripts/cheat.mjs`, `docs/unit-economics.md` | **live**: 8 Lisbon hotels capped at their public JMPR rates on testnet; `make cheat`: h05 raising 510 to 600 refused on chain; 4 contract tests (`an_inflated_base_is_refused`); one purchase costs about 0.0102 NEAR in gas and compute plus 0.016 NEAR storage, against a 1% fee; hoodie merchants are not anchored |
@@ -221,7 +222,7 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 |---|---|---|
 | the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); never the chain | not public |
 | revealed predicates | everyone, for an ordinary verdict; nobody on chain for a sealed one (the referee reads its opening) | the cohort: 23 verdicts on chain reveal `world_id_human` in the demo context (`cohort_size`) |
-| settled amount | everyone | 38.40 x4, 36.00 x4, 32.40 x5, 367.20 x5, 408 x1, 28.00 x1: the hotel buyer and the `make prove-me` buyer are alone (L6) |
+| settled amount | everyone | 38.40 x5, 36.00 x5, 32.40 x5, 367.20 x5, 28.00 x2, 408 x1: `make leak` fails any new purchase in a set under 5 (L6); the 408 stay and the two 28 pipeline tests came before that gate and are listed |
 | merchant and checkout_ref | everyone | m01: 13 buyers, h05: 6, builders: 1 |
 | the agent account | everyone | 1: one account per purchase links its verdict, settle and review join (L1) |
 | a rating | everyone, after release, sorted by hash | the review group, at least 5 (Semaphore, k floor) |
@@ -263,10 +264,10 @@ Testnet only; nothing is on mainnet. Every tx hash is in [docs/testnet.md](docs/
   one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key goes in the lock.
 - `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys.
 - `gate.bookerbob.testnet`: the Verdict Gate; `bookerbob-dusdc.testnet`: the demo token.
-- Done in demo mode (dUSDC): 21 purchases (11 single settles: one with the 1% fee, one with a
-  sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 11 replays refused, a settle-only function-call key
+- Done in demo mode (dUSDC): 23 purchases (13 single settles: one with the 1% fee, two with a
+  sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 13 replays refused, a settle-only function-call key
   that cannot withdraw, 18 sealed reviews released over 3 rounds at k >= 5 (12 for m01, 6 for h05), the group price at k >= 5, a
-  standing update with nonzero merchants, 11 orders in the Shopify test store.
+  standing update with nonzero merchants, 13 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee (the register waits on the founder).
 
 ## License

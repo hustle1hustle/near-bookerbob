@@ -242,6 +242,49 @@
         "replay": "JDov1CKu61bHjXpCymPp99wD5FFjdJMFLn5RTRe9xRgZ",
         "review_join": "5PQGxe2CcNSXZewSmKYfXLb7FK41fwFpfmDCadbFuiBW"
       }
+    },
+    {
+      "tester": "t-112804.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "8825bf6c88170e51357679ccab3aa5840172c44c8e923f6b5db2c653842682d4",
+      "price": "36000000",
+      "cohort_k": 24,
+      "shopify_order": "#1067",
+      "txs": {
+        "account": "A4KLP91sZxfEDHfU1yeGPQ68eFiiD6zc1xm8FCZggk5G",
+        "escrow_entry": "GVvkrPvfNhx6HZeKii74xAwchJitwyDPvJTzNeeHcJDX",
+        "dusdc_storage": "6973hxwuWRkLsoaEe4mhEcJrnLFMnzJ8M6w82DSoiGTM",
+        "mint": "CCztqAGd229dxuJeVbTBwXEbdx2qugBwL4RPkBiGLBJF",
+        "world": "3DtUBTcWgW9SZi7SC2Z9bbDShHkAUPAb5CZm8UKWk6Zf",
+        "verdict": "39Bh9hSuZw813aPt1PfGDGy1noxk7Yfky5WCFScVPwdj",
+        "receipt": "FxahBAJFmUoEiyA4ZvAqwLXKXxGyaU3inA7pHnT6EJKq",
+        "escrow": "CfJpdqAQnSS3HKKqU4Dy4QTo8Gy8Kwcv27ry3UE4AGQB",
+        "settle": "DZt9yTgZNfDuRpA4gaRVcYMEWEkNVNV8BA16jAZRVa8R",
+        "replay": "9KsGiKpLzNMfsZiZr7A146pT5UZqcFDMdLw6Du8z9po6",
+        "review_join": "6B3k5VcaL3BiTGnitK5pR7dSxgyd1Stj81LRs58jsGNd"
+      }
+    },
+    {
+      "tester": "t-bb681d.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "a38ffebbd8c53ad9a40c150142facdcb167d80a4fd47fccdb3940d24e6fa17ce",
+      "price": "38400000",
+      "cohort_k": 0,
+      "sealed": true,
+      "shopify_order": "#1068",
+      "txs": {
+        "account": "74DeP4FGfX26t9CojLKtKU5qNEiBABEEq4PUsUeEDWsa",
+        "escrow_entry": "BfMfP2oKFvGSaFsp1Z7qZuMgaNr429ZLHRHDW66oKdX2",
+        "dusdc_storage": "2ez5x8cJg698d1qFvUaJdUM7p4EhNuAJ1P84SpQDnKja",
+        "mint": "EiXLSP3Ns5H58JKbjt2GSMPJXMRSPQJp4yYSbuGTdrRv",
+        "world": "3oFodUmteGc7WwDMdf7kh8MS6ofg2kmUj4pRguqpVTjb",
+        "verdict": "7xvijDVM4hJGk4EPethsaUzG8tCfGeXvTEdE66gtG1RS",
+        "receipt": "FaM4kZE5eY5fK6RMixJdxMur6CyeVE1rMJTDnVghba3h",
+        "escrow": "Bpws7zD9wxdqTjh2gRtpEPmTScGVCku3m8zCo8YkWeZS",
+        "settle": "Hq6ff3eeRvbtpoxvnXy9vCzfkXAmPsJsF7QkZPJoRWJ4",
+        "replay": "3mD4MSWVYRPUaia3GEMnGL8TkKy9t4UDKBa9xpdRftAc",
+        "review_join": "UyfP8AkDFwpkxqr83Erqbs91EMUANRiXDzGMR1Cnd8j"
+      }
     }
   ],
   "unfinished": [

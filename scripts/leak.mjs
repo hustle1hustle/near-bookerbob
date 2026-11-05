@@ -118,17 +118,47 @@ if (sealedBuyers.length) {
 
 // L6: the amount oracle. A settled amount is public; an exact price can reveal which
 // discount lines (and so which predicates) a buyer had. Anonymity set per buyer: the buyers
-// who paid the same amount. Buying-group members (fixed tiers) are included when present.
-const paid = buyers.map((b) => ({ who: b.tester, amount: String(b.price) }));
-for (const g of m.groups ?? []) for (const x of g.members) paid.push({ who: x.tester, amount: String(x.paid), group: true });
+// who paid the same amount, over every purchase (single, buying group, group DAO treasury).
+// L7: the funding set. Who funded a buyer's account is public: a subaccount of the treasury
+// can only have been created by it; an implicit account is funded by the transfer we recorded.
+//
+// The k-gate: every amount set and every funding set must hold at least K buyers. Purchases
+// settled before the gate (fixtures/live/leak-before-gate.json, frozen) are printed as KNOWN,
+// never hidden; any other purchase under K fails `make leak`. A purchase whose amount would sit
+// under K settles through a buying group on a fixed tier instead (the tier grid: 10%, 20%).
+const K = 5;
+const { purchases } = await import("./live-snapshot.mjs");
+const rows = purchases(m).filter((r) => r.kind !== "refunded");
 const byAmount = new Map();
-for (const p of paid) byAmount.set(p.amount, (byAmount.get(p.amount) ?? 0) + 1);
-const minOf = (xs) => (xs.length ? Math.min(...xs.map((p) => byAmount.get(p.amount))) : null);
-const singles = minOf(paid.filter((p) => !p.group)), grouped = minOf(paid.filter((p) => p.group));
-links.push({ rule: "L6 amount oracle", what: `settled amounts of ${paid.length} buyers: ${[...byAmount].map(([a, n]) => `${Number(a) / 1e6} x${n}`).join(", ")}`, linked: singles < 5, note: `single buyers: smallest set sharing an amount ${singles}${grouped != null ? `; buying-group members: ${grouped} (one fixed-tier amount for the whole group)` : ""}`, anonymity_set: singles });
+for (const r of rows) byAmount.set(r.paid, (byAmount.get(r.paid) ?? 0) + 1);
+const funderOf = async (r) => {
+  if (r.tester.endsWith(`.${m.treasury}`)) return m.treasury;
+  const t = m.testers.find((x) => x.tester === r.tester);
+  return t?.txs?.account ? (await tx(t.txs.account, m.treasury)).signer : "unknown";
+};
+const byFunder = new Map();
+for (const r of rows) {
+  r.funder = await funderOf(r);
+  byFunder.set(r.funder, (byFunder.get(r.funder) ?? 0) + 1);
+}
+const gate = JSON.parse(readFileSync(new URL("../fixtures/live/leak-before-gate.json", import.meta.url)));
+const known = new Set(gate.known.map((x) => x.nullifier));
+const under = rows.flatMap((r) => [
+  ...(byAmount.get(r.paid) < K ? [{ r, what: `amount ${Number(r.paid) / 1e6} paid by ${byAmount.get(r.paid)}` }] : []),
+  ...(byFunder.get(r.funder) < K ? [{ r, what: `funder ${r.funder} funded ${byFunder.get(r.funder)}` }] : []),
+]);
+const newUnder = under.filter((u) => !known.has(u.r.nullifier));
+const minAmount = Math.min(...[...byAmount.values()]);
+links.push({ rule: "L6 amount oracle", what: `settled amounts of ${rows.length} buyers: ${[...byAmount].sort((x, y) => y[1] - x[1]).map(([a, n]) => `${Number(a) / 1e6} x${n}`).join(", ")}`, linked: minAmount < K, note: `smallest set sharing an amount ${minAmount}; under ${K}: ${under.filter((u) => u.what.startsWith("amount")).length} buyer(s), all settled before the gate: ${newUnder.length === 0}`, anonymity_set: minAmount });
+const minFunder = Math.min(...[...byFunder.values()]);
+links.push({ rule: "L7 funding set", what: `who funded each of ${rows.length} buyer accounts: ${[...byFunder].map(([f, n]) => `${f.length > 30 ? f.slice(0, 12) + ".." : f} x${n}`).join(", ")}`, linked: minFunder < K, anonymity_set: minFunder });
 
 const ratingToBuyer = links.find((l) => l.rule.startsWith("L2")).linked;
 console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${round.round})\n`);
 for (const l of links) console.log(`${l.linked ? "LINKED  " : "unlinked"}  ${l.rule.padEnd(16)} ${l.what}  (anonymity set ${l.anonymity_set}${l.correct !== undefined ? `, ${l.correct}/${l.of} right` : ""}${l.note ? `; ${l.note}` : ""})`);
 console.log(`\nverdict: ${ratingToBuyer ? "LEAK  a passive observer links every rating to the buyer who wrote it, by order alone" : "ratings are not linked to buyers by order"}`);
-writeFileSync(new URL(`../docs/leak-report-${round.round}.json`, import.meta.url), JSON.stringify({ when: new Date().toISOString(), bazaar: m.bazaar, round: round.round, links, rating_to_buyer_linked: ratingToBuyer }, null, 2) + "\n");
+console.log(`\nk-gate (k >= ${K} for every amount and funding set):`);
+for (const u of under) console.log(`${known.has(u.r.nullifier) ? "KNOWN " : "FAIL  "}  ${u.r.kind} ${u.r.tester.slice(0, 18)}: ${u.what}${known.has(u.r.nullifier) ? `  (before the gate: ${gate.known.find((x) => x.nullifier === u.r.nullifier).reason})` : ""}`);
+console.log(newUnder.length ? `FAIL  k-gate: ${newUnder.length} purchase(s) after the gate sit in a set under ${K}` : `PASS  k-gate: no purchase after the gate (${gate.date}) sits in a set under ${K}; ${under.length} known one(s) before it, listed above`);
+writeFileSync(new URL(`../docs/leak-report-${round.round}.json`, import.meta.url), JSON.stringify({ when: new Date().toISOString(), bazaar: m.bazaar, round: round.round, links, rating_to_buyer_linked: ratingToBuyer, k_gate: { k: K, pass: newUnder.length === 0, known: under.filter((u) => known.has(u.r.nullifier)).map((u) => ({ nullifier: u.r.nullifier, what: u.what })) } }, null, 2) + "\n");
+if (newUnder.length) process.exit(1);

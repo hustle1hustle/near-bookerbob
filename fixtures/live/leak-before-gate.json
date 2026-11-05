@@ -1,0 +1,10 @@
+{
+  "note": "Purchases settled before the make leak k-gate (k >= 5 for every amount and funding set) was added. Frozen: make leak prints each one as KNOWN; any other purchase in a set under 5 fails the gate.",
+  "date": "2026-11-05",
+  "k": 5,
+  "known": [
+    { "nullifier": "62eb45b4d76cf237d069c5d4dda961407a4d50c67e08ea62c3bd14bd96ba3c3d", "reason": "the one 3-night hotel stay at 408; the hotel group of 5 at 367.20 (group DAO treasury) replaces it as the headline" },
+    { "nullifier": "50730c22252dfd574ccb4f84098c2864836a4c31978bf25e238f670b4d902ecf", "reason": "make prove-me pipeline test at 28 (builders)" },
+    { "nullifier": "a6362ab2e6a4781daa7186871d23ecbfb55994da206aa3d72e6687de92a4c37c", "reason": "make try pipeline test at 28 (builders)" }
+  ]
+}

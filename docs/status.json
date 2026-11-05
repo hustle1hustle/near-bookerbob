@@ -24,7 +24,7 @@
     "tracks": "realworld, agents",
     "where": "`contract/src/lib.rs`",
     "status": "live",
-    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 11 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
+    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 13 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
     "evidence": [
       "testers"
     ]
@@ -209,7 +209,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "21 dUSDC purchases on testnet (11 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
+    "detail": "23 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -297,7 +297,7 @@
     "tracks": "privacy, security",
     "where": "`core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed`",
     "status": "live",
-    "detail": "two sealed purchases on testnet (38.40 dUSDC on synthetic facts; 28 in the `make prove-me` test); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (docs/device-run.md)",
+    "detail": "four sealed purchases on testnet (38.40 dUSDC twice on synthetic facts; 28 in the `make prove-me` and `make try` pipeline tests); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (docs/device-run.md)",
     "evidence": [
       "testers"
     ]

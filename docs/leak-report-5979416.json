@@ -1,8 +1,14 @@
 {
-  "when": "2026-11-05T02:19:28.539Z",
+  "when": "2026-11-05T11:41:27.082Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
+    {
+      "rule": "L1 same account",
+      "what": "t-388a34: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
     {
       "rule": "L1 same account",
       "what": "t-4fdc17: verdict, settle and review-group join",
@@ -12,6 +18,12 @@
     {
       "rule": "L1 same account",
       "what": "t-b1de37: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "71e8a4ea93f289083ba0c1753b782c7d39de7ba7c942247a99f8e0d03ad7489e: verdict, settle and review-group join",
       "linked": true,
       "anonymity_set": 1
     },
@@ -58,6 +70,18 @@
       "anonymity_set": 1
     },
     {
+      "rule": "L1 same account",
+      "what": "t-112804: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-bb681d: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
       "rule": "L2 timing order",
       "what": "each sealed rating to the buyer who joined in the same position",
       "linked": false,
@@ -69,8 +93,8 @@
       "rule": "L3 funding",
       "what": "review senders and buyers share one funder (the relayer)",
       "linked": false,
-      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 9 here",
-      "anonymity_set": 9
+      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 13 here",
+      "anonymity_set": 13
     },
     {
       "rule": "L4 reveal",
@@ -81,25 +105,49 @@
     },
     {
       "rule": "L5 plaintext facts",
-      "what": "the proof set's fields and proof refs in the args of 99 tester txs",
+      "what": "the proof set's fields and proof refs in the args of 143 tester txs",
       "linked": false,
       "note": "none: facts never left the buyer side in tx args",
-      "anonymity_set": 9
+      "anonymity_set": 13
     },
     {
       "rule": "L5b sealed predicates",
-      "what": "predicate names or tier in the verdict tx of 1 sealed buyer(s)",
+      "what": "predicate names or tier in the verdict tx of 4 sealed buyer(s)",
       "linked": false,
       "note": "none: hashes only (the disclosure commitment)",
-      "anonymity_set": 9
+      "anonymity_set": 13
     },
     {
       "rule": "L6 amount oracle",
-      "what": "settled amounts of 14 buyers: 38.4 x4, 408 x1, 36 x4, 32.4 x5",
+      "what": "settled amounts of 23 buyers: 38.4 x5, 36 x5, 32.4 x5, 367.2 x5, 28 x2, 408 x1",
       "linked": true,
-      "note": "single buyers: smallest set sharing an amount 1; buying-group members: 5 (one fixed-tier amount for the whole group)",
+      "note": "smallest set sharing an amount 1; under 5: 3 buyer(s), all settled before the gate: true",
       "anonymity_set": 1
+    },
+    {
+      "rule": "L7 funding set",
+      "what": "who funded each of 23 buyer accounts: bookerbob-demo.testnet x23",
+      "linked": false,
+      "anonymity_set": 23
     }
   ],
-  "rating_to_buyer_linked": false
+  "rating_to_buyer_linked": false,
+  "k_gate": {
+    "k": 5,
+    "pass": true,
+    "known": [
+      {
+        "nullifier": "50730c22252dfd574ccb4f84098c2864836a4c31978bf25e238f670b4d902ecf",
+        "what": "amount 28 paid by 2"
+      },
+      {
+        "nullifier": "62eb45b4d76cf237d069c5d4dda961407a4d50c67e08ea62c3bd14bd96ba3c3d",
+        "what": "amount 408 paid by 1"
+      },
+      {
+        "nullifier": "a6362ab2e6a4781daa7186871d23ecbfb55994da206aa3d72e6687de92a4c37c",
+        "what": "amount 28 paid by 2"
+      }
+    ]
+  }
 }

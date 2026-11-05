@@ -70,6 +70,22 @@ amount was 3, under the k floor. After a live buying group of 5 on one fixed tie
 members all paid 32.40, a set of 5; the single buyers stay at 3. Fixed tiers (10%, 20%) are
 what keep a group's amount from saying more than the tier.
 
+## The k-gate (added 2026-11-05)
+
+`make leak` now fails when any purchase sits in an amount set (L6) or a funding set (L7) under
+5. L6 counts every purchase: single settles, the buying group and the group DAO treasury's
+members. L7 counts who funded each buyer's account (a treasury subaccount can only have been
+created by the treasury; an implicit account by the transfer recorded for it). Three purchases
+came before the gate and stay in sets under 5: the one hotel stay at 408 and the two
+builders pipeline tests at 28. They are frozen in `fixtures/live/leak-before-gate.json` and
+printed as KNOWN, never hidden. Any other purchase under 5 fails the gate.
+
+The tier grid: a buyer whose amount would sit under 5 buys through a buying group on a fixed
+tier (10%, 20%), so the amount says only the tier. The hotel headline is now the group of 5 at
+367.20 (10% off 408), not the single stay. After the gate: 38.40 x5, 36.00 x5, 32.40 x5,
+367.20 x5; one funder (the demo treasury) for all 23 buyers. A next builders purchase at 28
+fails the gate until that set reaches 5, which is the gate working.
+
 ## Still open, stated plainly
 
 - L1: one demo account per purchase links that purchase's verdict, settle and review-group
