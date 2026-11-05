@@ -36,6 +36,17 @@ if [ -d "$SECRETS_DIR" ]; then
   find "$SECRETS_DIR" -type f -size -64k \( -name '*.seed' -o -name '*.secret' -o -name '*.env' -o -name '*.key' -o -name '*.token' -o -name '*.pem' \) -print0 2>/dev/null |
     xargs -0 cat 2>/dev/null | tr -d '\r' | sed -E 's/^[A-Z_]+=//; s/^["'"'"']//; s/["'"'"']$//' |
     grep -oE '[A-Za-z0-9_+/=:.-]{16,}' | sort -u > "$tmp/values.txt" || true
+  # JSON records too (here and in ~/.near-credentials): the values of secret-named fields
+  # only (keys, seed phrases, salts, the sealed eval questions), not their public tx hashes.
+  node -e '
+    const fs = require("fs"), p = require("path"), want = /^(private_key|secret_key|seed|seed_phrase|master_seed_phrase|salt|question|password|token|api_key)$/;
+    const out = [];
+    const scan = (o, k) => Array.isArray(o) ? o.forEach((x) => scan(x, k)) : o && typeof o === "object" ? Object.entries(o).forEach(([kk, v]) => scan(v, kk)) : typeof o === "string" && want.test(k) && o.length >= 16 && out.push(o.replace(/^ed25519:/, ""));
+    const walk = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const q = p.join(d, f.name); if (f.isDirectory()) walk(q); else if (f.name.endsWith(".json") && fs.statSync(q).size < 1e6) { try { scan(JSON.parse(fs.readFileSync(q, "utf8")), ""); } catch {} } } };
+    for (const d of process.argv.slice(1)) if (fs.existsSync(d)) walk(d);
+    console.log(out.join("\n"));
+  ' "$SECRETS_DIR" "$HOME/.near-credentials" >> "$tmp/values.txt" 2>/dev/null || true
+  sort -u -o "$tmp/values.txt" "$tmp/values.txt"
   # Drop public values that legitimately appear (account ids, hosts, version strings).
   grep -vE '\.(testnet|near|com|org|dev|io)$|^https?:|^[0-9]{4}-[0-9]{2}' "$tmp/values.txt" > "$tmp/v2.txt" || true
   nvals=$(wc -l < "$tmp/v2.txt" | tr -d ' ')
