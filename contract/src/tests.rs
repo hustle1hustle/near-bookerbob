@@ -2522,6 +2522,23 @@ mod sealed_referee_input {
     }
 }
 
+#[test]
+fn a_hybrid_v1_sealed_input_is_forwarded_and_a_truncated_kem_ciphertext_is_refused() {
+    set("owner.testnet");
+    let mut c = setup();
+    set_no_deposit("owner.testnet");
+    c.set_outlayer(acc("outlayer.testnet"));
+    let pk = bookerbob_referee_worker::sealed::public_hex_v1(&[5u8; 32]);
+    let s = bookerbob_referee_worker::sealed::seal_v1(&pk, b"{\"v\":1}", [9u8; 32], [3u8; 32], [1u8; 24]).unwrap();
+    let _ = c.request_referee("owner/referee".into(), serde_json::json!({ "sealed": s.clone() }).to_string());
+    assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == "outlayer.testnet"));
+    let mut bad = s;
+    bad.kem_ct = bad.kem_ct.map(|k| k[..100].to_string());
+    let r =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.request_referee("owner/referee".into(), serde_json::json!({ "sealed": bad }).to_string())));
+    assert!(r.is_err(), "a truncated ML-KEM ciphertext is refused");
+}
+
 /// Buying groups: World-bound buyers with the same revealed set pool for a fixed-tier discount.
 mod buying_groups {
     use super::*;

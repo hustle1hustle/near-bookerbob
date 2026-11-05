@@ -2230,6 +2230,13 @@ impl Bazaar {
                 .iter()
                 .all(|k| v["sealed"][k].as_str().is_some_and(|x| !x.is_empty() && x.bytes().all(|b| b.is_ascii_hexdigit())));
         require!(sealed, "referee input must be sealed to the worker key (plaintext facts would be public)");
+        // v1 is the post-quantum hybrid (X25519 + ML-KEM-768): it must carry the 1,088-byte KEM ciphertext.
+        let v1_ok = match v["sealed"]["v"].as_u64() {
+            Some(1) => v["sealed"]["kem_ct"].as_str().is_some_and(|x| x.len() == 2 * 1088 && x.bytes().all(|b| b.is_ascii_hexdigit())),
+            Some(0) | None => v["sealed"].get("kem_ct").is_none(),
+            _ => false,
+        };
+        require!(v1_ok, "sealed input: unknown version or a malformed ML-KEM ciphertext");
         let outlayer = self.outlayer.clone().unwrap_or_else(|| env::panic_str("outlayer not set"));
         ext_outlayer::ext(outlayer)
             .with_attached_deposit(env::attached_deposit())

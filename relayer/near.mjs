@@ -1,6 +1,6 @@
 // Minimal NEAR transaction building and sending, no dependencies (node:crypto + fetch).
 // Borsh layouts from nearcore: Transaction (V0), SignedTransaction, Action variants
-// CreateAccount 0, FunctionCall 2, Transfer 3, AddKey 5, Delegate 8, and SignedDelegateAction.
+// CreateAccount 0, DeployContract 1, FunctionCall 2, Transfer 3, AddKey 5, DeleteKey 6, Delegate 8, and SignedDelegateAction.
 // Keys are raw 32-byte ed25519 seeds kept outside the repo; only public keys are printed.
 import { createHash, createPrivateKey, createPublicKey, sign } from "node:crypto";
 import { encodeDelegateAction, signableHash } from "./relay.mjs";
@@ -55,6 +55,7 @@ export function encodeAction(a) {
         : Buffer.concat([u8(0), a.permission.allowance == null ? u8(0) : Buffer.concat([u8(1), u128(a.permission.allowance)]), str(a.permission.receiver_id), vec(a.permission.method_names.map(str))]);
       return Buffer.concat([u8(5), pk(a.public_key_hex), u64(0), perm]);
     }
+    case "DeleteKey": return Buffer.concat([u8(6), pk(a.public_key_hex)]);
     case "Delegate": return Buffer.concat([u8(8), encodeDelegateAction(a.delegate_action), u8(0), Buffer.from(a.signature_hex, "hex")]);
     default: throw new Error(`action ${a.type} not encoded here`);
   }

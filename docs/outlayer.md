@@ -39,6 +39,11 @@ there. A real proof set must use OutLayer's HTTPS path (Payment Key) or be seale
 worker key. The second is built: `request_referee` refuses anything but
 `{"sealed":{epk,nonce,ct,commitment}}` (X25519 to the worker key, HKDF-SHA256,
 XChaCha20-Poly1305, sha256 commitment; `worker/src/sealed.rs`, `bookerbob seal-input`).
+Since 2026-11-05 the default is v1, a post-quantum hybrid in the X-Wing style: the worker key
+is also an ML-KEM-768 key (FIPS 203, RustCrypto `ml-kem`), and the shared secrets of both go
+into HKDF, so opening needs both X25519 and ML-KEM-768 broken (`bookerbob referee-pub` prints
+the `pq1:` key; `request_referee` checks a v1 input carries a 1,088-byte KEM ciphertext). v0
+inputs still open.
 
 ## Not verified yet
 

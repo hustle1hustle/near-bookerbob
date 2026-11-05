@@ -25,6 +25,8 @@ test("action variants and layouts", () => {
   const fc = encodeAction({ type: "AddKey", public_key_hex: key.pub, permission: { allowance: null, receiver_id: "b.testnet", method_names: ["settle_demo"] } });
   assert.equal(fc[42], 0, "FunctionCall permission");
   assert.equal(fc[43], 0, "no allowance");
+  const del = encodeAction({ type: "DeleteKey", public_key_hex: key.pub });
+  assert.deepEqual([del[0], del[1], del.length], [6, 0, 1 + 33], "DeleteKey: variant 6, ed25519 key");
 });
 
 test("a signed transaction verifies over sha256 of its borsh body", () => {

@@ -167,12 +167,17 @@ fn main() -> ExitCode {
         Some("evidence") => evidence::run(),
         // graph-input <onchain-root-hex> <out.json> <agent>:<sub> | hex:<event> ...: the standing guest's input
         // for a live graph, refused unless the events hash to the root read from chain.
-        // referee-pub <keys-dir>: the worker's X25519 key a buyer seals the referee input to
+        // referee-pub <keys-dir> [--x25519]: the worker key a buyer seals the referee input to;
+        // by default the v1 hybrid key (pq1: X25519 + ML-KEM-768), --x25519 for the v0 key
         Some("referee-pub") if args.len() >= 2 => {
             let seed = std::fs::read_to_string(Path::new(&args[1]).join("referee.seed")).unwrap_or_default();
             match hex::decode(seed.trim()).ok().and_then(|b| <[u8; 32]>::try_from(b).ok()) {
                 Some(s) => {
-                    println!("{}", bookerbob_referee_worker::sealed::public_hex(&s));
+                    if args.iter().any(|a| a == "--x25519") {
+                        println!("{}", bookerbob_referee_worker::sealed::public_hex(&s));
+                    } else {
+                        println!("{}", bookerbob_referee_worker::sealed::public_hex_v1(&s));
+                    }
                     ExitCode::SUCCESS
                 }
                 None => {
@@ -181,14 +186,21 @@ fn main() -> ExitCode {
                 }
             }
         }
-        // seal-input <worker-x25519-pk> <input.json>: {"sealed":{..}} for request_referee
+        // seal-input <worker-key> <input.json>: {"sealed":{..}} for request_referee; a pq1: key
+        // gives a v1 hybrid envelope (X25519 + ML-KEM-768), a bare X25519 key a v0 one
         Some("seal-input") if args.len() >= 3 => {
             use std::io::Read;
-            let mut rnd = [0u8; 56];
+            let mut rnd = [0u8; 88];
             std::fs::File::open("/dev/urandom").and_then(|mut f| f.read_exact(&mut rnd)).expect("urandom");
             let pt = std::fs::read(&args[2]).expect("read input");
-            let (eph, nonce): ([u8; 32], [u8; 24]) = (rnd[..32].try_into().unwrap(), rnd[32..].try_into().unwrap());
-            match bookerbob_referee_worker::sealed::seal(&args[1], &pt, eph, nonce) {
+            let (eph, nonce, m): ([u8; 32], [u8; 24], [u8; 32]) =
+                (rnd[..32].try_into().unwrap(), rnd[32..56].try_into().unwrap(), rnd[56..].try_into().unwrap());
+            let sealed = if args[1].starts_with(bookerbob_referee_worker::sealed::PQ1) {
+                bookerbob_referee_worker::sealed::seal_v1(&args[1], &pt, eph, m, nonce)
+            } else {
+                bookerbob_referee_worker::sealed::seal(&args[1], &pt, eph, nonce)
+            };
+            match sealed {
                 Ok(s) => {
                     println!("{}", serde_json::json!({ "sealed": s }));
                     ExitCode::SUCCESS
