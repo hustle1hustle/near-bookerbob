@@ -67,3 +67,43 @@ set`, the receipt is cleared and settle is blocked.
 
 The arbiter key should be a different worker and operator than the referee, or the
 dispute adds nothing. Today both are fixture seeds.
+
+## Staged: an attested referee key (panel round 4, action 10; not run)
+
+What OutLayer allows, read from its source and docs on 2026-11-05 (`fastnear/near-outlayer`,
+`app.outlayer.ai/docs`):
+
+- **Worker keys are OutLayer's, not ours.** `register_worker_key(public_key, tdx_quote_hex)` on
+  `worker.outlayer.testnet` is callable only by OutLayer's operator, and a worker key serves
+  every project. So "register the referee worker" means registering a **project**.
+- **A project:** `create_project(name, source)` on `outlayer.testnet`, payable (storage deposit,
+  the excess refunded), id `<caller>/<name>`, source `WasmUrl { url, hash, build_target:
+  "wasm32-wasip2" }`. It is reversible: `delete_project`, `add_version`, `set_active_version`.
+- **An attested key for it:** the project manifest declares `signing_keys` (bind to the wasm
+  hash or the project); inside the TEE the module gets signatures from `outlayer:signing-keys`
+  and never the private key. The binding to hardware is per run: a run's TDX quote commits to
+  code, input and output, fetched from `testnet-api.outlayer.ai/attestations/by-tx/<tx>` and
+  checked with `outlayer-verify tx <hash>`.
+
+The staged steps:
+
+1. Build the referee worker for `wasm32-wasip2` with a `signing_keys` entry (`bind: "wasm"`),
+   signing receipts through the host interface instead of `REFEREE_SIGNING_SEED`.
+2. `create_project("bookerbob-referee", WasmUrl)` from `bookerbob.testnet` (reversible).
+3. One run with input `{"cmd":"pubkey"}`: the module prints its public key; the run's
+   attestation is fetched and checked off chain (`outlayer-verify`).
+4. `register_referee(<that key>)` on the bazaar, as today, but for a key a TDX quote covers.
+5. One live receipt: `request_referee` with a sealed input; `make verify-live` records it.
+
+Open before it can run (stated plainly):
+
+- **Sealed input.** `request_referee` accepts only input sealed to the worker's X25519 key, and
+  `outlayer:signing-keys` signs; it does not decrypt. A key the TEE can decrypt with is not in
+  the docs read. Until one is, the run uses a synthetic proof set in the clear or OutLayer's
+  HTTPS path, which `docs/outlayer.md` "Privacy" already allows for synthetic data only.
+- The attestation response schema is not documented; the deposit amount is not either
+  (`estimate_execution_cost` gives the run cost: 0.0070001 NEAR measured).
+- The worker today builds for wasip1; the wasip2 build is untested.
+
+Founder OK needed for step 2 onward (an outside service, irreversible on its side only in
+its deposit). About 3 to 4 hours after the OK, most of it the wasip2 build.
