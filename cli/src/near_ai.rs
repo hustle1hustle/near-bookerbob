@@ -342,7 +342,7 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
                 Err(d) => println!("FAIL  N{}  {name}  ({d})", i + 1),
             }
         }
-        println!("NOTE  NVIDIA GPU evidence is not checked (NRAS is online); the TDX quote is checked here and by the owner before register_model_attestation, not inside the contract");
+        println!("NOTE  the NVIDIA GPU evidence is checked next, from NVIDIA's saved NRAS reply (scripts/nras.mjs); the TDX quote is checked here, and on chain by the quote verifier the bazaar requires (tools/dcap-spike)");
     }
     (passed, checks.len())
 }

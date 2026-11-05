@@ -45,7 +45,7 @@ at the TCB step; and checks that the five steps give exactly what the whole chec
   (REP's), so its code could be replaced; the bazaar trusts the account, like any anchor.
 - **The collateral is passed in.** It is Intel-signed and its signatures are checked on chain,
   but someone has to fetch it from Intel's PCS; nothing on chain fetches it.
-- The NVIDIA GPU evidence of the NEAR AI enclave is still not checked.
+- The NVIDIA GPU evidence is checked off chain, from NVIDIA's signed NRAS reply (`scripts/nras.mjs`), not here.
 - `tools/dcap-spike` is not part of the workspace or of `make verify`; `node tools/dcap-spike/run.mjs`
   reruns the calls (testnet NEAR, a 0.5 NEAR storage deposit per verification).
 

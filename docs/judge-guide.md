@@ -64,7 +64,8 @@ every sealed rating (delegate actions; `make verify-live` checks them).
   Circle USDC): 20 purchases (10 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28; 5 in a buying group; 5 through a buying group's own DAO treasury),
   all re-derived by `make verify-live`. No real zkTLS proof yet (the facts are synthetic).
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
-  not inside the contract; NVIDIA GPU evidence is not checked.
+  not inside the contract (and since 2026-11-05 also on chain: tools/dcap-spike); the NVIDIA GPU
+  evidence is checked offline from NVIDIA's signed NRAS reply (`scripts/nras.mjs`).
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
 - Jolt: the four proofs are committed (`zk/out/`); `make verify` checks their outputs against
   the contract's code natively, and `make zk-verify` checks the proofs (needs the Jolt

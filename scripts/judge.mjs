@@ -53,6 +53,12 @@ if (live.status !== 0) console.log(live.stdout.split("\n").filter((l) => l.start
 const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
 line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
 
+// 1b2. NVIDIA GPU evidence: the saved NRAS reply, its signatures and claims, offline.
+if (existsSync(`${root}fixtures/live/near-ai/nras.json`)) {
+  const nr = spawnSync("node", ["scripts/nras.mjs", "verify"], { cwd: root, encoding: "utf8" });
+  line(nr.status === 0, "NVIDIA GPU evidence (NRAS): 8 GPU tokens and the platform verdict signed by NVIDIA, bound to the request nonce", nr.status === 0 ? (nr.stdout.trim().split("\n").pop().match(/\d+ checks/) ?? [""])[0] : nr.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
+}
+
 // 1c. REP Eval: signatures, answers hash, issuer signature and (online) the on-chain scores.
 if (existsSync(`${root}fixtures/live/eval/rep-eval.json`)) {
   const ev = spawnSync("node", ["scripts/rep-eval.mjs", "verify"], { cwd: root, encoding: "utf8", env: { ...process.env, ...(online ? {} : { JUDGE_OFFLINE: "1" }) }, timeout: 120_000 });
@@ -88,7 +94,7 @@ const zk = (g, input) => {
 for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["standing-testnet-3", "standing-testnet-3-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
 
 // 3. JS suites
-const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs"].filter((f) => existsSync(root + f));
+const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs", "scripts/nras.test.mjs"].filter((f) => existsSync(root + f));
 const { NEAR_RPC: _ignored, ...suiteEnv } = process.env;
 const t = spawnSync("node", ["--test", ...suites], { cwd: root, encoding: "utf8", timeout: 60_000, env: suiteEnv });
 const pass = Number(t.stdout.match(/^# pass (\d+)/m)?.[1] ?? 0);

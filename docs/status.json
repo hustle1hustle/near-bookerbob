@@ -88,7 +88,7 @@
     "tracks": "privacy, security",
     "where": "`scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md`",
     "status": "built",
-    "detail": "one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate). On chain, `submit_near_ai_verdict` accepts it only with a registered model attestation (same nonce), the TEE signature over the exact response bytes, and a sealed answer that opens with the disclosed key and echoes this envelope's binding; `make verify` runs the contract on it and on 4 refusals. The quote check itself happens before `register_model_attestation`, not in the contract; NVIDIA GPU evidence is not checked",
+    "detail": "one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate). On chain, `submit_near_ai_verdict` accepts it only with a registered model attestation (same nonce), the TEE signature over the exact response bytes, and a sealed answer that opens with the disclosed key and echoes this envelope's binding; `make verify` runs the contract on it and on 4 refusals. The quote check itself happens before `register_model_attestation`, not in the contract; the NVIDIA GPU evidence is checked offline from NVIDIA's signed NRAS reply (`scripts/nras.mjs`)",
     "evidence": []
   },
   {
@@ -353,7 +353,7 @@
     "tracks": "security, privacy, agents",
     "where": "`tools/dcap-spike/`, `contract/src/lib.rs` (`set_quote_verifier`, `register_model_attestation_verified`)",
     "status": "live",
-    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account keeps REP's key; the GPU evidence is still not checked",
+    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account keeps REP's key; the GPU evidence is checked off chain (NRAS)",
     "evidence": [
       "quote_verification"
     ]

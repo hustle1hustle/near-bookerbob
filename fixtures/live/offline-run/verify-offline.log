@@ -54,7 +54,7 @@ PASS  20  worker result for the cheat: signed refusal, contract stores no receip
 PASS  21  settle without a referee receipt is rejected  (no proof, no receipt, no payment)
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"forged"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"dispute_overturned","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","reasons":["referee said receipt, re-run says refused: F9 not in proof set"],"referee":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10"}]}
-PASS  22  dispute: arbiter re-checks a forged receipt, signs overturned, contract clears it, settle blocked  (referee said receipt, re-run says refused: F9 not in proof set, 849 us)
+PASS  22  dispute: arbiter re-checks a forged receipt, signs overturned, contract clears it, settle blocked  (referee said receipt, re-run says refused: F9 not in proof set, 844 us)
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_receipt","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","receipt_hash":"d785f3bb084c3b2323d619958ecd244bde57e81e27a26284f8b8af3717573a18"}]}
 PASS  23  worker result for honest claims: contract checks its ed25519 signature and stores the receipt  (d785f3bb084c3b23)
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"settled","data":[{"nullifier":"1edd36d1be3d4d54d927e48307ddd1310325305bee0a302709a673969705f37e","merchant":"m01.bookerbob.testnet","payout":"m01.bookerbob.testnet","amount":"36000000","checkout_ref":"fixture-order-1","path":"near","token":"usdc","liability":"4c6b1e0023089dc9fd8589f31e84a772004488a306e55a75ccdfb3bc91c85339","fee":"0"}]}
@@ -332,8 +332,22 @@ PASS  N14  same model key and signature, another envelope: refused  (refused: an
 PASS  N15  one changed response byte: refused  (refused: bad TEE signature)
 PASS  N16  model key registered with another attestation nonce: refused  (refused: attestation nonce mismatch)
 PASS  N17  wrong disclosed answer key: refused  (refused: does not open)
-NOTE  NVIDIA GPU evidence is not checked (NRAS is online); the TDX quote is checked here and by the owner before register_model_attestation, not inside the contract
+NOTE  the NVIDIA GPU evidence is checked next, from NVIDIA's saved NRAS reply (scripts/nras.mjs); the TDX quote is checked here, and on chain by the quote verifier the bazaar requires (tools/dcap-spike)
 PASS  NEAR AI verdict: 17 checks
+node scripts/nras.mjs verify
+PASS  nras platform token signed by NVIDIA (ES384, key in the saved set)
+PASS  nras NVIDIA's overall attestation result is true
+PASS  nras the platform token's nonce is our request nonce 0b6e10a283da..
+PASS  nras the platform token lists all 8 GPU tokens by sha256
+PASS  nras GPU-0 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-1 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-2 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-3 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-4 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-5 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-6 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  nras GPU-7 (GH100): signed, measurements, secure boot, debug off, report signature, nonce, cert chain all pass
+PASS  NVIDIA GPU evidence (NRAS): 12 checks, captured 2026-11-05, offline
 cargo run -j 2 --offline --config vendor/offline.toml -q -p bookerbob-cli -- reviews fixtures agents/reviews.json --check
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"issuer_registered","data":[{"key_id":"ed25519:bf35d5b6f106d6fad27d6c741be947099c19c2068dfad0979ca631994db3219d","label":"fixture issuer"}]}
 EVENT_JSON:{"standard":"bookerbob","version":"0.1.0","event":"referee_registered","data":[{"key":"3969da4daecb1e1ac279c424ee69e75987540e4e9fa909fcf1c79362e894da10","label":"fixture referee"}]}

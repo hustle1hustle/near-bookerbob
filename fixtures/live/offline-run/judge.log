@@ -4,6 +4,7 @@ SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)
 PASS  testnet snapshot: committed RPC responses match their sha256  (6860eb433670..)
 PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T10:06:08.170Z  (58 checks; rerun with network for the live chain)
 PASS  docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log
+PASS  NVIDIA GPU evidence (NRAS): 8 GPU tokens and the platform verdict signed by NVIDIA, bound to the request nonce  (12 checks)
 PASS  REP Eval: 3 model certificates, every TEE signature and the issuer signature verify  (3 models)
 PASS  REP Eval v2 (referee claims, truth from the referee's code, 600 tokens: the budget result): 3 certificates, every TEE signature verifies, cut replies graded as no answer  (3 models)
 PASS  REP Eval v3 (referee claims, truth from the referee's code, 2,000 tokens: the accuracy result): 3 certificates, every TEE signature verifies, cut replies graded as no answer  (3 models)
@@ -14,6 +15,6 @@ PASS  jolt standing-testnet-3: committed output equals the input's expected valu
 PASS  jolt price: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 1.27 s, proof 80380 B)
 PASS  jolt referee: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.26 s, proof 84796 B)
 PASS  jolt cohort: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.91 s, proof 84724 B)
-PASS  JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK  (87 tests passed, 0 failed)
+PASS  JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK  (89 tests passed, 0 failed)
 
-PASS  make judge in 0.5 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain; make verify-offline with no network), make zk-verify-prebuilt (Jolt verifier).
+PASS  make judge in 0.6 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain; make verify-offline with no network), make zk-verify-prebuilt (Jolt verifier).

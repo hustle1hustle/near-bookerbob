@@ -78,8 +78,20 @@ The disclosed field key opens only that one answer. The non-committing AEAD is n
 issue here because the TEE made the ciphertext; a different key would have to forge a
 Poly1305 tag for it.
 
-Still open: NVIDIA GPU evidence (NRAS is online, not run here); the TDX quote is checked
-off chain, not inside the contract.
+Since 2026-11-05 both are closed:
+
+- **The NVIDIA GPU evidence** (8 GH100 GPUs in the same report, `nvidia_payload`) went to
+  NVIDIA's Remote Attestation Service once; its signed reply and NVIDIA's key set are saved in
+  `fixtures/live/near-ai/nras.json`, and `make verify` checks offline (`scripts/nras.mjs`): every
+  token's ES384 signature against that key set, the overall result true, the nonce equal to our
+  request nonce (the one the TDX quote binds too), the GPU list equal to the token set by
+  digest, and each GPU's measurements, secure boot, debug off, report signature, nonce and
+  cert chain. NRAS is public: no account, no cost.
+- **The TDX quote** is also verified on chain, in five calls (tools/dcap-spike/README.md).
+
+Not claimed: that the GPUs and the TDX machine are the same box beyond both carrying our nonce,
+or anything about the GPUs after the capture; the saved key set is trusted as fetched from
+NVIDIA over TLS (its x5c chain to NVIDIA's root is not checked here).
 
 ## Not checked yet
 
