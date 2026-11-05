@@ -68,6 +68,23 @@ not by the bazaar owner. `eval_set(root)` names that account.
 signatures, that no cut reply is graded correct, the buckets, the on-chain scores and the
 set owner.
 
+## Protocol v3 (frozen 2026-11-05, after v2, before any v3 request)
+
+v2 showed every miss was a reply cut at the budget, so it measured budget, not accuracy. v3
+asks the accuracy question with everything else held fixed. Committed before any v3 request
+is sent:
+
+- **The same 60 items** (set root `6271b6d20467ce99…`, already committed by its owner); no item
+  is changed, added or dropped.
+- **Budget: 2,000 output tokens**, so a cut reply should be rare. Temperature 0, one request
+  per item, the same prompt.
+- **The same three models**, run once. Qwen3.6 stays a budget probe.
+- **Truncation is still no answer**, reported apart.
+- **Reported as the accuracy result next to v2's budget result.** Neither replaces the other.
+  If the models are right on every item they answer again, the finding is that the set is too
+  easy for them, and that is what gets written.
+- Certificates under the subject `<model>@2000tok/referee-v3` on the same set root.
+
 ## The calibration set (tuned, not the headline)
 
 The first sealed set (root `758b21ccd7edc046…`) chose the budget. Its 400-token run is also
