@@ -16,6 +16,7 @@ test("a_hotel_ask_never_buys_a_hoodie", () => {
   const p = plan(parseAsk("3 nights Lisbon under 450"), merchants);
   assert.equal(p.winner.merchant, "h05.bookerbob.testnet");
   assert.equal(p.winner.price, 408);
+  assert.deepEqual(action(p), { run: "hotel-demo", merchant: "h05.bookerbob.testnet", why: "live testnet purchase from h05.bookerbob.testnet" });
 });
 
 test("a hotel ask with no bid under the budget is refused", () => {

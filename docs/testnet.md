@@ -420,3 +420,27 @@ Tests: `an_owner_cannot_register_a_model_key_at_once` and 4 more. Redeployed, st
 `bookerbob-dao-bazaar.testnet` [CyWxcH5H…](https://testnet.nearblocks.io/txns/CyWxcH5Hv8zHCkh1TftNvhGWLdBWA8hfQ7fHv2AWp6ZN).
 The live bazaar's delay is still 0, and its one full-access key (REP's) can redeploy the code;
 README "Trust anchors" says so.
+
+## A hotel stay bought on testnet: h05 at 408 dUSDC (2026-11-05)
+
+`node sdk/buy.mjs "3 nights Lisbon under 450"` plans against h01..h08 with the contract's price
+code and picks h05 (Intercontinental Lisbon, 3 nights, 510 base, 408 after the airbnb, claude and
+World lines). It then runs `scripts/demo-tester.mjs hotel`: the same relayed calls as the hoodie
+purchase, with a hotel-size mint. dUSDC now takes an optional mint amount, 100 by default and at
+most 500, once per hour (redeploy [CeS7T4MM…](https://testnet.nearblocks.io/txns/CeS7T4MMEChVUiJ7UAgfMrxaCtnkowj7g6w12r1Ag6a1), state
+kept; h05 registered with dUSDC [6Pnubm9Q…](https://testnet.nearblocks.io/txns/6Pnubm9QzYirsCnjxXaccMoxoaJ9wfD3wTTU49xzVzJr)).
+
+The first attempt was refused at settle with `over verdict cap`: the fixture verdict caps spend
+at 45 dUSDC ([4WwUZTzj…](https://testnet.nearblocks.io/txns/4WwUZTzjhhYLK2CzTxfJghnybDT1PuM8HZUfTnhDWwTP)). That tester stopped there; its
+escrow stays in the bazaar. The second tester's verdict was issued with a 450 cap.
+
+| step (tester `t-b1de37`, all relayed) | tx |
+|---|---|
+| mint 500 dUSDC | [ALjS9YzP…](https://testnet.nearblocks.io/txns/ALjS9YzPr7T5fGqVypiWBd3PuEPMrCuyoxrZmN9UtuEP) |
+| submit_verdict (cap 450) | [5HobP1QB…](https://testnet.nearblocks.io/txns/5HobP1QB3wWAQd9ikch9wg9RziaT7fVS2PMmqvwC8YEd) |
+| submit_referee_result (h05, 408) | [AMJp8k1S…](https://testnet.nearblocks.io/txns/AMJp8k1SYZxxvV7v9iAoPzrLejUS3DdMSRuHPHFBsues) |
+| settle_demo, h05 paid | [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6) |
+| replay refused | [HfYjbdKA…](https://testnet.nearblocks.io/txns/HfYjbdKA8GhGFpmZ7ivBPPHuqpuk3P9tEhySD8Z3f6xn) |
+
+Shopify test store order #1063 carries the settle tx. `make verify-live` re-derives it with the
+other single buyers.

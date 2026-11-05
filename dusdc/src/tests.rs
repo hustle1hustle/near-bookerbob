@@ -38,7 +38,7 @@ fn refuses_to_start_on_mainnet() {
 fn mint_gives_100_and_logs_it() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    assert_eq!(t.mint(None), U128(MINT_AMOUNT));
+    assert_eq!(t.mint(None, None), U128(MINT_AMOUNT));
     assert_eq!(t.ft_total_supply(), U128(MINT_AMOUNT));
     assert!(get_logs().iter().any(|l| l.contains("ft_mint")));
     assert_eq!(t.ft_metadata().decimals, 6);
@@ -49,18 +49,18 @@ fn mint_gives_100_and_logs_it() {
 fn second_mint_within_the_hour_is_refused() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     at("bob.testnet", T0 + MINT_INTERVAL_MS - 1, NearToken::from_yoctonear(0));
-    t.mint(Some(acc("alice.testnet")));
+    t.mint(Some(acc("alice.testnet")), None);
 }
 
 #[test]
 fn mint_again_after_the_hour() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     at("alice.testnet", T0 + MINT_INTERVAL_MS, NearToken::from_yoctonear(0));
-    assert_eq!(t.mint(None), U128(2 * MINT_AMOUNT));
+    assert_eq!(t.mint(None, None), U128(2 * MINT_AMOUNT));
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn mint_again_after_the_hour() {
 fn mint_to_an_unregistered_account_is_refused() {
     let mut t = fresh();
     at("carol.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
 }
 
 #[test]
@@ -77,14 +77,14 @@ fn supply_is_capped() {
     let mut t = fresh();
     t.total_supply = SUPPLY_CAP - MINT_AMOUNT + 1;
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
 }
 
 #[test]
 fn transfer_moves_balance() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     at("alice.testnet", T0, NearToken::from_yoctonear(1));
     t.ft_transfer(acc("bazaar.testnet"), U128(40), None);
     assert_eq!((t.ft_balance_of(acc("alice.testnet")), t.ft_balance_of(acc("bazaar.testnet"))), (U128(MINT_AMOUNT - 40), U128(40)));
@@ -95,7 +95,7 @@ fn transfer_moves_balance() {
 fn transfer_needs_one_yocto() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     t.ft_transfer(acc("bazaar.testnet"), U128(40), None);
 }
 
@@ -112,7 +112,7 @@ fn overdraw_is_refused() {
 fn transfer_to_unregistered_is_refused() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     at("alice.testnet", T0, NearToken::from_yoctonear(1));
     t.ft_transfer(acc("nobody.testnet"), U128(1), None);
 }
@@ -128,7 +128,7 @@ fn resolve(t: &mut Dusdc, result: PromiseResult, amount: u128) -> U128 {
 fn transfer_call_refunds_what_the_receiver_returns() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     at("alice.testnet", T0, NearToken::from_yoctonear(1));
     let _ = t.ft_transfer_call(acc("bazaar.testnet"), U128(1000), None, String::new());
     assert!(get_created_receipts().iter().any(|r| r.receiver_id.as_str() == "bazaar.testnet"));
@@ -141,7 +141,7 @@ fn transfer_call_refunds_what_the_receiver_returns() {
 fn transfer_call_keeps_what_the_receiver_used_and_refunds_on_failure() {
     let mut t = fresh();
     at("alice.testnet", T0, NearToken::from_yoctonear(0));
-    t.mint(None);
+    t.mint(None, None);
     at("alice.testnet", T0, NearToken::from_yoctonear(1));
     let _ = t.ft_transfer_call(acc("bazaar.testnet"), U128(1000), None, String::new());
     assert_eq!(resolve(&mut t, PromiseResult::Successful(b"\"0\"".to_vec()), 1000), U128(1000));
@@ -163,4 +163,19 @@ fn storage_repeat_is_refunded_and_short_deposit_refused() {
     at("carol.testnet", T0, NearToken::from_yoctonear(1));
     let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| t.storage_deposit(None, None)));
     assert!(r.is_err());
+}
+
+#[test]
+fn a_hotel_size_mint_is_allowed_up_to_500() {
+    let mut t = fresh();
+    at("alice.testnet", T0, NearToken::from_yoctonear(0));
+    assert_eq!(t.mint(None, Some(U128(MINT_MAX))), U128(MINT_MAX));
+}
+
+#[test]
+#[should_panic(expected = "mint at most 500 dUSDC")]
+fn a_mint_over_500_is_refused() {
+    let mut t = fresh();
+    at("alice.testnet", T0, NearToken::from_yoctonear(0));
+    t.mint(None, Some(U128(MINT_MAX + 1)));
 }

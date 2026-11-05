@@ -25,5 +25,6 @@ with the same `quote` for the demo buyer's revealed bits (no cohort, k = 0), ran
 picks the cheapest bid under the budget, or refuses with the reason (no bid fits, or a stay the
 hotel bids do not cover). A hotel ask only plans against h01..h08 and never runs the hoodie
 purchase (`buy.test.mjs`, `a_hotel_ask_never_buys_a_hoodie`). A hoodie ask whose winner is m01
-runs the live testnet demo purchase. A hotel winner is a plan only: a stay costs hundreds of
-dUSDC and one demo mint is 100 dUSDC per tester per hour, so the live hotel purchase is not run.
+runs the live testnet demo purchase. A hotel winner runs the live hotel purchase
+(`scripts/demo-tester.mjs hotel <merchant>`: a 500 dUSDC demo mint and a verdict capped at 450,
+since a stay costs hundreds). Run once on 2026-11-05: h05 at 408 dUSDC (docs/testnet.md).

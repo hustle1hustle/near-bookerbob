@@ -204,6 +204,10 @@ fn sign_purchase_inner(
         }
         e.issued_at_ms = now_ms;
         e.expires_at_ms = now_ms + 7 * 24 * 3600 * 1000;
+        // A hotel-size purchase needs a higher cap than the fixture's 45 dUSDC (base units).
+        if let Some(cap) = std::env::var("BOOKERBOB_MAX_SPEND").ok().and_then(|v| v.parse().ok()) {
+            e.max_spend = cap;
+        }
         if sealed {
             *opening.borrow_mut() = Some(seal(&mut e, salt));
         }

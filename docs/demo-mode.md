@@ -28,7 +28,7 @@ every script refuses another network before reading anything.
 |---|---|---|---|
 | create `t-<6 hex>.bookerbob-demo.testnet`, 0.1 NEAR, the tester's own key | treasury | treasury | CreateAccount, Transfer, AddKey |
 | bazaar escrow entry, dUSDC registration | treasury | treasury | `storage_deposit` x2 |
-| mint 100 dUSDC | tester (NEP-366 delegate) | relayer | `mint` |
+| mint 100 dUSDC (a hotel buy mints up to 500) | tester (NEP-366 delegate) | relayer | `mint` |
 | bind one World person (placeholder action) | tester (delegate) | relayer | `attest_human` |
 | verdict: 3 bits, a commitment, a nullifier of its own | tester (delegate) | relayer | `submit_verdict` |
 | referee receipt for m01's quote (38.40) | tester (delegate) | relayer | `submit_referee_result` |

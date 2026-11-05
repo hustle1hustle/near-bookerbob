@@ -9,8 +9,8 @@
 // What runs after the plan:
 // - hoodie: the live testnet demo purchase from m01 (scripts/demo-tester.mjs run), when m01's
 //   bid fits the budget.
-// - hotel: the plan only. A hotel stay costs hundreds of dUSDC, and one tester's demo mint is
-//   100 dUSDC per hour, so the live hotel purchase is not run (stated, not hidden).
+// - hotel: the live testnet purchase from the winning hotel (scripts/demo-tester.mjs hotel),
+//   when the stay fits one hotel-size demo mint (500 dUSDC).
 // With BOOKERBOB_RELAYER_URL set (a hosted relayer, only once the founder OKs hosting), the
 // plan is sent there instead. Testnet only; dUSDC is a testnet demo token with no value.
 import { spawnSync } from "node:child_process";
@@ -19,8 +19,8 @@ import { quote } from "./merchant.mjs";
 
 /** The hotel bids are for one fixed stay (agents/merchants.json personas: 2026-12-10 to 13). */
 export const HOTEL_STAY_NIGHTS = 3;
-/** One demo mint, in dUSDC: the most a fresh tester can escrow. */
-export const DEMO_MINT_USD = 100;
+/** One hotel-size demo mint, in dUSDC: the most a fresh tester can escrow. */
+export const DEMO_MINT_USD = 500;
 /** What the demo buyer's verdict reveals (the fixture verdict, cli/src/fixtures.rs `revealed`). */
 export const DEMO_REVEALED = ["airbnb_frequent", "claude_spender", "world_id_human"];
 export const DEMO_MERCHANT = "m01.bookerbob.testnet";
@@ -64,8 +64,8 @@ export function action(p) {
       : { run: null, why: `the winner ${p.winner.merchant} is not the demo merchant; plan only` };
   }
   return p.winner.price > DEMO_MINT_USD
-    ? { run: null, why: `plan only: ${p.winner.price.toFixed(2)} dUSDC is above one demo mint (${DEMO_MINT_USD} dUSDC per tester per hour), so the live hotel purchase is not run` }
-    : { run: null, why: "plan only: no live hotel buyer yet" };
+    ? { run: null, why: `plan only: ${p.winner.price.toFixed(2)} dUSDC is above one demo mint (${DEMO_MINT_USD} dUSDC)` }
+    : { run: "hotel-demo", merchant: p.winner.merchant, why: `live testnet purchase from ${p.winner.merchant}` };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -79,9 +79,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (process.env.BOOKERBOB_RELAYER_URL && p.outcome === "winner") {
     const r = await fetch(`${process.env.BOOKERBOB_RELAYER_URL}/buy`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ask, winner: p.winner }) });
     console.log(JSON.stringify(await r.json(), null, 2));
-  } else if (a.run === "hoodie-demo") {
+  } else if (a.run) {
     console.log(a.why);
-    const r = spawnSync("node", ["scripts/demo-tester.mjs", "run"], { stdio: "inherit" });
+    const r = spawnSync("node", ["scripts/demo-tester.mjs", ...(a.run === "hotel-demo" ? ["hotel", a.merchant] : ["run"])], { stdio: "inherit" });
     process.exit(r.status ?? 1);
   } else {
     console.log(a.why);

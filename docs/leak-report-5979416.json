@@ -1,11 +1,17 @@
 {
-  "when": "2026-11-05T01:51:52.702Z",
+  "when": "2026-11-05T02:19:28.539Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
     {
       "rule": "L1 same account",
       "what": "t-4fdc17: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-b1de37: verdict, settle and review-group join",
       "linked": true,
       "anonymity_set": 1
     },
@@ -63,8 +69,8 @@
       "rule": "L3 funding",
       "what": "review senders and buyers share one funder (the relayer)",
       "linked": false,
-      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 8 here",
-      "anonymity_set": 8
+      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 9 here",
+      "anonymity_set": 9
     },
     {
       "rule": "L4 reveal",
@@ -75,24 +81,24 @@
     },
     {
       "rule": "L5 plaintext facts",
-      "what": "the proof set's fields and proof refs in the args of 88 tester txs",
+      "what": "the proof set's fields and proof refs in the args of 99 tester txs",
       "linked": false,
       "note": "none: facts never left the buyer side in tx args",
-      "anonymity_set": 8
+      "anonymity_set": 9
     },
     {
       "rule": "L5b sealed predicates",
       "what": "predicate names or tier in the verdict tx of 1 sealed buyer(s)",
       "linked": false,
       "note": "none: hashes only (the disclosure commitment)",
-      "anonymity_set": 8
+      "anonymity_set": 9
     },
     {
       "rule": "L6 amount oracle",
-      "what": "settled amounts of 13 buyers: 38.4 x4, 36 x4, 32.4 x5",
+      "what": "settled amounts of 14 buyers: 38.4 x4, 408 x1, 36 x4, 32.4 x5",
       "linked": true,
-      "note": "single buyers: smallest set sharing an amount 4; buying-group members: 5 (one fixed-tier amount for the whole group)",
-      "anonymity_set": 4
+      "note": "single buyers: smallest set sharing an amount 1; buying-group members: 5 (one fixed-tier amount for the whole group)",
+      "anonymity_set": 1
     }
   ],
   "rating_to_buyer_linked": false

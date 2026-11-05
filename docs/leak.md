@@ -83,3 +83,9 @@ what keep a group's amount from saying more than the tier.
 - World binding per context: the World nullifier is one per person across contexts, so the
   same person's agents in two contexts share it on chain. A per-context World action fixes
   this (planned).
+
+L6 after the hotel purchase (2026-11-05): the one hotel buyer paid 408, an amount no one else
+paid, so its anonymity set by amount is 1. It is the only buyer in the hotel category; an
+observer who reads the merchant (h05) already knows the category, so the amount adds the
+discount set within it. More hotel buyers, or a hotel buying group on a fixed tier, are what
+raise it.

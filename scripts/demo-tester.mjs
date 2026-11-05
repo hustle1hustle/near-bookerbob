@@ -14,7 +14,7 @@
 // data is printed: account ids, public keys, tx hashes.
 import { spawnSync } from "node:child_process";
 import { randomBytes, createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, appendFileSync, chmodSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, appendFileSync, chmodSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { checkDemo, check as checkReview } from "../relayer/relay.mjs";
@@ -187,7 +187,8 @@ export class Demo {
     rec.txs.escrow_entry = (await this.direct("bazaar storage_deposit", c.treasury, this.treasury, c.bazaar, [fc("storage_deposit", { account_id: id }, 10n * MILLI, 30n * TGAS)])).hash;
     rec.txs.dusdc_storage = (await this.direct("dUSDC storage_deposit", c.treasury, this.treasury, c.dusdc, [fc("storage_deposit", { account_id: id, registration_only: true }, 1250n * 10n ** 18n, 30n * TGAS)])).hash;
     step(4, "mint 100 dUSDC");
-    rec.txs.mint = (await this.relay("mint", tester, c.dusdc, fc("mint", {}, 0n, 30n * TGAS))).hash;
+    // opts.mint: a hotel-size buy mints more in one go (at most 500 dUSDC, still free).
+    rec.txs.mint = (await this.relay("mint", tester, c.dusdc, fc("mint", opts.mint ? { amount: String(opts.mint) } : {}, 0n, 30n * TGAS))).hash;
     step(5, "sign the verdict and World attestation");
     const live = join(dir, "live");
     // opts.proofs: the device run's proof set (one real, notary-verified fact in it).
@@ -272,7 +273,7 @@ export class Demo {
     rec.txs.replay = (await this.direct("replay refused", c.treasury, this.treasury, c.bazaar, [fc("submit_verdict", { verdict: file("verdict-replay.json") }, 50n * MILLI)], { expectFail: "nullifier spent" })).hash;
       save();
     }
-    step(13, "join m01's review group with a fresh Semaphore identity");
+    step(13, `join ${c.merchant.split(".")[0]}'s review group with a fresh Semaphore identity`);
     if (rec.review?.size) {
       console.log(`   skip: member ${rec.review.size}`);
       return rec;
@@ -291,6 +292,25 @@ export class Demo {
 
   /** n new testers post intents into one group; the merchant offers the first tier; each
    *  member pays the group price. */
+  /** One purchase from a hotel merchant (h01..h08): the same calls as the hoodie run, with the
+   * hotel's schedule for the referee and a 500 dUSDC mint so the tester can escrow a stay. */
+  async hotel(merchant = `h05.${this.c.bazaar}`) {
+    const m = JSON.parse(readFileSync("agents/merchants.json", "utf8")).find((x) => x.account === merchant && x.category === "hotel-lisbon");
+    if (!m) throw new Error(`${merchant} is not a hotel merchant`);
+    const fx = join(this.c.testersDir, "hotel-fixtures");
+    mkdirSync(fx, { recursive: true });
+    writeFileSync(join(fx, "merchants.json"), JSON.stringify([{ account: m.account, label: m.persona, category: m.category, schedule: m.schedule }], null, 2) + "\n");
+    for (const f of ["proofs.json", "claims-honest.json"]) copyFileSync(join("fixtures", f), join(fx, f));
+    this.c = { ...this.c, merchant: m.account, category: "hotel" };
+    // The verdict's cap must cover a stay (the fixture cap is 45 dUSDC; settle refuses above it).
+    process.env.BOOKERBOB_MAX_SPEND = "450000000";
+    const rec = await this.run({ fixturesDir: fx, mint: 500_000_000 }).finally(() => delete process.env.BOOKERBOB_MAX_SPEND);
+    rec.category = "hotel-lisbon";
+    rec.merchant = m.account;
+    writeFileSync(join(this.c.testersDir, `${rec.tester}.json`), JSON.stringify(rec, null, 2) + "\n");
+    return rec;
+  }
+
   async group(n = 5) {
     const c = this.c;
     const members = [];
@@ -343,7 +363,7 @@ export class Demo {
     // reads the delegate's receipt, so give it the inner transaction view.
     const inner = { ...r.result, transaction: { ...r.result.transaction, receiver_id: this.c.bazaar, actions: [{ FunctionCall: { method_name: "settle_demo" } }] } };
     const paid = readPayment(inner, { bazaar: this.c.bazaar, usdc: "-", demoToken: this.c.dusdc });
-    const order = await recordPaidOrder([{ title: `${this.c.merchant} hoodie (BookerBob testnet demo)` }], orderFields(paid, { network: "testnet" }), { admin: adminFromEnv(readFileSync(this.c.shopifyEnv, "utf8")) });
+    const order = await recordPaidOrder([{ title: `${this.c.merchant} ${this.c.category ?? "hoodie"} (BookerBob testnet demo)` }], orderFields(paid, { network: "testnet" }), { admin: adminFromEnv(readFileSync(this.c.shopifyEnv, "utf8")) });
     console.log(`   ok Shopify order ${order.name} (id ${order.id}) with near_tx ${paid.tx_hash}`);
     return order;
   }
@@ -363,7 +383,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   const d = new Demo(c);
-  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "sealed" ? d.run({ proofs: "fixtures/proofs.json", sealed: true, rehearsal: true }) : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
+  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "hotel" ? d.hotel(process.argv[3]) : cmd === "sealed" ? d.run({ proofs: "fixtures/proofs.json", sealed: true, rehearsal: true }) : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
   go.then(
     () => {},
     (e) => {

@@ -1,7 +1,7 @@
 //! BookerBob demo USDC (dUSDC): a testnet-only NEP-141 token with no value, so testers can
 //! run the whole purchase without a faucet. Same 6 decimals and base units as USDC.
 //!
-//! - `mint(account_id)`: free, 100 dUSDC, at most once per account per hour, total supply
+//! - `mint(account_id, amount)`: free, 100 dUSDC by default and at most 500, at most once per account per hour, total supply
 //!   capped at 1,000,000 dUSDC. No owner, no burn, no pause.
 //! - NEP-141 (`ft_transfer`, `ft_transfer_call` with refunds) and the NEP-145 storage
 //!   methods the bazaar and wallets call.
@@ -12,6 +12,8 @@ use near_sdk::{env, ext_contract, near, require, AccountId, Gas, NearToken, Pani
 
 pub const DECIMALS: u8 = 6;
 pub const MINT_AMOUNT: u128 = 100_000_000;
+/// The most one mint may ask for: a hotel-size demo purchase (a 3-night stay is about 408).
+pub const MINT_MAX: u128 = 500_000_000;
 pub const MINT_INTERVAL_MS: u64 = 3_600_000;
 pub const SUPPLY_CAP: u128 = 1_000_000_000_000;
 /// Storage for one account entry (balance + last mint), rounded up.
@@ -67,19 +69,22 @@ impl Dusdc {
         Self { balances: LookupMap::new(b"b"), last_mint: LookupMap::new(b"l"), total_supply: 0 }
     }
 
-    /// Free: 100 dUSDC to `account_id` (default the caller), once per hour, under the cap.
-    pub fn mint(&mut self, account_id: Option<AccountId>) -> U128 {
+    /// Free: 100 dUSDC (or `amount`, at most 500) to `account_id` (default the caller), once
+    /// per hour, under the cap.
+    pub fn mint(&mut self, account_id: Option<AccountId>, amount: Option<U128>) -> U128 {
+        let amount = amount.map_or(MINT_AMOUNT, |a| a.0);
+        require!(amount > 0 && amount <= MINT_MAX, "mint at most 500 dUSDC");
         let to = account_id.unwrap_or_else(env::predecessor_account_id);
         require!(self.balances.contains_key(&to), "account not registered (storage_deposit first)");
         let now = env::block_timestamp_ms();
         if let Some(last) = self.last_mint.get(&to) {
             require!(now >= last + MINT_INTERVAL_MS, "one mint per account per hour");
         }
-        require!(self.total_supply + MINT_AMOUNT <= SUPPLY_CAP, "supply cap reached");
-        self.total_supply += MINT_AMOUNT;
-        *self.balances.get_mut(&to).expect("registered") += MINT_AMOUNT;
+        require!(self.total_supply + amount <= SUPPLY_CAP, "supply cap reached");
+        self.total_supply += amount;
+        *self.balances.get_mut(&to).expect("registered") += amount;
         self.last_mint.insert(to.clone(), now);
-        event("ft_mint", serde_json::json!({ "owner_id": to, "amount": U128(MINT_AMOUNT), "memo": "free demo mint, no value" }));
+        event("ft_mint", serde_json::json!({ "owner_id": to, "amount": U128(amount), "memo": "free demo mint, no value" }));
         U128(self.balance(&to))
     }
 
