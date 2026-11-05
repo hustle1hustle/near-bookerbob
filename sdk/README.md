@@ -17,3 +17,13 @@ verified yet: near-cli-rs is not installed on the build machine.
 
 Not in the SDK yet: watching `verdict_submitted` and `round_opened` events,
 and a model-written pitch (see `agents/why.mjs`).
+
+## Buyer: `buy.mjs`
+
+`node sdk/buy.mjs "3 nights Lisbon under 450"` prices every merchant in the ask's category
+with the same `quote` for the demo buyer's revealed bits (no cohort, k = 0), ranks them and
+picks the cheapest bid under the budget, or refuses with the reason (no bid fits, or a stay the
+hotel bids do not cover). A hotel ask only plans against h01..h08 and never runs the hoodie
+purchase (`buy.test.mjs`, `a_hotel_ask_never_buys_a_hoodie`). A hoodie ask whose winner is m01
+runs the live testnet demo purchase. A hotel winner is a plan only: a stay costs hundreds of
+dUSDC and one demo mint is 100 dUSDC per tester per hour, so the live hotel purchase is not run.
