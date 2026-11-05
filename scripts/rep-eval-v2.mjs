@@ -23,17 +23,20 @@ import { MODELS, sigOk } from "./rep-eval.mjs";
 const API = process.env.NEAR_AI_BASE ?? "https://cloud-api.near.ai/v1";
 const PRICE = { "z-ai/glm-5.3-flash": [0.08, 0.5], "deepseek-ai/DeepSeek-V4.1-Flash-1017": [0.3, 1.2], "Qwen/Qwen3.6-35B-A3B-FP8": [0.17, 1.1] };
 // REP_EVAL_PROTOCOL=v3: the same items at 2,000 tokens (docs/eval.md, "Protocol v3").
-export const PROTOCOL = process.env.REP_EVAL_PROTOCOL === "v3" ? "v3" : "v2";
-export const BUDGET_TOKENS = PROTOCOL === "v3" ? 2000 : 600;
+// REP_EVAL_PROTOCOL=v4: a new, harder set of 40 items in tiers t4 and t5 at 4,000 tokens, two
+// models (docs/eval.md, "Protocol v4", frozen before the set existed).
+export const PROTOCOL = ["v3", "v4"].includes(process.env.REP_EVAL_PROTOCOL) ? process.env.REP_EVAL_PROTOCOL : "v2";
+export const BUDGET_TOKENS = { v2: 600, v3: 2000, v4: 4000 }[PROTOCOL];
 export const BUDGET_PROBE = "Qwen/Qwen3.6-35B-A3B-FP8";
-export const TIERS = { t1: { facts: 3, claims: 2 }, t2: { facts: 5, claims: 3 }, t3: { facts: 6, claims: 4 } };
+export const TIERS = PROTOCOL === "v4" ? { t4: { facts: 7, claims: 6 }, t5: { facts: 7, claims: 8 } } : { t1: { facts: 3, claims: 2 }, t2: { facts: 5, claims: 3 }, t3: { facts: 6, claims: 4 } };
+const RUN_MODELS = PROTOCOL === "v4" ? MODELS.filter((m) => m !== BUDGET_PROBE) : MODELS;
 const PER_TIER = 20;
 const SPEND_CAP_USD = 1.5;
 const TAG = Buffer.from("bookerbob/eval-certificate/v0\x00", "latin1");
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const keysDir = process.env.KEYS_DIR || `${process.env.HOME}/.rep-secrets/bookerbob-testnet`;
 const dir = join(keysDir, "eval");
-const setPath = join(dir, "rep-eval-v2-60.json");
+const setPath = join(dir, PROTOCOL === "v4" ? "rep-eval-v4-40.json" : "rep-eval-v2-60.json");
 const PUBLIC = `fixtures/live/eval/rep-eval-${PROTOCOL}.json`;
 const bazaar = process.env.BAZAAR_ACCOUNT_ID || "bookerbob.testnet";
 
@@ -56,6 +59,7 @@ const pick = (xs) => xs[randomInt(xs.length)];
 
 /** One item: facts, revealed lines and numbered claims, maybe with one planted mistake. */
 export function makeItem(tier) {
+  if (tier === "t4" || tier === "t5") return makeHard(tier);
   const { facts: nf, claims: nc } = TIERS[tier];
   const rules = [...RULES].sort(() => randomInt(3) - 1).slice(0, nf);
   const facts = rules.map(([platform, field, min], i) => {
@@ -97,6 +101,65 @@ function plant(tier, c, facts, revealed) {
   pick(menu)();
 }
 
+/** v4: 6 distinct rules plus a second fact on one of their platforms (at or under the minimum),
+ *  claims citing 1 to 3 facts, 2 or 3 planted mistakes, and allowed decoys the split rule decides. */
+const shuffle = (xs) => { const a = [...xs]; for (let i = a.length - 1; i > 0; i--) { const j = randomInt(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function makeHard(tier) {
+  const nc = tier === "t4" ? 6 : 8;
+  const rules = shuffle(RULES).slice(0, 6);
+  const facts = rules.map(([platform, field, min], i) => ({ id: `F${i + 1}`, platform, field, value: min + randomInt(0, 9), proof_ref: "00".repeat(32) }));
+  const dup = rules[randomInt(6)];
+  facts.push({ id: "F7", platform: dup[0], field: dup[1], value: randomInt(2) ? dup[2] : Math.max(0, dup[2] - 1), proof_ref: "00".repeat(32) });
+  const ruleOf = (f) => RULES.find((r) => r[0] === f.platform && r[1] === f.field);
+  const proves = (f) => f.value >= ruleOf(f)[2];
+  const revealed = [...new Set(facts.filter(proves).map((f) => ruleOf(f)[3]))].sort();
+  const cite = (f) => ({ fact: f.id, field: f.field, value: f.value });
+  const claims = Array.from({ length: nc }, () => {
+    const line = pick(revealed);
+    const backing = facts.filter((f) => proves(f) && ruleOf(f)[3] === line);
+    const n = Math.min(backing.length, 1 + randomInt(3));
+    const cits = shuffle(backing).slice(0, n).map(cite);
+    let text = pick(TEXTS[line]);
+    const v = cits[0].value;
+    // Allowed decoys: each holds under the referee's rules.
+    const d = randomInt(6);
+    if (d === 0) text += ", golden record";
+    else if (d === 1 && tier === "t5") text += ", a superb guest";
+    else if (d === 2 && tier === "t5") text += `, ${v}.${v}`;
+    else if (d === 3 && tier === "t5") text = text.padEnd(280, " .");
+    return { line, text, citations: cits };
+  });
+  if (randomInt(5) !== 0) {
+    // The first mistake's position is uniform over 1..nc-1, so no answer is a good guess; the
+    // other 1 or 2 mistakes sit after it.
+    const first = randomInt(nc - 1);
+    const later = shuffle([...Array(nc).keys()].filter((i) => i > first)).slice(0, 1 + randomInt(2));
+    for (const i of [first, ...later]) plantHard(tier, claims[i], facts, revealed, ruleOf, proves);
+  }
+  return { tier, proofs: { facts }, revealed, claims };
+}
+
+function plantHard(tier, c, facts, revealed, ruleOf, proves) {
+  const cit = c.citations[c.citations.length - 1];
+  const fact = facts.find((f) => f.id === cit.fact);
+  const near = [
+    () => (cit.field = OTHER_FIELDS[fact.platform]),
+    () => { const low = facts.find((f) => !proves(f)); if (low) c.citations.push({ fact: low.id, field: low.field, value: low.value }); else cit.value += 1; },
+    () => { const other = RULES.find((r) => !revealed.includes(r[3])); if (other) c.line = other[3]; else cit.value -= 1; },
+    () => { const f = facts.find((x) => proves(x) && ruleOf(x)[3] !== c.line); if (f) c.citations.push({ fact: f.id, field: f.field, value: f.value }); else cit.value += 2; },
+    () => (cit.value += 1),
+  ];
+  const text = [
+    () => (c.text = `${c.text.slice(0, 200)}, gold-plated`),
+    () => { const w = PLATFORM_WORDS.find(([, p]) => p !== c.line); c.text = `${c.text.slice(0, 200)} on ${w[0]}`; },
+    () => (c.text = `${c.text.slice(0, 200)}, ${cit.value}.${cit.value + 1}`),
+    () => (c.text = c.text.padEnd(281, " .").slice(0, 281)),
+    () => (c.text = `${c.text.slice(0, 200)}, caf\u00e9 regular`),
+  ];
+  pick(tier === "t4" ? near : [...near, ...text])();
+}
+
 /** The model's prompt for an item. The rules are stated exactly as the referee code applies them. */
 export function prompt(it) {
   const rules = RULES.map(([p, f, m, l]) => `- ${l}: a ${p} fact with field ${f} and value >= ${m}`).join("\n");
@@ -130,7 +193,7 @@ Which is the first claim that does not hold? Reply with its number, or 0 if ever
 const cli = (args, opts = {}) => execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", ...args], { encoding: "utf8", ...opts });
 
 function makeSet() {
-  if (existsSync(setPath)) throw new Error("the v2 set exists; it is made once");
+  if (existsSync(setPath)) throw new Error(`the ${PROTOCOL} set exists; it is made once`);
   const raw = Object.keys(TIERS).flatMap((t) => Array.from({ length: PER_TIER }, () => makeItem(t)));
   const p = join(dir, `truth-${Date.now()}.json`);
   writeFileSync(p, JSON.stringify(raw.map(({ proofs, revealed, claims }) => ({ proofs, revealed, claims }))), { mode: 0o600 });
@@ -138,7 +201,7 @@ function makeSet() {
   const items = raw.map((it, i) => ({ level: it.tier, question: prompt(it), answer: String(truth[i].answer), reason: truth[i].reason, salt: randomBytes(16).toString("hex") }));
   writeFileSync(setPath, JSON.stringify(items, null, 2) + "\n", { mode: 0o600 });
   const zeros = items.filter((x) => x.answer === "0").length;
-  console.log(`v2 set: ${items.length} private items, ${zeros} with every claim holding; root ${merkleRoot(items.map(itemHash))}`);
+  console.log(`${PROTOCOL} set: ${items.length} private items, ${zeros} with every claim holding; root ${merkleRoot(items.map(itemHash))}`);
 }
 
 function issuerKey() {
@@ -180,9 +243,9 @@ async function run() {
   const KEY = (process.env.NEAR_AI_KEY ?? readFileSync(`${process.env.HOME}/.rep-secrets/near-ai.key`, "utf8")).trim();
   const spend = { usd: 0 };
   const iss = issuerKey();
-  const pub = { note: `REP Eval ${PROTOCOL}: 60 sealed referee-claim items in 3 tiers, truth from the referee's own check; 3 NEAR AI models once, ${BUDGET_TOKENS}-token budget, a cut reply is no answer; every answer's TEE signature checks against its request and response hashes; grading and the CI in the worker's code; the eval issuer signed each certificate; the set owner account committed the root. The items stay private.`, protocol: PROTOCOL, set_root: root, n: items.length, levels: Object.keys(TIERS), per_level: PER_TIER, budget_tokens: BUDGET_TOKENS, item_hashes: items.map(itemHash), issuer_key: `ed25519:${iss.pub}`, models: [] };
+  const pub = { note: `REP Eval ${PROTOCOL}: ${items.length} sealed referee-claim items in ${Object.keys(TIERS).length} tiers, truth from the referee's own check; ${RUN_MODELS.length} NEAR AI models once, ${BUDGET_TOKENS}-token budget, a cut reply is no answer; every answer's TEE signature checks against its request and response hashes; grading and the CI in the worker's code; the eval issuer signed each certificate; the set owner account committed the root. The items stay private.`, protocol: PROTOCOL, set_root: root, n: items.length, levels: Object.keys(TIERS), per_level: PER_TIER, budget_tokens: BUDGET_TOKENS, item_hashes: items.map(itemHash), issuer_key: `ed25519:${iss.pub}`, models: [] };
   const priv = {};
-  for (const model of MODELS) {
+  for (const model of RUN_MODELS) {
     console.log(`\n${model}: ${items.length} items, at most 6 in flight`);
     const answers = await pool(items, 6, (it) => ask(model, it, KEY, spend));
     const valid = answers.filter((a) => a.signature_valid).length;
@@ -201,7 +264,7 @@ async function run() {
   pub.cost_usd = Number(spend.usd.toFixed(4));
   writeFileSync(join(dir, `rep-eval-${PROTOCOL}-replies-private.json`), JSON.stringify(priv) + "\n", { mode: 0o600 });
   writeFileSync(PUBLIC, JSON.stringify(pub, null, 2) + "\n");
-  console.log(`\nrep-eval ${PROTOCOL}: 3 certificates signed; cost about $${spend.usd.toFixed(4)}; ${PUBLIC}`);
+  console.log(`\nrep-eval ${PROTOCOL}: ${RUN_MODELS.length} certificates signed; cost about $${spend.usd.toFixed(4)}; ${PUBLIC}`);
 }
 
 async function onchain() {
@@ -227,8 +290,8 @@ async function onchain() {
   pub.set_owner = owner;
   // v3 reuses the v2 set: its root is already committed by the same owner.
   const existing = await client.view(bazaar, "eval_set", { set_root: pub.set_root });
-  if (existing && !pub.txs.commit_set) pub.txs.commit_set = JSON.parse(readFileSync("fixtures/live/eval/rep-eval-v2.json", "utf8")).txs.commit_set;
-  if (!pub.txs.commit_set) pub.txs.commit_set = ok("commit_eval_set (by the set owner, not the bazaar owner)", await as(owner, ownerKey, [fc("commit_eval_set", { set_root: pub.set_root, n: pub.n, label: "REP Eval v2: 60 referee-claim items, 3 tiers, truth from the referee check, 600 tokens, protocol frozen before the set" }, 10n ** 22n)]));
+  if (existing && !pub.txs.commit_set && PROTOCOL === "v3") pub.txs.commit_set = JSON.parse(readFileSync("fixtures/live/eval/rep-eval-v2.json", "utf8")).txs.commit_set;
+  if (!pub.txs.commit_set) pub.txs.commit_set = ok("commit_eval_set (by the set owner, not the bazaar owner)", await as(owner, ownerKey, [fc("commit_eval_set", { set_root: pub.set_root, n: pub.n, label: PROTOCOL === "v4" ? "REP Eval v4: 40 harder referee-claim items, 2 tiers, truth from the referee check, 4000 tokens, protocol frozen before the set" : "REP Eval v2: 60 referee-claim items, 3 tiers, truth from the referee check, 600 tokens, protocol frozen before the set" }, 10n ** 22n)]));
   const relayerKey = keyFromSeed(readFileSync(join(keysDir, "treasury.seed"), "utf8"));
   for (const m of pub.models) {
     if (m.submit_tx) continue;
