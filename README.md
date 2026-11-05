@@ -243,11 +243,10 @@ calls were the founder's, not a session's:
 
 - Testnet only, with dUSDC, a demo token; mainnet (Circle USDC, 1Click, Agent Market) only on
   his word, and nothing on mainnet yet.
-- The account nullifier is an RFC 9497 VOPRF, never an HMAC (2026-09-24).
+- The account nullifier is an RFC 9497 VOPRF (chosen 2026-09-24, built 2026-11-05); older purchases used an HMAC and stay recomputable.
 - The market bazaar is owned by a 2-of-3 DAO from block one, its anchors behind a public delay
   (2026-11-05); the post-quantum pack goes in; OutLayer only in reversible steps.
-- JMPR appears as a hotel merchant with its consent, deal status "early conversations"; no real
-  room is booked, and the hotels on the board are not participants.
+- Hotel prices are JMPR's public rates as of 2026-11-04; JMPR is not a participant and no real room is booked.
 - What stays his to do: making this repository public, the market lock, every outward post.
 
 ## Known limits

@@ -42,7 +42,7 @@ as a service or pinned as a versioned dependency, and named here.
 
 | source | what | how |
 |---|---|---|
-| JMPR (hotel partner, early conversations) | 8 Lisbon hotel "from" rates and elite perks, 2026-12-10 to 12-13, queried 2026-11-04 | read-only `hotel_search`; nothing prebooked or booked; stored in `fixtures/live/jmpr-lisbon-rates.json` as comparison prices, hotel names and prices only |
+| JMPR (public hotel rates) | 8 Lisbon hotel "from" rates and elite perks, 2026-12-10 to 12-13, queried 2026-11-04 | read-only `hotel_search`; nothing prebooked or booked; stored in `fixtures/live/jmpr-lisbon-rates.json` as comparison prices, hotel names and prices only |
 
 ## Open source dependencies
 
