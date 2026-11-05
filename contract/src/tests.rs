@@ -2765,6 +2765,33 @@ mod certified_eval {
     }
 
     #[test]
+    fn anyone_commits_a_set_as_its_owner_and_its_certificates_count() {
+        let mut c = setup();
+        set("setmaker.testnet");
+        c.commit_eval_set(ROOT.into(), 20, "made outside the bazaar owner".into());
+        assert_eq!(c.eval_set(ROOT.into()), Some((20, "made outside the bazaar owner".into(), Some("setmaker.testnet".parse().unwrap()))));
+        let cert = cert(17, 80);
+        let (k, sig) = signed(&cert, &ed_key());
+        set("relayer.testnet");
+        c.submit_eval_certificate(cert, k, sig);
+        assert_eq!(c.eval_score("z-ai/glm-5.3-flash".into(), ROOT.into()), Some(80));
+    }
+
+    #[test]
+    #[should_panic(expected = "eval set already committed")]
+    fn a_committed_root_cannot_be_taken_over() {
+        let mut c = with_set();
+        set("squatter.testnet");
+        c.commit_eval_set(ROOT.into(), 99, "mine now".into());
+    }
+
+    #[test]
+    fn the_bazaar_owner_is_on_record_for_a_registered_set() {
+        let c = with_set();
+        assert_eq!(c.eval_set(ROOT.into()).unwrap().2, Some("owner.testnet".parse().unwrap()));
+    }
+
+    #[test]
     #[should_panic(expected = "score bucket must be the floored score")]
     fn an_inflated_bucket_is_refused() {
         let mut c = with_set();

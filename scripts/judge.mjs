@@ -59,6 +59,11 @@ if (existsSync(`${root}fixtures/live/eval/rep-eval.json`)) {
   const rows = (ev.stdout.match(/^PASS /gm) ?? []).length;
   line(ev.status === 0, "REP Eval: 3 model certificates, every TEE signature and the issuer signature verify" + (online ? ", scores on chain match" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
 }
+if (existsSync(`${root}fixtures/live/eval/rep-eval-v2.json`)) {
+  const ev = spawnSync("node", ["scripts/rep-eval-v2.mjs", "verify"], { cwd: root, encoding: "utf8", env: { ...process.env, ...(online ? {} : { JUDGE_OFFLINE: "1" }) }, timeout: 120_000 });
+  const rows = (ev.stdout.match(/^PASS /gm) ?? []).length;
+  line(ev.status === 0, "REP Eval v2 (referee claims, truth from the referee's code): 3 certificates, every TEE signature verifies, cut replies graded as no answer" + (online ? ", scores on chain match, set committed by its own owner" : ""), ev.status === 0 ? `${rows} models` : ev.stdout.split("\n").filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
+}
 
 // 2. committed Jolt artifacts
 const hex = (a) => Buffer.from(a).toString("hex");
@@ -82,7 +87,7 @@ const zk = (g, input) => {
 for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
 
 // 3. JS suites
-const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs"].filter((f) => existsSync(root + f));
+const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs"].filter((f) => existsSync(root + f));
 const { NEAR_RPC: _ignored, ...suiteEnv } = process.env;
 const t = spawnSync("node", ["--test", ...suites], { cwd: root, encoding: "utf8", timeout: 60_000, env: suiteEnv });
 const pass = Number(t.stdout.match(/^# pass (\d+)/m)?.[1] ?? 0);

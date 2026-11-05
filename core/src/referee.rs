@@ -65,6 +65,18 @@ pub fn referee(proofs: &ProofSet, revealed: &[String], quote: &Quote, claims: &[
 }
 
 /// The plain form the shared no_std code and the Jolt guest take.
+/// REP Eval v2's truth: the number of the first claim the referee's check refuses (1-based)
+/// and why, or 0 when every claim holds. Each claim is checked on its own, with no quote lines.
+pub fn first_refused(proofs: &ProofSet, revealed: &[String], claims: &[Claim]) -> (u32, Option<String>) {
+    let (facts, zc) = to_zk(proofs, claims);
+    for (i, c) in zc.iter().enumerate() {
+        if let Err(e) = bookerbob_zkcore::referee::check(&facts, revealed, &[], None, core::slice::from_ref(c)) {
+            return (i as u32 + 1, Some(e));
+        }
+    }
+    (0, None)
+}
+
 pub fn to_zk(proofs: &ProofSet, claims: &[Claim]) -> (Vec<bookerbob_zkcore::referee::Fact>, Vec<bookerbob_zkcore::referee::Claim>) {
     let facts = proofs
         .facts
@@ -123,6 +135,18 @@ mod tests {
             RefereeOutcome::Refused { reason } => reason,
             r => panic!("expected refusal, got {r:?}"),
         }
+    }
+
+    #[test]
+    fn the_eval_truth_is_the_first_claim_the_check_refuses() {
+        let r = vec!["airbnb_frequent".to_string()];
+        assert_eq!(first_refused(&proofs(), &r, &[honest(), honest()]), (0, None));
+        let (n, why) = first_refused(
+            &proofs(),
+            &r,
+            &[honest(), claim("airbnb_frequent", "9 stays", cite("F1", "trips_12m", 9)), claim("airbnb_frequent", "x", cite("F9", "trips_12m", 7))],
+        );
+        assert_eq!((n, why.as_deref()), (2, Some("F1 asserted trips_12m=9, proven trips_12m=7")));
     }
 
     #[test]

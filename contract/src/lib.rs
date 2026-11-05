@@ -545,6 +545,12 @@ fn eval_scores() -> LookupMap<String, u8> {
     LookupMap::new(b"S")
 }
 
+/// Who committed an eval set: the account that made it (`commit_eval_set`), or the bazaar owner
+/// (`register_eval_set`).
+fn eval_owners() -> LookupMap<String, AccountId> {
+    LookupMap::new(b"X")
+}
+
 /// Quantized group tiers: (persons needed, the most a merchant may offer, bps).
 pub const GROUP_TIERS: [(u64, u16); 2] = [(5, 1000), (10, 2000)];
 
@@ -740,7 +746,34 @@ impl Bazaar {
         let mut e = eval_sets();
         e.insert(set_root.clone(), (n, label.clone()));
         e.flush();
+        let mut o = eval_owners();
+        o.insert(set_root.clone(), env::predecessor_account_id());
+        o.flush();
         emit("eval_set_registered", serde_json::json!({ "set_root": set_root, "n": n, "label": label }));
+    }
+
+    /// Anyone: commit an eval set they made, as its owner. The bazaar owner is not involved, so
+    /// the party that holds the items is on record, not REP. A root is committed once.
+    #[payable]
+    pub fn commit_eval_set(&mut self, set_root: String, n: u32, label: String) {
+        let before = env::storage_usage();
+        require!(bookerbob_core::is_hex32(&set_root) && n > 0 && n <= 10_000, "bad eval set");
+        require!(label.len() <= 200, "label over 200 bytes");
+        let mut e = eval_sets();
+        require!(!e.contains_key(&set_root), "eval set already committed");
+        e.insert(set_root.clone(), (n, label.clone()));
+        e.flush();
+        let owner = env::predecessor_account_id();
+        let mut o = eval_owners();
+        o.insert(set_root.clone(), owner.clone());
+        o.flush();
+        emit("eval_set_committed", serde_json::json!({ "set_root": set_root, "n": n, "label": label, "owner": owner }));
+        charge_storage(before);
+    }
+
+    /// The eval set's size, label and the account that committed it.
+    pub fn eval_set(&self, set_root: String) -> Option<(u32, String, Option<AccountId>)> {
+        eval_sets().get(&set_root).cloned().map(|(n, l)| (n, l, eval_owners().get(&set_root).cloned()))
     }
 
     /// Anyone relays an eval certificate signed by a registered issuer key (ed25519,

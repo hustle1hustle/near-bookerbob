@@ -299,6 +299,26 @@ fn main() -> ExitCode {
             println!("{}", e.near_ai_bind());
             ExitCode::SUCCESS
         }
+        // eval-truth <items.json>: REP Eval v2's answers, from the referee's own check.
+        // items: [{"proofs": ProofSet, "revealed": [..], "claims": [Claim]}]
+        Some("eval-truth") if args.len() >= 2 => {
+            #[derive(serde::Deserialize)]
+            struct Item {
+                proofs: bookerbob_core::ProofSet,
+                revealed: Vec<String>,
+                claims: Vec<bookerbob_core::Claim>,
+            }
+            let items: Vec<Item> = serde_json::from_str(&std::fs::read_to_string(&args[1]).expect("read")).expect("truth items");
+            let out: Vec<serde_json::Value> = items
+                .iter()
+                .map(|it| {
+                    let (n, why) = bookerbob_core::referee::first_refused(&it.proofs, &it.revealed, &it.claims);
+                    serde_json::json!({ "answer": n, "reason": why })
+                })
+                .collect();
+            println!("{}", serde_json::to_string(&out).unwrap());
+            ExitCode::SUCCESS
+        }
         // eval-grade <grade-input.json>: grade replies against expected answers, in the worker's code
         Some("eval-grade") if args.len() >= 2 => {
             let input: bookerbob_referee_worker::eval::GradeInput =

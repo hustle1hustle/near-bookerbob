@@ -37,6 +37,37 @@ and run once.
 | `deepseek-ai/DeepSeek-V4.1-Flash-1017` | 112/120 | 88.3 to 97.5 | 30 / 30 / 28 / 24 | 8 | 90 | [Ep4ctyYW…](https://testnet.nearblocks.io/txns/Ep4ctyYWkkhcquuP97Y2XcxrJcu6L7DM2knib2bxRHCW) |
 | `Qwen/Qwen3.6-35B-A3B-FP8` (budget-bound) | 0/120 | 0.0 to 0.0 | 0 / 0 / 0 / 0 | 120 | 0 | [5WLGhB6N…](https://testnet.nearblocks.io/txns/5WLGhB6NpFCpxxvNfgeCjRxNvUKJcJg9GXVvyu3Z1NiY) |
 
+## Results v2: referee claims (testnet, 2026-11-05, run once)
+
+Set root `6271b6d20467ce99…` (60 items, 11 with every claim holding), committed by its own
+owner account `evalset.bookerbob-demo.testnet` with `commit_eval_set` [E6fdRa1e…](https://testnet.nearblocks.io/txns/E6fdRa1e6QMxTBwK8tvttDS7uX2yHBkcdSgsQrRs9VfB),
+not by the bazaar owner. `eval_set(root)` names that account.
+
+| model | correct | 95% CI | by tier (t1 / t2 / t3, of 20) | no answer (cut at 600 tokens) | bucket on chain | certificate |
+|---|---|---|---|---|---|---|
+| `z-ai/glm-5.3-flash` | 44/60 | 61.7 to 83.3 | 20 / 18 / 6 | 16 | 70 | [HDjy5czq…](https://testnet.nearblocks.io/txns/HDjy5czqb6qkkwCqxK7XpchhRpwJJGVUxeUrFBy1N1pE) |
+| `deepseek-ai/DeepSeek-V4.1-Flash-1017` | 35/60 | 46.7 to 71.7 | 20 / 9 / 6 | 25 | 50 | [8pkbHtMr…](https://testnet.nearblocks.io/txns/8pkbHtMrMjjoTBnSWRjezo5ihNP2uuE9JuHaV1yXnWzG) |
+| `Qwen/Qwen3.6-35B-A3B-FP8` (budget probe, not ranked) | 0/60 | 0.0 to 0.0 | 0 / 0 / 0 | 60 | 0 | [ET8AZoFA…](https://testnet.nearblocks.io/txns/ET8AZoFA2hz7jh2EzBpFZpP1ixLSwMkAPaRVL9zgiuKE) |
+
+- **The target band held for the top model:** glm at 73%, inside 60 to 85%.
+- **Every answer given was right.** glm answered 44 items and got 44; DeepSeek answered 35
+  and got 35. Every miss is a reply cut at 600 tokens. So v2, as frozen, measures how much of
+  the referee's work a model finishes inside the budget, not whether it gets a claim wrong.
+  The harder tiers need longer reasoning (t3: 6 of 20 finished for each).
+- **The order flipped from v1** for the same reason: DeepSeek reasons longer, so 25 of its
+  replies were cut against glm's 16.
+- **What this does not show:** an error rate on finished answers (none was observed in 79), or
+  how the models rank with a larger budget. A v3 that separates mistakes from budget would need
+  a larger budget frozen in advance; that is not run.
+- **Cost:** about $0.11 of NEAR AI credit.
+- **Not done:** the set was still made by REP's machine; the owner account is separate from
+  the bazaar owner, but an outside set owner (a fresh Codex session, as the panel asked) is
+  not: Codex is not installed here. `commit_eval_set` is what such an owner would call.
+
+`make eval-verify` checks v2 too: all 180 TEE signatures, the answers hashes, the issuer
+signatures, that no cut reply is graded correct, the buckets, the on-chain scores and the
+set owner.
+
 ## The calibration set (tuned, not the headline)
 
 The first sealed set (root `758b21ccd7edc046…`) chose the budget. Its 400-token run is also
