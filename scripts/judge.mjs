@@ -96,5 +96,5 @@ const fail = Number(t.stdout.match(/^# fail (\d+)/m)?.[1] ?? 1);
 line(t.status === 0 && fail === 0, `JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK`, `${pass} tests passed, ${fail} failed`);
 
 const s = ((Date.now() - t0) / 1000).toFixed(1);
-console.log(`\n${failed ? "FAIL" : "PASS"}  make judge in ${s} s${failed ? `: ${failed} failed` : ""}. Deeper: make verify (Rust, contract on near-sdk's mocked chain), make zk-verify (Jolt verifier).`);
+console.log(`\n${failed ? "FAIL" : "PASS"}  make judge in ${s} s${failed ? `: ${failed} failed` : ""}. Deeper: make verify (Rust, contract on near-sdk's mocked chain; make verify-offline with no network), make zk-verify-prebuilt (Jolt verifier).`);
 process.exit(failed ? 1 : 0);

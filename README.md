@@ -12,7 +12,13 @@ and a contract burns a nullifier and pays the winner in USDC against a referee r
 |---|---|
 | `make judge` | about 30 s, every check on committed data, ends `PASS  make judge` (works offline) |
 | `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live` |
-| `make verify` | the contract on near-sdk's mocked chain (Rust), ends `ALL PASS (26 checks)` |
+| `make verify` | the contract on near-sdk's mocked chain (Rust), ends `ALL PASS (26 checks)`; with no network, `make verify-offline` (the same checks from the vendored crates) |
+
+**Fresh clone, timed** (2026-11-05, a clean clone, an empty `CARGO_HOME`, macOS arm64):
+`make judge` 0.6 s with no network (live checks skipped, the RPC snapshot replayed), about 55 s
+with it; `make verify-offline` 97 s with no network; `make verify` 114 s with the network
+(crates fetched); `make verify-live` 17 s; `make test` 36 s; `make zk-verify-prebuilt` 1.3 s.
+All pass. Logs: `fixtures/live/offline-run/`.
 
 **3 live testnet transactions** (dUSDC, a testnet demo token with no value):
 
