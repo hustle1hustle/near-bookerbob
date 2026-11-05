@@ -11,9 +11,12 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 near-sdk = "=5.29.1"
-dcap-qvl = { version = "0.3.12", default-features = false, features = ["std", "rustcrypto"] }
+# A local fork of dcap-qvl 0.3.12 (Phala-Network/dcap-qvl a854bd2, MIT) whose verify.rs adds a
+# `split` module: the same checks in five steps. PRIOR_WORK.md.
+dcap-qvl = { path = "dcap-qvl-port", default-features = false, features = ["std", "rustcrypto"] }
 serde_json = "1"
 hex = "0.4"
+anyhow = { version = "1", default-features = false }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
 # Verification needs no randomness; the custom backend below always errors.
 getrandom = { version = "0.2", features = ["custom"] }
@@ -26,3 +29,6 @@ panic = "abort"
 overflow-checks = true
 
 [workspace]
+
+[dev-dependencies]
+near-sdk = { version = "=5.29.1", features = ["unit-testing"] }

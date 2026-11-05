@@ -349,6 +349,16 @@
     "evidence": []
   },
   {
+    "feature": "the NEAR AI model's TDX quote verified on chain: Intel DCAP checks (a dcap-qvl fork) in five calls, and the bazaar registers a model key only against a finalized verification whose report_data is that key and nonce",
+    "tracks": "security, privacy, agents",
+    "where": "`tools/dcap-spike/`, `contract/src/lib.rs` (`set_quote_verifier`, `register_model_attestation_verified`)",
+    "status": "live",
+    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account keeps REP's key; the GPU evidence is still not checked",
+    "evidence": [
+      "quote_verification"
+    ]
+  },
+  {
     "feature": "buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount",
     "tracks": "swarms, privacy, social",
     "where": "`contract/src/lib.rs` (`post_intent`, `offer_group`, `settle_group_demo`), `scripts/demo-tester.mjs group`",

@@ -307,6 +307,15 @@ if (m.standing_root?.standing_root) {
     return [root?.[0] === s.standing_root && root?.[2] === s.scores_hash && root?.[3] === s.graph_root && yes === true && lie === false, `root ${s.standing_root.slice(0, 12)}.. over scores_hash ${s.scores_hash.slice(0, 12)}..; ${s.published_opening.merchant.split(".")[0]} in the top ${s.pct}%: ${yes}; another account on that path: ${lie}`];
   });
 }
+if (m.quote_verification?.register_verified_tx) {
+  const q = m.quote_verification;
+  await attempt(`the NEAR AI TDX quote verified on chain in ${q.real.calls.length} calls (each under 300 Tgas); the bazaar's model key registered against it; a tampered quote failed at ${q.tampered.failed_at}`, async () => {
+    const [v, att, verifier, reg, bad] = await Promise.all([view(q.spike, "verification", { id: q.real.id }), view(m.bazaar, "model_attestation", { signing_key: q.signing_key }), view(m.bazaar, "quote_verifier", {}), tx(q.register_verified_tx, m.bazaar), tx(q.tampered.calls.at(-1).tx, "bookerbob-demo.testnet")]);
+    const rd = v?.[1]?.split(" ")[1] ?? "";
+    const ok = v?.[0] === "verified" && rd.startsWith(q.signing_key) && att?.tcb_status === v[1].split(" ")[0] && verifier === q.spike && reg.ok && !bad.ok && q.real.calls.every((x) => x.tgas < 300);
+    return [ok, `verification ${q.real.id.slice(0, 12)}.. ${v?.[1]?.split(" ")[0]}, report_data starts with the key; verifier ${verifier}; max ${Math.max(...q.real.calls.map((x) => x.tgas))} Tgas`];
+  });
+}
 if (m.cheat?.cheat) {
   const k = m.cheat;
   await attempt(`base-price anchor: ${Object.keys(k.anchors).length} hotels capped at their public rate (JMPR); an inflated base refused on chain`, async () => {

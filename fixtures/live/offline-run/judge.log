@@ -1,8 +1,8 @@
 make judge: fast path (Node only; deep path: make verify, make zk-verify)
 
 SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)
-PASS  testnet snapshot: committed RPC responses match their sha256  (c4fbfe0eb9f2..)
-PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T09:29:26.415Z  (57 checks; rerun with network for the live chain)
+PASS  testnet snapshot: committed RPC responses match their sha256  (6860eb433670..)
+PASS  testnet snapshot: every claim re-derived from the snapshot taken 2026-11-05T10:06:08.170Z  (58 checks; rerun with network for the live chain)
 PASS  docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log
 PASS  REP Eval: 3 model certificates, every TEE signature and the issuer signature verify  (3 models)
 PASS  REP Eval v2 (referee claims, truth from the referee's code, 600 tokens: the budget result): 3 certificates, every TEE signature verifies, cut replies graded as no answer  (3 models)
@@ -16,4 +16,4 @@ PASS  jolt referee: committed output equals the input's expected value, program 
 PASS  jolt cohort: committed output equals the input's expected value, program hash = sha256(preprocessing)  (proved in 2.91 s, proof 84724 B)
 PASS  JS suites: relayer, demo mode, UCP and Shopify handler, MCP, x402, SDK  (87 tests passed, 0 failed)
 
-PASS  make judge in 0.5 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain), make zk-verify (Jolt verifier).
+PASS  make judge in 0.5 s. Deeper: make verify (Rust, contract on near-sdk's mocked chain; make verify-offline with no network), make zk-verify-prebuilt (Jolt verifier).

@@ -1,32 +1,53 @@
-# dcap-spike: a TDX quote checked on chain, measured
+# A TDX quote verified on chain, across five calls
 
-Result (2026-11-05): **it does not fit in one call.** `verify_quote` with the NEAR AI model's
-TDX quote (5,006 bytes) and its Intel PCS collateral (36 KB of args) burned the whole 300 Tgas
-and stopped ("Exceeded the prepaid gas"): [HwVxmzLM…](https://testnet.nearblocks.io/txns/HwVxmzLMDf6dn9oVdu9xC6YEXhy4htscs7GZ2Wsjp2DQ),
-on `spike.bookerbob.testnet` (dcap-qvl 0.3.12, pure-Rust crypto, 628 KB wasm).
+`spike.bookerbob.testnet` runs Intel DCAP quote verification as a NEAR contract: the same checks
+as dcap-qvl 0.3.12 (Phala-Network/dcap-qvl, commit `a854bd2`, MIT), forked in `dcap-qvl-port/`
+with one change, a `split` module at the end of `src/verify.rs` that runs them in five steps.
+Each call re-reads the stored quote and collateral; a later step relies only on what an earlier
+one verified on the same bytes. The time is the block's, not the caller's.
 
-The fallback, which the bazaar already uses: the quote is checked off chain (`make verify`,
-`cli/src/near_ai.rs`), the owner registers the model key with the report's hash
-(`register_model_attestation`, timelocked), and the contract checks signatures against that key.
-Not tried: splitting the check across several calls (each ECDSA step stored between them), or a
-host function for P-256 and P-384 verification.
+## Result (testnet, 2026-11-05)
 
-## Split across calls: the pieces measured (2026-11-05, time-boxed)
+The NEAR AI model's TDX quote (5,006 bytes) with its Intel PCS collateral
+(`fixtures/live/near-ai/`) verifies fully, one call per step (`run.json` has every tx):
 
-Each piece alone, on `spike.bookerbob.testnet`, gas burnt by the function call (`steps.json`):
-
-| step | Tgas | tx |
+| step | what it checks | Tgas |
 |---|---|---|
-| parse the PCS collateral (36 KB JSON) | 4.3 | [AiaiBUEp…](https://testnet.nearblocks.io/txns/AiaiBUEpA2iiQTkQiA7fjvK1JftgyYxDqe4y6kH34Kj3) |
-| parse the quote | 3.1 | [FcPk66e5…](https://testnet.nearblocks.io/txns/FcPk66e52a2nmShwsoZckNYVYbLUYhgJJB4C6Rifa5rK) |
-| one P-256 ECDSA check (the quote's own signature, valid) | 34.3 incl. parsing, about 31 for the check | [Cp81xxrn…](https://testnet.nearblocks.io/txns/Cp81xxrn1J92wK3WajRDgba2SSqAfLReDMKQK1DB1xHC) |
+| start | the root CA against its CRL; the quote header | 39.6 |
+| tcb | the TCB Info chain and signature | 99.8 |
+| qe_identity | the QE Identity chain and signature, its id and version | 98.9 |
+| pck | the PCK certificate chain | 131.8 |
+| finalize | the QE report and quote signatures, the QE report data, the policies, the TCB match | 69.3 |
 
-A full check needs about ten P-256 checks (the PCK chain, the CRLs, TCB info, QE identity, the
-QE report, the quote), so about 310 Tgas: just over one call, which matches the whole-check
-run above. No single piece is anywhere near 300 Tgas, so a resumable verifier in about four calls
-fits: (1) parse and store collateral and quote, (2) the PCK chain and CRLs, (3) TCB info and QE
-identity, (4) the QE report and quote signatures, report_data and the TCB match.
+Every step is under half of one call's 300 Tgas. The result: TCB status `UpToDate`, and
+report_data = the model's signing key and the attestation nonce.
 
-**Not built.** It needs dcap-qvl's verification steps, which are private to the crate, ported
-and split with their intermediate results stored between calls. Not done in the time box, so
-no claim of an on-chain quote check: the quote stays checked off chain.
+The same quote with one byte changed inside its signed TD report passes the first four steps
+(they check Intel's collateral, not the quote) and fails at finalize: "ISV enclave report
+signature is invalid". A native test (`cargo test` here) also changes the TCB Info JSON: refused
+at the TCB step; and checks that the five steps give exactly what the whole check gives.
+
+## Used by the bazaar
+
+`bookerbob.testnet` now takes model keys only through this verifier:
+
+- `set_quote_verifier(spike.bookerbob.testnet)`, a timelocked trust anchor.
+- `register_model_attestation_verified(key, attestation, verification_id)` reads the verifier's
+  record and admits the key only if it is finalized, its report_data is this key and nonce, and
+  its TCB status meets the floor and matches the attestation. The NEAR AI model key was
+  registered this way.
+- The same verification cited for another key is refused; the old `register_model_attestation`,
+  which relied on the off-chain check, refuses once a verifier is set.
+
+## Stated plainly
+
+- **The verifier is trusted for its code.** `spike.bookerbob.testnet` keeps its full-access key
+  (REP's), so its code could be replaced; the bazaar trusts the account, like any anchor.
+- **The collateral is passed in.** It is Intel-signed and its signatures are checked on chain,
+  but someone has to fetch it from Intel's PCS; nothing on chain fetches it.
+- The NVIDIA GPU evidence of the NEAR AI enclave is still not checked.
+- `tools/dcap-spike` is not part of the workspace or of `make verify`; `node tools/dcap-spike/run.mjs`
+  reruns the calls (testnet NEAR, a 0.5 NEAR storage deposit per verification).
+
+The first spike, the whole check in one call, ran out of gas (301 Tgas burned,
+[HwVxmzLM…](https://testnet.nearblocks.io/txns/HwVxmzLMDf6dn9oVdu9xC6YEXhy4htscs7GZ2Wsjp2DQ)).

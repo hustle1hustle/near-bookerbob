@@ -3204,3 +3204,43 @@ mod price_anchor {
         assert_eq!(c.price_anchor(acc("m01.bazaar.testnet")).unwrap().0, lower, "lowering applies at once");
     }
 }
+
+mod onchain_quote {
+    use super::*;
+    const KEY: &str = "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff";
+    const NONCE: &str = "0b6e10a283da35ff00000000000000000000000000000000000000000000aaaa";
+
+    fn att(tcb: &str) -> ModelAttestation {
+        ModelAttestation { model: "z-ai/glm-5.3-flash".into(), nonce: NONCE.into(), report_hash: "ef".repeat(32), tcb_status: tcb.into() }
+    }
+    fn done(status: &str, rd: String) -> (String, Option<String>) {
+        ("verified".into(), Some(format!("{status} {rd}")))
+    }
+
+    #[test]
+    fn a_finalized_verification_of_this_key_and_nonce_admits_it() {
+        assert_eq!(crate::check_quote_verification(&done("UpToDate", format!("{KEY}{NONCE}")), KEY, &att("UpToDate"), "UpToDate"), Ok(()));
+    }
+
+    #[test]
+    fn an_unfinished_another_key_a_status_mismatch_or_a_low_tcb_is_refused() {
+        let ok_rd = format!("{KEY}{NONCE}");
+        assert!(crate::check_quote_verification(&("pck".into(), None), KEY, &att("UpToDate"), "UpToDate").unwrap_err().contains("not finalized"));
+        assert!(crate::check_quote_verification(&done("UpToDate", format!("{}{NONCE}", "ab".repeat(32))), KEY, &att("UpToDate"), "UpToDate")
+            .unwrap_err()
+            .contains("report_data"));
+        assert!(crate::check_quote_verification(&done("OutOfDate", ok_rd.clone()), KEY, &att("UpToDate"), "UpToDate")
+            .unwrap_err()
+            .contains("attestation says"));
+        assert!(crate::check_quote_verification(&done("OutOfDate", ok_rd), KEY, &att("OutOfDate"), "UpToDate").unwrap_err().contains("below the floor"));
+    }
+
+    #[test]
+    #[should_panic(expected = "a quote verifier is set")]
+    fn once_a_verifier_is_set_the_off_chain_path_is_closed() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_quote_verifier(acc("spike.bookerbob.testnet"));
+        c.register_model_attestation(KEY.into(), att("UpToDate"));
+    }
+}

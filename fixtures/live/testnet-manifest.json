@@ -681,6 +681,113 @@
     "proof": "zk/out/standing-testnet-3",
     "input": "fixtures/zk/standing-testnet-3-input.json"
   },
+  "quote_verification": {
+    "spike": "spike.bookerbob.testnet",
+    "model": "z-ai/glm-5.3-flash",
+    "quote_bytes": 5006,
+    "collateral_checked_at": 1793794853,
+    "real": {
+      "id": "3a470fcf4b5a40f95b5284a89d4300f32f7952139c88f0dc873f66df631e6f20",
+      "calls": [
+        {
+          "step": "start",
+          "ok": true,
+          "value": "3a470fcf4b5a40f95b5284a89d4300f32f7952139c88f0dc873f66df631e6f20",
+          "tgas": 39.649,
+          "tx": "44nPeBAgr5BzUqwzoB6ipfhTNEj4fagDgfgsirVc4AZP",
+          "error": null
+        },
+        {
+          "step": "tcb",
+          "ok": true,
+          "value": "qe_identity",
+          "tgas": 99.801,
+          "tx": "96XXjoq2q7cjxvzKEu3U3mVrLzoRkdaPy264i78RsWuF",
+          "error": null
+        },
+        {
+          "step": "qe_identity",
+          "ok": true,
+          "value": "pck",
+          "tgas": 98.94,
+          "tx": "FPXvnwhkVXH7ZVAGYQv3PJ9HfdkyN9T81Hj8fSGCEx3u",
+          "error": null
+        },
+        {
+          "step": "pck",
+          "ok": true,
+          "value": "finalize",
+          "tgas": 131.775,
+          "tx": "FgttgrMMFueqbnu3jMeXoh1p8aiVkqyL1WCLysW6HA13",
+          "error": null
+        },
+        {
+          "step": "finalize",
+          "ok": true,
+          "value": "verified",
+          "tgas": 69.337,
+          "tx": "AcYHBeNJHb7u47Gsxw7ke5HfWWSxpq3pc9sq5x1SoRAD",
+          "error": null
+        }
+      ],
+      "verification": [
+        "verified",
+        "UpToDate 5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d"
+      ]
+    },
+    "tampered": {
+      "id": "e317b3440c004f04c1f10c8994e7c6ff1e7be8aef65a97b68520fdb9072a3098",
+      "calls": [
+        {
+          "step": "start",
+          "ok": true,
+          "value": "e317b3440c004f04c1f10c8994e7c6ff1e7be8aef65a97b68520fdb9072a3098",
+          "tgas": 39.639,
+          "tx": "5VsjXuchvdpAZBeWGLyrFsPoyEg2wjcvkJdhStphVSUb",
+          "error": null
+        },
+        {
+          "step": "tcb",
+          "ok": true,
+          "value": "qe_identity",
+          "tgas": 99.801,
+          "tx": "HwgYxt8V9fYQHpuXVAkgYZz9o4TTQUQPRFE8Fs3ukv66",
+          "error": null
+        },
+        {
+          "step": "qe_identity",
+          "ok": true,
+          "value": "pck",
+          "tgas": 98.94,
+          "tx": "AeF7QJTnouujzFXuaaxhDo9f7gqY2gDUwf4ZAr9JYDdW",
+          "error": null
+        },
+        {
+          "step": "pck",
+          "ok": true,
+          "value": "finalize",
+          "tgas": 131.775,
+          "tx": "AFYwLWWBRCvMqontBG6914MweJGAf72VUnsqkA7iNEU2",
+          "error": null
+        },
+        {
+          "step": "finalize",
+          "ok": false,
+          "value": null,
+          "tgas": 68.943,
+          "tx": "5bTthWP3QzvEiAHkeb9kpFAn9V7XMga7xXSfGs2mayAY",
+          "error": "step finalize: ISV enclave report signature is invalid"
+        }
+      ],
+      "failed_at": "finalize"
+    },
+    "bazaar": "bookerbob.testnet",
+    "set_quote_verifier_tx": "8qWP8p8qDsHbabBV7v8bnz6a6S9f2uf437GmaqL3iBef",
+    "register_verified_tx": "7X3b5t9dw4RcGKzk5H9vg8LGmr8xVVFMAM3tfzq76pYu",
+    "wrong_key_refused_tx": "HbERiVDLxCj4ieqSG3dReWt4kCvpTwAB4ZXqWmZBdTu9",
+    "signing_key": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+    "off_chain_path_refused_tx": "86bJB68a2AfvDz5ESf9vDF7s1M5AwjjSytQM7TuVq6Yv"
+  },
   "cheat": {
     "anchors": {
       "h01.bookerbob.testnet": {

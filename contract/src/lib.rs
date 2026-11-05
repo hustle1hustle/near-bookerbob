@@ -259,6 +259,35 @@ pub struct ModelAttestation {
     pub tcb_status: String,
 }
 
+fn stored_quote_verifier() -> Option<AccountId> {
+    env::storage_read(b"quote_verifier").and_then(|b| String::from_utf8(b).ok()).and_then(|s| s.parse().ok())
+}
+
+#[ext_contract(ext_quote_verifier)]
+pub trait QuoteVerifier {
+    fn verification(&self, id: String) -> (String, Option<String>);
+}
+
+/// The verifier's record `(stage, "status report_data")` admits this key: finalized, report_data
+/// = signing key || nonce, the status meets the floor and is the one the attestation records.
+pub fn check_quote_verification(v: &(String, Option<String>), signing_key: &str, a: &ModelAttestation, floor: &str) -> Result<(), String> {
+    if v.0 != "verified" {
+        return Err(format!("the quote verification is not finalized (stage {})", v.0));
+    }
+    let r = v.1.as_deref().ok_or("no verification result")?;
+    let (status, rd) = r.split_once(' ').ok_or("bad verification result")?;
+    if rd != format!("{signing_key}{}", a.nonce) {
+        return Err("report_data is not this signing key and nonce".into());
+    }
+    if status != a.tcb_status {
+        return Err(format!("the quote's TCB status is {status}, the attestation says {}", a.tcb_status));
+    }
+    if !bookerbob_core::envelope::tcb_meets(status, floor, false) {
+        return Err(format!("TCB status {status} is below the floor {floor}"));
+    }
+    Ok(())
+}
+
 fn emit(event: &str, data: serde_json::Value) {
     let body = serde_json::json!({
         "standard": EVENT_STANDARD,
@@ -899,6 +928,10 @@ impl Bazaar {
             "min_tcb" => {
                 env::storage_write(b"min_tcb", s("status").as_bytes());
                 emit("min_tcb_set", serde_json::json!({ "status": s("status"), "timelock": id }));
+            }
+            "quote_verifier" => {
+                env::storage_write(b"quote_verifier", s("verifier").as_bytes());
+                emit("quote_verifier_set", serde_json::json!({ "verifier": s("verifier"), "timelock": id }));
             }
             "graph_program" => {
                 self.graph_program = Some(s("program_hash"));
@@ -1896,8 +1929,60 @@ impl Bazaar {
     /// Owner registers a NEAR AI model key after checking its attestation report off chain.
     pub fn register_model_attestation(&mut self, signing_key: String, attestation: ModelAttestation) {
         self.assert_owner();
+        require!(stored_quote_verifier().is_none(), "a quote verifier is set: register with register_model_attestation_verified");
         require!(bookerbob_core::is_hex32(&signing_key) && bookerbob_core::is_hex32(&attestation.nonce), "bad key or nonce");
         // A model key is a verdict issuer: timelocked like register_issuer.
+        if self.queue_anchor("model_attestation", serde_json::json!({ "signing_key": signing_key, "attestation": attestation })) {
+            return;
+        }
+        self.store_model_attestation(signing_key, attestation);
+    }
+
+    /// Owner: the account whose finalized on-chain TDX quote verifications model keys must cite
+    /// (the resumable dcap-qvl verifier). Once set, a model key needs one; timelocked like the
+    /// other anchors.
+    pub fn set_quote_verifier(&mut self, verifier: AccountId) {
+        self.assert_owner();
+        if self.queue_anchor("quote_verifier", serde_json::json!({ "verifier": verifier })) {
+            return;
+        }
+        env::storage_write(b"quote_verifier", verifier.as_bytes());
+        emit("quote_verifier_set", serde_json::json!({ "verifier": verifier }));
+    }
+
+    pub fn quote_verifier(&self) -> Option<AccountId> {
+        stored_quote_verifier()
+    }
+
+    /// Owner: register a model key whose TDX quote was verified on chain. The verifier's record
+    /// `verification_id` must be finalized, its report_data must be this signing key and the
+    /// attestation's nonce, and its TCB status must meet the floor and match the attestation.
+    pub fn register_model_attestation_verified(&mut self, signing_key: String, attestation: ModelAttestation, verification_id: String) -> Promise {
+        self.assert_owner();
+        require!(bookerbob_core::is_hex32(&signing_key) && bookerbob_core::is_hex32(&attestation.nonce), "bad key or nonce");
+        let verifier = stored_quote_verifier().unwrap_or_else(|| env::panic_str("no quote verifier set"));
+        ext_quote_verifier::ext(verifier)
+            .with_static_gas(Gas::from_tgas(10))
+            .verification(verification_id.clone())
+            .then(Self::ext(env::current_account_id()).with_static_gas(Gas::from_tgas(30)).on_quote_verified(signing_key, attestation, verification_id))
+    }
+
+    #[private]
+    pub fn on_quote_verified(
+        &mut self,
+        signing_key: String,
+        attestation: ModelAttestation,
+        verification_id: String,
+        #[callback_result] v: Result<(String, Option<String>), near_sdk::PromiseError>,
+    ) {
+        let v = v.unwrap_or_else(|_| env::panic_str("the quote verifier view failed"));
+        if let Err(e) = check_quote_verification(&v, &signing_key, &attestation, &tcb_floor()) {
+            env::panic_str(&e);
+        }
+        emit(
+            "model_quote_verified",
+            serde_json::json!({ "signing_key": signing_key, "verification_id": verification_id, "tcb_status": attestation.tcb_status }),
+        );
         if self.queue_anchor("model_attestation", serde_json::json!({ "signing_key": signing_key, "attestation": attestation })) {
             return;
         }

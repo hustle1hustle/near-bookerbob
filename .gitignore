@@ -9,3 +9,4 @@ node_modules/
 /out/
 /vendor/crates/
 /zk/bin/bookerbob-zk
+/tools/dcap-spike/target/

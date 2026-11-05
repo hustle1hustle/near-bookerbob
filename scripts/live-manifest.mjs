@@ -37,6 +37,7 @@ const m = {
   eval: prev.eval ?? null,
   rep_eval: existsSync("fixtures/live/eval/rep-eval.json") ? (({ set_root, issuer_key, txs, models }) => ({ set_root, issuer_key, txs, models: models.map((m) => ({ subject: m.certificate.subject, bucket: m.certificate.score_bucket, submit_tx: m.submit_tx })) }))(JSON.parse(readFileSync("fixtures/live/eval/rep-eval.json", "utf8"))) : prev.rep_eval ?? null,
   standing_root: existsSync("fixtures/live/standing-root/run.json") ? JSON.parse(readFileSync("fixtures/live/standing-root/run.json", "utf8")) : null,
+  quote_verification: existsSync("tools/dcap-spike/run.json") ? JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8")) : prev.quote_verification ?? null,
   cheat: existsSync("fixtures/live/cheat/run.json") ? JSON.parse(readFileSync("fixtures/live/cheat/run.json", "utf8")) : prev.cheat ?? null,
   gate: existsSync("fixtures/live/gate/run.json") ? JSON.parse(readFileSync("fixtures/live/gate/run.json", "utf8")) : prev.gate ?? null,
   group_dao: (() => {
