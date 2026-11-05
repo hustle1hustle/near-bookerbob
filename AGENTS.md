@@ -8,6 +8,21 @@ bits (for example `airbnb_frequent`) inside a signed verdict, never the history 
 them. A NEAR contract checks the signature, burns a per-context nullifier, prices from
 code, and pays the merchant in USDC only against a referee receipt.
 
+## One flow, first (`make one-flow`)
+
+One buyer through every outside system on one screen; each leg prints LIVE (ran now) or DRY
+(what would be sent, and what it waits for). Nothing moves money. `ONE_FLOW_DRY=1` for all DRY.
+
+| leg | mode | waits for |
+|---|---|---|
+| NEAR AI verdict under E2EE v2, the facts sealed to the registered model key, TEE signature checked | LIVE (about $0.001 of NEAR AI credit; needs `~/.rep-secrets/near-ai.key`) | |
+| OutLayer `request_referee`, the input sealed to the worker's X25519 + ML-KEM-768 key | DRY | an OutLayer project registered on the bazaar (docs/outlayer.md) |
+| settle with the agent's function-call key: its on-chain permission and the calls it was refused | LIVE (chain read) | |
+| 1Click top-up of a group escrow from Base USDC | DRY (the asset list is a LIVE read) | a 1Click key and mainnet (gated) |
+| Agent Market competition job for the referee, checked against the live OpenAPI spec | DRY (the spec is a LIVE read) | mainnet and an agent token (docs/agent-market.md) |
+
+The testnet purchases themselves: `make demo-tester`, `make model-buy`, `make try`.
+
 ## Run it (no network, no keys, no secrets)
 
 Needs Rust stable and Node 22. From the repo root:

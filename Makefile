@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: try site audit audit-all wasm-parity flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -75,6 +75,10 @@ site:
 
 # One purchase rebuilt from public data, and its price recomputed four ways (scripts/audit.mjs).
 NULLIFIER ?=
+# One buyer through every outside system, each leg LIVE or DRY (AGENTS.md, first block).
+one-flow:
+	node scripts/one-flow.mjs
+
 # Around the public flip: before (scan, tracked files, links) and after (unauthenticated 200s).
 flip-check:
 	node scripts/flip-check.mjs pre
