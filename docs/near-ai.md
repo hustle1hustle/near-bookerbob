@@ -89,9 +89,14 @@ Since 2026-11-05 both are closed:
   cert chain. NRAS is public: no account, no cost.
 - **The TDX quote** is also verified on chain, in five calls (tools/dcap-spike/README.md).
 
+Each token's signing key is trusted only through its x5c chain: leaf, then NVIDIA's
+intermediate, then the root "NVIDIA Attestation Service CA 001", pinned by sha256
+(`cde269e3f72c667a…`, `fixtures/live/near-ai/nras-root.crt`, taken from NVIDIA's own PKI, the
+mount the certificates' AIA names), each certificate valid at the token's issue time, the key equal
+to the leaf's. A test shows a self-signed key set with a validly signed token fails.
+
 Not claimed: that the GPUs and the TDX machine are the same box beyond both carrying our nonce,
-or anything about the GPUs after the capture; the saved key set is trusted as fetched from
-NVIDIA over TLS (its x5c chain to NVIDIA's root is not checked here).
+or anything about the GPUs after the capture.
 
 ## Not checked yet
 

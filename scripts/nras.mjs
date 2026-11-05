@@ -6,7 +6,8 @@
 //                                   once, and save its signed reply with NVIDIA's key set
 //                                   (fixtures/live/near-ai/nras.json). Public service, no account.
 //   node scripts/nras.mjs verify    offline (make verify): every NRAS token is signed by a key in
-//                                   the saved key set (ES384), the platform verdict is true, its
+//                                   the saved key set (ES384) whose x5c chain leads to the pinned
+//                                   NVIDIA root, the platform verdict is true, its
 //                                   nonce is our request nonce (the same one the TDX quote binds),
 //                                   it lists every GPU's token by digest, and each GPU's claims
 //                                   pass (measurements, secure boot, debug off, report signature
@@ -15,7 +16,7 @@
 // What this proves: NVIDIA, at capture time, judged these 8 GPUs' attestation reports genuine,
 // unmodified and bound to our nonce. What it does not: that the GPU and the TDX quote are the
 // same machine beyond both carrying our nonce, or anything about the GPUs after capture.
-import { createHash, createPublicKey, verify } from "node:crypto";
+import { createHash, createPublicKey, verify, X509Certificate } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const REPORT = "fixtures/live/near-ai/report.json";
@@ -23,11 +24,38 @@ const OUT = "fixtures/live/near-ai/nras.json";
 const NRAS = "https://nras.attestation.nvidia.com";
 const b64u = (s) => Buffer.from(s, "base64url");
 
-export function checkToken(jwt, jwks) {
+/** NVIDIA's NRAS root, "NVIDIA Attestation Service CA 001" (self-signed, valid to 2055), from
+ * NVIDIA's own PKI (https://prod.vault.nvidia.com/v1/dgxc-attestation/pki/nras-prod/cert/ca_chain,
+ * the mount the signing certificates' AIA names), pinned by its sha256. */
+export const ROOT_PEM = "fixtures/live/near-ai/nras-root.crt";
+export const ROOT_SHA256 = "cde269e3f72c667aecc2d8c1ab32c4e42aaf5507379f15f221c77c5518101a1e";
+
+/** The signing key's x5c chain: leaf <- intermediate <- the pinned root, each valid at `atSecs`
+ * (the token's issue time: the leaves live about a day), and the JWK is the leaf's own key. */
+export function chainOk(jwk, rootPem, atSecs) {
+  const root = new X509Certificate(rootPem);
+  if (createHash("sha256").update(root.raw).digest("hex") !== ROOT_SHA256) return "the root is not the pinned NVIDIA root";
+  const certs = (jwk.x5c ?? []).map((b) => new X509Certificate(Buffer.from(b, "base64")));
+  if (!certs.length) return "no x5c chain";
+  const chain = [...certs, root];
+  const at = new Date(atSecs * 1000);
+  for (let i = 0; i < chain.length - 1; i++) {
+    const [c, issuer] = [chain[i], chain[i + 1]];
+    if (!c.checkIssued(issuer) || !c.verify(issuer.publicKey)) return `certificate ${i} (${c.subject.split("\n").pop()}) is not signed by ${issuer.subject.split("\n").pop()}`;
+    if (new Date(c.validFrom) > at || new Date(c.validTo) < at) return `certificate ${i} is not valid at the token's issue time`;
+  }
+  const leafJwk = certs[0].publicKey.export({ format: "jwk" });
+  if (leafJwk.x !== jwk.x || leafJwk.y !== jwk.y) return "the JWK is not the leaf certificate's key";
+  return null;
+}
+
+export function checkToken(jwt, jwks, rootPem = readFileSync(ROOT_PEM, "utf8")) {
   const [h, p, sig] = jwt.split(".");
   const header = JSON.parse(b64u(h));
   const jwk = jwks.keys.find((k) => k.kid === header.kid);
   if (!jwk || header.alg !== "ES384") return { ok: false, why: `no ES384 key ${header.kid} in the key set` };
+  const chainErr = chainOk(jwk, rootPem, JSON.parse(b64u(p)).iat);
+  if (chainErr) return { ok: false, why: chainErr };
   const key = createPublicKey({ key: { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y }, format: "jwk" });
   const ok = verify("sha384", Buffer.from(`${h}.${p}`), { key, dsaEncoding: "ieee-p1363" }, b64u(sig));
   return { ok, claims: JSON.parse(b64u(p)), why: ok ? null : "bad NVIDIA signature" };
@@ -50,7 +78,7 @@ export function verifySaved(saved, nonce) {
   const rows = [];
   const [[kind, platform], gpus] = saved.response;
   const pt = checkToken(platform, saved.jwks);
-  rows.push([kind === "JWT" && pt.ok, `platform token signed by NVIDIA (${pt.why ?? "ES384, key in the saved set"})`]);
+  rows.push([kind === "JWT" && pt.ok, `platform token signed by NVIDIA (${pt.why ?? "ES384; the key's x5c chain leads to the pinned NVIDIA root"})`]);
   rows.push([pt.claims?.["x-nvidia-overall-att-result"] === true, "NVIDIA's overall attestation result is true"]);
   rows.push([pt.claims?.eat_nonce === nonce, `the platform token's nonce is our request nonce ${nonce.slice(0, 12)}..`]);
   const names = Object.keys(gpus);
