@@ -1,0 +1,74 @@
+# Prebuilt Jolt verifiers for Linux: builds zk/ (the same source and pins as the committed macOS
+# verifier), checks every committed Jolt proof with the new binary, and uploads it xz'd with its
+# sha256 lines. A maintainer downloads the artifact and commits it to zk/bin. Manual runs only.
+name: zk-verifier
+
+on:
+  workflow_dispatch:
+
+jobs:
+  linux-x86_64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust toolchain from zk/rust-toolchain.toml (1.94, RISC-V targets for the guests)
+        run: cd zk && rustup show
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zk/target
+          key: zk-linux-x86_64-${{ hashFiles('zk/Cargo.lock', 'zk/rust-toolchain.toml') }}
+      - name: Build the Jolt host
+        run: cd zk && cargo build --release
+      - name: Package and verify every committed proof with it
+        run: |
+          set -eu
+          t=x86_64-unknown-linux-gnu
+          cp zk/target/release/bookerbob-zk zk/bin/bookerbob-zk-$t
+          xz -9e -kc zk/bin/bookerbob-zk-$t > zk/bin/bookerbob-zk-$t.xz
+          echo "$(sha256sum zk/bin/bookerbob-zk-$t.xz | cut -c1-64)  bookerbob-zk-$t.xz" > sha256-$t.txt
+          echo "$(sha256sum zk/bin/bookerbob-zk-$t | cut -c1-64)  bookerbob-zk-$t (uncompressed)" >> sha256-$t.txt
+          cat sha256-$t.txt >> zk/bin/SHA256
+          sh scripts/zk-verify-prebuilt.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bookerbob-zk-x86_64-unknown-linux-gnu
+          path: |
+            zk/bin/bookerbob-zk-x86_64-unknown-linux-gnu.xz
+            sha256-x86_64-unknown-linux-gnu.txt
+
+  # Free arm64 runners are for public repos; this job turns on with the public flip.
+  linux-aarch64:
+    if: false
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd zk && rustup show
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zk/target
+          key: zk-linux-aarch64-${{ hashFiles('zk/Cargo.lock', 'zk/rust-toolchain.toml') }}
+      - run: cd zk && cargo build --release
+      - name: Package and verify every committed proof with it
+        run: |
+          set -eu
+          t=aarch64-unknown-linux-gnu
+          cp zk/target/release/bookerbob-zk zk/bin/bookerbob-zk-$t
+          xz -9e -kc zk/bin/bookerbob-zk-$t > zk/bin/bookerbob-zk-$t.xz
+          echo "$(sha256sum zk/bin/bookerbob-zk-$t.xz | cut -c1-64)  bookerbob-zk-$t.xz" > sha256-$t.txt
+          echo "$(sha256sum zk/bin/bookerbob-zk-$t | cut -c1-64)  bookerbob-zk-$t (uncompressed)" >> sha256-$t.txt
+          cat sha256-$t.txt >> zk/bin/SHA256
+          sh scripts/zk-verify-prebuilt.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bookerbob-zk-aarch64-unknown-linux-gnu
+          path: |
+            zk/bin/bookerbob-zk-aarch64-unknown-linux-gnu.xz
+            sha256-aarch64-unknown-linux-gnu.txt
