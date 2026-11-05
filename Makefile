@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -47,6 +47,13 @@ join-merchant:
 # Disclosure regimes compared over 1,000 simulated rounds (docs/market-eval.md).
 market-eval:
 	node scripts/market-eval.mjs
+
+# make verify with no network: the vendored crates (vendor/crates.tar.xz, checked against
+# vendor/SHA256, which also pins Cargo.lock) replace crates.io. Logged run: README "Offline".
+verify-offline:
+	shasum -a 256 -c vendor/SHA256
+	test -d vendor/crates || tar -C vendor -xJf vendor/crates.tar.xz
+	$(MAKE) verify CARGO_FLAGS="-j $(JOBS) --offline --config vendor/offline.toml"
 
 verify-live:
 	node scripts/verify-live.mjs
