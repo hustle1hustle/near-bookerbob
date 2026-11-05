@@ -95,3 +95,20 @@ Stated plainly:
 
 The wasm build and its real gas (no deploy yet), the OutLayer worker as deployed, the
 Semaphore circuit and ceremony (Semaphore's), dcap-qvl, and the NEP-141 USDC contract.
+
+## A model-issued verdict (2026-11-05)
+
+For a verdict a NEAR AI model issued (`make model-buy`, issuer `near-ai:<key>`), `make audit` adds:
+the model key registered on the bazaar against its TDX quote verified on chain (the verifier
+contract's `verification` is `verified`, its report data starts with the key, the TCB status
+matches); the TEE signature, re-checked from the `submit_near_ai_verdict` tx's own args, over the
+model's exact response; and the model's REP Eval v4 bucket on chain, which a merchant's eval gate
+compares. Run it on the model-issued purchase:
+
+```
+make audit NULLIFIER=19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0
+```
+
+The contract's `quote` view prices with the cohort as it is now. A receipt keeps the price of the
+cohort it was bought at, so for an older purchase whose cohort has since crossed the k floor the
+audit leaves the live quote out of the parity check and prints both.

@@ -40,7 +40,34 @@ if (!v) {
 }
 const issuers = (await client.view(bazaar, "issuers")).map(([k]) => k);
 const status = await client.view(bazaar, "nullifier_status", { nullifier });
-line(issuers.includes(v.issuer) && status === "Spent" && v.spent, `verdict on ${bazaar}: issued by a registered key, spent`, `agent ${v.agent.split(".")[0]}, tier ${v.tier}, ${v.predicates.length ? v.predicates.join(", ") : "sealed: no predicate on chain"}`);
+const registered = issuers.includes(v.issuer) || (v.issuer.startsWith("near-ai:") && Boolean(await client.view(bazaar, "model_attestation", { signing_key: v.issuer.slice(8) })));
+line(registered && status === "Spent" && v.spent, `verdict on ${bazaar}: issued by a registered ${v.issuer.startsWith("near-ai:") ? "NEAR AI model key" : "key"}, spent`, `agent ${v.agent.split(".")[0]}, tier ${v.tier}, ${v.predicates.length ? v.predicates.join(", ") : "sealed: no predicate on chain"}`);
+// 1b. A model-issued verdict: the model key, its TDX quote verified on chain, the TEE signature
+// re-checked from the submit tx's own args, and the model's eval score.
+if (v.issuer.startsWith("near-ai:")) {
+  const key = v.issuer.slice(8);
+  const att = await client.view(bazaar, "model_attestation", { signing_key: key });
+  const verifier = await client.view(bazaar, "quote_verifier", {});
+  const spike = JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8"));
+  const ver = verifier ? await client.view(verifier, "verification", { id: spike.real.id }) : null;
+  const rd = ver?.[1]?.split(" ")[1] ?? "";
+  line(Boolean(att) && ver?.[0] === "verified" && rd.startsWith(key) && att.tcb_status === ver[1].split(" ")[0], "the model key: registered on the bazaar against its TDX quote, verified on chain", `${att?.model}, ${verifier}, verification ${spike.real.id.slice(0, 12)}.. ${ver?.[0]} ${att?.tcb_status}, report_data starts with the key`);
+  const mb = JSON.parse(readFileSync("fixtures/live/model-buy/run.json", "utf8"));
+  if (mb.nullifier === nullifier) {
+    const t = await client.rpc("tx", { tx_hash: mb.txs.verdict, sender_account_id: m.treasury, wait_until: "FINAL" });
+    const d = t.result.transaction.actions.find((x) => x.Delegate)?.Delegate?.delegate_action;
+    const call = (d?.actions ?? []).map((x) => x.NonDelegateAction ?? x).find((x) => x.FunctionCall?.method_name === "submit_near_ai_verdict");
+    const args = JSON.parse(Buffer.from(call.FunctionCall.args, "base64").toString("utf8"));
+    const { createHash, createPublicKey, verify } = await import("node:crypto");
+    const text = `${att.model}:${args.proof.request_sha256}:${createHash("sha256").update(args.proof.response).digest("hex")}`;
+    const pub = createPublicKey({ key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(key, "hex")]), format: "der", type: "spki" });
+    const sigOk = verify(null, Buffer.from(text), pub, Buffer.from(args.proof.signature, "hex"));
+    line(sigOk && args.envelope.nullifier === nullifier, "the TEE signature in the submit tx covers the model's exact response, under the registered key", `chat ${args.proof.chat_id.slice(0, 12)}.., ${args.envelope.predicates.length} predicates revealed`);
+  }
+  const v4 = JSON.parse(readFileSync("fixtures/live/eval/rep-eval-v4.json", "utf8"));
+  const score = await client.view(bazaar, "eval_score", { subject: `${att?.model}@4000tok/referee-v4`, set_root: v4.set_root });
+  console.log(`INFO  the model's REP Eval v4 bucket on chain: ${score} (a merchant's eval gate compares this)`);
+}
 const r = v.receipt;
 line(Boolean(r?.merchant && r?.price), "a referee receipt names the merchant and the price", r ? `${r.merchant.split(".")[0]} at ${usd(r.price)}` : "none");
 if (!r) process.exit(1);
@@ -55,8 +82,13 @@ if (v.tier !== "sealed") {
   const onChain = await client.view(bazaar, "quote", { merchant: r.merchant, nullifier });
   const c = cli(v.predicates, cohortK);
   const sdk = sdkQuote(s, v.predicates, () => cohortK).price;
-  const prices = { receipt: r.price, contract_quote_view: onChain.price, core: c.core, zkcore_jolt_guest_code: c.zkcore, sdk: String(sdk) };
-  line(new Set(Object.values(prices).map(String)).size === 1, "price parity: the receipt, the contract's quote view, core, zkcore (the Jolt price guest's code) and the SDK agree", Object.entries(prices).map(([k, x]) => `${k} ${usd(x)}`).join(", ") + `; cohort k ${cohortK}`);
+  // The quote view prices with the cohort as it is now; a receipt keeps the price of the k it was
+  // bought at (receipt_price_holds_when_the_cohort_grows_later). Compare it only when k is unchanged.
+  const kNow = onChain.cohort?.k ?? 0;
+  const sameK = !s.cohort || (kNow >= 5) === (cohortK >= 5);
+  const prices = { receipt: r.price, ...(sameK ? { contract_quote_view: onChain.price } : {}), core: c.core, zkcore_jolt_guest_code: c.zkcore, sdk: String(sdk) };
+  if (!sameK) console.log(`INFO  the contract's quote view now prices at cohort k ${kNow} (${usd(onChain.price)}); this purchase was priced at k ${cohortK}, and its receipt keeps that price`);
+  line(new Set(Object.values(prices).map(String)).size === 1, `price parity: the receipt, ${sameK ? "the contract's quote view, " : ""}core, zkcore (the Jolt price guest's code) and the SDK agree`, Object.entries(prices).map(([k, x]) => `${k} ${usd(x)}`).join(", ") + `; cohort k ${cohortK}`);
 } else {
   // Sealed: any subset of the schedule's predicates, with no cohort (the referee prices k = 0).
   const ps = s.rules.map((x) => x.predicate);
