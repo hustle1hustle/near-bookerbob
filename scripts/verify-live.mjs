@@ -288,15 +288,22 @@ await attempt("every spent nullifier is in the manifest: spent_count on chain eq
   const n = await view(m.bazaar, "spent_count", {});
   return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
 });
+for (const t of m.testers.filter((x) => x.voprf)) {
+  await attempt(`a VOPRF nullifier on testnet: ${t.tester.split(".")[0]} bought with ${t.nullifier.slice(0, 12)}.., the record's key is the bazaar's voprf_key (the proof itself: make verify)`, async () => {
+    const [pk, v] = await Promise.all([view(m.bazaar, "voprf_key", {}), view(m.bazaar, "verdict", { nullifier: t.nullifier })]);
+    const ok = pk === t.voprf.public_key_hex && t.voprf.nullifier === t.nullifier && v?.spent;
+    return [ok, `voprf_key ${pk?.slice(0, 12)}.., verdict spent ${v?.spent}`];
+  });
+}
 if (existsSync(new URL("../fixtures/live/market/state.json", import.meta.url))) {
   const st = JSON.parse(readFileSync(new URL("../fixtures/live/market/state.json", import.meta.url)));
   const v4 = JSON.parse(readFileSync(new URL("../fixtures/live/eval/rep-eval-v4.json", import.meta.url)));
-  await attempt("the DAO-owned market runs the same code as bookerbob.testnet (eval gate included); the REP Eval issuer came in by a DAO vote; v4 scores on the market", async () => {
+  await attempt("the DAO-owned market runs the same code as bookerbob.testnet (eval gate, VOPRF key); the REP Eval issuer and the VOPRF key came in by DAO votes; v4 scores on the market", async () => {
     const acct = async (a) => (await rpc("query", { request_type: "view_account", finality: "final", account_id: a })).result;
-    const [mk, main, issuers, ...scores] = await Promise.all([acct(st.market), acct(m.bazaar), view(st.market, "issuers", {}), ...v4.models.map((x) => view(st.market, "eval_passes", { subject: x.certificate.subject, set_root: v4.set_root, threshold: 70 }))]);
+    const [mk, main, issuers, vk, vkMain, ...scores] = await Promise.all([acct(st.market), acct(m.bazaar), view(st.market, "issuers", {}), view(st.market, "voprf_key", {}), view(m.bazaar, "voprf_key", {}), ...v4.models.map((x) => view(st.market, "eval_passes", { subject: x.certificate.subject, set_root: v4.set_root, threshold: 70 }))]);
     const want = v4.models.map((x) => x.certificate.score_bucket >= 70);
-    const ok = mk.code_hash === main.code_hash && issuers.some(([k]) => k === v4.issuer_key) && scores.every((x, i) => x === want[i]);
-    return [ok, `code ${mk.code_hash.slice(0, 10)}.. on both; eval issuer registered; eval_passes at 70: ${scores.join(", ")}`];
+    const ok = mk.code_hash === main.code_hash && issuers.some(([k]) => k === v4.issuer_key) && scores.every((x, i) => x === want[i]) && vk && vk === vkMain;
+    return [ok, `code ${mk.code_hash.slice(0, 10)}.. on the market, ${main.code_hash.slice(0, 10)}.. on ${m.bazaar}; eval issuer registered; eval_passes at 70: ${scores.join(", ")}; voprf_key ${vk?.slice(0, 12)}.. on both`];
   });
 }
 if (existsSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url))) {

@@ -205,12 +205,26 @@ export class Demo {
     rec.txs.mint = (await this.relay("mint", tester, c.dusdc, fc("mint", opts.mint ? { amount: String(opts.mint) } : {}, 0n, 30n * TGAS))).hash;
     step(5, "sign the verdict and World attestation");
     const live = join(dir, "live");
+    if (opts.voprf) {
+      // The account nullifier from REP's VOPRF evaluator (cli/src/voprf.rs): the buyer blinds a
+      // fresh input, the evaluator sees only the blinded element and evaluates once for this
+      // requester and context, the buyer checks the proof under the bazaar's voprf_key.
+      const pk = await this.client.view(c.bazaar, "voprf_key", {});
+      if (!pk) throw new Error(`${c.bazaar} has no voprf_key anchored`);
+      mkdirSync(live, { recursive: true });
+      const rd = JSON.parse(run([...BOOKERBOB, "voprf-nullifier", c.keysDir, id, "bookerbob:v0:demo-hoodie", pk, join(dir, "voprf.json")]));
+      process.env.BOOKERBOB_NULLIFIER = rd.nullifier;
+      rec.voprf = rd;
+      console.log(`   VOPRF nullifier ${rd.nullifier.slice(0, 12)}.. (the evaluator saw a blinded element only; proof checked under ${pk.slice(0, 12)}..)`);
+    }
     // opts.proofs: the device run's proof set (one real, notary-verified fact in it).
     // opts.sealed: the verdict goes on chain as hashes only; live/opening.json (mode 600)
     // holds the predicates, tier and cap for the referee.
     rec.nullifier = (opts.proofs
       ? run([...BOOKERBOB, opts.sealed ? "sign-real-sealed" : "sign-real", c.keysDir, id, c.treasury, c.worldAction, live, opts.proofs])
       : run([...BOOKERBOB, "sign-tester", c.keysDir, id, c.treasury, c.worldAction, live])).trim();
+    delete process.env.BOOKERBOB_NULLIFIER;
+    if (rec.voprf && rec.nullifier !== rec.voprf.nullifier) throw new Error("the signed verdict does not carry the VOPRF nullifier");
     if (opts.proofs && !opts.rehearsal) rec.device_run = true;
     if (opts.sealed) rec.sealed = true;
     const file = (n) => JSON.parse(readFileSync(join(live, n), "utf8"));
@@ -409,7 +423,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   const d = new Demo(c);
-  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "hotel" ? d.hotel(process.argv[3]) : cmd === "sealed" ? d.run({ proofs: "fixtures/proofs.json", sealed: true, rehearsal: true }) : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
+  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run({ voprf: Boolean(process.env.DEMO_VOPRF) }) : cmd === "hotel" ? d.hotel(process.argv[3]) : cmd === "sealed" ? d.run({ proofs: "fixtures/proofs.json", sealed: true, rehearsal: true }) : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
   go.then(
     () => {},
     (e) => {

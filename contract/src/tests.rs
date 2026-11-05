@@ -3328,3 +3328,33 @@ mod onchain_quote {
         c.register_model_attestation(KEY.into(), att("UpToDate"));
     }
 }
+
+/// The VOPRF evaluator's public key: an owner anchor, timelocked like the others.
+mod voprf_anchor {
+    use super::*;
+    const PK: &str = "d0f606f337bd38b6e0a329f8c621657163acaf752610b6256d16fc8d56d4526a";
+
+    #[test]
+    fn the_owner_sets_the_voprf_key() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_voprf_key(PK.into());
+        assert_eq!(c.voprf_key(), Some(PK.into()));
+    }
+
+    #[test]
+    #[should_panic(expected = "owner only")]
+    fn only_the_owner_sets_the_voprf_key() {
+        let mut c = setup();
+        set_no_deposit("agent.testnet");
+        c.set_voprf_key(PK.into());
+    }
+
+    #[test]
+    #[should_panic(expected = "bad VOPRF public key")]
+    fn a_malformed_voprf_key_is_refused() {
+        let mut c = setup();
+        set_no_deposit("owner.testnet");
+        c.set_voprf_key("zz".into());
+    }
+}

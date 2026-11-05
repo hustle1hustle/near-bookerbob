@@ -12,6 +12,7 @@ verify:
 	$(BOOKERBOB) swarm agents/merchants.json fixtures/verdict-ed25519.json agents/board.json --check
 	$(BOOKERBOB) evals fixtures/referee-evals.json fixtures/proofs.json fixtures/verdict-ed25519.json agents/merchants.json
 	$(BOOKERBOB) near-ai fixtures/live/near-ai fixtures/proofs.json
+	$(BOOKERBOB) voprf-verify fixtures/live/voprf/run.json de0c0be1fbb9aea7fad3e1f5ebcdade3aa3fa92f6a0118eae8543100868ee417
 	node scripts/nras.mjs verify
 	$(BOOKERBOB) reviews fixtures agents/reviews.json --check
 	$(BOOKERBOB) scenario fixtures

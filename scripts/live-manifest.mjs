@@ -23,7 +23,7 @@ const m = {
   merchant: c.merchant,
   review_round_ms: 300000,
   merchants_approved: 30,
-  testers: done.map((r) => ({ tester: r.tester, merchant: r.merchant ?? c.merchant, nullifier: r.nullifier, price: String(r.price), cohort_k: r.cohort_k ?? 0, ...(r.sealed ? { sealed: true } : {}), ...(r.prove_me ? { prove_me: r.prove_me } : {}), ...(r.near_ai ? { model_issued: r.near_ai.model } : {}), shopify_order: r.shopify?.name ?? null, txs: r.txs })),
+  testers: done.map((r) => ({ tester: r.tester, merchant: r.merchant ?? c.merchant, nullifier: r.nullifier, price: String(r.price), cohort_k: r.cohort_k ?? 0, ...(r.sealed ? { sealed: true } : {}), ...(r.prove_me ? { prove_me: r.prove_me } : {}), ...(r.near_ai ? { model_issued: r.near_ai.model } : {}), ...(r.voprf ? { voprf: r.voprf } : {}), shopify_order: r.shopify?.name ?? null, txs: r.txs })),
   unfinished: recs.filter((r) => !(r.txs?.settle && r.txs?.replay) && !r.txs?.settle_group && !r.txs?.intent).map((r) => ({ tester: r.tester, reason: r.txs?.verdict ? "stopped before settle (see docs/testnet.md)" : "stopped before the verdict" })),
   fc_key_check: fck ? { tester: fck.tester, add_key_tx: fck.add_key_tx, refusals: fck.results.map((x) => ({ method: x.method, deposit: x.deposit, error: (x.error.match(/InvalidAccessKeyError":(\{[^}]*\}|"[A-Za-z]+")/) ?? [])[1] ?? x.error.slice(0, 80) })) } : null,
   reviews: rounds.at(-1) ?? null,

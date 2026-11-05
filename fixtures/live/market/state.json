@@ -2,7 +2,7 @@
   "market": "market.bookerbob.testnet",
   "owner": "bookerbob-gov.sputnikv2.testnet",
   "decided": "2026-11-05, by the coordinating session on the founder's delegation (testnet, no money)",
-  "wasm_sha256": "41d046ac3eddb8fbe2a3eccb3f4c21304f8c0384a6d4c6b3c04ea70a43606582",
+  "wasm_sha256": "09089b21eb9e41f66ae50039fb1520ebcb773f96757ebcc009be195e6ceedf3a",
   "txs": {
     "create": "4vKrCcqpu8tuePkeRoHQKYydkizxyWSn3J4CFgxNmTTX",
     "deploy": "Ev2g3obUoZkSuLUoQjA9hmF9PFszjEWL45ZtF6kWRkad",
@@ -11,7 +11,8 @@
     "redeploy_2": "GDpChrgpWx6kgSZxmi5aM9aYVFpfjGKh8SVFZcAaCJmC",
     "redeploy_3": "GcH7FRKtqgFox3X4hBvy28HEr9xxWqLK3jMyKkFKSkj7",
     "redeploy_4": "Aaxx487pywegRKpwcsGE2w55Gnt8bx4UgzHuPMNtReKH",
-    "redeploy_5": "cuH7na898gYGg8LFc8vcMDG8ZTCkSfM23Yi9XRGDisM"
+    "redeploy_5": "cuH7na898gYGg8LFc8vcMDG8ZTCkSfM23Yi9XRGDisM",
+    "redeploy_6": "Hodwi5M4aRqP4jTsEiAppbdqvkNteUjRWD6JqHJwF7jC"
   },
   "anchors": {
     "proposal": 3,
@@ -58,5 +59,11 @@
     "commit": "ANLNiRCynCWEY3grWnj1LU6nFVLs9xgdfj8HbTaufmZ6",
     "z-ai/glm-5.3-flash": "EaG3MJtLJY7ctsmP8sov7HSnRdYHHLUhrvNKM41JHUeN",
     "deepseek-ai/DeepSeek-V4.1-Flash-1017": "8sWmM8tnYQcGchsxCdPi2Tc5aY22GsUwTFAP1Vzohf52"
+  },
+  "voprf": {
+    "proposal": 9,
+    "propose": "44NzGrMj7KEMjyrbqjFefyV6WhcyqxUHPpCvZgnC4b5p",
+    "execute": "FTGu5fcH2eYwmqcCXhCk3CBLSUHFhFdqf2s9PvA6HU44",
+    "execute_anchor": "ARGXSZpWxq2v4GG9FLV4FUDXEzvB3AHn8GA4MnV5NnWn"
   }
 }

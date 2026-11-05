@@ -94,7 +94,7 @@ to parties that do not trust us or each other:
 ## What is live and what is offline
 
 Exact as of 2026-11-05. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
-tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 24 purchases
+tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 25 purchases
 settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 18 sealed
 reviews were released over 3 rounds and a standing update from a Jolt proof was accepted; `make verify-live`
 re-derives all of it over public RPC. "Live" means captured once from the real service and
@@ -109,7 +109,7 @@ The two tables of what is captured live and what runs offline: [docs/depth.md](d
 |---|---|---|---|
 | near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | **live**: unit tests and `make verify`; deployed at `bookerbob.testnet` |
 | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | **live**: every testnet verdict passed it |
-| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 14 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
+| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 15 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | **live**: every testnet tx above logs them |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | **built**: `make verify`, 50/50 referee evals |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | **built**: `make verify` checks 04 and 05 |
@@ -129,7 +129,7 @@ The two tables of what is captured live and what runs offline: [docs/depth.md](d
 | MCP tool "REP Read for agents": read-only contract views for any MCP client, plus a `buy` tool on the sdk/buy.mjs flow | agents | `mcp/rep-read.mjs` | **live**: reads `bookerbob.testnet` over public RPC (`BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`); `buy` plans by the contract's price code and refuses when no bid fits; it runs the live testnet purchase only with `BOOKERBOB_BUY=1` (local demo keys), plan only otherwise; 3 tests on a fake RPC |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | **live**: 15 tests; reads `settle_demo` txs from testnet and writes paid orders to the Shopify test store |
 | merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | **built**: cross-checked against the Rust board; used by the outside agent that won `open-1`; not listed (Agent Market is mainnet only) |
-| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 24 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, one with a verdict a NEAR AI model issued, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live` |
+| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 25 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, one with a verdict a NEAR AI model issued, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live` |
 | paid orders in the Shopify test store through the Admin API (draft order completed as paid, `near_tx` in the note) | realworld | `ucp/src/near-usdc.mjs` | **live**: orders #1055 to #1060 |
 | review k counts distinct World-bound persons, not purchases (`review_persons`) | privacy, security | `contract/src/lib.rs` | **live** |
 | `make leak`: what a passive observer links from public testnet data; found 6 of 6 ratings linked by order, fixed, re-run: 1 of 6 (chance) | privacy | `scripts/leak.mjs`, `docs/leak.md` | **live**: run live before and after |
@@ -212,7 +212,7 @@ case, reads live from testnet that the key is trusted today, and names the offli
 | **the dispute arbiter** | uphold a false update or overturn an honest receipt | nothing on chain beyond its signature; a threshold of distinct arbiters is built (2 of 3 in tests) | **REP**: the one live arbiter key (threshold 1) and all three test keys | with the referee, a false receipt stands and a false update is upheld; nothing outside REP checks it today |
 | a merchant agent | a pitch or a claim the buyer never proved | code computes the price, the referee refuses unproven claims, an open-category merchant posts a bond | the merchant | (not REP) |
 | **the owner and the full-access key** | change the rules or redeploy the code | anchor changes can wait out a public delay (0 on the live bazaar); a DAO owns a test bazaar; nothing stops a redeploy by the full-access key | **REP** (one key on `bookerbob.testnet`) | on `bookerbob.testnet`: redeploys any code, so every rule above; on `market` after the lock: only DAO-voted, publicly delayed changes |
-| **the nullifier issuer** | link one person's accounts across contexts | nothing yet: the nullifier is an HMAC under a REP key | **REP** (VOPRF nullifiers are chosen, not built) | links one person's purchases across contexts (it holds the HMAC key) |
+| **the VOPRF evaluator** | link one person's purchases across contexts | the nullifier is a VOPRF output of a fresh input the buyer blinded; the buyer checks the proof under the bazaar's anchored `voprf_key`, so no per-buyer key | **REP** (one key, `KEYS_DIR/voprf.seed`; enclave and committee decided, not built) | cannot recompute a nullifier or tie one to the request it came from; can refuse to evaluate, evaluate twice for one person (a sybil, like the issuer key), and see who asked when (timing); purchases before the VOPRF stay linkable |
 
 ### Who sees plaintext, and how many share it
 
@@ -237,9 +237,10 @@ the full threat model.
 
 ## Known limits
 
-- The account nullifier is an HMAC under a REP-held key today, so REP could link accounts.
-  VOPRF is the chosen replacement and is not built. In fixtures the nullifier is a
-  labelled placeholder.
+- The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's
+  evaluator sees a blinded element only. REP still holds the one evaluator key (an enclave and a
+  committee are decided, not built), sees who asked and when, and earlier purchases used an HMAC
+  it can recompute. In fixtures the nullifier is a labelled placeholder.
 - World ID runs on fixtures with a placeholder action. Say "proven customer", not
   "verified human", until the live path ships.
 - Callers pay for the storage they add (`submit_verdict`, `register_merchant`,
@@ -265,10 +266,10 @@ Testnet only; nothing is on mainnet. Every tx hash is in [docs/testnet.md](docs/
   one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key goes in the lock.
 - `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys.
 - `gate.bookerbob.testnet`: the Verdict Gate; `bookerbob-dusdc.testnet`: the demo token.
-- Done in demo mode (dUSDC): 24 purchases (14 single settles: one with the 1% fee, two with a
-  sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 14 replays refused, a settle-only function-call key
+- Done in demo mode (dUSDC): 25 purchases (15 single settles: one with the 1% fee, two with a
+  sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 15 replays refused, a settle-only function-call key
   that cannot withdraw, 18 sealed reviews released over 3 rounds at k >= 5 (12 for m01, 6 for h05), the group price at k >= 5, a
-  standing update with nonzero merchants, 14 orders in the Shopify test store.
+  standing update with nonzero merchants, 15 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee (the register waits on the founder).
 
 ## License

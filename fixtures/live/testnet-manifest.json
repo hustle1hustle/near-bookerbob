@@ -308,6 +308,35 @@
         "replay": "GMRPqyWDh9dYsGew9grovjNu9WTKHRAq6Tam2XfycRUZ",
         "review_join": "W6E3hYeq9sbZS4VmT5DaDd6q1QUUF89mpUzms5kipow"
       }
+    },
+    {
+      "tester": "t-ba7253.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "41f94901238a2a2afcb7d28cf20e8df2d3c63693f6f3bc7df2c9bf237abf1efe",
+      "price": "36000000",
+      "cohort_k": 26,
+      "voprf": {
+        "input_hex": "626f6f6b6572626f623a76303a64656d6f2d686f6f6469657ccad7328e0ea29377e6bc700231e773fae79cd4c2febced6d4554824f651c9e2b",
+        "blind_hex": "1c30b2ff8ac3cadbf104bfe08d7111d95343f705cdc2c814b115492d283dd908",
+        "evaluated_hex": "24c7c0b80b5d23cccdeabf2850f686d35744ff86f8286b712529874d64624b60",
+        "proof_hex": "98f83eba3b60465b8f1b820be745f41f800b26dc569d51eaf78c35d31ff5f200a61965fb1a82a017a059fb10215f6c5981511a99bed75d68cb4a7c0e562fd008",
+        "public_key_hex": "de0c0be1fbb9aea7fad3e1f5ebcdade3aa3fa92f6a0118eae8543100868ee417",
+        "nullifier": "41f94901238a2a2afcb7d28cf20e8df2d3c63693f6f3bc7df2c9bf237abf1efe"
+      },
+      "shopify_order": "#1070",
+      "txs": {
+        "account": "EP1hUgPATxrqkXzKXKSXds6DiFU9hzeuV8umWqNgEfYs",
+        "escrow_entry": "5ZRCLZ2N2og3KeV4gw6peBtsg363cT5cwNPd32PkXPK7",
+        "dusdc_storage": "CpiQuaaTsHyfE9cA6H4439wtk5uh97XRG8SLWQg9K3on",
+        "mint": "4gqcMm4QVtgNrz4rRbeNoLnyJNggKW4pL8pRU5RLJELM",
+        "world": "D38ayU2KRd6J2ASHZ9J5xBvQ5nCwFR2vpjH7pyGR5XZV",
+        "verdict": "2nCLDvSWKp8dDMCYGBYMwGBXunZ3TPjg5ZJ15dVUaar3",
+        "receipt": "Hy8PpHYy2QGvnok59NWc6iX2NB51LwqNo9AJa2P7LGJW",
+        "escrow": "5avQtDsUv451aFhyu5zii2KXD1omGaHVj7VEi4fzboCS",
+        "settle": "4xjiCEkemBinDTdUBuTvJApRcBrYZz4x1gSCgJcyd9AH",
+        "replay": "38GZmjxc4LBPQCveN3rfC1BjwUimwY8NMGGGpD7g6ef1",
+        "review_join": "CkUTiXwuvCt5it5p5rs4MHf1mRaDdKdGpomm4375XmAh"
+      }
     }
   ],
   "unfinished": [

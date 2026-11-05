@@ -9,7 +9,7 @@ Source of truth for the types: `core/src/envelope.rs`.
 |---|---|---|
 | `v` | u8 | always `0` |
 | `context` | string, 1..64 | purchase context, e.g. `bookerbob:v0:lisbon-hotel`. The nullifier is per context |
-| `nullifier` | hex, 32 bytes | per-context account nullifier. Today an HMAC under a REP-held key (VOPRF next). Fixtures use a labelled placeholder |
+| `nullifier` | hex, 32 bytes | per-context account nullifier: `sha256(TAG || F_k(x))`, the RFC 9497 VOPRF output of a fresh input `x = context || random` the buyer blinded (`cli/src/voprf.rs`, live since 2026-11-05 via `DEMO_VOPRF=1`). Earlier purchases and the fixtures use an HMAC or a labelled placeholder |
 | `commitment` | hex, 32 bytes | `sha256("bookerbob/commit/v0\0" || salt || json(all derived predicates))`; lets the buyer later prove what was held back |
 | `proof_hash` | hex, 32 bytes | `sha256(json(proof set))` the verdict was computed over |
 | `predicates` | string[] | predicates revealed for this purchase; sorted, unique, each in `KNOWN_PREDICATES` |

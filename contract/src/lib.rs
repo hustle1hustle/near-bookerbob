@@ -986,6 +986,10 @@ impl Bazaar {
                 env::storage_write(b"min_tcb", s("status").as_bytes());
                 emit("min_tcb_set", serde_json::json!({ "status": s("status"), "timelock": id }));
             }
+            "voprf_key" => {
+                env::storage_write(b"voprf_key", s("public_key").as_bytes());
+                emit("voprf_key_set", serde_json::json!({ "public_key": s("public_key"), "timelock": id }));
+            }
             "quote_verifier" => {
                 env::storage_write(b"quote_verifier", s("verifier").as_bytes());
                 emit("quote_verifier_set", serde_json::json!({ "verifier": s("verifier"), "timelock": id }));
@@ -2005,6 +2009,23 @@ impl Bazaar {
         }
         env::storage_write(b"quote_verifier", verifier.as_bytes());
         emit("quote_verifier_set", serde_json::json!({ "verifier": verifier }));
+    }
+
+    /// The VOPRF evaluator's public key (RFC 9497 ristretto255, hex): the one key every buyer
+    /// checks the evaluator's proof against, so it cannot tag a buyer with a key of its own. An
+    /// anchor: it waits out the public delay like the others.
+    pub fn set_voprf_key(&mut self, public_key: String) {
+        self.assert_owner();
+        require!(bookerbob_core::is_hex32(&public_key), "bad VOPRF public key");
+        if self.queue_anchor("voprf_key", serde_json::json!({ "public_key": public_key })) {
+            return;
+        }
+        env::storage_write(b"voprf_key", public_key.as_bytes());
+        emit("voprf_key_set", serde_json::json!({ "public_key": public_key }));
+    }
+
+    pub fn voprf_key(&self) -> Option<String> {
+        env::storage_read(b"voprf_key").and_then(|b| String::from_utf8(b).ok())
     }
 
     pub fn quote_verifier(&self) -> Option<AccountId> {

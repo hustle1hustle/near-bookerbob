@@ -19,6 +19,7 @@ mod evidence;
 mod fixtures;
 mod keys;
 mod near_ai;
+mod voprf;
 mod reviews;
 mod scenario;
 mod swarm;
@@ -308,6 +309,7 @@ fn main() -> ExitCode {
         Some("reviews") if args.len() >= 2 => {
             reviews::run(Path::new(&args[1]), args.get(2).filter(|a| !a.starts_with("--")).map(Path::new), args.iter().any(|a| a == "--check"))
         }
+        Some(c) if c.starts_with("voprf-") => voprf::run(&args),
         Some("near-ai") if args.len() >= 3 => near_ai::run(Path::new(&args[1]), Path::new(&args[2])),
         Some("near-ai-proof") if args.len() >= 2 => {
             let (_, p) = near_ai::proof(Path::new(&args[1]));

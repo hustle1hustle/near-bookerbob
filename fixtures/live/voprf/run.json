@@ -1,0 +1,10 @@
+{
+  "note": "The public VOPRF redemption record of one testnet purchase (cli/src/voprf.rs): x, a fresh blind r, the evaluation of r*H(x) and its DLEQ proof under the anchored key. make verify re-derives the nullifier from it.",
+  "tester": "t-ba7253.bookerbob-demo.testnet",
+  "input_hex": "626f6f6b6572626f623a76303a64656d6f2d686f6f6469657ccad7328e0ea29377e6bc700231e773fae79cd4c2febced6d4554824f651c9e2b",
+  "blind_hex": "1c30b2ff8ac3cadbf104bfe08d7111d95343f705cdc2c814b115492d283dd908",
+  "evaluated_hex": "24c7c0b80b5d23cccdeabf2850f686d35744ff86f8286b712529874d64624b60",
+  "proof_hex": "98f83eba3b60465b8f1b820be745f41f800b26dc569d51eaf78c35d31ff5f200a61965fb1a82a017a059fb10215f6c5981511a99bed75d68cb4a7c0e562fd008",
+  "public_key_hex": "de0c0be1fbb9aea7fad3e1f5ebcdade3aa3fa92f6a0118eae8543100868ee417",
+  "nullifier": "41f94901238a2a2afcb7d28cf20e8df2d3c63693f6f3bc7df2c9bf237abf1efe"
+}

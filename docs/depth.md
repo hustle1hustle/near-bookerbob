@@ -195,7 +195,7 @@ and 0 on the live bazaar today.
 | a merchant | the verdict to the settle of its own sale (same nullifier, same agent account) | the buyer's other purchases in other contexts (per-context nullifier), the raw history | |
 | anyone reading the chain | today, every call one agent account makes (verdict, settle, review-group join); two purchases by the same agent account | which group member wrote a rating (Semaphore); the rating's sender to the buyer (one-time implicit account) | one-time cnf key and account per purchase (planned, panel action 6) |
 | the relayer | every sender it pays for, and each rating at reveal time | the buyer behind a one-time review account, unless it also relayed that buyer's purchase | run your own relayer; it is not trusted by the contract |
-| REP (nullifier issuer) | today, accounts across contexts (the nullifier is an HMAC under a REP key) | | VOPRF nullifiers (chosen, not built) |
+| REP (VOPRF evaluator) | who asked for an evaluation in which context, and when; for purchases before 2026-11-05, accounts across contexts (an HMAC under a REP key) | which on-chain nullifier an evaluation became (it sees a blinded element only); a person's nullifier in a context it never evaluated (it does not know `x`) | the key in a TDX enclave with 2-of-3 backups, then a committee (decided, not built) |
 | the NEAR AI enclave | the facts it was sealed (by design) | | |
 
 ### Attacks and what stops them
@@ -241,8 +241,9 @@ and 0 on the live bazaar today.
   (signatures, nullifiers, Semaphore, the k floor).
 - The zkTLS notary is a single MPC key today, not attested. A compromised notary could sign
   false facts. A verdict is only as good as the notary behind it.
-- REP can link a user's accounts across contexts while the nullifier is an HMAC under a REP
-  key (Known limits). VOPRF removes that; it is not built.
+- The VOPRF nullifier (since 2026-11-05) removes REP's ability to recompute a person's nullifier
+  in any context or to tie an evaluation to the nullifier it became. It does not remove timing (a
+  lone request just before a purchase), REP's view of who asked, or REP's single evaluator key.
 - When a TEE output and a Jolt output disagree: today they cover different things (NEAR AI
   derives the verdict predicates; Jolt proves the standing, price, referee and cohort code),
   so they cannot disagree on one value. Where both will exist (planned predicate guest),
@@ -333,10 +334,10 @@ Where testnet stands, as of 2026-11-04:
   and the referee receipt
   ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
   38.40 USDC: one buyer on testnet, so no group price), three hire edges and a standing update for them (a Jolt proof, signed by a worker).
-- Done in demo mode (dUSDC): 24 purchases (14 single settles: one with the 1% fee, two with a
-  sealed verdict, one with a verdict a NEAR AI model issued, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 14 replays refused, a settle-only function-call key
+- Done in demo mode (dUSDC): 25 purchases (15 single settles: one with the 1% fee, two with a
+  sealed verdict, one with a verdict a NEAR AI model issued, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 15 replays refused, a settle-only function-call key
   that cannot withdraw, 18 sealed reviews released over 3 rounds at k >= 5 (12 for m01, 6 for h05), the group price at k >= 5, a
-  standing update with nonzero merchants, 14 orders in the Shopify test store.
+  standing update with nonzero merchants, 15 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee (its registration waits on the founder). The NEP-366
   relayer sends on testnet: it paid every demo purchase call and every sealed rating.
 - Demo mode: [docs/demo-mode.md](docs/demo-mode.md), `make demo-tester`.

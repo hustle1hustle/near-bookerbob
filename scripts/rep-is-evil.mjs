@@ -45,11 +45,11 @@ export const KEYS = [
     shown: "make verify check 22 and the 2-of-3 threshold contract tests",
   },
   {
-    key: "the nullifier key (HMAC under a REP key)",
-    live: async () => `${await view(LIVE, "spent_count")} nullifiers spent on ${LIVE}; each is an HMAC REP can recompute`,
-    worst: "links one person's verdicts and purchases across contexts, which the per-context nullifier is meant to prevent",
-    limits: "none yet; VOPRF nullifiers are chosen, not built",
-    shown: "docs/leak.md (what a REP-side observer links), cli/src/fixtures.rs nullifier()",
+    key: "the VOPRF evaluator key (KEYS_DIR/voprf.seed, one holder: REP)",
+    live: async () => `voprf_key ${(await view(LIVE, "voprf_key"))?.slice(0, 12) ?? "none"}.. anchored on ${LIVE}; ${await view(LIVE, "spent_count")} nullifiers spent, the VOPRF ones since 2026-11-05 (earlier ones are an HMAC or a labelled fixture placeholder, both recomputable)`,
+    worst: "refuses to evaluate; evaluates twice for one person in one context (a second nullifier: a sybil, like the issuer key); sees which requester asked in which context and when, so a lone request just before a purchase is a timing link",
+    limits: "it sees only a blinded element, so it cannot tie an evaluation to the nullifier that lands on chain, and it cannot recompute a person's nullifier in a context (it never learns the input); the buyer checks the proof under the anchored key, so no per-buyer key; enclave custody and a committee are decided, not built",
+    shown: "make verify (the public VOPRF record re-derives the nullifier), cargo test -p bookerbob-cli voprf",
   },
   {
     key: "the owner and full-access key of bookerbob.testnet",
@@ -99,5 +99,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
     console.log(`${k.key}\n  live:    ${live}\n  worst:   ${k.worst}\n  limits:  ${k.limits}\n  shown:   ${k.shown}\n`);
   }
-  console.log("Every row is REP's to fix by giving the key away: outside arbiters, an attested referee key on OutLayer, VOPRF nullifiers, the live World ID service, the lock.");
+  console.log("Every row is REP's to fix by giving the key away: outside arbiters, an attested referee key on OutLayer, the VOPRF key in an enclave and then a committee, the live World ID service, the lock.");
 }

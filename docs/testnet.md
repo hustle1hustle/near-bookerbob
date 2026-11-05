@@ -549,3 +549,24 @@ the set owner committed the v4 root on the market, and both v4 certificates went
 `eval_passes(DeepSeek, v4, 70)` is true and glm's is false, so a market merchant can set an eval
 gate. `make verify-live` checks the code parity, the issuer and the scores. After the lock, this
 code is final: no key can replace it.
+
+## VOPRF account nullifiers (2026-11-05)
+
+The nullifier is now `sha256(TAG || F_k(x))`, an RFC 9497 VOPRF (ristretto255) output of a fresh
+input `x = context || 32 random bytes` the buyer blinds (`cli/src/voprf.rs`, the `voprf` crate,
+PRIOR_WORK.md). REP's evaluator sees the requester and a blinded element, evaluates once per
+(requester, context), and the buyer checks its DLEQ proof under the bazaar's `voprf_key`.
+
+- `set_voprf_key(de0c0be1…)` on `bookerbob.testnet` [2xt5QE1Q…](https://testnet.nearblocks.io/txns/2xt5QE1QfBRXjUhY697E1DuxvwpwFSdmxAfJmDeKGxy3)
+  after the redeploy [Etpce1cg…](https://testnet.nearblocks.io/txns/Etpce1cg1MoZ3UijswZeHSwckhB43m4PXZkrMWouG2Jy);
+  on the market by DAO proposal 9, executed after the 5-minute delay
+  [ARGXSZpW…](https://testnet.nearblocks.io/txns/ARGXSZpWxq2v4GG9FLV4FUDXEzvB3AHn8GA4MnV5NnWn), after
+  the market's redeploy with the temporary key [Hodwi5M4…](https://testnet.nearblocks.io/txns/Hodwi5M4aRqP4jTsEiAppbdqvkNteUjRWD6JqHJwF7jC).
+- One purchase with a VOPRF nullifier (`DEMO_VOPRF=1 make demo-tester`): `t-ba7253`, nullifier
+  `41f94901…`, 36 dUSDC, the replay refused. Its public redemption record
+  (`fixtures/live/voprf/run.json`: x, a fresh blind, the evaluation and proof) re-derives the
+  nullifier in `make verify`; `make verify-live` checks the key on chain and the spent verdict.
+- What it does not change: REP holds the one evaluator key (an enclave and a committee are
+  decided, not built); the evaluator sees who asked in which context and when (a lone request
+  just before a purchase is a timing link); purchases before this one used an HMAC or a fixture
+  placeholder, which stay recomputable.

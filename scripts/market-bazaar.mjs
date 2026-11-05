@@ -192,6 +192,15 @@ async function upgrade() {
     st.eval.issuer_execute = await executeQueued("register_issuer (eval)", await logsOf(st.eval.issuer.execute));
     save();
   }
+  // DAO proposal: the VOPRF evaluator's public key, the same one bookerbob.testnet anchors.
+  const voprf = await client.view("bookerbob.testnet", "voprf_key", {});
+  if (voprf && (await client.view(MARKET, "voprf_key", {})) !== voprf) {
+    st.voprf = await viaDao("market bazaar: the VOPRF evaluator's public key (RFC 9497 ristretto255; buyers check its proofs against it)", [["set_voprf_key", { public_key: voprf }]]);
+    save();
+    st.voprf_execute = await executeQueued("set_voprf_key", await logsOf(st.voprf.execute));
+    save();
+  }
+  console.log(`   ${MARKET}: voprf_key ${(await client.view(MARKET, "voprf_key", {}))?.slice(0, 12)}..`);
   const ownerId = `evalset.${c.treasury}`;
   const owner = seedKey(join(c.keysDir, "eval", `${ownerId}.seed`));
   if (!(await client.view(MARKET, "eval_set", { set_root: v4.set_root }))) {
@@ -244,7 +253,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     mkdirSync("fixtures/live/market", { recursive: true });
     const f = "fixtures/live/market/state.json";
     const prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {};
-    writeFileSync(f, JSON.stringify({ ...prev, market: MARKET, owner: DAO, wasm_sha256: st.wasm_sha256, txs: st.txs, anchors: st.anchors, merchants: st.merchants, approve: st.approve, eval: st.eval, locked: Boolean(st.txs.delete_key) }, null, 2) + "\n");
+    writeFileSync(f, JSON.stringify({ ...prev, market: MARKET, owner: DAO, wasm_sha256: st.wasm_sha256, txs: st.txs, anchors: st.anchors, merchants: st.merchants, approve: st.approve, eval: st.eval, voprf: st.voprf ? { ...st.voprf, execute_anchor: st.voprf_execute } : undefined, locked: Boolean(st.txs.delete_key) }, null, 2) + "\n");
   }).catch((e) => {
     console.error(`market: FAIL ${e.message}`);
     process.exit(1);
