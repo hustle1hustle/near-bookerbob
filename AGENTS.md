@@ -73,10 +73,10 @@ Real, and checked by code in this repo:
 - The `bazaar` contract code. `make verify` runs it against near-sdk's MockedBlockchain
   (nearcore VM logic for host functions such as `ed25519_verify` and `p256_verify`). It is
   also live on testnet at `bookerbob.testnet`: `make verify-live` re-derives the testnet
-  claims (6 dUSDC settles, 6 sealed reviews, a standing update) over public RPC.
+  claims (12 dUSDC purchases, 12 sealed reviews over 2 rounds, a challenged standing update) over public RPC.
 - Prices: always `core/src/price.rs`. No model sets a price.
 - NEAR AI verdict: `fixtures/live/near-ai/` is a live E2EE v2 capture (synthetic facts); `make verify` checks its TDX quote, report_data, TEE signature, sealed answer and envelope binding offline.
-- NEAR AI Cloud: `agents/out/live-run.json` is a recorded live run, 32 of 32 response
+- NEAR AI Cloud: `agents/out/live-run.json` is a recorded live run, 33 of 33 response
   signatures verified against the exact bytes. `fixtures/live/e2ee-signature.json`: under
   E2EE v2 the signature covers the ciphertext.
 - Testnet views (`fixtures/live/views.json`): the Chain Signatures derived key for
@@ -93,7 +93,7 @@ Fixture or synthetic:
 - World ID: a placeholder action and a fixture verifier key.
 - The USDC payout in `make verify` is a scheduled receipt, not an executed transfer.
 
-Not built: function-call keys for agents, NVIDIA GPU evidence checks, a TDX quote check inside the contract (the owner checks it before registering the model key), 1Click. See `README.md` "NEAR features used" and `RESUME.md`.
+Not built: NVIDIA GPU evidence checks, a TDX quote check inside the contract (the owner checks it before registering the model key), 1Click. See `README.md` "NEAR features used" and `RESUME.md`.
 
 ## Rules for changes
 

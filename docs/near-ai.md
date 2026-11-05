@@ -19,7 +19,7 @@ an answer came from the attested enclave **without decrypting it**. The envelope
 
 ## Plain TLS path
 
-`agents/why.mjs`: 32 calls, 32/32 signatures valid, hashes equal the wire bytes. Same
+`agents/why.mjs`: 33 calls, 33/33 signatures valid, hashes equal the wire bytes. Same
 scheme without encryption.
 
 ## NEAR AI issues the verdict (2026-11-04, evening)

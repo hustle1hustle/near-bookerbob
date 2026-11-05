@@ -6,22 +6,25 @@ checks the verdict, burns a nullifier so the same account cannot buy twice with 
 prices from code, and pays the merchant in USDC only against a referee receipt. Buyers
 who paid can leave sealed ratings that name nobody.
 
-Honest status: everything runs on the real contract code against near-sdk's mocked
-chain, on synthetic fixtures. The contract is also deployed on NEAR testnet
-(`bookerbob.testnet`, every tx in `docs/testnet.md`); nothing is on mainnet. One NEAR AI
-verdict and the merchant pitches are real live captures.
+Honest status: the contract is live on NEAR testnet (`bookerbob.testnet`, every tx in
+`docs/testnet.md`), and `make verify-live` re-derives each live claim over public RPC.
+Nothing is on mainnet. Payments are in dUSDC, a testnet demo token. The facts behind the
+verdicts are synthetic; the NEAR AI verdict, the merchant pitches and the eval answers are
+real live captures. `make verify` also runs the same contract code on near-sdk's mocked
+chain, offline.
 
 ## Minute 1: open
 
-- `README.md`, the "NEAR features used" table: every row says built, stub or planned.
+- `README.md`, the "NEAR features used" table: every row says live, built, stub or planned.
+  It is generated from `docs/status.json`, and `make judge` fails if a row drifts.
 - `docs/evidence.md`: measured numbers (time, eval pass rate, storage and gas per method,
   who pays).
 
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only, 15 to 30 s: testnet re-derived, committed proofs, JS suites
-make verify          # Rust stable; about 53 s from a fresh clone, 4 s warm; no keys
+make judge           # Node 22 only, about 10 s online (up to a minute if public RPC rate-limits), under a second offline
+make verify          # Rust stable; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
 
@@ -57,16 +60,17 @@ every sealed rating (delegate actions; `make verify-live` checks them).
 ## Minute 5: check what is not claimed
 
 - Testnet only. Payments ran in dUSDC, a testnet demo token with no value (production uses
-  Circle USDC): 6 settles, all re-derived by `make verify-live`. No real zkTLS proof (the facts
-  are synthetic).
+  Circle USDC): 12 purchases (7 single settles, one with the 1% fee, and 5 in a buying group),
+  all re-derived by `make verify-live`. No real zkTLS proof yet (the facts are synthetic).
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
 - Jolt: the four proofs are committed (`zk/out/`); `make verify` checks their outputs against
   the contract's code natively, and `make zk-verify` checks the proofs (needs the Jolt
-  build). A fifth proof covers the live testnet hire graph; its worker-signed update is
-  accepted on chain (tx 4nHqu5TW) with an empty score list, since nothing seeds the live
-  graph until a paid purchase releases reviews.
+  build). Two more cover the live testnet hire graph. The second, seeded by released sealed
+  reviews, carries nonzero standing; it was posted pending, challenged with a bond and
+  applied after the arbiter's resolution (docs/testnet.md). The arbiter checks the proof off
+  chain; there is no on-chain Jolt verifier.
 - Prior work is listed in `PRIOR_WORK.md`.
 
 Deeper reading: `docs/near-ai.md`, `docs/semaphore.md`, `docs/outlayer.md`, and the threat

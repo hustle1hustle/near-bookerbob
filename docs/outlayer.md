@@ -36,7 +36,9 @@ the key OutLayer's TDX worker registration attests (DCAP), instead of a seed we 
 
 `input_data` of an on-chain `request_execution` is public. Synthetic fixtures are fine
 there. A real proof set must use OutLayer's HTTPS path (Payment Key) or be sealed to the
-worker key. Not built yet.
+worker key. The second is built: `request_referee` refuses anything but
+`{"sealed":{epk,nonce,ct,commitment}}` (X25519 to the worker key, HKDF-SHA256,
+XChaCha20-Poly1305, sha256 commitment; `worker/src/sealed.rs`, `bookerbob seal-input`).
 
 ## Not verified yet
 

@@ -191,7 +191,8 @@ The referee key verified the proof off chain and signed the update (`bookerbob g
 The contract logged `graph_scores` with `merchants: 0`. The live graph has hire edges but no
 seed yet: seeds come from released reviews, which need a paid purchase, which waits on testnet
 USDC. So this update binds the proven root and an empty score list. Once a purchase settles and
-reviews release, the same commands carry nonzero standing.
+reviews release, the same commands carry nonzero standing. (Done on 2026-11-05 in demo mode: see the challenged
+standing update below.)
 
 ## Demo mode on testnet: dUSDC purchases, sealed reviews, live standing (2026-11-05)
 

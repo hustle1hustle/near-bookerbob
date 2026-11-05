@@ -195,7 +195,7 @@ interface exists with a test double; `planned` means not built yet.
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | **built**: plain TLS, 33/33 response signatures verified in a recorded live run |
 | NEAR AI issues the verdict under E2EE v2: the facts go sealed to the attested model key, the model derives the predicates and echoes a binding of the envelope, and `make verify` checks the TDX quote (dcap-qvl, Intel root, committed PCS collateral), report_data (signing key and our nonce), the TEE signature over the exact wire bytes, the sealed answer (opened with a disclosed one-time key), predicates equal to the code's, and the binding | privacy, security | `scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md` | **built**: one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate). On chain, `submit_near_ai_verdict` accepts it only with a registered model attestation (same nonce), the TEE signature over the exact response bytes, and a sealed answer that opens with the disclosed key and echoes this envelope's binding; `make verify` runs the contract on it and on 4 refusals. The quote check itself happens before `register_model_attestation`, not in the contract; NVIDIA GPU evidence is not checked |
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | **built**: in `make verify`; not deployed to OutLayer yet (the register step waits on a founder OK). Live `estimate_execution_cost` = 0.0070001 NEAR |
-| dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | `worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md` | **built**: `make verify` check 22; the 2-of-3 arbiter is planned |
+| dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | `worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md` | **built**: `make verify` check 22; a threshold of distinct arbiter signatures (`set_arbiter_threshold`, `submit_dispute_decisions`, 4 contract tests) is built; the live bazaar runs at threshold 1 with one arbiter key, held by REP |
 | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | `core/src/world.rs`, `contract/src/lib.rs` `attest_human` | **live**: on testnet with a placeholder action and our verifier key; the live World ID service (rep-world-verify) is not wired |
 | sealed reviews (Semaphore v4): a settled purchase joins the merchant's group (LeanIMT, Poseidon on chain); during a round a member posts a sealed rating with a Groth16 proof checked on `alt_bn128` host functions, one per member per round (nullifier scoped to merchant and round); after the round members reveal, only if the group has k >= 5; release is batched and sorted by hash; `best_quote` breaks price ties by the score and takes a `min_score` floor | swarms, privacy | `docs/semaphore.md`, `core/src/semaphore.rs`, `contract/src/groth16.rs`, `contract/src/lib.rs`, `cli/src/reviews.rs`, `semaphore/` | **live**: 2 rounds of 6 sealed ratings released on testnet; 13 contract tests on real Semaphore proofs |
 | conserved delegation: standing flows from a merchant's released ratings along hire edges to the sub-agents it hires (w = 1/2), following a design rule in REP's unpublished draft "(title withheld) for a World of Agents": the whole chain gets at most w/(1-w) of the seed | swarms, security | `core/src/delegation.rs`, `contract/src/lib.rs` (`hire`, `standing_from`) | **live**: standing flowed from m01's released ratings to m02 and m03 on testnet; property test over random graphs with rings |
@@ -206,11 +206,11 @@ interface exists with a test double; `planned` means not built yet.
 | MCP tool "REP Read for agents": read-only contract views for any MCP client | agents | `mcp/rep-read.mjs` | **live**: reads `bookerbob.testnet` over public RPC (`BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`); 2 tests on a fake RPC |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | **live**: 15 tests; reads `settle_demo` txs from testnet and writes paid orders to the Shopify test store |
 | merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | **built**: cross-checked against the Rust board; used by the outside agent that won `open-1`; not listed (Agent Market is mainnet only) |
-| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 6 settles on testnet, `make verify-live` |
+| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 12 dUSDC purchases on testnet (7 single settles, one of them with the 1% fee; 5 in a buying group), `make verify-live` |
 | paid orders in the Shopify test store through the Admin API (draft order completed as paid, `near_tx` in the note) | realworld | `ucp/src/near-usdc.mjs` | **live**: orders #1055 to #1060 |
 | review k counts distinct World-bound persons, not purchases (`review_persons`) | privacy, security | `contract/src/lib.rs` | **live** |
 | `make leak`: what a passive observer links from public testnet data; found 6 of 6 ratings linked by order, fixed, re-run: 1 of 6 (chance) | privacy | `scripts/leak.mjs`, `docs/leak.md` | **live**: run live before and after |
-| challengeable Jolt updates: pending with the proof's sha256, a bonded worker key, `challenge_graph_scores` with a bond, an arbiter's signed resolution slashes a false update | security | `contract/src/lib.rs`, `docs/jolt.md` | **live**: one live challenge on testnet (resolved valid); the arbiter is one registered key |
+| challengeable Jolt updates: pending with the proof's sha256, a bonded worker key, `challenge_graph_scores` with a bond, an arbiter's signed resolution slashes a false update | security | `contract/src/lib.rs`, `docs/jolt.md` | **live**: one live challenge on testnet (resolved valid); the proof is checked off chain by the arbiter, not by an on-chain verifier; live at threshold 1, one arbiter key, held by REP |
 | liability record per settle (sha256 of verdict digest, receipt, merchant, price, token) and a merchant refund bond that refunds the buyer when a receipt is overturned after settle | security, realworld | `contract/src/lib.rs` (`liability`, `merchant_bond`) | **built**: contract tests; merchant bonds live in the open market |
 | `min_tcb`: a verdict below the TDX TCB floor (UpToDate by default) is never quoted or paid | security, privacy | `core/src/envelope.rs` `tcb_meets`, `contract/src/lib.rs` | **live**: deployed; every testnet verdict is the synthetic `fixture` status, which passes only on a `.testnet` bazaar |
 | open market: an outside merchant is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal | swarms, agents, open | `contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md | **live**: a fresh agent with only AGENTS.md won round `open-1` |
@@ -317,7 +317,7 @@ registration is not built.
 |---|---|---|
 | merchants and the board | revealed predicate names, their own quote, the verdict commitment, the cohort size k | raw history, identity, unrevealed predicates, fact values |
 | anyone reading the chain | per verdict: nullifier, commitment, revealed predicates, tcb_status, cap; settled amount, merchant, checkout_ref | the proof set, the buyer's other contexts (the nullifier is per context) |
-| the referee and arbiter | the proof set they judge (synthetic in fixtures) | nothing more; on-chain `input_data` is public, so real proofs must go over OutLayer's HTTPS path or sealed (not built) |
+| the referee and arbiter | the proof set they judge (synthetic in fixtures) | nothing more; on-chain `input_data` is public, so `request_referee` accepts only input sealed to the worker key (X25519, XChaCha20-Poly1305, `worker/src/sealed.rs`) |
 | NEAR AI enclave | the facts, sealed to its key | |
 | REP | today, the HMAC nullifier key, so it could link accounts | |
 
@@ -353,8 +353,8 @@ registration is not built.
 ### Not defended, stated plainly
 
 - A stolen agent key plus a merchant the attacker controls can get an honest receipt for
-  that merchant and settle up to `max_spend`. Keep caps small; the planned function-call
-  key per agent sub-account narrows the blast radius but does not remove this.
+  that merchant and settle up to `max_spend`. Keep caps small; a settle-only function-call
+  key (live, `scripts/fc-key-check.mjs`) narrows the blast radius but does not remove this.
 - Cohorts on predicates other than `world_id_human` are not sybil-resistant: one person
   with many accounts adds many verdicts. Only the World-bound predicate is one per person.
 - Cohort counts never decrease (spent and expired verdicts still count).
@@ -380,11 +380,22 @@ registration is not built.
   derives the verdict predicates; Jolt proves the standing, price, referee and cohort code),
   so they cannot disagree on one value. Where both will exist (planned predicate guest),
   the rule is that the contract refuses on mismatch rather than picking one.
-- Jolt updates are challengeable, but the arbiter is one registered key today: a standing
-  update waits out a window with sha256 of its proof, anyone can challenge it with a bond,
-  and a false one slashes the worker's bond; the resolution is signed by our arbiter key after
-  it reruns the verifier. An arbiter set, or verifying the proof on chain, would remove that
-  trust; neither is built.
+- Jolt results reach the chain through a bonded worker signature, not an on-chain verifier.
+  Verifying a Jolt proof on chain was not attempted: a proof here is about 85 KB and its
+  verifier is far heavier than the curve checks NEAR exposes as host functions, so it is not
+  expected to fit one call's 300 Tgas (not measured). The contract stores sha256 of the proof
+  and the worker's signed scores.
+  A standing update waits out a window, anyone can challenge it with a bond, and a false one
+  slashes the worker's bond; the arbiters rerun the verifier off chain and sign the
+  resolution. A threshold of distinct arbiter signatures is built and tested (2 of 3 in the
+  tests); the live bazaar runs at threshold 1.
+- Who holds the arbiter keys: REP. The one live arbiter key and all three test keys are ours;
+  no outside operator holds one yet. A dishonest REP arbiter could uphold a false update or
+  overturn an honest receipt; the threshold only helps once the keys sit with different
+  operators.
+- Jolt is built without its `zk` feature (docs/jolt.md has the per-guest table of what is
+  private): the proofs are succinct, and anything the guest reads is assumed public or
+  committed elsewhere.
 - The verdict TCB floor is enforced (`min_tcb`, UpToDate by default): a verdict below it is
   never quoted or paid. Synthetic `fixture` verdicts pass only on a `.testnet` bazaar.
 
@@ -435,10 +446,12 @@ Where testnet stands, as of 2026-11-04:
   and the referee receipt
   ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
   38.40 USDC: one buyer on testnet, so no group price), three hire edges and a standing update for them (a Jolt proof, signed by a worker).
-- Done in demo mode (dUSDC): 6 settles, 6 replays refused, a settle-only function-call key
+- Done in demo mode (dUSDC): 12 purchases (7 single settles, one with the 1% fee, and 5 in a
+  buying group at the 10% tier), 6 replays refused, a settle-only function-call key
   that cannot withdraw, 6 sealed reviews released at k >= 5, the group price at k >= 5, a
   standing update with nonzero merchants, 6 orders in the Shopify test store.
-- Not on testnet yet: the OutLayer referee, the NEP-366 relayer sending.
+- Not on testnet yet: the OutLayer referee (its registration waits on the founder). The NEP-366
+  relayer sends on testnet: it paid every demo purchase call and every sealed rating.
 - Demo mode: [docs/demo-mode.md](docs/demo-mode.md), `make demo-tester`.
 - Mainnet only on an explicit go.
 

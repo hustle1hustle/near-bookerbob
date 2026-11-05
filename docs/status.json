@@ -104,7 +104,7 @@
     "tracks": "security",
     "where": "`worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md`",
     "status": "built",
-    "detail": "`make verify` check 22; the 2-of-3 arbiter is planned",
+    "detail": "`make verify` check 22; a threshold of distinct arbiter signatures (`set_arbiter_threshold`, `submit_dispute_decisions`, 4 contract tests) is built; the live bazaar runs at threshold 1 with one arbiter key, held by REP",
     "evidence": []
   },
   {
@@ -209,7 +209,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "6 settles on testnet, `make verify-live`",
+    "detail": "12 dUSDC purchases on testnet (7 single settles, one of them with the 1% fee; 5 in a buying group), `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -249,7 +249,7 @@
     "tracks": "security",
     "where": "`contract/src/lib.rs`, `docs/jolt.md`",
     "status": "live",
-    "detail": "one live challenge on testnet (resolved valid); the arbiter is one registered key",
+    "detail": "one live challenge on testnet (resolved valid); the proof is checked off chain by the arbiter, not by an on-chain verifier; live at threshold 1, one arbiter key, held by REP",
     "evidence": [
       "standing.challenge"
     ]
