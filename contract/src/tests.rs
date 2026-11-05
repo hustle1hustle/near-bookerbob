@@ -2923,3 +2923,81 @@ mod sealed_verdict {
         c.submit_verdict(sign_ed(e));
     }
 }
+
+/// Panel round 3, action 6: every trust anchor waits out the delay, not only issuers.
+mod anchors_all_timelocked {
+    use super::*;
+    const MODEL_KEY: &str = "abababababababababababababababababababababababababababababababab";
+
+    fn at_ms(who: &str, ms: u64) {
+        let mut b = ctx(who);
+        b.block_timestamp(ms * 1_000_000);
+        testing_env!(b.build());
+    }
+
+    fn delayed() -> Bazaar {
+        let mut c = setup();
+        at_ms("owner.testnet", NOW_MS);
+        c.set_anchor_delay(600_000);
+        c
+    }
+
+    fn att() -> ModelAttestation {
+        ModelAttestation { model: "m".into(), nonce: "cd".repeat(32), report_hash: "ef".repeat(32), tcb_status: "UpToDate".into() }
+    }
+
+    #[test]
+    fn an_owner_cannot_register_a_model_key_at_once() {
+        let mut c = delayed();
+        c.register_model_attestation(MODEL_KEY.into(), att());
+        assert!(c.model_attestation(MODEL_KEY.into()).is_none(), "not trusted inside the delay");
+        assert_eq!(c.pending_anchor(1).unwrap().kind, "model_attestation");
+        at_ms("anyone.testnet", NOW_MS + 600_000);
+        c.execute_anchor(1);
+        assert_eq!(c.model_attestation(MODEL_KEY.into()).unwrap().tcb_status, "UpToDate");
+    }
+
+    #[test]
+    fn lowering_the_tcb_floor_waits_raising_it_does_not() {
+        let mut c = delayed();
+        c.set_min_tcb("OutOfDate".into());
+        assert_eq!(c.min_tcb(), "UpToDate", "a lower floor is queued");
+        assert_eq!(c.pending_anchor(1).unwrap().kind, "min_tcb");
+        at_ms("anyone.testnet", NOW_MS + 600_000);
+        c.execute_anchor(1);
+        assert_eq!(c.min_tcb(), "OutOfDate");
+        at_ms("owner.testnet", NOW_MS + 600_001);
+        c.set_min_tcb("UpToDate".into());
+        assert_eq!(c.min_tcb(), "UpToDate", "raising applies at once");
+        assert!(c.pending_anchor(2).is_none());
+    }
+
+    #[test]
+    fn an_owner_cannot_swap_the_graph_program_at_once() {
+        let mut c = delayed();
+        c.set_graph_program("12".repeat(32));
+        assert_eq!(c.graph_program(), None);
+        assert_eq!(c.pending_anchor(1).unwrap().kind, "graph_program");
+        at_ms("anyone.testnet", NOW_MS + 600_000);
+        c.execute_anchor(1);
+        assert_eq!(c.graph_program(), Some("12".repeat(32)));
+    }
+
+    #[test]
+    #[should_panic(expected = "timelock: not ready yet")]
+    fn a_queued_model_key_cannot_be_executed_early() {
+        let mut c = delayed();
+        c.register_model_attestation(MODEL_KEY.into(), att());
+        at_ms("anyone.testnet", NOW_MS + 599_999);
+        c.execute_anchor(1);
+    }
+
+    #[test]
+    fn removing_an_issuer_stays_immediate() {
+        let mut c = delayed();
+        let k = sign_ed(envelope(1, "agent.testnet")).key_id();
+        c.remove_issuer(k.clone());
+        assert!(!c.issuers().iter().any(|(x, _)| x == &k), "a stolen key can be cut at once");
+        assert!(c.pending_anchor(1).is_none());
+    }
+}

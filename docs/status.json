@@ -313,6 +313,17 @@
     ]
   },
   {
+    "feature": "trust anchors under a DAO and a timelock: a Sputnik DAO owns a test bazaar (one council vote is refused, two apply); every anchor change (issuers, model keys, referee, arbiters, World verifier, arbiter threshold, fee, Jolt program, a lower TCB floor) is queued for a public delay, executable by anyone after it and cancellable inside it",
+    "tracks": "security",
+    "where": "`contract/src/lib.rs` (`set_anchor_delay`, `queue_anchor`, `execute_anchor`, `cancel_anchor`), `scripts/dao-bazaar.mjs`, `docs/testnet.md`",
+    "status": "live",
+    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. The live `bookerbob.testnet` still has one owner key, delay 0, and its full-access key can redeploy the code",
+    "evidence": [
+      "dao",
+      "dao.timelock"
+    ]
+  },
+  {
     "feature": "market fee into a DAO treasury: at most 2%, taken from the price (merchant + fee = price), in the liability record, given back on a failed payout, swept by anyone to the treasury; a raise waits out the anchor timelock",
     "tracks": "business, social, security",
     "where": "`contract/src/lib.rs` (`set_fee`, `sweep_fees`)",

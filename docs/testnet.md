@@ -409,3 +409,14 @@ What it costs and what it still shows:
   prices its code can produce.
 - Not built: sealing the opening to the merchant inside the receipt. The merchant gets the
   opening from the buyer's agent off chain.
+
+## Every trust anchor timelocked (2026-11-05)
+
+Panel round 3, action 6. `register_model_attestation`, `set_graph_program` and a lowering
+`set_min_tcb` now go through `queue_anchor` like the issuer, referee, arbiter and World verifier
+registrations. Raising the floor and `remove_issuer` stay immediate (they only narrow trust).
+Tests: `an_owner_cannot_register_a_model_key_at_once` and 4 more. Redeployed, state kept:
+`bookerbob.testnet` [9F351xx3…](https://testnet.nearblocks.io/txns/9F351xx3p2XsAvxUSSdyBYkNJbuF6C7y1kmTjrkLBUbk),
+`bookerbob-dao-bazaar.testnet` [CyWxcH5H…](https://testnet.nearblocks.io/txns/CyWxcH5Hv8zHCkh1TftNvhGWLdBWA8hfQ7fHv2AWp6ZN).
+The live bazaar's delay is still 0, and its one full-access key (REP's) can redeploy the code;
+README "Trust anchors" says so.

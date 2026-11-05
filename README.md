@@ -217,6 +217,7 @@ interface exists with a test double; `planned` means not built yet.
 | `make market-eval`: 1,000 simulated rounds, no disclosure vs BookerBob vs full disclosure | swarms | `scripts/market-eval.mjs`, `docs/market-eval.md` | **built**: (a model, assumptions stated) |
 | sealed verdicts (hashes only on chain): the issuer signs an envelope with no predicates, tier or cap in the clear and a `disclosure` commitment to them; the opening goes to the referee, which prices from it and refuses a price over the hidden cap; the contract accepts only a receipt price its own schedule code can produce for some predicate subset (the World discount only for a World-bound agent) | privacy, security | `core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed` | **live**: one sealed purchase on testnet (synthetic facts, 38.40 dUSDC); `make verify-live` checks that its tx, event and record carry no predicate, tier or cap; 6 contract and 3 worker tests. The device run uses this path |
 | buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount | swarms, privacy, social | `contract/src/lib.rs` (`post_intent`, `offer_group`, `settle_group_demo`), `scripts/demo-tester.mjs group` | **live**: one group of 5 on testnet paid the 10% tier; 8 contract tests |
+| trust anchors under a DAO and a timelock: a Sputnik DAO owns a test bazaar (one council vote is refused, two apply); every anchor change (issuers, model keys, referee, arbiters, World verifier, arbiter threshold, fee, Jolt program, a lower TCB floor) is queued for a public delay, executable by anyone after it and cancellable inside it | security | `contract/src/lib.rs` (`set_anchor_delay`, `queue_anchor`, `execute_anchor`, `cancel_anchor`), `scripts/dao-bazaar.mjs`, `docs/testnet.md` | **live**: on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. The live `bookerbob.testnet` still has one owner key, delay 0, and its full-access key can redeploy the code |
 | market fee into a DAO treasury: at most 2%, taken from the price (merchant + fee = price), in the liability record, given back on a failed payout, swept by anyone to the treasury; a raise waits out the anchor timelock | business, social, security | `contract/src/lib.rs` (`set_fee`, `sweep_fees`) | **live**: 1% on testnet, swept to the Sputnik DAO `bookerbob-gov.sputnikv2.testnet`; 5 contract tests |
 | certified private eval (the envelope's second use): a model answers a sealed 20-item set on NEAR AI Cloud, each answer's TEE signature is checked, code grades, a registered issuer signs the certificate; the bazaar stores the floored score and answers `eval_passes(subject, set, threshold)` | agents, privacy, security | `contract/src/lib.rs` (`register_eval_set`, `submit_eval_certificate`, `eval_passes`), `scripts/eval-run.mjs` | **live**: glm-5.3-flash scored 20/20 (bucket 100) on testnet; the items stay private; 5 contract tests |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | **planned**: mainnet only; not attempted on testnet. A buying group's escrow is the natural NEAR Intents target: on mainnet, members would top up through 1Click from any chain into the group's escrow |
@@ -301,6 +302,20 @@ worker's TDX-registered key, the NEAR AI model key). The DAO owner runs on a sep
 bazaar (`bookerbob-dao-bazaar.testnet`, Sputnik, 2 of 3 council votes; one council key is
 refused, docs/testnet.md); the live bazaar's owner is still one key. Attested-key-only
 registration is not built.
+
+Every trust-anchor change can wait out a public delay (`set_anchor_delay`): issuers, model
+keys (`register_model_attestation`), the referee, arbiters, the World verifier, the arbiter
+threshold, the fee, the Jolt program (`set_graph_program`) and a lower TCB floor are queued,
+visible as `anchor_queued`, executable by anyone after the delay and cancellable by the owner
+inside it. Raising the TCB floor and removing an issuer apply at once, because they only narrow
+trust and are the response to a compromised key. The delay is 5 minutes on the DAO test bazaar
+and 0 on the live bazaar today.
+
+| who holds | what it can do today |
+|---|---|
+| the full-access key on `bookerbob.testnet` (one key, `ed25519:BDvqs4A7…`, held by REP) | redeploy the contract code at any time, which bypasses every rule above, including the timelock. The contract cannot defend against its own account's full-access key. Fix: hand the account to the DAO and delete the key, so an upgrade is a DAO proposal (planned; it is irreversible, so it waits on the founder) |
+| the owner role on `bookerbob.testnet` (the same account) | register trust anchors, at once while the delay is 0 |
+| the DAO test bazaar's account | its full-access key is also REP's; the DAO holds the owner role, not the code |
 
 | layer | what it proves | what it does not |
 |---|---|---|

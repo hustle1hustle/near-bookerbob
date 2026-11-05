@@ -822,6 +822,18 @@ impl Bazaar {
                 env::storage_write(b"arbiter_threshold", &n.to_le_bytes());
                 emit("arbiter_threshold_set", serde_json::json!({ "n": n, "timelock": id }));
             }
+            "model_attestation" => {
+                let att: ModelAttestation = serde_json::from_value(a["attestation"].clone()).expect("stored attestation");
+                self.store_model_attestation(s("signing_key"), att);
+            }
+            "min_tcb" => {
+                env::storage_write(b"min_tcb", s("status").as_bytes());
+                emit("min_tcb_set", serde_json::json!({ "status": s("status"), "timelock": id }));
+            }
+            "graph_program" => {
+                self.graph_program = Some(s("program_hash"));
+                emit("graph_program_set", serde_json::json!({ "program_hash": s("program_hash"), "timelock": id }));
+            }
             "delay" => {
                 let ms = a["ms"].as_u64().expect("ms");
                 env::storage_write(b"anchor_delay_ms", &ms.to_le_bytes());
@@ -850,6 +862,8 @@ impl Bazaar {
         emit("issuer_registered", serde_json::json!({ "key_id": key_id, "label": label }));
     }
 
+    /// Not timelocked on purpose: removing a key only narrows trust, and it is the response to
+    /// a stolen issuer key. Adding its replacement waits out the delay.
     pub fn remove_issuer(&mut self, key_id: String) {
         self.assert_owner();
         self.issuers.remove(&key_id);
@@ -1239,6 +1253,11 @@ impl Bazaar {
         emit("graph_event", serde_json::json!({ "index": self.graph_events, "event": hex::encode(e.bytes()), "root": hex::encode(self.graph_root) }));
     }
 
+    /// The Jolt program whose standing proofs the contract accepts.
+    pub fn graph_program(&self) -> Option<String> {
+        self.graph_program.clone()
+    }
+
     pub fn graph_root(&self) -> (String, u64) {
         (hex::encode(self.graph_root), self.graph_events)
     }
@@ -1247,7 +1266,12 @@ impl Bazaar {
     pub fn set_graph_program(&mut self, program_hash: String) {
         self.assert_owner();
         require!(bookerbob_core::is_hex32(&program_hash), "bad program hash");
-        self.graph_program = Some(program_hash);
+        // A new program decides which standing proofs count: a trust anchor, timelocked.
+        if self.queue_anchor("graph_program", serde_json::json!({ "program_hash": program_hash })) {
+            return;
+        }
+        self.graph_program = Some(program_hash.clone());
+        emit("graph_program_set", serde_json::json!({ "program_hash": program_hash }));
     }
 
     /// A score update computed off chain by the Jolt guest. The proof is too big for chain
@@ -1641,6 +1665,14 @@ impl Bazaar {
     pub fn register_model_attestation(&mut self, signing_key: String, attestation: ModelAttestation) {
         self.assert_owner();
         require!(bookerbob_core::is_hex32(&signing_key) && bookerbob_core::is_hex32(&attestation.nonce), "bad key or nonce");
+        // A model key is a verdict issuer: timelocked like register_issuer.
+        if self.queue_anchor("model_attestation", serde_json::json!({ "signing_key": signing_key, "attestation": attestation })) {
+            return;
+        }
+        self.store_model_attestation(signing_key, attestation);
+    }
+
+    fn store_model_attestation(&mut self, signing_key: String, attestation: ModelAttestation) {
         self.model_attestations.insert(signing_key.clone(), attestation.clone());
         emit(
             "model_attestation_registered",
@@ -1781,6 +1813,11 @@ impl Bazaar {
     pub fn set_min_tcb(&mut self, status: String) {
         self.assert_owner();
         require!(bookerbob_core::envelope::tcb_rank(&status).is_some_and(|r| r > 0), "not a TCB status that can pass");
+        // Raising the floor applies at once; lowering it lets weaker enclaves in, so it waits.
+        let lowers = bookerbob_core::envelope::tcb_rank(&status) < bookerbob_core::envelope::tcb_rank(&tcb_floor());
+        if lowers && self.queue_anchor("min_tcb", serde_json::json!({ "status": status })) {
+            return;
+        }
         env::storage_write(b"min_tcb", status.as_bytes());
         emit("min_tcb_set", serde_json::json!({ "status": status }));
     }
