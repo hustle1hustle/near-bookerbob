@@ -15,7 +15,8 @@
 // certificates. Spend cap 1 USD.
 import { createHash, createPrivateKey, createPublicKey, randomBytes, randomInt, sign, verify } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { request as httpsRequest } from "node:https";
 import { join } from "node:path";
 import { certificateJson, itemHash, merkleRoot } from "./eval-run.mjs";
 import { MODELS, sigOk } from "./rep-eval.mjs";
@@ -233,12 +234,31 @@ async function pool(xs, k, f) {
   return out;
 }
 
+/** A long reply can take minutes: fetch gives up on headers at 5, so this waits 15. */
+const post = (url, key, body) => new Promise((resolve, reject) => {
+  const r = httpsRequest(url, { method: "POST", timeout: 900_000, headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "Content-Length": body.length } }, (x) => {
+    const parts = [];
+    x.on("data", (d) => parts.push(d));
+    x.on("end", () => { const res = { status: x.statusCode, ok: x.statusCode < 300 }; resolve({ res, rb: Buffer.concat(parts) }); });
+    x.on("error", reject);
+  });
+  r.on("timeout", () => r.destroy(new Error("timeout")));
+  r.on("error", reject);
+  r.end(body);
+});
+
 async function ask(model, item, KEY, spend) {
   if (spend.usd > SPEND_CAP_USD) throw new Error("spend cap reached");
   const req = Buffer.from(JSON.stringify({ model, max_tokens: BUDGET_TOKENS, temperature: 0, messages: [{ role: "user", content: item.question }] }));
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(`${API}/chat/completions`, { method: "POST", headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" }, body: req });
-    const rb = Buffer.from(await res.arrayBuffer());
+  for (let attempt = 0; attempt < 5; attempt++) {
+    let res, rb;
+    try {
+      ({ res, rb } = await post(`${API}/chat/completions`, KEY, req));
+    } catch (e) {
+      console.log(`   retry after ${e.code ?? e.message}`);
+      await new Promise((ok) => setTimeout(ok, 5000));
+      continue;
+    }
     if (res.status === 402) throw new Error("NEAR AI credits exhausted: stop (credits cost money)");
     if (!res.ok) { await new Promise((ok) => setTimeout(ok, 2000)); continue; }
     const body = JSON.parse(rb);
@@ -247,7 +267,7 @@ async function ask(model, item, KEY, spend) {
     const s = await (await fetch(`${API}/signature/${body.id}?model=${encodeURIComponent(model)}&signing_algo=ed25519`, { headers: { Authorization: `Bearer ${KEY}` } })).json().catch(() => null);
     return { chat_id: body.id, reply: body.choices?.[0]?.message?.content ?? "", finish: body.choices?.[0]?.finish_reason, signature_text: s?.text, signature: s?.signature, signing_address: s?.signing_address, signature_valid: sigOk(s, model, sha(req), sha(rb)) };
   }
-  throw new Error(`${model}: no answer after 3 tries`);
+  throw new Error(`${model}: no answer after 5 tries`);
 }
 
 /** Protocol v2: a reply cut at the budget is no answer, whatever it ends with. */
@@ -263,9 +283,15 @@ async function run() {
   const priv = {};
   for (const model of RUN_MODELS) {
     console.log(`\n${model}: ${items.length} items, at most 6 in flight`);
-    let done = 0;
-    const answers = await pool(items, 6, async (it) => {
+    // Every answer is journaled privately as it arrives; a restart reuses them, so a network
+    // failure neither loses paid answers nor sends an item twice.
+    const journal = join(dir, `journal-${PROTOCOL}-${model.replace(/[^A-Za-z0-9.-]+/g, "_")}.jsonl`);
+    const have = new Map((existsSync(journal) ? readFileSync(journal, "utf8").trim().split("\n").filter(Boolean) : []).map((l) => JSON.parse(l)).map((j) => [j.i, j.a]));
+    let done = have.size;
+    const answers = await pool(items, 6, async (it, i) => {
+      if (have.has(i)) return have.get(i);
       const a = await ask(model, it, KEY, spend);
+      appendFileSync(journal, JSON.stringify({ i, a }) + "\n", { mode: 0o600 });
       if (++done % 20 === 0) console.log(`   ${done}/${items.length}, about $${spend.usd.toFixed(3)}`);
       return a;
     }).catch((e) => { throw new Error(`${e.message}; ${model} stopped at ${done}/${items.length}, about $${spend.usd.toFixed(3)} spent, no certificate for it`); });
