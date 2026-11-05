@@ -236,6 +236,20 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 used, the repository layout, what `make verify` checks and what is mocked, measured evidence, and
 the full threat model.
 
+## What a human decided
+
+The code here is written with Claude Code sessions (PRIOR_WORK.md, "AI assistance"). These
+calls were the founder's, not a session's:
+
+- Testnet only, with dUSDC, a demo token; mainnet (Circle USDC, 1Click, Agent Market) only on
+  his word, and nothing on mainnet yet.
+- The account nullifier is an RFC 9497 VOPRF, never an HMAC (2026-09-24).
+- The market bazaar is owned by a 2-of-3 DAO from block one, its anchors behind a public delay
+  (2026-11-05); the post-quantum pack goes in; OutLayer only in reversible steps.
+- JMPR appears as a hotel merchant with its consent, deal status "early conversations"; no real
+  room is booked, and the hotels on the board are not participants.
+- What stays his to do: making this repository public, the market lock, every outward post.
+
 ## Known limits
 
 - The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's
