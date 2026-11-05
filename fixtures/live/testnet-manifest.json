@@ -598,6 +598,31 @@
     "certify_tx": "Ek6834cuYYK3s7TKQgUteu9jca2MpTBsvrfy4FgDdAXR",
     "score_bucket": 100
   },
+  "rep_eval": {
+    "set_root": "758b21ccd7edc046b754d5edae7223ffa7a98beac4ba77a4d9f37c59660fe5ec",
+    "issuer_key": "ed25519:4e338d29c21b55ecb80aadeccd8f5764756867d7fc089b897203a434756b340b",
+    "txs": {
+      "register_issuer": "BdA6CyxUFKZoPJNHyjtu3vJk4x9N5nQ8ZEozQgJe8DQm",
+      "register_set": "HCajhUbQiYBWzidX5mqbF4uDnLXpCWheKytKR6Zah1de"
+    },
+    "models": [
+      {
+        "subject": "z-ai/glm-5.3-flash@400tok",
+        "bucket": 50,
+        "submit_tx": "EtSwDati96iGjiqhxfHdp3wyK6ERFKu4aqdComFW3xRA"
+      },
+      {
+        "subject": "deepseek-ai/DeepSeek-V4.1-Flash-1017@400tok",
+        "bucket": 90,
+        "submit_tx": "EhhCrk4fUeEd2P5sA6qFLFhHqfaUA4a9vsr5nuvAhAtd"
+      },
+      {
+        "subject": "Qwen/Qwen3.6-35B-A3B-FP8@400tok",
+        "bucket": 0,
+        "submit_tx": "BGMA7X7cJd2sQt7Q5CGyyfpMXevobJQLiJfPLevXMnvm"
+      }
+    ]
+  },
   "group_dao": {
     "dao": "lisbon-g1.sputnikv2.testnet",
     "group": "397774e681c0b40ff194066f3410078e7d14701ae99636c1863fbba0ac9e3b55",

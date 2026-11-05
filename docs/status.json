@@ -354,6 +354,16 @@
     ]
   },
   {
+    "feature": "REP Eval, calibrated: 120 sealed items at 4 levels, 3 NEAR AI models in a 400-token budget, every answer TEE-signed, grading and a bootstrap 95% CI in the worker's code, one certificate per model from a separate eval issuer key; a leaderboard page reads the scores from chain",
+    "tracks": "agents, privacy, security, open",
+    "where": "`scripts/rep-eval.mjs`, `worker/src/eval.rs`, `agents/eval.html`, `docs/eval.md`",
+    "status": "live",
+    "detail": "glm-5.3-flash 61/120 (CI 41.7 to 60.0), DeepSeek-V4.1-Flash 115/120, Qwen3.6-35B 0/120 (out of budget on every item); all 360 TEE signatures valid; `make eval-verify` in about a second. Only one model lands in the 40 to 80% target band",
+    "evidence": [
+      "rep_eval"
+    ]
+  },
+  {
     "feature": "NEAR INTENTS / 1Click top-up from any chain",
     "tracks": "realworld, agents",
     "where": "`docs/`",

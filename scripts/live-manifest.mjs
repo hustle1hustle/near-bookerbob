@@ -35,6 +35,7 @@ const m = {
   blind_round: prev.blind_round ?? null,
   fee: prev.fee ?? null,
   eval: prev.eval ?? null,
+  rep_eval: existsSync("fixtures/live/eval/rep-eval.json") ? (({ set_root, issuer_key, txs, models }) => ({ set_root, issuer_key, txs, models: models.map((m) => ({ subject: m.certificate.subject, bucket: m.certificate.score_bucket, submit_tx: m.submit_tx })) }))(JSON.parse(readFileSync("fixtures/live/eval/rep-eval.json", "utf8"))) : prev.rep_eval ?? null,
   group_dao: (() => {
     const f = join(c.testersDir, "group-dao-state.json");
     if (!existsSync(f)) return prev.group_dao ?? null;

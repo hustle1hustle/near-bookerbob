@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REP Eval leaderboard</title>
+<style>
+  :root { --bg: #0A0A0F; --panel: #10101A; --fg: #E6E6EF; --dim: #7C7C94; --faint: #3A3A4E; --line: #1C1C2A; --blue: #3B5BFF; --red: #FF4D5E; --green: #5BE3A0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  main { max-width: 1000px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--dim); margin-bottom: 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: normal; font-size: 12px; }
+  td.num { text-align: right; white-space: nowrap; }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; position: relative; min-width: 160px; margin-top: 6px; }
+  .bar span { position: absolute; top: 0; height: 6px; background: var(--blue); opacity: 0.35; border-radius: 3px; }
+  .bar i { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--blue); }
+  .ok { color: var(--green); } .no { color: var(--red); } .dim { color: var(--dim); }
+  footer { color: var(--faint); font-size: 12px; margin-top: 16px; }
+  a { color: var(--blue); }
+</style>
+</head>
+<body>
+<main>
+  <h1>REP Eval: certified scores on a sealed set</h1>
+  <div class="sub" id="sub">loading</div>
+  <div class="panel"><table>
+    <thead><tr><th>model</th><th class="num">correct</th><th>score and 95% CI</th><th>by level (of 30)</th><th class="num">on chain</th></tr></thead>
+    <tbody id="t"></tbody>
+  </table></div>
+  <footer id="foot"></footer>
+</main>
+<script>
+const RPC = "https://rpc.testnet.fastnear.com";
+async function view(account_id, method_name, args) {
+  const r = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "call_function", finality: "final", account_id, method_name, args_base64: btoa(JSON.stringify(args)) } }) });
+  const j = await r.json();
+  if (j.error || j.result?.error) throw new Error("rpc");
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(j.result.result)) || "null");
+}
+(async () => {
+  let d;
+  try { d = await (await fetch("eval.json")).json(); } catch { document.getElementById("sub").textContent = "eval.json not found: run node scripts/rep-eval.mjs onchain"; return; }
+  document.getElementById("sub").textContent = `${d.n} sealed items (${d.levels.join(", ")}; 30 each), answered in a ${d.budget_tokens}-token budget. Set root ${d.set_root.slice(0, 16)}.. on ${d.bazaar}. The items stay private; every answer carries a NEAR AI TEE signature.`;
+  const rows = [...d.models].sort((a, b) => b.correct - a.correct);
+  const t = document.getElementById("t");
+  for (const m of rows) {
+    const pct = (100 * m.correct) / d.n;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${m.model}</td><td class="num">${m.correct}/${d.n}</td><td>${pct.toFixed(1)}% <span class="dim">(${m.ci95[0].toFixed(1)} to ${m.ci95[1].toFixed(1)})</span><div class="bar"><span style="left:${m.ci95[0]}%;width:${m.ci95[1] - m.ci95[0]}%"></span><i style="left:${pct}%"></i></div></td><td>${Object.entries(m.by_level).map(([k, v]) => `${k} ${v}`).join(" &middot; ")}</td><td class="num" data-model="${m.model}"><span class="dim">bucket ${m.bucket} (snapshot)</span></td>`;
+    t.appendChild(tr);
+  }
+  let live = 0;
+  for (const m of rows) {
+    const cell = t.querySelector(`[data-model="${CSS.escape(m.model)}"]`);
+    try {
+      const s = await view(d.bazaar, "eval_score", { subject: m.subject, set_root: d.set_root });
+      cell.innerHTML = s === m.bucket ? `<span class="ok">${s}</span>` : `<span class="no">${s ?? "none"}</span>`;
+      live++;
+    } catch {}
+  }
+  document.getElementById("foot").innerHTML = `${live ? `scores read live from ${d.bazaar} over public RPC` : "public RPC unreachable: showing the committed snapshot"}. Check it all: <code>make eval-verify</code>. Certificates signed by the eval issuer ${d.issuer_key.slice(0, 20)}.., not the set owner.`;
+})();
+</script>
+</body>
+</html>

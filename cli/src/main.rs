@@ -299,6 +299,21 @@ fn main() -> ExitCode {
             println!("{}", e.near_ai_bind());
             ExitCode::SUCCESS
         }
+        // eval-grade <grade-input.json>: grade replies against expected answers, in the worker's code
+        Some("eval-grade") if args.len() >= 2 => {
+            let input: bookerbob_referee_worker::eval::GradeInput =
+                serde_json::from_str(&std::fs::read_to_string(&args[1]).expect("read")).expect("grade input");
+            match bookerbob_referee_worker::eval::grade(&input) {
+                Ok(g) => {
+                    println!("{}", serde_json::to_string(&g).unwrap());
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         // worker-input <fixtures-dir> [verdict.json] [cohort_k | opening.json]
         Some("worker-input") if args.len() >= 2 => match args.get(3).filter(|a| a.ends_with(".json")) {
             Some(o) => worker_input_sealed(Path::new(&args[1]), Path::new(&args[2]), Path::new(o)),
