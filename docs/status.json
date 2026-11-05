@@ -24,7 +24,7 @@
     "tracks": "realworld, agents",
     "where": "`contract/src/lib.rs`",
     "status": "live",
-    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 6 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
+    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 9 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
     "evidence": [
       "testers"
     ]
@@ -209,7 +209,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "14 dUSDC purchases on testnet (7 single settles, one of them with the 1% fee; 5 in a buying group), `make verify-live`",
+    "detail": "19 dUSDC purchases on testnet (9 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
     "evidence": [
       "testers"
     ]

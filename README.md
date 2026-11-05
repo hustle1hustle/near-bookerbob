@@ -69,9 +69,9 @@ to parties that do not trust us or each other:
 ## What is live and what is offline
 
 Exact as of 2026-11-05. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
-tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 6 purchases
-settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 6 sealed
-reviews were released and a standing update from a Jolt proof was accepted; `make verify-live`
+tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 19 purchases
+settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 12 sealed
+reviews were released over 2 rounds and a standing update from a Jolt proof was accepted; `make verify-live`
 re-derives all of it over public RPC. "Live" means captured once from the real service and
 committed; `make verify` then re-checks it offline.
 
@@ -200,7 +200,7 @@ interface exists with a test double; `planned` means not built yet.
 |---|---|---|---|
 | near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | `contract/src/lib.rs` | **live**: unit tests and `make verify`; deployed at `bookerbob.testnet` |
 | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | **live**: every testnet verdict passed it |
-| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 6 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
+| NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 9 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | **live**: every testnet tx above logs them |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | **built**: `make verify`, 50/50 referee evals |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | **built**: `make verify` checks 04 and 05 |
@@ -220,7 +220,7 @@ interface exists with a test double; `planned` means not built yet.
 | MCP tool "REP Read for agents": read-only contract views for any MCP client, plus a `buy` tool on the sdk/buy.mjs flow | agents | `mcp/rep-read.mjs` | **live**: reads `bookerbob.testnet` over public RPC (`BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs`); `buy` plans by the contract's price code and refuses when no bid fits; it runs the live testnet purchase only with `BOOKERBOB_BUY=1` (local demo keys), plan only otherwise; 3 tests on a fake RPC |
 | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | `ucp/src/near-usdc.mjs` | **live**: 15 tests; reads `settle_demo` txs from testnet and writes paid orders to the Shopify test store |
 | merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | `sdk/`, `docs/agent-market.md` | **built**: cross-checked against the Rust board; used by the outside agent that won `open-1`; not listed (Agent Market is mainnet only) |
-| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 14 dUSDC purchases on testnet (7 single settles, one of them with the 1% fee; 5 in a buying group), `make verify-live` |
+| testnet demo mode: dUSDC (a testnet demo token with no value; production uses Circle USDC), its own escrow, `settle_demo`; a tester account funded by a treasury; every purchase call gasless through the NEP-366 relayer's demo policy | realworld, agents | `dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md` | **live**: 19 dUSDC purchases on testnet (9 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live` |
 | paid orders in the Shopify test store through the Admin API (draft order completed as paid, `near_tx` in the note) | realworld | `ucp/src/near-usdc.mjs` | **live**: orders #1055 to #1060 |
 | review k counts distinct World-bound persons, not purchases (`review_persons`) | privacy, security | `contract/src/lib.rs` | **live** |
 | `make leak`: what a passive observer links from public testnet data; found 6 of 6 ratings linked by order, fixed, re-run: 1 of 6 (chance) | privacy | `scripts/leak.mjs`, `docs/leak.md` | **live**: run live before and after |
@@ -269,7 +269,7 @@ blocked without a receipt, a signed receipt for honest claims), settle (escrow d
 nullifier burn, `settled` event, `ft_transfer` receipt to USDC), and the replay from
 another wallet: a second verdict for the same account, same nullifier (`nullifier spent`). Then the 30-agent board check and 50 referee evals.
 
-Then `bookerbob near-ai` re-checks the captured NEAR AI verdict (14 checks, `fixtures/live/near-ai/`), including the contract accepting it with its proof and refusing it without.
+Then `bookerbob near-ai` re-checks the captured NEAR AI verdict (17 checks, `fixtures/live/near-ai/`), including the contract accepting it with its proof and refusing it without.
 
 Mocked or synthetic today: the proof set (synthetic fixtures; the NEAR AI capture uses the same synthetic facts), the
 issuer keys (fixed seeds, `cli/src/fixtures.rs`), the chain (MockedBlockchain, no live
@@ -478,10 +478,10 @@ Where testnet stands, as of 2026-11-04:
   and the referee receipt
   ([HqhUXgjq…](https://testnet.nearblocks.io/txns/HqhUXgjq9HcLqVLTZTFoa4BmX1sWvs67ueco8vF269J2),
   38.40 USDC: one buyer on testnet, so no group price), three hire edges and a standing update for them (a Jolt proof, signed by a worker).
-- Done in demo mode (dUSDC): 14 purchases (9 single settles: one with the 1% fee, one with a
-  sealed verdict, one hotel stay at 408; 5 in a buying group at the 10% tier), 6 replays refused, a settle-only function-call key
-  that cannot withdraw, 6 sealed reviews released at k >= 5, the group price at k >= 5, a
-  standing update with nonzero merchants, 6 orders in the Shopify test store.
+- Done in demo mode (dUSDC): 19 purchases (9 single settles: one with the 1% fee, one with a
+  sealed verdict, one hotel stay at 408; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 9 replays refused, a settle-only function-call key
+  that cannot withdraw, 12 sealed reviews released over 2 rounds at k >= 5, the group price at k >= 5, a
+  standing update with nonzero merchants, 9 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee (its registration waits on the founder). The NEP-366
   relayer sends on testnet: it paid every demo purchase call and every sealed rating.
 - Demo mode: [docs/demo-mode.md](docs/demo-mode.md), `make demo-tester`.

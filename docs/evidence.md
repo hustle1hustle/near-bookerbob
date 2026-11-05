@@ -7,7 +7,7 @@ Written by `scripts/evidence.sh` on 2026-11-04 (arm64, 11 cores). Rerun it to re
 | `make verify`, warm build | 13.5 s |
 | chain checks (contract code on MockedBlockchain) | ALL PASS (26 checks) |
 | referee evals | referee evals 50/50 (39 cheats refused, 11 honest receipts) |
-| NEAR AI verdict, offline checks | NEAR AI verdict: 14 checks |
+| NEAR AI verdict, offline checks | NEAR AI verdict: 17 checks |
 | blind rounds run through the contract | 2 (one per category) |
 | sealed reviews (Semaphore v4, real purchases) | sealed reviews: 15 checks
 S7  sealed reviews: 6 buyers who paid join, rate with Semaphore proofs, reveal after the round, released at k >= 5  (score 3.45, 6 ratings, no rater named) |

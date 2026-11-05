@@ -29,3 +29,16 @@ test("repeated counts must match the fixtures", () => {
   assert.equal(p.length, 3, p.join("; ")); // the stale phrase, the purchase count, the signature count
   assert.deepEqual(problems(readme, rows, {}, { "README.md": "12 purchases (7 single settles, and 33/33 signatures valid" }, src, n), []);
 });
+
+test("purchase totals come from the manifest (spent_count's list), check counts from the verify log", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { counted } = await import("./status.mjs");
+  const m = JSON.parse(readFileSync("fixtures/live/testnet-manifest.json", "utf8"));
+  const c = counted(m, { calls: [] }, "ALL PASS (26 checks)\nPASS  NEAR AI verdict: 17 checks\nPASS  sealed reviews: 15 checks\nPASS  referee evals 50/50");
+  assert.deepEqual([c.purchases, c.single, c.replays, c.shopify], [19, 9, 9, 9]);
+  assert.deepEqual(c.checks, { all: 26, near_ai: 17, reviews: 15, evals: 50 });
+  const stale = { "README.md": "14 dUSDC purchases. On testnet, 6 purchases settled. ran 6 times in dUSDC. `PASS  NEAR AI verdict: 14 checks`. 6 replays refused" };
+  const p = problems(readme, rows, {}, stale, src, c);
+  for (const w of ["dUSDC purchases", "On testnet", "single settles", "NEAR AI verdict checks", "replays refused"]) assert.ok(p.some((x) => x.includes(w) || x.includes("14 dUSDC")), `${w}: ${p.join("; ")}`);
+  assert.deepEqual(problems(readme, rows, {}, { "README.md": "19 dUSDC purchases, NEAR AI verdict: 17 checks" }, src, c), []);
+});

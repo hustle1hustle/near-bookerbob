@@ -51,7 +51,7 @@ if (live.status !== 0) console.log(live.stdout.split("\n").filter((l) => l.start
 // 1b. the README's status table is generated from docs/status.json and every live row has
 // testnet evidence; a stale phrase anywhere in the docs fails here.
 const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
-line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
+line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
 
 // 1c. REP Eval: signatures, answers hash, issuer signature and (online) the on-chain scores.
 if (existsSync(`${root}fixtures/live/eval/rep-eval.json`)) {

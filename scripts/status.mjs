@@ -7,6 +7,7 @@
 // Status words: live (on testnet, re-derived by make verify-live), built (tests or make verify,
 // not on testnet), stub (an interface with a test double), planned, archived.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { purchases } from "./live-snapshot.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const rows = JSON.parse(readFileSync(root + "docs/status.json", "utf8"));
@@ -49,9 +50,21 @@ export const SHIPPED = [
 ];
 
 // Numbers the docs repeat that a fixture already holds.
-export function counted(m, liveRun) {
-  const single = (m.testers ?? []).length, group = (m.groups ?? []).reduce((a, g) => a + g.members.length, 0);
-  return { purchases: single + group, single, signatures: (liveRun.calls ?? []).length };
+// Purchases come from the same function verify-live checks against spent_count on chain;
+// "N checks" come from the committed fresh-clone make verify log.
+export function counted(m, liveRun, verifyLog = "") {
+  const rows = purchases(m);
+  const paid = rows.filter((x) => x.kind !== "refunded");
+  const single = rows.filter((x) => ["single", "hotel", "sealed"].includes(x.kind)).length;
+  const num = (re) => Number(verifyLog.match(re)?.[1] ?? NaN);
+  return {
+    purchases: paid.length,
+    single,
+    replays: (m.testers ?? []).filter((t) => t.txs?.replay).length,
+    shopify: (m.testers ?? []).filter((t) => t.shopify_order).length,
+    signatures: (liveRun.calls ?? []).length,
+    checks: { all: num(/ALL PASS \((\d+) checks\)/), near_ai: num(/NEAR AI verdict: (\d+) checks/), reviews: num(/sealed reviews: (\d+) checks/), evals: num(/referee evals (\d+)\/\d+/) },
+  };
 }
 
 export function render(rs) {
@@ -82,6 +95,19 @@ export function problems(readme, rs, m, docs, src = {}, n = null) {
   if (n) for (const [f, text] of Object.entries(docs)) {
     for (const [, x] of text.matchAll(/\b(\d+) dUSDC purchases/g)) if (Number(x) !== n.purchases) out.push(`${f}: "${x} dUSDC purchases", the manifest has ${n.purchases}`);
     for (const [, x, y] of text.matchAll(/\b(\d+) purchases \((\d+) single settles/g)) if (Number(x) !== n.purchases || Number(y) !== n.single) out.push(`${f}: "${x} purchases (${y} single", the manifest has ${n.purchases} and ${n.single}`);
+    const want = (re, n, what) => { for (const [, x] of text.matchAll(re)) if (Number.isFinite(n) && Number(x) !== n) out.push(`${f}: "${x}" ${what}, the source has ${n}`); };
+    want(/\bOn testnet, (\d+) purchases/g, n.purchases, "purchases");
+    want(/\b(\d+) purchases settled in dUSDC/g, n.purchases, "purchases");
+    want(/\bran (\d+) times in dUSDC/g, n.single, "single settles");
+    want(/\b(\d+) replays refused/g, n.replays, "replays refused");
+    want(/\b(\d+) orders in the Shopify/g, n.shopify, "Shopify orders");
+    if (n.checks) {
+      want(/ALL PASS \((\d+) checks\)/g, n.checks.all, "make verify checks");
+      want(/NEAR AI verdict:? (\d+) checks/g, n.checks.near_ai, "NEAR AI verdict checks");
+      want(/NEAR AI verdict \((\d+) checks/g, n.checks.near_ai, "NEAR AI verdict checks");
+      want(/sealed reviews: (\d+) checks/g, n.checks.reviews, "sealed review checks");
+      want(/referee evals (\d+)\/\d+/g, n.checks.evals, "referee evals");
+    }
     for (const [, x, y] of text.matchAll(/\b(\d+)(?:\/| of )(\d+) (?:response )?signatures(?: verified| valid)/g)) if (!(Number(x) === Number(y) && [n.signatures, 20].includes(Number(x)))) out.push(`${f}: "${x}/${y} signatures", the live run has ${n.signatures}`);
   }
   return out;
@@ -93,7 +119,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const docs = Object.fromEntries(DOCS.map((f) => [f, readFileSync(root + f, "utf8")]));
     const src = Object.fromEntries([...new Set(SHIPPED.map((s) => s.file).concat("contract/src/lib.rs"))].filter((f) => existsSync(root + f)).map((f) => [f, readFileSync(root + f, "utf8")]));
     const liveRun = JSON.parse(readFileSync(root + "agents/out/live-run.json", "utf8"));
-    const p = problems(readme, rows, manifest, docs, src, counted(manifest, liveRun));
+    const log = existsSync(root + "fixtures/live/offline-run/verify-offline.log") ? readFileSync(root + "fixtures/live/offline-run/verify-offline.log", "utf8") : "";
+    const p = problems(readme, rows, manifest, docs, src, counted(manifest, liveRun, log));
     const n = rows.reduce((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {});
     if (p.length) {
       for (const x of p) console.log(`FAIL  status: ${x}`);

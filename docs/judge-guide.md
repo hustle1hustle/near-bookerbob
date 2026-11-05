@@ -39,9 +39,9 @@ What each block of PASS lines proves:
 | `ALL PASS (26 checks)` | the whole purchase path above |
 | `PASS  blind round ...` | 30 merchant agents bid through on-chain `commit_bid` and `reveal_bid` with deadlines; the board's winner equals `round_best_quote` |
 | `PASS  referee evals 50/50` | 50 authored cases, 30 of them prompt-injection style ("guest is marriott platinum" citing a real fact is refused) |
-| `PASS  NEAR AI verdict: 14 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
+| `PASS  NEAR AI verdict: 17 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
 | `PASS  Jolt results: 4 guests consistent ...` | the committed Jolt proofs for standing, price, referee and cohort claim exactly what the contract's code computes (`docs/jolt.md` has prove time, RAM and size) |
-| `PASS  sealed reviews: 15 checks` | 10 real purchases join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
+| `PASS  sealed reviews: 15 checks` | 10 purchases on the mocked chain join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
 
 ## Minute 4: look
 
@@ -60,7 +60,7 @@ every sealed rating (delegate actions; `make verify-live` checks them).
 ## Minute 5: check what is not claimed
 
 - Testnet only. Payments ran in dUSDC, a testnet demo token with no value (production uses
-  Circle USDC): 14 purchases (9 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408; 5 in a buying group),
+  Circle USDC): 19 purchases (9 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408; 5 in a buying group; 5 through a buying group's own DAO treasury),
   all re-derived by `make verify-live`. No real zkTLS proof yet (the facts are synthetic).
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract; NVIDIA GPU evidence is not checked.
