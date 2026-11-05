@@ -71,7 +71,9 @@ async function main() {
     const me = (receiver_id, actions) => send(client, { signer_id: id, key, receiver_id, actions });
     if (!(await client.view(c.dusdc, "storage_balance_of", { account_id: id }))) st.txs.dusdc_storage = say("dUSDC storage_deposit", await me(c.dusdc, [fc("storage_deposit", {}, 1250n * 10n ** 18n, 30n * TGAS)])).hash;
     if (BigInt(await client.view(c.dusdc, "ft_balance_of", { account_id: id })) < OPEN_BOND) st.txs.mint = say("mint 100 dUSDC", await me(c.dusdc, [fc("mint", {}, 0n, 30n * TGAS)])).hash;
-    st.schedule = openSchedule(Number(a2 ?? 40), Number(a3 ?? 1000));
+    // JOIN_SCHEDULE: a full schedule as JSON ({basePrice, rules, capBps}), e.g. a line for
+    // github_builder; otherwise one world_id_human discount.
+    st.schedule = process.env.JOIN_SCHEDULE ? schedule(JSON.parse(process.env.JOIN_SCHEDULE)) : openSchedule(Number(a2 ?? 40), Number(a3 ?? 1000));
     st.txs.register = say("register_merchant, category open", await me(c.bazaar, [fc("register_merchant", registerArgs(st.schedule, "open"), 20n * MILLI, 30n * TGAS)])).hash;
     const before = await client.view(c.bazaar, "merchant", { merchant: id });
     if (!before.approved) {
@@ -81,7 +83,7 @@ async function main() {
     const after = await client.view(c.bazaar, "merchant", { merchant: id });
     st.approved = after.approved;
     save();
-    console.log(`\n${id}: ${after.approved ? "approved by its bond, no owner step" : "NOT approved"}; schedule base ${Number(st.schedule.base_price) / 1e6}, ${st.schedule.rules[0].bps / 100}% off for world_id_human`);
+    console.log(`\n${id}: ${after.approved ? "approved by its bond, no owner step" : "NOT approved"}; schedule base ${Number(st.schedule.base_price) / 1e6}, ${st.schedule.rules.map((r) => `${r.bps / 100}% off for ${r.predicate}`).join(", ")}`);
     if (!after.approved) process.exit(1);
   } else if (cmd === "bid" || cmd === "reveal") {
     const key = keyFromSeed(readFileSync(seedPath, "utf8"));

@@ -1,0 +1,99 @@
+{
+  "note": "prove-me PIPELINE TEST on a public GitHub profile (no token): it proves a fact about a public account, not that the prover holds it. The rest of the proof set is synthetic.",
+  "authenticated": false,
+  "presentation_sha256": "7df04d002c636bc4ece879532994ae5548e11eaf95a9b6c5f89bf319f98b28c5",
+  "server_name": "api.github.com",
+  "notary_key": "02114d7e15cb2a93ad88997af3394d00008dae381b601f31379d638de492ab25ef",
+  "notary_attested": false,
+  "revealed_fields": [
+    "created_at",
+    "public_repos",
+    "followers"
+  ],
+  "rule": "github account_age_years >= 3 gives github_builder",
+  "near_ai": {
+    "model": "z-ai/glm-5.3-flash",
+    "chat_id": "884c610c58af471fa367c0610bad18c2",
+    "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+    "report_sha256": "96a2b53fe1c93783e1125bd901308a1c7a00519e11dc3553c6f5a84940b9e4ab",
+    "request_sha256": "3efc1f59c27aeca01d4d31ce6d4febc397393fcce1f36c6afe7da89defda0112",
+    "response_sha256": "9c47f8117d27fcfcc1417a7900fc27fa836bc4ba6245ae9a5795f3208f128288",
+    "predicates": [
+      "github_builder"
+    ],
+    "signed": true
+  },
+  "round": "builder-1",
+  "bids": [
+    {
+      "merchant": "builders.bookerbob-demo.testnet",
+      "price": 28000000,
+      "without_builder": 36000000
+    },
+    {
+      "merchant": "house.bookerbob-demo.testnet",
+      "price": 42750000,
+      "without_builder": 42750000
+    }
+  ],
+  "leak_before": {
+    "ok": true,
+    "lines": [
+      "LINKED L1 same account t-4fdc17: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-b1de37: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-22c72f: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-744ca5: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-1a2121: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-0a1423: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-e29071: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-7e261e: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-3f71c2: verdict, settle and review-group join (anonymity set 1)",
+      "unlinked L2 timing order each sealed rating to the buyer who joined in the same position (anonymity set 5, 1/6 right)",
+      "unlinked L3 funding review senders and buyers share one funder (the relayer) (anonymity set 9; 1 funder(s); that alone narrows a rating to the relayer's buyers, 9 here)",
+      "LINKED L4 reveal a revealed rating to its one-time sender (anonymity set 1; by design: the sender is fresh, so this only matters combined with L2)",
+      "unlinked L5 plaintext facts the proof set's fields and proof refs in the args of 99 tester txs (anonymity set 9; none: facts never left the buyer side in tx args)",
+      "unlinked L5b sealed predicates predicate names or tier in the verdict tx of 1 sealed buyer(s) (anonymity set 9; none: hashes only (the disclosure commitment))",
+      "LINKED L6 amount oracle settled amounts of 14 buyers: 38.4 x4, 408 x1, 36 x4, 32.4 x5 (anonymity set 1; single buyers: smallest set sharing an amount 1; buying-group members: 5 (one fixed-tier amount for the whole group))",
+      "verdict: ratings are not linked to buyers by order"
+    ]
+  },
+  "merchant": "builders.bookerbob-demo.testnet",
+  "price": "28000000",
+  "verdict_on_chain": "sealed: hashes only",
+  "tester": "t-388a34.bookerbob-demo.testnet",
+  "nullifier": "50730c22252dfd574ccb4f84098c2864836a4c31978bf25e238f670b4d902ecf",
+  "txs": {
+    "account": "E8kAvHbmdHAFKQr4FQdDKErELoYrNY6sSJx3JrD3Qa5i",
+    "escrow_entry": "DhGtNbGLTmXkdcbGeQfp38prtHy5jujHoD4yt5gHjvc7",
+    "dusdc_storage": "39bz6LiD3chBMmzW7TiodsPp7kjdhe6ebVsszMB39sbF",
+    "mint": "4R6TF7s11y2ujQy1Sqq59Vrzq5dktf72PakyiXE4f7Ct",
+    "world": "6nNBhF8HsNeoRJp37TTpavLMQ8Yq7EoU1Ce8XBZ6SZ9j",
+    "verdict": "AvQWy1vpqfkBMM5tG7u9yYoi3xaVHS4hpoesZ5UZ3YkQ",
+    "receipt": "DtnucFUzgq59iaX3Px47SJfiVxdxnsEcgMUiUowpvVma",
+    "escrow": "RkrZCCxZpCUWd94cEtC7fqrugJ3uN5KDTaa2Hd2huYk",
+    "settle": "37tzjNdLaY8Y6HVsedf9m9tu11i95EnBJaRNchJ4R6Lk",
+    "replay": "KEzA2ZeXdbcmLXoP6i4c2naKWa1dzW7odDAs7w3boss",
+    "review_join": "8QsR7BdWmWWwLMHW2TjM7RNcJsBER1ESKdTNu4ZXGoon"
+  },
+  "leak_after": {
+    "ok": true,
+    "lines": [
+      "LINKED L1 same account t-4fdc17: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-b1de37: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-22c72f: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-744ca5: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-1a2121: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-0a1423: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-e29071: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-7e261e: verdict, settle and review-group join (anonymity set 1)",
+      "LINKED L1 same account t-3f71c2: verdict, settle and review-group join (anonymity set 1)",
+      "unlinked L2 timing order each sealed rating to the buyer who joined in the same position (anonymity set 5, 1/6 right)",
+      "unlinked L3 funding review senders and buyers share one funder (the relayer) (anonymity set 9; 1 funder(s); that alone narrows a rating to the relayer's buyers, 9 here)",
+      "LINKED L4 reveal a revealed rating to its one-time sender (anonymity set 1; by design: the sender is fresh, so this only matters combined with L2)",
+      "unlinked L5 plaintext facts the proof set's fields and proof refs in the args of 99 tester txs (anonymity set 9; none: facts never left the buyer side in tx args)",
+      "unlinked L5b sealed predicates predicate names or tier in the verdict tx of 1 sealed buyer(s) (anonymity set 9; none: hashes only (the disclosure commitment))",
+      "LINKED L6 amount oracle settled amounts of 14 buyers: 38.4 x4, 408 x1, 36 x4, 32.4 x5 (anonymity set 1; single buyers: smallest set sharing an amount 1; buying-group members: 5 (one fixed-tier amount for the whole group))",
+      "verdict: ratings are not linked to buyers by order"
+    ]
+  }
+}

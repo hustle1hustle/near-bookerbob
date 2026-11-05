@@ -55,7 +55,7 @@ export const SHIPPED = [
 export function counted(m, liveRun, verifyLog = "") {
   const rows = purchases(m);
   const paid = rows.filter((x) => x.kind !== "refunded");
-  const single = rows.filter((x) => ["single", "hotel", "sealed"].includes(x.kind)).length;
+  const single = rows.filter((x) => ["single", "hotel", "sealed", "prove-me"].includes(x.kind)).length;
   const num = (re) => Number(verifyLog.match(re)?.[1] ?? NaN);
   return {
     purchases: paid.length,

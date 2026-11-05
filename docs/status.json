@@ -24,7 +24,7 @@
     "tracks": "realworld, agents",
     "where": "`contract/src/lib.rs`",
     "status": "live",
-    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 9 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
+    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 10 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
     "evidence": [
       "testers"
     ]
@@ -209,7 +209,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "19 dUSDC purchases on testnet (9 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
+    "detail": "20 dUSDC purchases on testnet (10 single settles: one with the 1% fee, one with a sealed verdict, one hotel stay at 408, one `make prove-me` pipeline test at 28; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -297,10 +297,18 @@
     "tracks": "privacy, security",
     "where": "`core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed`",
     "status": "live",
-    "detail": "one sealed purchase on testnet (synthetic facts, 38.40 dUSDC); `make verify-live` checks that its tx, event and record carry no predicate, tier or cap; 6 contract and 3 worker tests. The device run would use this path (parked: no phone presentation, docs/device-run.md)",
+    "detail": "two sealed purchases on testnet (38.40 dUSDC on synthetic facts; 28 in the `make prove-me` test); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (docs/device-run.md)",
     "evidence": [
       "testers"
     ]
+  },
+  {
+    "feature": "`make prove-me`: your own GitHub account as the real fact. Authenticated `api.github.com/user` notarized with MPC-TLS through the REP notary (pinned key, not attested), 3 fields revealed, the facts sealed to NEAR AI (E2EE v2), a sealed verdict, a `github_builder` line that wins a blind round, one dUSDC settle, `make leak` before and after",
+    "tracks": "privacy, realworld, security, agents",
+    "where": "`tools/prove-me/`, `scripts/prove-me.mjs`, `docs/prove-me.md`",
+    "status": "built",
+    "detail": "the whole pipeline ran live once as a test on a public profile (no token, so a fact about an account, not ownership): builders won `builder-1` at 28 dUSDC (36 without the builder line), `make verify-live` re-checks it; the run on your own `/user` waits on a token; 4 tests",
+    "evidence": []
   },
   {
     "feature": "buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount",

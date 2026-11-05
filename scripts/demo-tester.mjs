@@ -178,7 +178,7 @@ export class Demo {
     const dir = join(c.testersDir, id);
     mkdirSync(dir, { recursive: true });
     const tester = { id, key: newSeed(join(dir, "account.seed")) };
-    const rec = { tester: id, date: new Date().toISOString().slice(0, 10), txs: {} };
+    const rec = { tester: id, merchant: c.merchant, date: new Date().toISOString().slice(0, 10), txs: {} };
     const save = () => writeFileSync(join(c.testersDir, `${id}.json`), JSON.stringify(rec, null, 2) + "\n");
     step(2, `create ${id}`);
     rec.txs.account = (await this.direct("create tester", c.treasury, this.treasury, id, [{ type: "CreateAccount" }, { type: "Transfer", deposit: TESTER_FUND }, { type: "AddKey", public_key_hex: tester.key.pub, permission: "FullAccess" }])).hash;

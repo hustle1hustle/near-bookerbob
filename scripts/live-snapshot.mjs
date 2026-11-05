@@ -18,7 +18,7 @@ export const RPC = process.env.NEAR_RPC ?? "https://rpc.testnet.fastnear.com";
  */
 export function purchases(m) {
   const rows = m.testers.map((t) => ({
-    kind: t.sealed ? "sealed" : t.merchant.startsWith("h") ? "hotel" : "single",
+    kind: t.prove_me ? "prove-me" : t.sealed ? "sealed" : t.merchant.startsWith("h") ? "hotel" : "single",
     tester: t.tester,
     merchant: t.merchant,
     nullifier: t.nullifier,
@@ -40,11 +40,26 @@ export function purchases(m) {
   return rows;
 }
 
-export async function view(account_id, method_name, args, rpc = RPC) {
+const RPCS = [RPC, "https://test.rpc.fastnear.com", "https://archival-rpc.testnet.fastnear.com"];
+
+/** A view call; on a rate limit (-429) or a network error it tries the next RPC, then backs off. */
+export async function view(account_id, method_name, args, rpc = null) {
   const body = { jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "call_function", finality: "final", account_id, method_name, args_base64: Buffer.from(JSON.stringify(args)).toString("base64") } };
-  const r = await (await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) })).json();
-  if (r.error || r.result?.error) throw new Error(`rpc ${method_name}: ${JSON.stringify(r.error ?? r.result.error).slice(0, 120)}`);
-  return { block: r.result.block_height, value: JSON.parse(Buffer.from(r.result.result).toString() || "null") };
+  let last;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const url = rpc ?? RPCS[attempt % RPCS.length];
+    try {
+      const r = await (await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) })).json();
+      if (r.error?.code === -429) throw new Error("rate limited");
+      if (r.error || r.result?.error) throw Object.assign(new Error(`rpc ${method_name}: ${JSON.stringify(r.error ?? r.result.error).slice(0, 120)}`), { final: true });
+      return { block: r.result.block_height, value: JSON.parse(Buffer.from(r.result.result).toString() || "null") };
+    } catch (e) {
+      if (e.final) throw e;
+      last = e;
+      await new Promise((ok) => setTimeout(ok, 500 * 2 ** attempt));
+    }
+  }
+  throw new Error(`rpc ${method_name}: ${last?.message}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
