@@ -8,6 +8,7 @@ extern crate alloc;
 pub mod cohort;
 pub mod price;
 pub mod referee;
+pub mod standing;
 
 pub(crate) fn sha256(parts: &[&[u8]]) -> [u8; 32] {
     use sha2::{Digest, Sha256};

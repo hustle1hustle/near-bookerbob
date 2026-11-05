@@ -1,49 +1,45 @@
 #!/usr/bin/env node
-// A committed standing list on testnet (core/src/standing.rs): the hoodie context's merchants
-// ranked by their proven standing, one root on chain, no scores. Then the chain answers
-// "is m01 in the top 5%?" from m01's leaf and path, and refuses a low merchant's claim.
+// The proven standing tree on testnet: after a Jolt-proven graph update applies (its challenge
+// window passed), the bazaar holds one root over the proven score list and no scores. Anyone
+// rebuilds every merchant's opening from the graph's public events (`bookerbob standing-proofs`)
+// and asks the chain "is X in the top N%" (`in_top`).
 //
-//   node scripts/standing-root.mjs     build, post_standing_root, two in_top views;
-//                                      writes fixtures/live/standing-root/run.json
-// Testnet only. The worker key is the registered, bonded referee key (KEYS_DIR/referee.seed).
+//   node scripts/standing-root.mjs <graph-input.json>   checks the root, asks in_top for the top
+//                                                        merchant and a refused claim; writes
+//                                                        fixtures/live/standing-root/run.json
+// Read-only (views); testnet.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { config } from "./demo-tester.mjs";
-import { keyFromSeed, rpcClient, send } from "../relayer/near.mjs";
+import { rpcClient } from "../relayer/near.mjs";
 
 const c = config(process.env);
 const client = rpcClient(c.rpc);
-const CONTEXT = "hoodie";
-const dir = join(c.keysDir, "standing-root");
-mkdirSync(dir, { recursive: true, mode: 0o700 });
-
-const merchants = (await client.view(c.bazaar, "merchants", { from_index: 0, limit: 100 })).filter(([, m]) => m.category === CONTEXT && m.approved).map(([a]) => a);
-const scores = [];
-for (const m of merchants) scores.push([m, (await client.view(c.bazaar, "proven_score", { merchant: m }))?.[0] ?? 0]);
-writeFileSync(join(dir, "scores.json"), JSON.stringify(scores), { mode: 0o600 });
-const signed = JSON.parse(execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", "standing-commit", c.keysDir, CONTEXT, join(dir, "scores.json"), dir], { encoding: "utf8" }));
-const proofs = JSON.parse(readFileSync(join(dir, "standing-proofs.json"), "utf8"));
-const treasury = keyFromSeed(readFileSync(join(c.keysDir, "treasury.seed"), "utf8"));
-const r = await send(client, { signer_id: c.treasury, key: treasury, receiver_id: c.bazaar, actions: [{ type: "FunctionCall", method_name: "post_standing_root", args: { context: CONTEXT, ...signed }, gas: 50n * 10n ** 12n, deposit: 10n ** 22n }] });
-if (!r.ok) throw new Error(`post_standing_root: ${r.error}`);
-console.log(`   ok post_standing_root(${CONTEXT}, root ${signed.root.slice(0, 16)}.., n ${signed.n}): no score on chain  https://testnet.nearblocks.io/txns/${r.hash}`);
-const top = proofs[0];
-const low = proofs.at(-1);
-const yes = await client.view(c.bazaar, "in_top", { context: CONTEXT, proof: top, pct: 5 });
-const no = await client.view(c.bazaar, "in_top", { context: CONTEXT, proof: low, pct: 50 });
-const lie = await client.view(c.bazaar, "in_top", { context: CONTEXT, proof: { ...low, rank: 1 }, pct: 50 });
-console.log(`   in_top(${top.merchant.split(".")[0]}, 5%) = ${yes}; in_top(${low.merchant.split(".")[0]}, 50%) = ${no}; the same with a claimed rank 1 = ${lie}`);
-if (!(yes && !no && !lie)) throw new Error("unexpected in_top answers");
+const input = process.argv[2];
+if (!input) throw new Error("usage: standing-root.mjs <graph-input.json>");
+const t = JSON.parse(execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", "standing-proofs", input], { encoding: "utf8" }));
+const onChain = await client.view(c.bazaar, "standing_root", {});
+if (!onChain) throw new Error("no proven standing root on chain yet (finalize the graph update first)");
+const [root, n, scoresHash, graphRoot] = onChain;
+if (root !== t.standing_root || scoresHash !== t.scores_hash || graphRoot !== t.graph_root) throw new Error(`the input's tree ${t.standing_root.slice(0, 12)} is not the proven one ${root.slice(0, 12)}`);
+const top = t.proofs[0];
+const low = t.proofs.at(-1);
+const pct = Math.ceil((100 * top.rank) / n);
+const yes = await client.view(c.bazaar, "in_top", { proof: top, pct });
+const lie = await client.view(c.bazaar, "in_top", { proof: { ...top, rank: 1, merchant: low.merchant }, pct: 100 });
+console.log(`   proven standing root ${root.slice(0, 16)}.. (${n} merchants) over scores_hash ${scoresHash.slice(0, 12)}..; ranks ${t.proofs.map((p) => `${p.merchant.split(".")[0]}#${p.rank}`).join(" ")}`);
+console.log(`   in_top(${top.merchant.split(".")[0]}, ${pct}%) = ${yes}; ${low.merchant.split(".")[0]} on ${top.merchant.split(".")[0]}'s path = ${lie}`);
+if (!(yes && !lie)) throw new Error("unexpected in_top answers");
 const pub = {
-  note: "A committed standing list: one root per context on chain, no scores. A merchant proves its rank against the root; only the top merchant's opening is published here (it reveals that rank, not the score). Ranked by proven standing: only m01 has one so far; the rest are at 0, tied, ordered by account name.",
-  context: CONTEXT,
-  root: signed.root,
-  n: signed.n,
-  worker_key: signed.worker_key,
-  post_tx: r.hash,
+  note: "The proven standing tree: its root is built by the bazaar from the score list of a Jolt-proven, challengeable graph update; no score is stored. The scores follow from public events, so the root is a compact rank check, not score privacy. Only the top merchant's opening is published here.",
+  standing_root: root,
+  n,
+  scores_hash: scoresHash,
+  graph_root: graphRoot,
+  ranks: t.proofs.map((p) => [p.merchant, p.rank]),
   published_opening: top,
-  answers: { [`in_top(${top.merchant}, 5)`]: yes, [`in_top(${low.merchant}, 50)`]: no, [`in_top(${low.merchant} claiming rank 1, 50)`]: lie },
+  pct,
+  low_merchant: low.merchant,
 };
 mkdirSync("fixtures/live/standing-root", { recursive: true });
 writeFileSync("fixtures/live/standing-root/run.json", JSON.stringify(pub, null, 2) + "\n");

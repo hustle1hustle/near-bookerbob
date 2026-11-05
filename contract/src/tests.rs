@@ -1724,12 +1724,31 @@ mod graph_scores {
         let s = with_seed(s);
         let sig = sign(PROGRAM, &s);
         submit(&mut c, PROGRAM, &s, sig);
-        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")), None, "pending, not applied");
+        assert_eq!(c.standing_root(), None, "pending, not applied");
         assert_eq!(c.pending_graph_update().unwrap().proof_sha256, PROOF);
         at_ms("anyone.testnet", NOW_MS + REVIEW_ROUND_MS, NearToken::from_yoctonear(0));
         c.finalize_graph_scores();
-        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")).map(|x| x.0), Some(345));
+        let (root, n, scores_hash, graph_root) = c.standing_root().unwrap();
+        assert_eq!((n, scores_hash, graph_root.clone()), (1, hex::encode(s.hash()), hex::encode(s.root)), "a root over the proven list, no scores");
+        let (tree, proofs) = bookerbob_core::standing::graph(&s.root, &s.merchants);
+        assert_eq!(root, hex::encode(tree));
+        assert!(c.in_top(proofs[0].clone(), 100));
         assert!(c.pending_graph_update().is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "the score list differs from the proven scores hash")]
+    fn a_list_swapped_after_proving_cannot_reach_the_root() {
+        let (mut c, s) = chain();
+        let s = with_seed(s);
+        let sig = sign(PROGRAM, &s);
+        submit(&mut c, PROGRAM, &s, sig);
+        // Tamper with the stored list after the signed, proven hash was recorded.
+        let mut p = crate::pending_graph().unwrap();
+        p.merchants[0].2 = 999;
+        crate::set_pending_graph(Some(&p));
+        at_ms("anyone.testnet", NOW_MS + REVIEW_ROUND_MS, NearToken::from_yoctonear(0));
+        c.finalize_graph_scores();
     }
 
     #[test]
@@ -1778,7 +1797,7 @@ mod graph_scores {
         let (k, sig) = resolution(&c, false);
         set_no_deposit("anyone.testnet");
         assert!(!c.resolve_graph_challenge(PROOF.into(), false, k, sig, None));
-        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")), None);
+        assert_eq!(c.standing_root(), None);
         assert!(c.worker_bond(worker()).is_none(), "slashed");
         let r = near_sdk::test_utils::get_created_receipts();
         assert!(r.iter().any(|x| x.receiver_id.as_str() == "challenger.testnet"));
@@ -1791,7 +1810,7 @@ mod graph_scores {
         let (k, sig) = resolution(&c, true);
         set_no_deposit("anyone.testnet");
         assert!(c.resolve_graph_challenge(PROOF.into(), true, k, sig, None));
-        assert_eq!(c.proven_score(acc("m01.bazaar.testnet")).map(|x| x.0), Some(345));
+        assert_eq!(c.standing_root().map(|x| x.1), Some(1));
         assert!(near_sdk::test_utils::get_created_receipts().iter().any(|x| x.receiver_id.as_str() == "bonder.testnet"));
     }
 
@@ -3183,64 +3202,5 @@ mod price_anchor {
         let lower = U128(180_000_000);
         c.set_price_anchor(acc("m01.bazaar.testnet"), lower, "lowered".into());
         assert_eq!(c.price_anchor(acc("m01.bazaar.testnet")).unwrap().0, lower, "lowering applies at once");
-    }
-}
-
-mod standing_root {
-    use super::*;
-    use bookerbob_core::standing::{build, TopProof};
-    use ed25519_dalek::Signer;
-
-    fn posted() -> (Bazaar, Vec<TopProof>) {
-        let mut c = setup();
-        let mut b = ctx("bonder.testnet");
-        b.attached_deposit(WORKER_BOND);
-        testing_env!(b.build());
-        let wk = hex::encode(referee_key().verifying_key().to_bytes());
-        c.bond_worker(wk.clone());
-        let list: Vec<(String, u64, [u8; 32])> = (0..10u64).map(|i| (format!("m{i}.testnet"), 1000 - i * 50, [i as u8 + 1; 32])).collect();
-        let (root, proofs) = build("hoodie", &list);
-        let mut msg = crate::STANDING_ROOT_TAG.to_vec();
-        msg.extend(b"hoodie");
-        msg.push(0);
-        msg.extend(root);
-        msg.extend(10u32.to_le_bytes());
-        let sig = hex::encode(referee_key().sign(&bookerbob_core::sha256(&msg)).to_bytes());
-        let mut b = ctx("worker.testnet");
-        b.attached_deposit(NearToken::from_millinear(10));
-        testing_env!(b.build());
-        c.post_standing_root("hoodie".into(), hex::encode(root), 10, wk, sig);
-        (c, proofs)
-    }
-
-    #[test]
-    fn the_chain_holds_a_root_and_answers_top_n_percent_without_the_scores() {
-        let (c, proofs) = posted();
-        let (root, n, _, _) = c.standing_root("hoodie".into()).unwrap();
-        assert_eq!((root.len(), n), (64, 10), "a root and a size, no scores");
-        let top = proofs.iter().find(|p| p.rank == 2).unwrap().clone();
-        assert!(c.in_top("hoodie".into(), top.clone(), 20));
-        assert!(!c.in_top("hoodie".into(), top.clone(), 10));
-        let low = proofs.iter().find(|p| p.rank == 9).unwrap().clone();
-        assert!(!c.in_top("hoodie".into(), low.clone(), 50));
-        let mut lie = low;
-        lie.rank = 1;
-        assert!(!c.in_top("hoodie".into(), lie, 50), "a claimed rank the list did not give");
-        assert!(!c.in_top("hotel-lisbon".into(), top, 100), "no root for another context");
-    }
-
-    #[test]
-    #[should_panic(expected = "bad worker signature")]
-    fn a_root_the_worker_did_not_sign_is_refused() {
-        let mut c = setup();
-        let mut b = ctx("bonder.testnet");
-        b.attached_deposit(WORKER_BOND);
-        testing_env!(b.build());
-        let wk = hex::encode(referee_key().verifying_key().to_bytes());
-        c.bond_worker(wk.clone());
-        let mut b = ctx("worker.testnet");
-        b.attached_deposit(NearToken::from_millinear(10));
-        testing_env!(b.build());
-        c.post_standing_root("hoodie".into(), "ab".repeat(32), 10, wk, "00".repeat(64));
     }
 }

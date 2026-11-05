@@ -37,7 +37,8 @@ const fc = (method_name, args, deposit = 0n, gas = 100n * TGAS) => ({ type: "Fun
 
 export function members(d) {
   const recs = readdirSync(d.c.testersDir).filter((f) => f.endsWith(".json")).map((f) => ({ file: join(d.c.testersDir, f), ...JSON.parse(readFileSync(join(d.c.testersDir, f), "utf8")) }));
-  return recs.filter((r) => r.review?.commitment && r.review?.size).sort((a, b) => a.review.size - b.review.size);
+  // Only this merchant's group: m01's testers predate the merchant field.
+  return recs.filter((r) => r.review?.commitment && r.review?.size && (r.merchant ?? `m01.${d.c.bazaar}`) === d.c.merchant).sort((a, b) => a.review.size - b.review.size);
 }
 
 export async function reviews(d, phase) {
@@ -48,7 +49,8 @@ export async function reviews(d, phase) {
   const roundMs = await d.client.view(c.bazaar, "review_round_ms");
   const now = await d.client.view(c.bazaar, "review_round_now");
   console.log(`${c.merchant}: ${g?.tree?.size ?? 0} members on chain, ${ms.length} demo testers joined, round ${now} (${roundMs / 60000} min rounds)`);
-  const state = join(c.testersDir, "reviews-state.json");
+  // m01 keeps its original state file (make verify-live's review rounds read it); others get their own.
+  const state = join(c.testersDir, c.merchant === `m01.${c.bazaar}` ? "reviews-state.json" : `reviews-${c.merchant.split(".")[0]}-state.json`);
   const st = (() => { try { return JSON.parse(readFileSync(state, "utf8")); } catch { return { sealed: [] }; } })();
   const save = () => writeFileSync(state, JSON.stringify(st, null, 2) + "\n", { mode: 0o600 });
 

@@ -194,10 +194,7 @@ if (m.standing.challenge) {
     const ok = p.ok && c.ok && r.ok && pe?.proof_sha256 === local && ce?.challenger === ch.challenger && re?.root === m.standing.root && re?.proof_sha256 === local;
     return [ok, `pending ${ch.pending_tx.slice(0, 8)}, challenged by ${ch.challenger.split(".")[0]} ${ch.challenge_tx.slice(0, 8)}, resolved ${ch.resolution} ${ch.resolve_tx.slice(0, 8)}; proof sha256 ${local.slice(0, 12)}.. matches the committed proof`];
   });
-  await attempt("the proven score on chain is the resolved update's", async () => {
-    const [score, root] = await view(m.bazaar, "proven_score", { merchant: m.merchant });
-    return [root === m.standing.root && score > 0, `m01 ${score / 100}, root ${root.slice(0, 12)}..`];
-  });
+
 }
 if (m.open_round) {
   const o = m.open_round;
@@ -303,12 +300,11 @@ for (const f of ["run", "public-test"]) {
     return [ok, `verdict ${v?.tier}, ${round.revealed.length} revealed bids, builder line ${line}, NEAR AI chat ${p.near_ai.chat_id.slice(0, 12)}..`];
   });
 }
-if (m.standing_root) {
+if (m.standing_root?.standing_root) {
   const s = m.standing_root;
-  await attempt(`committed standing list: one root for ${s.context} (${s.n} merchants), no scores; the chain answers top-N% from one opening`, async () => {
-    const [root, yes, lie] = await Promise.all([view(m.bazaar, "standing_root", { context: s.context }), view(m.bazaar, "in_top", { context: s.context, proof: s.published_opening, pct: 5 }), view(m.bazaar, "in_top", { context: s.context, proof: { ...s.published_opening, merchant: "someone-else.testnet" }, pct: 100 })]);
-    const t = await tx(s.post_tx, m.treasury);
-    return [root?.[0] === s.root && root?.[1] === s.n && yes === true && lie === false && t.ok, `root ${s.root.slice(0, 12)}.., ${s.published_opening.merchant.split(".")[0]} in the top 5%: ${yes}; the same path for another account: ${lie}`];
+  await attempt(`proven standing tree: the root comes from a Jolt-proven graph update (${s.n} merchants, no scores stored); the chain answers top-N% from one opening`, async () => {
+    const [root, yes, lie] = await Promise.all([view(m.bazaar, "standing_root", {}), view(m.bazaar, "in_top", { proof: s.published_opening, pct: s.pct }), view(m.bazaar, "in_top", { proof: { ...s.published_opening, rank: 1, merchant: s.low_merchant }, pct: 100 })]);
+    return [root?.[0] === s.standing_root && root?.[2] === s.scores_hash && root?.[3] === s.graph_root && yes === true && lie === false, `root ${s.standing_root.slice(0, 12)}.. over scores_hash ${s.scores_hash.slice(0, 12)}..; ${s.published_opening.merchant.split(".")[0]} in the top ${s.pct}%: ${yes}; another account on that path: ${lie}`];
   });
 }
 if (m.cheat?.cheat) {

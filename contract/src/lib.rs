@@ -381,6 +381,8 @@ pub struct PendingGraphUpdate {
     pub proof_sha256: String,
     pub worker_key: String,
     pub merchants: Vec<(AccountId, u64, u64)>,
+    /// The standing vector the scores hash also covers, so the hash is recomputed at apply.
+    pub standing: Vec<(AccountId, U128)>,
     pub submitted_ms: u64,
     /// The challenger and its bond, once challenged: the update is frozen until resolved.
     pub challenger: Option<(AccountId, U128)>,
@@ -560,11 +562,11 @@ fn check_price_anchor(merchant: &AccountId, schedule: &Schedule) {
     }
 }
 
-/// Committed standing lists: context -> (root hex, n, posted_ms, worker key). The scores stay off chain.
-fn standing_roots() -> LookupMap<String, (String, u32, u64, String)> {
-    LookupMap::new(b"C")
+/// The proven standing tree's root: (root hex, n, scores_hash, graph root), set only when a
+/// Jolt-proven graph update applies (`apply_graph_update`).
+fn proven_standing() -> Option<(String, u32, String, String)> {
+    env::storage_read(b"proven_standing").and_then(|b| serde_json::from_slice(&b).ok())
 }
-pub const STANDING_ROOT_TAG: &[u8] = b"bookerbob/standing-root/v1\x00";
 
 fn eval_owners() -> LookupMap<String, AccountId> {
     LookupMap::new(b"X")
@@ -1406,6 +1408,7 @@ impl Bazaar {
             proof_sha256,
             worker_key,
             merchants,
+            standing,
             submitted_ms: env::block_timestamp_ms(),
             challenger: None,
         };
@@ -1738,54 +1741,36 @@ impl Bazaar {
     }
 
     fn apply_graph_update(&mut self, p: &PendingGraphUpdate) {
-        for (m, _, s) in &p.merchants {
-            self.proven_scores.insert(m.clone(), *s);
-        }
+        // The list the tree is built from must be the list the Jolt-proven scores hash covers.
+        let root: [u8; 32] = decode(&p.root, "graph root");
+        let scores = bookerbob_graph::Scores {
+            root,
+            merchants: p.merchants.iter().map(|(m, n, s)| (m.to_string(), *n, *s)).collect(),
+            standing: p.standing.iter().map(|(a, v)| (a.to_string(), v.0)).collect(),
+        };
+        require!(hex::encode(scores.hash()) == p.scores_hash, "the score list differs from the proven scores hash");
+        let (tree_root, openings) = bookerbob_zkcore::standing::graph_tree(&root, &scores.merchants);
+        let ps = (hex::encode(tree_root), openings.len() as u32, p.scores_hash.clone(), p.root.clone());
+        env::storage_write(b"proven_standing", &serde_json::to_vec(&ps).expect("json"));
         self.proven_root = Some(p.root.clone());
         emit(
             "graph_scores",
-            serde_json::json!({ "root": p.root, "program": p.program_hash, "scores_hash": p.scores_hash, "proof_sha256": p.proof_sha256, "merchants": p.merchants.len() }),
+            serde_json::json!({ "root": p.root, "program": p.program_hash, "scores_hash": p.scores_hash, "proof_sha256": p.proof_sha256, "merchants": p.merchants.len(), "standing_root": ps.0 }),
         );
-        self.proven_scores.flush();
     }
 
-    /// A bonded, registered worker posts the root of a committed standing list for `context`
-    /// (`bookerbob_core::standing`): one root and the list size; no score reaches the chain.
-    #[payable]
-    pub fn post_standing_root(&mut self, context: String, root: String, n: u32, worker_key: String, signature: String) {
-        let before = env::storage_usage();
-        require!(!context.is_empty() && context.len() <= 64 && bookerbob_core::is_hex32(&root) && n > 0, "bad standing root");
-        require!(self.referees.contains_key(&worker_key), "unknown worker key");
-        require!(worker_bonds().get(&worker_key).map_or(0, |b| b.1) >= WORKER_BOND.as_yoctonear(), "worker key has no bond (bond_worker)");
-        let mut msg = STANDING_ROOT_TAG.to_vec();
-        msg.extend(context.as_bytes());
-        msg.push(0);
-        msg.extend(hex::decode(&root).expect("checked hex"));
-        msg.extend(n.to_le_bytes());
-        let sig: [u8; 64] = decode(&signature, "worker signature");
-        let pk: [u8; 32] = decode(&worker_key, "worker key");
-        require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad worker signature");
-        let mut sr = standing_roots();
-        sr.insert(context.clone(), (root.clone(), n, env::block_timestamp_ms(), worker_key.clone()));
-        sr.flush();
-        emit("standing_root_posted", serde_json::json!({ "context": context, "root": root, "n": n, "worker_key": worker_key }));
-        charge_storage(before);
+    /// The proven standing tree: (root, n, scores_hash, graph root). Only a Jolt-proven graph
+    /// update sets it; no score is stored.
+    pub fn standing_root(&self) -> Option<(String, u32, String, String)> {
+        proven_standing()
     }
 
-    pub fn standing_root(&self, context: String) -> Option<(String, u32, u64, String)> {
-        standing_roots().get(&context).cloned()
-    }
-
-    /// "Is this merchant in the top `pct`% of `context`": its leaf and path open to the posted
-    /// root at a rank r of n with r <= pct% of n. Reveals the rank, not the score.
-    pub fn in_top(&self, context: String, proof: bookerbob_core::standing::TopProof, pct: u8) -> bool {
-        let Some((root, n, _, _)) = standing_roots().get(&context).cloned() else { return false };
+    /// "Is this merchant in the top `pct`% of the proven standing": its leaf and path open to
+    /// the proven root at a rank r of n with r <= pct% of n. Reveals the rank.
+    pub fn in_top(&self, proof: bookerbob_core::standing::TopProof, pct: u8) -> bool {
+        let Some((root, n, _, _)) = proven_standing() else { return false };
         let root: [u8; 32] = decode(&root, "root");
-        proof.n == n && bookerbob_core::standing::in_top(&root, &context, &proof, pct)
-    }
-
-    pub fn proven_score(&self, merchant: AccountId) -> Option<(u64, String)> {
-        self.proven_scores.get(&merchant).map(|s| (*s, self.proven_root.clone().unwrap_or_default()))
+        proof.n == n && bookerbob_core::standing::in_top(&root, bookerbob_core::standing::GRAPH_CONTEXT, &proof, pct)
     }
 
     // ---------- blind bid rounds ----------
