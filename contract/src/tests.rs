@@ -3185,3 +3185,62 @@ mod price_anchor {
         assert_eq!(c.price_anchor(acc("m01.bazaar.testnet")).unwrap().0, lower, "lowering applies at once");
     }
 }
+
+mod standing_root {
+    use super::*;
+    use bookerbob_core::standing::{build, TopProof};
+    use ed25519_dalek::Signer;
+
+    fn posted() -> (Bazaar, Vec<TopProof>) {
+        let mut c = setup();
+        let mut b = ctx("bonder.testnet");
+        b.attached_deposit(WORKER_BOND);
+        testing_env!(b.build());
+        let wk = hex::encode(referee_key().verifying_key().to_bytes());
+        c.bond_worker(wk.clone());
+        let list: Vec<(String, u64, [u8; 32])> = (0..10u64).map(|i| (format!("m{i}.testnet"), 1000 - i * 50, [i as u8 + 1; 32])).collect();
+        let (root, proofs) = build("hoodie", &list);
+        let mut msg = crate::STANDING_ROOT_TAG.to_vec();
+        msg.extend(b"hoodie");
+        msg.push(0);
+        msg.extend(root);
+        msg.extend(10u32.to_le_bytes());
+        let sig = hex::encode(referee_key().sign(&bookerbob_core::sha256(&msg)).to_bytes());
+        let mut b = ctx("worker.testnet");
+        b.attached_deposit(NearToken::from_millinear(10));
+        testing_env!(b.build());
+        c.post_standing_root("hoodie".into(), hex::encode(root), 10, wk, sig);
+        (c, proofs)
+    }
+
+    #[test]
+    fn the_chain_holds_a_root_and_answers_top_n_percent_without_the_scores() {
+        let (c, proofs) = posted();
+        let (root, n, _, _) = c.standing_root("hoodie".into()).unwrap();
+        assert_eq!((root.len(), n), (64, 10), "a root and a size, no scores");
+        let top = proofs.iter().find(|p| p.rank == 2).unwrap().clone();
+        assert!(c.in_top("hoodie".into(), top.clone(), 20));
+        assert!(!c.in_top("hoodie".into(), top.clone(), 10));
+        let low = proofs.iter().find(|p| p.rank == 9).unwrap().clone();
+        assert!(!c.in_top("hoodie".into(), low.clone(), 50));
+        let mut lie = low;
+        lie.rank = 1;
+        assert!(!c.in_top("hoodie".into(), lie, 50), "a claimed rank the list did not give");
+        assert!(!c.in_top("hotel-lisbon".into(), top, 100), "no root for another context");
+    }
+
+    #[test]
+    #[should_panic(expected = "bad worker signature")]
+    fn a_root_the_worker_did_not_sign_is_refused() {
+        let mut c = setup();
+        let mut b = ctx("bonder.testnet");
+        b.attached_deposit(WORKER_BOND);
+        testing_env!(b.build());
+        let wk = hex::encode(referee_key().verifying_key().to_bytes());
+        c.bond_worker(wk.clone());
+        let mut b = ctx("worker.testnet");
+        b.attached_deposit(NearToken::from_millinear(10));
+        testing_env!(b.build());
+        c.post_standing_root("hoodie".into(), "ab".repeat(32), 10, wk, "00".repeat(64));
+    }
+}

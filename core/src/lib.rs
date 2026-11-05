@@ -12,6 +12,7 @@ pub mod price;
 pub mod referee;
 pub mod referee_result;
 pub mod semaphore;
+pub mod standing;
 pub mod tier;
 pub mod u128_str;
 pub mod world;

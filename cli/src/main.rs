@@ -321,6 +321,47 @@ fn main() -> ExitCode {
             println!("{}", e.near_ai_bind());
             ExitCode::SUCCESS
         }
+        // standing-commit <keys-dir> <context> <scores.json> <out-dir>: a committed standing list.
+        // scores.json: [[merchant, score], ..]. Writes out-dir/standing-proofs.json (mode 600,
+        // every merchant's opening) and prints {root, n, worker_key, signature} for
+        // post_standing_root, signed with the worker key (referee.seed).
+        Some("standing-commit") if args.len() >= 5 => {
+            use ed25519_dalek::Signer;
+            use std::io::Read;
+            let seed = std::fs::read_to_string(Path::new(&args[1]).join("referee.seed")).expect("referee.seed");
+            let key = ed25519_dalek::SigningKey::from_bytes(&hex::decode(seed.trim()).expect("hex").try_into().expect("32 bytes"));
+            let scores: Vec<(String, u64)> = serde_json::from_str(&std::fs::read_to_string(&args[3]).expect("read")).expect("scores");
+            let mut f = std::fs::File::open("/dev/urandom").expect("urandom");
+            let entries: Vec<(String, u64, [u8; 32])> = scores
+                .into_iter()
+                .map(|(m, sc)| {
+                    let mut salt = [0u8; 32];
+                    f.read_exact(&mut salt).expect("urandom");
+                    (m, sc, salt)
+                })
+                .collect();
+            let (root, proofs) = bookerbob_core::standing::build(&args[2], &entries);
+            let n = proofs.len() as u32;
+            let mut msg = b"bookerbob/standing-root/v1\x00".to_vec();
+            msg.extend(args[2].as_bytes());
+            msg.push(0);
+            msg.extend(root);
+            msg.extend(n.to_le_bytes());
+            let sig = key.sign(&bookerbob_core::sha256(&msg));
+            let out = Path::new(&args[4]).join("standing-proofs.json");
+            std::fs::create_dir_all(&args[4]).expect("out dir");
+            std::fs::write(&out, serde_json::to_string_pretty(&proofs).unwrap()).expect("write");
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                std::fs::set_permissions(&out, std::fs::Permissions::from_mode(0o600)).expect("chmod");
+            }
+            println!(
+                "{}",
+                serde_json::json!({ "root": hex::encode(root), "n": n, "worker_key": hex::encode(key.verifying_key().to_bytes()), "signature": hex::encode(sig.to_bytes()) })
+            );
+            ExitCode::SUCCESS
+        }
         // eval-truth <items.json>: REP Eval v2's answers, from the referee's own check.
         // items: [{"proofs": ProofSet, "revealed": [..], "claims": [Claim]}]
         Some("eval-truth") if args.len() >= 2 => {

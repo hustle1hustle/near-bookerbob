@@ -303,6 +303,14 @@ for (const f of ["run", "public-test"]) {
     return [ok, `verdict ${v?.tier}, ${round.revealed.length} revealed bids, builder line ${line}, NEAR AI chat ${p.near_ai.chat_id.slice(0, 12)}..`];
   });
 }
+if (m.standing_root) {
+  const s = m.standing_root;
+  await attempt(`committed standing list: one root for ${s.context} (${s.n} merchants), no scores; the chain answers top-N% from one opening`, async () => {
+    const [root, yes, lie] = await Promise.all([view(m.bazaar, "standing_root", { context: s.context }), view(m.bazaar, "in_top", { context: s.context, proof: s.published_opening, pct: 5 }), view(m.bazaar, "in_top", { context: s.context, proof: { ...s.published_opening, merchant: "someone-else.testnet" }, pct: 100 })]);
+    const t = await tx(s.post_tx, m.treasury);
+    return [root?.[0] === s.root && root?.[1] === s.n && yes === true && lie === false && t.ok, `root ${s.root.slice(0, 12)}.., ${s.published_opening.merchant.split(".")[0]} in the top 5%: ${yes}; the same path for another account: ${lie}`];
+  });
+}
 if (m.cheat?.cheat) {
   const k = m.cheat;
   await attempt(`base-price anchor: ${Object.keys(k.anchors).length} hotels capped at their public rate (JMPR); an inflated base refused on chain`, async () => {

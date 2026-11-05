@@ -560,6 +560,12 @@ fn check_price_anchor(merchant: &AccountId, schedule: &Schedule) {
     }
 }
 
+/// Committed standing lists: context -> (root hex, n, posted_ms, worker key). The scores stay off chain.
+fn standing_roots() -> LookupMap<String, (String, u32, u64, String)> {
+    LookupMap::new(b"C")
+}
+pub const STANDING_ROOT_TAG: &[u8] = b"bookerbob/standing-root/v1\x00";
+
 fn eval_owners() -> LookupMap<String, AccountId> {
     LookupMap::new(b"X")
 }
@@ -1741,6 +1747,41 @@ impl Bazaar {
             serde_json::json!({ "root": p.root, "program": p.program_hash, "scores_hash": p.scores_hash, "proof_sha256": p.proof_sha256, "merchants": p.merchants.len() }),
         );
         self.proven_scores.flush();
+    }
+
+    /// A bonded, registered worker posts the root of a committed standing list for `context`
+    /// (`bookerbob_core::standing`): one root and the list size; no score reaches the chain.
+    #[payable]
+    pub fn post_standing_root(&mut self, context: String, root: String, n: u32, worker_key: String, signature: String) {
+        let before = env::storage_usage();
+        require!(!context.is_empty() && context.len() <= 64 && bookerbob_core::is_hex32(&root) && n > 0, "bad standing root");
+        require!(self.referees.contains_key(&worker_key), "unknown worker key");
+        require!(worker_bonds().get(&worker_key).map_or(0, |b| b.1) >= WORKER_BOND.as_yoctonear(), "worker key has no bond (bond_worker)");
+        let mut msg = STANDING_ROOT_TAG.to_vec();
+        msg.extend(context.as_bytes());
+        msg.push(0);
+        msg.extend(hex::decode(&root).expect("checked hex"));
+        msg.extend(n.to_le_bytes());
+        let sig: [u8; 64] = decode(&signature, "worker signature");
+        let pk: [u8; 32] = decode(&worker_key, "worker key");
+        require!(env::ed25519_verify(&sig, env::sha256_array(&msg), &pk), "bad worker signature");
+        let mut sr = standing_roots();
+        sr.insert(context.clone(), (root.clone(), n, env::block_timestamp_ms(), worker_key.clone()));
+        sr.flush();
+        emit("standing_root_posted", serde_json::json!({ "context": context, "root": root, "n": n, "worker_key": worker_key }));
+        charge_storage(before);
+    }
+
+    pub fn standing_root(&self, context: String) -> Option<(String, u32, u64, String)> {
+        standing_roots().get(&context).cloned()
+    }
+
+    /// "Is this merchant in the top `pct`% of `context`": its leaf and path open to the posted
+    /// root at a rank r of n with r <= pct% of n. Reveals the rank, not the score.
+    pub fn in_top(&self, context: String, proof: bookerbob_core::standing::TopProof, pct: u8) -> bool {
+        let Some((root, n, _, _)) = standing_roots().get(&context).cloned() else { return false };
+        let root: [u8; 32] = decode(&root, "root");
+        proof.n == n && bookerbob_core::standing::in_top(&root, &context, &proof, pct)
     }
 
     pub fn proven_score(&self, merchant: AccountId) -> Option<(u64, String)> {

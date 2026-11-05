@@ -646,6 +646,47 @@
       }
     ]
   },
+  "standing_root": {
+    "note": "A committed standing list: one root per context on chain, no scores. A merchant proves its rank against the root; only the top merchant's opening is published here (it reveals that rank, not the score). Ranked by proven standing: only m01 has one so far; the rest are at 0, tied, ordered by account name.",
+    "context": "hoodie",
+    "root": "8612d1f4938c6e9c88b280301bb1dfd2827ca478f65009a0ec89e152a1afbbea",
+    "n": 22,
+    "worker_key": "2f99e90f7ca11c6d014a7bde2cb02e8a4105c8340ae3cc62f10be0dc8eba3751",
+    "post_tx": "2EPLFxqUbsF7VzP4X2vRXS4JtM96LmNQWeyMP1nKnaYQ",
+    "published_opening": {
+      "merchant": "m01.bookerbob.testnet",
+      "rank": 1,
+      "n": 22,
+      "score_commit": "42b711ebe3e6b62924002d757459aac0acb4cf7f78171c21198158a0b44c3aae",
+      "path": [
+        [
+          "752352c26f722ab7ffdeb9e818116e3027fd4acc345a93c5ba15edd8ea89c781",
+          false
+        ],
+        [
+          "95a09094dca5c3017504bd1554024075e3cc834cb5708613fc7cd82fbf374081",
+          false
+        ],
+        [
+          "f89de5577abf45e2fb45e1720f4627bc10bddd3834f2d4378e92dafbc25e4510",
+          false
+        ],
+        [
+          "95b23e8f28dbc58919a4f1d5e2ca4eb001096643ba98c3e90583e9f006c00d8b",
+          false
+        ],
+        [
+          "1d08749a596b50126d363d5a36d8951c96023bc6483098450f65dfb2e9eb7e68",
+          false
+        ]
+      ]
+    },
+    "answers": {
+      "in_top(m01.bookerbob.testnet, 5)": true,
+      "in_top(m22.bookerbob.testnet, 50)": false,
+      "in_top(m22.bookerbob.testnet claiming rank 1, 50)": false
+    }
+  },
   "cheat": {
     "anchors": {
       "h01.bookerbob.testnet": {
