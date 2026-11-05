@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: try site audit eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: try site audit audit-all eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -70,6 +70,10 @@ site:
 
 # One purchase rebuilt from public data, and its price recomputed four ways (scripts/audit.mjs).
 NULLIFIER ?=
+# Every purchase in the public manifest (single settles and buying-group members), one audit each.
+audit-all:
+	node scripts/audit-all.mjs
+
 audit:
 	node scripts/audit.mjs $(NULLIFIER)
 
