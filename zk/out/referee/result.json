@@ -37,10 +37,10 @@
       214
     ]
   ],
-  "program_hash": "a66f1c29e3b7199af93f512124c9c8d89442e36323d0e28ba0beedde8b46289e",
-  "prove_seconds": 2.338825,
-  "verify_ms": 61,
+  "program_hash": "6d4c5afb8a61704fbac6af5fa42d2cd93c2d85cfeea04d831a5216c3487d9554",
+  "prove_seconds": 2.264663542,
+  "verify_ms": 62,
   "proof_bytes": 84796,
-  "verifier_preprocessing_bytes": 4652009,
+  "verifier_preprocessing_bytes": 4669874,
   "note": "peak RAM is measured outside, with /usr/bin/time -l (scripts/zk-prove.sh)"
 }

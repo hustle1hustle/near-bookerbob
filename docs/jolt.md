@@ -8,8 +8,10 @@ Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), 
 |---|---|---|---|---|---|---|---|
 | `standing` | 8.94 | 70 | 92,716 | 3,230 | 15.1 | 4,180,340 | `c780ceabae4decfa..` |
 | `price` | 1.27 | 59 | 80,380 | 375 | 3.4 | 3,284,109 | `6a35b5c3a8c1fe69..` |
-| `referee` | 2.34 | 61 | 84,796 | 729 | 5.8 | 4,652,009 | `a66f1c29e3b7199a..` |
+| `referee` | 2.26 | 62 | 84,796 | 744 | not measured | 4,669,874 | `6d4c5afb8a61704f..` |
 | `cohort` | 2.91 | 63 | 84,724 | 560 | 5.0 | 2,876,057 | `50eb77d3d5c13c68..` |
+
+The referee row was re-proved on 2026-11-05 after the rule `github account_age_years >= 3` (`github_builder`) joined the rule table, which is part of the referee guest; the other three guests are unchanged.
 
 Challengeable on chain since 2026-11-05: an update is posted pending with sha256 of its proof; anyone can challenge it inside one review round with a 0.1 NEAR bond; a registered arbiter re-runs the verifier and signs the resolution; a false update slashes the worker's 0.5 NEAR bond to the challenger. Run live once (valid, docs/testnet.md). Round 2 (3 hires + 2 seeds, `zk/out/standing-testnet-2`): prove 2.71 s, verify 61 ms, proof 84,796 B, peak RSS 999 MB.
 
