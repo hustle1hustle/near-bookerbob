@@ -191,10 +191,13 @@ export class Demo {
     step(5, "sign the verdict and World attestation");
     const live = join(dir, "live");
     // opts.proofs: the device run's proof set (one real, notary-verified fact in it).
+    // opts.sealed: the verdict goes on chain as hashes only; live/opening.json (mode 600)
+    // holds the predicates, tier and cap for the referee.
     rec.nullifier = (opts.proofs
-      ? run([...BOOKERBOB, "sign-real", c.keysDir, id, c.treasury, c.worldAction, live, opts.proofs])
+      ? run([...BOOKERBOB, opts.sealed ? "sign-real-sealed" : "sign-real", c.keysDir, id, c.treasury, c.worldAction, live, opts.proofs])
       : run([...BOOKERBOB, "sign-tester", c.keysDir, id, c.treasury, c.worldAction, live])).trim();
-    if (opts.proofs) rec.device_run = true;
+    if (opts.proofs && !opts.rehearsal) rec.device_run = true;
+    if (opts.sealed) rec.sealed = true;
     const file = (n) => JSON.parse(readFileSync(join(live, n), "utf8"));
     step(6, "attest_human");
     rec.txs.world = (await this.relay("attest_human", tester, c.bazaar, fc("attest_human", { attestation: file("world.json") }, 10n * MILLI))).hash;
@@ -203,15 +206,18 @@ export class Demo {
     step(8, "referee receipt");
     // The live quote: once k >= 5 verdicts in the context reveal the cohort predicate, the
     // group price unlocks on chain, and the referee must price with the same k.
-    const q = await this.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
-    const k = q.cohort?.k ?? 0;
-    const input = run([...BOOKERBOB, "worker-input", opts.fixturesDir ?? "fixtures", join(live, "verdict.json"), String(k)]);
+    // A sealed verdict has no on-chain quote: the referee prices it from the opening, k = 0,
+    // and the contract accepts only a price its schedule code can produce.
+    const q = opts.sealed ? null : await this.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
+    const k = q?.cohort?.k ?? 0;
+    const input = run([...BOOKERBOB, "worker-input", opts.fixturesDir ?? "fixtures", join(live, "verdict.json"), opts.sealed ? join(live, "opening.json") : String(k)]);
     const seed = readFileSync(join(c.keysDir, "referee.seed"), "utf8").trim();
     const result = JSON.parse(run(["cargo", "run", "-q", "-p", "bookerbob-referee-worker"], { input, env: { ...process.env, REFEREE_SIGNING_SEED: seed } }));
     if (result.body.merchant !== c.merchant) throw new Error(`the referee's winner is ${result.body.merchant}, expected ${c.merchant}`);
     rec.price = result.body.price;
     rec.cohort_k = k;
-    if (String(rec.price) !== String(q.price)) throw new Error(`referee price ${rec.price} differs from the on-chain quote ${q.price} (k=${k})`);
+    if (result.body.outcome !== "receipt") throw new Error(`the referee refused: ${result.body.detail}`);
+    if (q && String(rec.price) !== String(q.price)) throw new Error(`referee price ${rec.price} differs from the on-chain quote ${q.price} (k=${k})`);
     rec.txs.receipt = (await this.relay("submit_referee_result", tester, c.bazaar, fc("submit_referee_result", { result }, 0n, 100n * TGAS))).hash;
     console.log(`   receipt price ${Number(rec.price) / 1e6} dUSDC${k ? ` (group price, k=${k})` : ""}`);
     step(9, "escrow in dUSDC");
@@ -357,7 +363,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   const d = new Demo(c);
-  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
+  const go = cmd === "setup" ? d.setup() : cmd === "run" ? d.run() : cmd === "sealed" ? d.run({ proofs: "fixtures/proofs.json", sealed: true, rehearsal: true }) : cmd === "resume" ? d.resume(process.argv[3]) : cmd === "group" ? d.group(Number(process.argv[3] ?? 5)) : cmd === "reviews" ? import("./demo-reviews.mjs").then((m) => m.reviews(d, process.argv[3])) : Promise.reject(new Error(`unknown command ${cmd}`));
   go.then(
     () => {},
     (e) => {

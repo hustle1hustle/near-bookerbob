@@ -48,12 +48,19 @@ Same 6 buyers, a new round: 6 sealed ratings, revealed, released by
 
 ## L5: plaintext facts in tx args (added 2026-11-05)
 
-`make leak` decodes the args of every recorded tester tx, delegate actions included (66 txs),
+`make leak` decodes the args of every recorded tester tx, delegate actions included (88 txs on 2026-11-05),
 and searches them for the proof set's field names and proof refs; it first checks that a
 plaintext referee input would be caught. Result: none. The verdict carries predicate bits and
 hashes, the receipt a price and hashes, never a fact. The one call that would carry facts,
 `request_referee`, now refuses anything but input sealed to the worker's X25519 key
 (`worker/src/sealed.rs`; `bookerbob referee-pub`, `bookerbob seal-input`).
+
+## L5b: plaintext predicates for a sealed verdict (added 2026-11-05)
+
+A sealed verdict (docs/testnet.md, "Sealed verdict") must name no predicate and no tier in its
+verdict tx. `make leak` decodes that tx's args, after checking the rule catches a plaintext
+predicate. Result on the one live sealed buyer: none, only the `disclosure` commitment. The
+settle amount is still public, so L6 below applies to sealed buyers too.
 
 ## L6: the amount oracle (added 2026-11-05)
 

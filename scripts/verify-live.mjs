@@ -81,15 +81,17 @@ async function tx(hash, sender) {
   const all = [res.transaction_outcome, ...res.receipts_outcome];
   const fail = all.map((o) => o.outcome.status.Failure).find(Boolean) ?? res.status.Failure;
   const methods = [];
+  const args = [];
   const walk = (actions) => {
     for (const a of actions ?? []) {
       if (a.FunctionCall) methods.push(a.FunctionCall.method_name);
+      if (a.FunctionCall) args.push(Buffer.from(a.FunctionCall.args ?? "", "base64").toString());
       if (a.Delegate) walk(a.Delegate.delegate_action.actions.map((x) => x.NonDelegateAction ?? x));
     }
   };
   walk(res.transaction.actions);
   const delegated = (res.transaction.actions ?? []).some((a) => a.Delegate) && res.transaction.signer_id !== res.transaction.receiver_id;
-  return { ok: !fail, error: fail ? JSON.stringify(fail) : null, logs: all.flatMap((o) => o.outcome.logs), methods, delegated, signer: res.transaction.signer_id, receiver: res.transaction.receiver_id };
+  return { ok: !fail, error: fail ? JSON.stringify(fail) : null, logs: all.flatMap((o) => o.outcome.logs), methods, args, delegated, signer: res.transaction.signer_id, receiver: res.transaction.receiver_id };
 }
 const events = (logs) => logs.filter((l) => l.startsWith("EVENT_JSON:")).map((l) => JSON.parse(l.slice(11)));
 
@@ -131,6 +133,15 @@ for (const t of m.testers) {
     const reverted = events(s.logs).some((e) => e.event === "settle_reverted");
     return [s.ok && s.methods.includes("settle_demo") && settled?.token === "demo" && settled.amount === String(t.price) && ft && !reverted && status === "Spent" && paid === "demo", `tx ${t.txs.settle.slice(0, 8)}, ${status}`];
   });
+  if (t.sealed) {
+    await attempt(`${short}: a sealed verdict put hashes only on chain (no predicate, tier or cap in its tx, its event or the record) and still paid`, async () => {
+      const [v, d, s] = await Promise.all([view(m.bazaar, "verdict", { nullifier: t.nullifier }), view(m.bazaar, "disclosure", { nullifier: t.nullifier }), tx(t.txs.verdict, m.treasury)]);
+      const ev = events(s.logs).find((e) => e.event === "verdict_submitted")?.data?.[0];
+      const plain = /airbnb_frequent|claude_spender|world_id_human|steam_|chatgpt_|"tier":"(bronze|silver|gold)"/;
+      const clean = s.args.every((a) => !plain.test(a)) && s.args.some((a) => a.includes('"tier":"sealed"') && a.includes('"max_spend":"0"'));
+      return [clean && ev?.predicates?.length === 0 && ev?.disclosure === d && /^[0-9a-f]{64}$/.test(d ?? "") && v.predicates.length === 0 && v.tier === "sealed" && v.max_spend === String(t.price), `disclosure ${String(d).slice(0, 12)}.., cap = receipt price ${Number(t.price) / 1e6}`];
+    });
+  }
   await attempt(`${short}: the same nullifier from another account was refused`, async () => {
     const r = await tx(t.txs.replay, m.treasury);
     return [!r.ok && /nullifier spent/.test(r.error), "nullifier spent"];

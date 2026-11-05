@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-04T22:14:42.423Z",
+  "when": "2026-11-05T01:51:52.702Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
@@ -40,6 +40,18 @@
       "anonymity_set": 1
     },
     {
+      "rule": "L1 same account",
+      "what": "t-7e261e: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L1 same account",
+      "what": "t-3f71c2: verdict, settle and review-group join",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
       "rule": "L2 timing order",
       "what": "each sealed rating to the buyer who joined in the same position",
       "linked": false,
@@ -51,8 +63,8 @@
       "rule": "L3 funding",
       "what": "review senders and buyers share one funder (the relayer)",
       "linked": false,
-      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 6 here",
-      "anonymity_set": 6
+      "note": "1 funder(s); that alone narrows a rating to the relayer's buyers, 8 here",
+      "anonymity_set": 8
     },
     {
       "rule": "L4 reveal",
@@ -63,17 +75,24 @@
     },
     {
       "rule": "L5 plaintext facts",
-      "what": "the proof set's fields and proof refs in the args of 66 tester txs",
+      "what": "the proof set's fields and proof refs in the args of 88 tester txs",
       "linked": false,
       "note": "none: facts never left the buyer side in tx args",
-      "anonymity_set": 6
+      "anonymity_set": 8
+    },
+    {
+      "rule": "L5b sealed predicates",
+      "what": "predicate names or tier in the verdict tx of 1 sealed buyer(s)",
+      "linked": false,
+      "note": "none: hashes only (the disclosure commitment)",
+      "anonymity_set": 8
     },
     {
       "rule": "L6 amount oracle",
-      "what": "settled amounts of 11 buyers: 38.4 x3, 36 x3, 32.4 x5",
+      "what": "settled amounts of 13 buyers: 38.4 x4, 36 x4, 32.4 x5",
       "linked": true,
-      "note": "single buyers: smallest set sharing an amount 3; buying-group members: 5 (one fixed-tier amount for the whole group)",
-      "anonymity_set": 3
+      "note": "single buyers: smallest set sharing an amount 4; buying-group members: 5 (one fixed-tier amount for the whole group)",
+      "anonymity_set": 4
     }
   ],
   "rating_to_buyer_linked": false

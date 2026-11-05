@@ -209,7 +209,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "12 dUSDC purchases on testnet (7 single settles, one of them with the 1% fee; 5 in a buying group), `make verify-live`",
+    "detail": "13 dUSDC purchases on testnet (7 single settles, one of them with the 1% fee; 5 in a buying group), `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -291,6 +291,16 @@
     "status": "built",
     "detail": "(a model, assumptions stated)",
     "evidence": []
+  },
+  {
+    "feature": "sealed verdicts (hashes only on chain): the issuer signs an envelope with no predicates, tier or cap in the clear and a `disclosure` commitment to them; the opening goes to the referee, which prices from it and refuses a price over the hidden cap; the contract accepts only a receipt price its own schedule code can produce for some predicate subset (the World discount only for a World-bound agent)",
+    "tracks": "privacy, security",
+    "where": "`core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed`",
+    "status": "live",
+    "detail": "one sealed purchase on testnet (synthetic facts, 38.40 dUSDC); `make verify-live` checks that its tx, event and record carry no predicate, tier or cap; 6 contract and 3 worker tests. The device run uses this path",
+    "evidence": [
+      "testers"
+    ]
   },
   {
     "feature": "buying groups on sealed intents: World-bound buyers who revealed the same predicates pool for a fixed-tier discount (10% at 5 persons, 20% at 10); budgets stay committed; each member pays one amount",

@@ -373,3 +373,39 @@ the MPC signed an EIP-1559 USDC transfer for Base Sepolia, and the assembled raw
 to the MPC-derived address `0x56AaAf0eCcd17c7D57d6A7dC3d6B5C213d40DF78`. It was never
 broadcast. The EVM payout leg was cut on 2026-11-05 (payments run on NEAR only); its code,
 tests and the signed answer are on the `evm-archive` branch.
+
+## Sealed verdict: hashes only on chain (2026-11-05)
+
+Panel round 3, the step before the device run: a real predicate must never reach the chain in
+the clear. Bazaar redeploy (state kept) [2RdRFi17…](https://testnet.nearblocks.io/txns/2RdRFi17bcqZhV7QL1XFnyzmL4HLitBqrB19HFTaZzVU).
+
+The issuer signs an envelope whose `predicates` is empty, `tier` is `sealed`, `max_spend` is 0,
+and whose `disclosure` is sha256 over the opening (the predicates, tier, cap and a 32-byte salt).
+The opening stays with the buyer's agent (mode 600) and goes to the referee. The referee checks
+the opening against the verdict digest, prices from it with no cohort and refuses a price over
+the hidden cap. The contract accepts the receipt only if its price is one the merchant's schedule
+code produces for some subset of its discount predicates (the World line only for a World-bound
+agent), and then sets the record's cap to that price.
+
+One rehearsal on synthetic facts, tester `t-3f71c2`, all relayed:
+
+| step | tx |
+|---|---|
+| submit_verdict (args: no predicate names, `"tier":"sealed"`, `"max_spend":"0"`) | [C9yVJ2s2…](https://testnet.nearblocks.io/txns/C9yVJ2s2MhxZfhuabSWTBxmRXhkYJAL2aJvXJS3i4hVP) |
+| submit_referee_result (price 38.40, from the opening) | [2Vv4hpAG…](https://testnet.nearblocks.io/txns/2Vv4hpAGMQYYGGJE7dz43eKnoejWnBfcnuzTZzCTsx4w) |
+| settle_demo | [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS) |
+| replay from another account, refused | [JDov1CKu…](https://testnet.nearblocks.io/txns/JDov1CKu61bHjXpCymPp99wD5FFjdJMFLn5RTRe9xRgZ) |
+
+`make verify-live` checks the verdict tx's args, its `verdict_submitted` event and the `verdict`
+record: no predicate, tier or cap, a `disclosure` equal to the `disclosure` view, and a cap equal
+to the receipt price.
+
+What it costs and what it still shows:
+- No cohort counts a sealed verdict, so it gets no group price (38.40 here, against 36.00 for
+  the single buyers whose cohort reached k >= 5) and cannot join a buying group.
+- The settled amount is public. Where the schedule's discount subsets give different prices,
+  the amount narrows which discounts applied (`make leak` rule L6, the amount oracle).
+- The price rests on the referee key for which subset applied; the contract only bounds it to
+  prices its code can produce.
+- Not built: sealing the opening to the merchant inside the receipt. The merchant gets the
+  opening from the buyer's agent off chain.

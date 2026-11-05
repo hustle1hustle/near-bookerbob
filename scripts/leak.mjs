@@ -102,6 +102,20 @@ for (const h of hashes) {
 }
 links.push({ rule: "L5 plaintext facts", what: `the proof set's fields and proof refs in the args of ${scanned} tester txs`, linked: hits.length > 0, note: hits.length ? `found in ${hits.length} places: ${hits.slice(0, 3).map((x) => x.tx.slice(0, 8)).join(", ")}` : "none: facts never left the buyer side in tx args", anonymity_set: hits.length ? 1 : buyers.length });
 
+// L5b: plaintext predicates for a sealed verdict. Its verdict tx must name no predicate and
+// no tier; the chain holds the disclosure commitment instead.
+const PRED = /"(airbnb_frequent|claude_spender|world_id_human|steam_[a-z_]+|chatgpt_[a-z_]+)"|"tier":"(bronze|silver|gold)"/;
+if (!PRED.test(JSON.stringify({ predicates: ["claude_spender"] }))) throw new Error("L5b cannot detect a plaintext predicate: rule broken");
+const sealedBuyers = buyers.filter((b) => b.sealed);
+if (sealedBuyers.length) {
+  const named = [];
+  for (const b of sealedBuyers) {
+    const r = (await rpc("tx", { tx_hash: b.txs.verdict, sender_account_id: m.treasury, wait_until: "FINAL" })).result;
+    if (!r || argsOf(r.transaction.actions).some((a) => PRED.test(a))) named.push(b.tester);
+  }
+  links.push({ rule: "L5b sealed predicates", what: `predicate names or tier in the verdict tx of ${sealedBuyers.length} sealed buyer(s)`, linked: named.length > 0, note: named.length ? `named in ${named.join(", ")}` : "none: hashes only (the disclosure commitment)", anonymity_set: named.length ? 1 : buyers.length });
+}
+
 // L6: the amount oracle. A settled amount is public; an exact price can reveal which
 // discount lines (and so which predicates) a buyer had. Anonymity set per buyer: the buyers
 // who paid the same amount. Buying-group members (fixed tiers) are included when present.

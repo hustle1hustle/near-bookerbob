@@ -153,6 +153,28 @@
         "replay": "5G1kmNy5WLsuzf7djBHX5ASQKFLZRX72DQj2ehwWMSHm",
         "review_join": "BXu2HrV9eEnAn2ZLsoboAivRydPVsk8rt7Zdtkzjfby3"
       }
+    },
+    {
+      "tester": "t-3f71c2.bookerbob-demo.testnet",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "4e9d57b95ecefec7a7c5a3ad46e142d1715b5da71e8cd05b54c99414dff4e05f",
+      "price": "38400000",
+      "cohort_k": 0,
+      "sealed": true,
+      "shopify_order": "#1062",
+      "txs": {
+        "account": "D9hAHVCsGQzTEzUtGJcbhQxEwEN18rFFrgFKXMDBD3WJ",
+        "escrow_entry": "BTjwjV4tZwYxKenUDdSCGL2tZXerNPW1PfUf3Eco3Dzt",
+        "dusdc_storage": "H9N9TQiLQ8s1Eiiwmo9AcULzCNpixjNTn9awbvd8Fv7v",
+        "mint": "3rr1eytJLUKC4wP5mzNXX1PigZCFiggqV3dcJLarNcbC",
+        "world": "Cvj7E7cphSfhH6fuyS1JC6799bZDzZYP9oLXdHz3AWXb",
+        "verdict": "C9yVJ2s2MhxZfhuabSWTBxmRXhkYJAL2aJvXJS3i4hVP",
+        "receipt": "2Vv4hpAGMQYYGGJE7dz43eKnoejWnBfcnuzTZzCTsx4w",
+        "escrow": "NZ3eDPgA3dGtgxu7zqdii5nwYidCQWvBiEnPn8oUdjf",
+        "settle": "2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS",
+        "replay": "JDov1CKu61bHjXpCymPp99wD5FFjdJMFLn5RTRe9xRgZ",
+        "review_join": "5PQGxe2CcNSXZewSmKYfXLb7FK41fwFpfmDCadbFuiBW"
+      }
     }
   ],
   "unfinished": [
@@ -543,6 +565,14 @@
     "price": "36000000",
     "fee": "360000"
   },
+  "eval": {
+    "run": "fixtures/live/eval/run.json",
+    "subject": "z-ai/glm-5.3-flash",
+    "set_root": "3ec8cbd5a8e688dfd72f44f9818bc907eac7fcd8943df7bfd408cc8822ae1cd1",
+    "register_tx": "G8xJZsLcCy3PzSEkwarjSQ2gDV897BdZzZXKSjVgaL4q",
+    "certify_tx": "Ek6834cuYYK3s7TKQgUteu9jca2MpTBsvrfy4FgDdAXR",
+    "score_bucket": 100
+  },
   "groups": [
     {
       "group": "e2c8d23ba724b290cf7fb8437d7f07c36e4b0ae3110e7edc52dc29903b6421de",
@@ -610,13 +640,5 @@
         }
       ]
     }
-  ],
-  "eval": {
-    "run": "fixtures/live/eval/run.json",
-    "subject": "z-ai/glm-5.3-flash",
-    "set_root": "3ec8cbd5a8e688dfd72f44f9818bc907eac7fcd8943df7bfd408cc8822ae1cd1",
-    "register_tx": "G8xJZsLcCy3PzSEkwarjSQ2gDV897BdZzZXKSjVgaL4q",
-    "certify_tx": "Ek6834cuYYK3s7TKQgUteu9jca2MpTBsvrfy4FgDdAXR",
-    "score_bucket": 100
-  }
+  ]
 }
