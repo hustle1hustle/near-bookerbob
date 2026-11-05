@@ -1,0 +1,27 @@
+# Spike (panel round 4, next in line): can a NEAR contract verify a TDX quote with dcap-qvl
+# inside one call's 300 Tgas? Deployed alone to spike.bookerbob.testnet; not part of the bazaar.
+[package]
+name = "dcap-spike"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "=5.29.1"
+dcap-qvl = { version = "0.3.12", default-features = false, features = ["std", "rustcrypto"] }
+serde_json = "1"
+hex = "0.4"
+# Verification needs no randomness; the custom backend below always errors.
+getrandom = { version = "0.2", features = ["custom"] }
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+panic = "abort"
+overflow-checks = true
+
+[workspace]
