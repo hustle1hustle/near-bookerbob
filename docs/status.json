@@ -124,7 +124,7 @@
     "tracks": "swarms, privacy",
     "where": "`docs/semaphore.md`, `core/src/semaphore.rs`, `contract/src/groth16.rs`, `contract/src/lib.rs`, `cli/src/reviews.rs`, `semaphore/`",
     "status": "live",
-    "detail": "2 rounds of 6 sealed ratings released on testnet; 13 contract tests on real Semaphore proofs",
+    "detail": "3 rounds of 6 sealed ratings released on testnet (2 for m01, 1 for h05); 13 contract tests on real Semaphore proofs",
     "evidence": [
       "reviews"
     ]
@@ -211,7 +211,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "26 dUSDC purchases on testnet (13 single settles: one with the 1% fee, two with a sealed verdict, two with a verdict a NEAR AI model issued (one refused by an eval gate, one passing it), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
+    "detail": "26 dUSDC purchases on testnet (16 single settles: one with the 1% fee, two with a sealed verdict, two with a verdict a NEAR AI model issued (one refused by an eval gate, one passing it), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -221,7 +221,7 @@
     "tracks": "realworld",
     "where": "`ucp/src/near-usdc.mjs`",
     "status": "live",
-    "detail": "orders #1055 to #1060",
+    "detail": "16 orders between #1055 and #1071",
     "evidence": [
       "testers"
     ]

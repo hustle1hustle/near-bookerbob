@@ -390,7 +390,10 @@ mod tests {
         std::fs::create_dir_all(&dst).unwrap();
         for f in std::fs::read_dir(&src).unwrap() {
             let f = f.unwrap();
-            std::fs::copy(f.path(), dst.join(f.file_name())).unwrap();
+            // models/ holds other models' reports; check_dir reads only the files at the top.
+            if f.file_type().unwrap().is_file() {
+                std::fs::copy(f.path(), dst.join(f.file_name())).unwrap();
+            }
         }
         dst
     }

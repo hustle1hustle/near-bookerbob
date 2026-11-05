@@ -94,13 +94,14 @@ export function problems(readme, rs, m, docs, src = {}, n = null) {
   for (const r of rs) if (["planned", "stub"].includes(r.status)) for (const [, fn] of r.where.matchAll(/`([a-z_]+)`/g)) if (lib.includes(`pub fn ${fn}(`)) out.push(`"${r.feature.slice(0, 40)}": ${r.status}, but lib.rs has pub fn ${fn}`);
   if (n) for (const [f, text] of Object.entries(docs)) {
     for (const [, x] of text.matchAll(/\b(\d+) dUSDC purchases/g)) if (Number(x) !== n.purchases) out.push(`${f}: "${x} dUSDC purchases", the manifest has ${n.purchases}`);
-    for (const [, x, y] of text.matchAll(/\b(\d+) purchases \((\d+) single settles/g)) if (Number(x) !== n.purchases || Number(y) !== n.single) out.push(`${f}: "${x} purchases (${y} single", the manifest has ${n.purchases} and ${n.single}`);
+    for (const [, x, y] of text.matchAll(/\b(\d+) (?:dUSDC )?purchases(?: on testnet)? \((\d+) single settles/g)) if (Number(x) !== n.purchases || Number(y) !== n.single) out.push(`${f}: "${x} purchases (${y} single", the manifest has ${n.purchases} and ${n.single}`);
     const want = (re, n, what) => { for (const [, x] of text.matchAll(re)) if (Number.isFinite(n) && Number(x) !== n) out.push(`${f}: "${x}" ${what}, the source has ${n}`); };
     want(/\bOn testnet, (\d+) purchases/g, n.purchases, "purchases");
     want(/\b(\d+) purchases settled in dUSDC/g, n.purchases, "purchases");
     want(/\bran (\d+) times in dUSDC/g, n.single, "single settles");
     want(/\b(\d+) replays refused/g, n.replays, "replays refused");
     want(/\b(\d+) orders in the Shopify/g, n.shopify, "Shopify orders");
+    want(/\b(\d+) orders between #/g, n.shopify, "Shopify orders");
     if (n.checks) {
       want(/ALL PASS \((\d+) checks\)/g, n.checks.all, "make verify checks");
       want(/NEAR AI verdict:? (\d+) checks/g, n.checks.near_ai, "NEAR AI verdict checks");

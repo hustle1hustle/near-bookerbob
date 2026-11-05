@@ -19,11 +19,11 @@ mod evidence;
 mod fixtures;
 mod keys;
 mod near_ai;
-mod voprf;
 mod reviews;
 mod scenario;
 mod swarm;
 mod verify;
+mod voprf;
 mod zk_inputs;
 mod zk_results;
 

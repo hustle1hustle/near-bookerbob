@@ -30,6 +30,11 @@ test("repeated counts must match the fixtures", () => {
   assert.deepEqual(problems(readme, rows, {}, { "README.md": "12 purchases (7 single settles, and 33/33 signatures valid" }, src, n), []);
 });
 
+test("a single-settle count after 'dUSDC purchases on testnet' is checked too", () => {
+  const p = problems(readme, rows, {}, { "README.md": "12 dUSDC purchases on testnet (9 single settles" }, src, n);
+  assert.ok(p.some((x) => x.includes('"12 purchases (9 single"')), p.join("; "));
+});
+
 test("purchase totals come from the manifest (spent_count's list), check counts from the verify log", async () => {
   const { readFileSync } = await import("node:fs");
   const { counted } = await import("./status.mjs");

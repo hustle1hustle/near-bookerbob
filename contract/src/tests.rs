@@ -2836,7 +2836,10 @@ mod certified_eval {
 
     fn model_key(c: &mut Bazaar) {
         set_no_deposit("owner.testnet");
-        c.register_model_attestation(MODEL_KEY.into(), ModelAttestation { model: "z-ai/glm-5.3-flash".into(), nonce: "aa".repeat(32), report_hash: "bb".repeat(32), tcb_status: "UpToDate".into() });
+        c.register_model_attestation(
+            MODEL_KEY.into(),
+            ModelAttestation { model: "z-ai/glm-5.3-flash".into(), nonce: "aa".repeat(32), report_hash: "bb".repeat(32), tcb_status: "UpToDate".into() },
+        );
     }
 
     #[test]

@@ -80,7 +80,7 @@ preimage is a classical attack, and a 256-bit salt stops it either way.
 | intent budget commitment | budget + 32-byte salt | salted | unchanged |
 | sealed review | rating, delivered, reason hash + salt | salted | unchanged |
 | REP Eval item hashes | 16-byte salt + question + answer | salted | unchanged |
-| nullifier | HMAC under REP's key | keyed | unchanged (the key is REP's: README, "Who can lie") |
+| nullifier | HMAC under REP's key (older purchases), VOPRF output of a 32-byte random input (since 2026-11-05) | keyed, or random input | unchanged (the keys are REP's: README, "Who can lie") |
 | liability record, verdict digest, group key | digests of signed messages, or public predicates | high entropy or public | unchanged |
 
 Stated plainly:

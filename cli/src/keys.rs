@@ -153,7 +153,10 @@ pub fn seal(e: &mut bookerbob_core::Envelope, salt: [u8; 32]) -> bookerbob_core:
 pub fn sign_tester(dir: &Path, agent: &str, replay: &str, action: &str, now_ms: u64, out: &Path) -> Result<String, String> {
     // BOOKERBOB_NULLIFIER: a VOPRF nullifier the buyer obtained (`bookerbob voprf-nullifier`);
     // otherwise the labelled fixture placeholder.
-    let n = std::env::var("BOOKERBOB_NULLIFIER").ok().filter(|x| bookerbob_core::is_hex32(x)).unwrap_or_else(|| crate::fixtures::nullifier(&format!("demo-tester|{agent}")));
+    let n = std::env::var("BOOKERBOB_NULLIFIER")
+        .ok()
+        .filter(|x| bookerbob_core::is_hex32(x))
+        .unwrap_or_else(|| crate::fixtures::nullifier(&format!("demo-tester|{agent}")));
     sign_purchase(dir, agent, replay, action, now_ms, out, Some(n.clone()), &format!("demo-tester|{agent}"))?;
     Ok(n)
 }

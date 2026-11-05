@@ -186,7 +186,7 @@ and 0 on the live bazaar today.
 | anyone reading the chain | per verdict: nullifier, commitment, revealed predicates, tcb_status, cap; settled amount, merchant, checkout_ref. A sealed verdict shows only the nullifier, the commitments and tcb_status until settle; its amount still narrows which discounts applied | the proof set, the buyer's other contexts (the nullifier is per context) |
 | the referee and arbiter | the proof set they judge (synthetic in fixtures) | nothing more; on-chain `input_data` is public, so `request_referee` accepts only input sealed to the worker key (X25519, XChaCha20-Poly1305, `worker/src/sealed.rs`) |
 | NEAR AI enclave | the facts, sealed to its key | |
-| REP | today, the HMAC nullifier key, so it could link accounts | |
+| REP | the older HMAC nullifier key, so it can link accounts on those purchases; on a VOPRF purchase, who asked and when (below) | |
 
 ### What each party can link
 

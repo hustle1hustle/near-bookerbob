@@ -3,7 +3,8 @@
 // The flip itself (repo settings, and enabling Pages) is the founder's click, not this script.
 //
 //   node scripts/flip-check.mjs pre    before the flip: the secret scan over the full history
-//                                      exits 0; no tracked file looks like a key, seed, .env, a
+//                                      exits 0; fmt, clippy and make test are green (what CI runs);
+//                                      no tracked file looks like a key, seed, .env, a
 //                                      zkTLS presentation or panel notes; a LICENSE; every
 //                                      relative link in README.md resolves to a tracked file
 //   node scripts/flip-check.mjs post   after the flip (and again on Nov 13): with no credentials,
@@ -22,6 +23,11 @@ const line = (ok, what, detail = "") => {
 async function pre() {
   const scan = spawnSync("bash", ["scripts/secret-scan.sh"], { encoding: "utf8" });
   line(scan.status === 0, "secret scan over every commit and branch", (scan.stdout.match(/secret scan: [^\n]*/) ?? [""])[0]);
+  const run = (what, cmd, args) => line(spawnSync(cmd, args, { stdio: "ignore" }).status === 0, what);
+  run("cargo fmt --all -- --check", "cargo", ["fmt", "--all", "--", "--check"]);
+  run("cargo clippy, warnings denied", "cargo", ["clippy", "--workspace", "--all-targets", "-j", "2", "--", "-D", "warnings"]);
+  run("make test", "make", ["test"]);
+  run("make wasm-parity: this source rebuilds the deployed wasm", "make", ["wasm-parity"]);
   const files = execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split("\n");
   const bad = files.filter((f) => /\.(seed|key|pem|p12)$|(^|\/)\.env$|\.presentation$|^PANEL\/|(^|\/)FOUNDER-COMMANDS/i.test(f));
   line(bad.length === 0, "no tracked key, seed, .env, presentation or panel file", bad.slice(0, 5).join(", ") || `${files.length} tracked files`);

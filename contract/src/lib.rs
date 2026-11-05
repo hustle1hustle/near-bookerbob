@@ -875,20 +875,20 @@ impl Bazaar {
     #[payable]
     pub fn set_eval_gate(&mut self, gate: Option<EvalGate>) {
         let before = env::storage_usage();
-        let merchant = env::predecessor_account_id();
-        require!(self.merchants.contains_key(&merchant), "only a registered merchant sets its eval gate");
+        let m = env::predecessor_account_id();
+        require!(self.merchants.contains_key(&m), "only a registered merchant sets its eval gate");
         let mut g = eval_gates();
         match gate {
             Some(x) => {
                 require!(x.threshold <= 100 && x.threshold % 10 == 0, "threshold is a score bucket (0, 10, .. 100)");
                 require!(eval_sets().contains_key(&x.set_root), "unknown eval set");
                 require!(!x.subject_suffix.is_empty() && x.subject_suffix.len() <= 64, "bad subject suffix");
-                emit("eval_gate_set", serde_json::json!({ "merchant": merchant, "set_root": x.set_root, "subject_suffix": x.subject_suffix, "threshold": x.threshold }));
-                g.insert(merchant, x);
+                emit("eval_gate_set", serde_json::json!({"merchant": m, "set_root": x.set_root, "subject_suffix": x.subject_suffix, "threshold": x.threshold}));
+                g.insert(m, x);
             }
             None => {
-                g.remove(&merchant);
-                emit("eval_gate_cleared", serde_json::json!({ "merchant": merchant }));
+                g.remove(&m);
+                emit("eval_gate_cleared", serde_json::json!({ "merchant": m }));
             }
         }
         g.flush();
@@ -908,10 +908,10 @@ impl Bazaar {
         let Some(model) = self.model_attestations.get(key).map(|a| a.model.clone()) else {
             return Some("merchant's eval gate: the model key is not registered".into());
         };
-        let subject = format!("{model}{}", g.subject_suffix);
-        (!self.eval_passes(subject.clone(), g.set_root.clone(), g.threshold)).then(|| format!("merchant's eval gate: {subject} does not pass {} on {}", g.threshold, g.set_root))
+        let m = format!("{model}{}", g.subject_suffix);
+        (!self.eval_passes(m.clone(), g.set_root.clone(), g.threshold))
+            .then(|| format!("merchant's eval gate: {m} does not pass {} on {}", g.threshold, g.set_root))
     }
-
     /// The predicate a buyer or a merchant checks: `eval_score_gte(threshold)` for a subject.
     pub fn eval_passes(&self, subject: String, set_root: String, threshold: u8) -> bool {
         self.eval_score(subject, set_root).is_some_and(|s| s >= threshold)

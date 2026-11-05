@@ -20,6 +20,8 @@
 //! links nothing.
 use rand_core::OsRng;
 use sha2::{Digest, Sha256};
+use std::path::Path;
+use std::process::ExitCode;
 use voprf::{BlindedElement, EvaluationElement, Group, Proof, Ristretto255, VoprfClient, VoprfServer};
 
 type Cs = Ristretto255;
@@ -116,6 +118,89 @@ pub fn verify_redemption(rd: &Redemption, pk_hex: &str) -> Result<(), String> {
     Ok(())
 }
 
+// ---------- commands ----------
+
+fn seed_of(keys_dir: &Path) -> Result<Vec<u8>, String> {
+    let p = keys_dir.join("voprf.seed");
+    let s = std::fs::read_to_string(&p).map_err(|_| format!("no VOPRF key at {} (run voprf-keygen)", p.display()))?;
+    unhex(s.trim(), "voprf seed")
+}
+
+/// The evaluator's policy: at most one evaluation per (requester, context). The log keeps the
+/// requester, the context and the blinded element's hash: never an input or a nullifier.
+fn evaluate_once(keys_dir: &Path, requester: &str, context: &str, blinded_hex: &str) -> Result<(String, String), String> {
+    let dir = keys_dir.join("voprf");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let log = dir.join("evaluations.jsonl");
+    let seen = std::fs::read_to_string(&log).unwrap_or_default();
+    let key = serde_json::json!({ "requester": requester, "context": context }).to_string();
+    if seen.lines().any(|l| serde_json::from_str::<serde_json::Value>(l).is_ok_and(|v| v["requester"] == requester && v["context"] == context)) {
+        return Err(format!("the evaluator already evaluated for {key}: one nullifier per requester per context"));
+    }
+    let out = evaluate(&server(&seed_of(keys_dir)?)?, blinded_hex)?;
+    let line =
+        serde_json::json!({ "requester": requester, "context": context, "blinded_sha256": hx(Sha256::digest(unhex(blinded_hex, "blinded")?)) }).to_string();
+    std::fs::write(&log, format!("{seen}{line}\n")).map_err(|e| e.to_string())?;
+    Ok(out)
+}
+
+pub fn run(args: &[String]) -> ExitCode {
+    let r = (|| -> Result<String, String> {
+        match args.first().map(String::as_str) {
+            // voprf-keygen <keys_dir>: a fresh evaluator key (mode 600); prints the public key.
+            Some("voprf-keygen") if args.len() >= 2 => {
+                let p = Path::new(&args[1]).join("voprf.seed");
+                if p.exists() {
+                    return Err(format!("{} exists", p.display()));
+                }
+                let mut s = [0u8; 32];
+                rand_core::RngCore::fill_bytes(&mut OsRng, &mut s);
+                std::fs::write(&p, hx(s) + "\n").map_err(|e| e.to_string())?;
+                #[cfg(unix)]
+                std::fs::set_permissions(&p, std::os::unix::fs::PermissionsExt::from_mode(0o600)).map_err(|e| e.to_string())?;
+                Ok(public_key_hex(&server(&s)?))
+            }
+            Some("voprf-pub") if args.len() >= 2 => Ok(public_key_hex(&server(&seed_of(Path::new(&args[1]))?)?)),
+            // voprf-nullifier <keys_dir> <requester> <context> <anchored_pk_hex> <out.json>: the buyer
+            // blinds a fresh input, the evaluator evaluates once for (requester, context), the buyer
+            // checks the proof under the anchored key and unblinds; then the public redemption record.
+            // out.json (mode 600) keeps the input; stdout is the public record.
+            Some("voprf-nullifier") if args.len() >= 6 => {
+                let keys = Path::new(&args[1]);
+                let (requester, context, pk) = (&args[2], &args[3], &args[4]);
+                let x = fresh_input(context);
+                let (state, blinded) = blind(&x)?;
+                let (e, p) = evaluate_once(keys, requester, context, &blinded)?;
+                let n = finalize(&state, &x, &e, &p, pk)?;
+                let rd = redemption(&server(&seed_of(keys)?)?, &x)?;
+                if rd.nullifier != n {
+                    return Err("redemption and issuance disagree".into());
+                }
+                let out = serde_json::to_string_pretty(&rd).unwrap();
+                std::fs::write(&args[5], out.clone() + "\n").map_err(|e| e.to_string())?;
+                Ok(out)
+            }
+            // voprf-verify <redemption.json> <pk_hex>: anyone; no key.
+            Some("voprf-verify") if args.len() >= 3 => {
+                let rd: Redemption = serde_json::from_str(&std::fs::read_to_string(&args[1]).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+                verify_redemption(&rd, &args[2])?;
+                Ok(format!("PASS  VOPRF nullifier {}.. is F_k(x) under the anchored key {}..", &rd.nullifier[..12], &args[2][..12]))
+            }
+            _ => Err("usage: voprf-keygen <keys_dir> | voprf-pub <keys_dir> | voprf-nullifier <keys_dir> <requester> <context> <pk_hex> <out.json> | voprf-verify <redemption.json> <pk_hex>".into()),
+        }
+    })();
+    match r {
+        Ok(s) => {
+            println!("{s}");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            eprintln!("voprf: {e}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,90 +260,5 @@ mod tests {
         let a = issue(&s, &fresh_input("context-a"));
         let b = issue(&s, &fresh_input("context-b"));
         assert_ne!(a, b);
-    }
-}
-
-// ---------- commands ----------
-
-use std::path::Path;
-use std::process::ExitCode;
-
-fn seed_of(keys_dir: &Path) -> Result<Vec<u8>, String> {
-    let p = keys_dir.join("voprf.seed");
-    let s = std::fs::read_to_string(&p).map_err(|_| format!("no VOPRF key at {} (run voprf-keygen)", p.display()))?;
-    unhex(s.trim(), "voprf seed")
-}
-
-/// The evaluator's policy: at most one evaluation per (requester, context). The log keeps the
-/// requester, the context and the blinded element's hash: never an input or a nullifier.
-fn evaluate_once(keys_dir: &Path, requester: &str, context: &str, blinded_hex: &str) -> Result<(String, String), String> {
-    let dir = keys_dir.join("voprf");
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let log = dir.join("evaluations.jsonl");
-    let seen = std::fs::read_to_string(&log).unwrap_or_default();
-    let key = serde_json::json!({ "requester": requester, "context": context }).to_string();
-    if seen.lines().any(|l| serde_json::from_str::<serde_json::Value>(l).is_ok_and(|v| v["requester"] == requester && v["context"] == context)) {
-        return Err(format!("the evaluator already evaluated for {key}: one nullifier per requester per context"));
-    }
-    let out = evaluate(&server(&seed_of(keys_dir)?)?, blinded_hex)?;
-    let line = serde_json::json!({ "requester": requester, "context": context, "blinded_sha256": hx(Sha256::digest(unhex(blinded_hex, "blinded")?)) }).to_string();
-    std::fs::write(&log, format!("{seen}{line}\n")).map_err(|e| e.to_string())?;
-    Ok(out)
-}
-
-pub fn run(args: &[String]) -> ExitCode {
-    let r = (|| -> Result<String, String> {
-        match args.first().map(String::as_str) {
-            // voprf-keygen <keys_dir>: a fresh evaluator key (mode 600); prints the public key.
-            Some("voprf-keygen") if args.len() >= 2 => {
-                let p = Path::new(&args[1]).join("voprf.seed");
-                if p.exists() {
-                    return Err(format!("{} exists", p.display()));
-                }
-                let mut s = [0u8; 32];
-                rand_core::RngCore::fill_bytes(&mut OsRng, &mut s);
-                std::fs::write(&p, hx(s) + "\n").map_err(|e| e.to_string())?;
-                #[cfg(unix)]
-                std::fs::set_permissions(&p, std::os::unix::fs::PermissionsExt::from_mode(0o600)).map_err(|e| e.to_string())?;
-                Ok(public_key_hex(&server(&s)?))
-            }
-            Some("voprf-pub") if args.len() >= 2 => Ok(public_key_hex(&server(&seed_of(Path::new(&args[1]))?)?)),
-            // voprf-nullifier <keys_dir> <requester> <context> <anchored_pk_hex> <out.json>: the buyer
-            // blinds a fresh input, the evaluator evaluates once for (requester, context), the buyer
-            // checks the proof under the anchored key and unblinds; then the public redemption record.
-            // out.json (mode 600) keeps the input; stdout is the public record.
-            Some("voprf-nullifier") if args.len() >= 6 => {
-                let keys = Path::new(&args[1]);
-                let (requester, context, pk) = (&args[2], &args[3], &args[4]);
-                let x = fresh_input(context);
-                let (state, blinded) = blind(&x)?;
-                let (e, p) = evaluate_once(keys, requester, context, &blinded)?;
-                let n = finalize(&state, &x, &e, &p, pk)?;
-                let rd = redemption(&server(&seed_of(keys)?)?, &x)?;
-                if rd.nullifier != n {
-                    return Err("redemption and issuance disagree".into());
-                }
-                let out = serde_json::to_string_pretty(&rd).unwrap();
-                std::fs::write(&args[5], out.clone() + "\n").map_err(|e| e.to_string())?;
-                Ok(out)
-            }
-            // voprf-verify <redemption.json> <pk_hex>: anyone; no key.
-            Some("voprf-verify") if args.len() >= 3 => {
-                let rd: Redemption = serde_json::from_str(&std::fs::read_to_string(&args[1]).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
-                verify_redemption(&rd, &args[2])?;
-                Ok(format!("PASS  VOPRF nullifier {}.. is F_k(x) under the anchored key {}..", &rd.nullifier[..12], &args[2][..12]))
-            }
-            _ => Err("usage: voprf-keygen <keys_dir> | voprf-pub <keys_dir> | voprf-nullifier <keys_dir> <requester> <context> <pk_hex> <out.json> | voprf-verify <redemption.json> <pk_hex>".into()),
-        }
-    })();
-    match r {
-        Ok(s) => {
-            println!("{s}");
-            ExitCode::SUCCESS
-        }
-        Err(e) => {
-            eprintln!("voprf: {e}");
-            ExitCode::FAILURE
-        }
     }
 }
