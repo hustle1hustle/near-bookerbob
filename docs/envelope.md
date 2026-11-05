@@ -39,4 +39,4 @@ is a host function since protocol 85.
 ## Predicates
 
 Defined in `core/src/tier.rs` (`RULES`): `airbnb_frequent`, `booking_genius`,
-`claude_spender`, `steam_veteran`, `uber_regular`, `world_id_human`. A model cannot add one.
+`claude_spender`, `github_builder`, `steam_veteran`, `uber_regular`, `world_id_human`. A model cannot add one.

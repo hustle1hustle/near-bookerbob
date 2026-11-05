@@ -115,6 +115,14 @@ mod tests {
     }
 
     #[test]
+    fn a_github_account_three_years_old_is_a_builder() {
+        let one = |f: Fact| derive(&ProofSet { facts: vec![f] }).predicates();
+        assert_eq!(one(fact("F6", "github", "account_age_years", 3)), vec!["github_builder"]);
+        assert!(one(fact("F6", "github", "account_age_years", 2)).is_empty());
+        assert!(one(fact("F6", "github", "public_repos", 99)).is_empty(), "repos and followers are revealed, not ruled on");
+    }
+
+    #[test]
     fn unknown_field_is_ignored() {
         let set = ProofSet { facts: vec![fact("F1", "marriott", "status", 99)] };
         assert!(derive(&set).derived.is_empty());

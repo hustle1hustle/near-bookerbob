@@ -5,13 +5,16 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 /// Coarse predicates a verdict may reveal.
-pub const KNOWN_PREDICATES: &[&str] = &["airbnb_frequent", "booking_genius", "claude_spender", "steam_veteran", "uber_regular", "world_id_human"];
+pub const KNOWN_PREDICATES: &[&str] =
+    &["airbnb_frequent", "booking_genius", "claude_spender", "github_builder", "steam_veteran", "uber_regular", "world_id_human"];
 
 /// (platform, field, minimum value, predicate). The whole rule table.
 pub const RULES: &[(&str, &str, u64, &str)] = &[
     ("airbnb", "trips_12m", 3, "airbnb_frequent"),
     ("booking", "genius_level", 2, "booking_genius"),
     ("anthropic", "monthly_spend_usd", 20, "claude_spender"),
+    // `make prove-me`: the account behind an authenticated api.github.com/user, at least 3 years old.
+    ("github", "account_age_years", 3, "github_builder"),
     ("steam", "account_age_years", 5, "steam_veteran"),
     ("uber", "trips_90d", 10, "uber_regular"),
     ("world_id", "verified", 1, "world_id_human"),
@@ -48,6 +51,7 @@ const PLATFORM_WORDS: &[(&str, &str)] = &[
     ("genius", "booking_genius"),
     ("anthropic", "claude_spender"),
     ("claude", "claude_spender"),
+    ("github", "github_builder"),
     ("steam", "steam_veteran"),
     ("uber", "uber_regular"),
     ("world", "world_id_human"),

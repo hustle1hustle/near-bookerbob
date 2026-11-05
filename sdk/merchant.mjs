@@ -7,7 +7,7 @@
 // price in agents/board.json (produced by the Rust code) to keep the two in step.
 import { createHash } from "node:crypto";
 
-export const KNOWN_PREDICATES = ["airbnb_frequent", "booking_genius", "claude_spender", "steam_veteran", "uber_regular", "world_id_human"];
+export const KNOWN_PREDICATES = ["airbnb_frequent", "booking_genius", "claude_spender", "github_builder", "steam_veteran", "uber_regular", "world_id_human"];
 export const K_MIN = 5;
 const BID_TAG = Buffer.from("bookerbob/bid/v0\x00", "latin1");
 
