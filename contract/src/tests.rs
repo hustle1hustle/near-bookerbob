@@ -1204,6 +1204,9 @@ mod near_ai {
         c.set_anchor_delay(60_000);
         c.set_evaluator_key("cd".repeat(32));
         assert_ne!(c.evaluator_key(), Some("cd".repeat(32)));
+        testing_env!(ctx("anyone.testnet").block_timestamp((NOW_MS + 60_001) * 1_000_000).build());
+        c.execute_anchor(1);
+        assert_eq!(c.evaluator_key(), Some("cd".repeat(32)));
     }
 
     #[test]
