@@ -71,5 +71,62 @@
       "merchant_profit_total": 169745,
       "winners": "m01:261 m02:2696 m03:91 m04:1662 m05:2658 m06:50 m07:17 m08:1089 m09:2034 m10:38 m11:104 m12:37 m13:183 m14:44 m15:25 m16:2532 m17:71 m18:460 m19:1496 m20:19 m21:2071 m22:2362"
     }
-  ]
+  ],
+  "merchant": {
+    "none_profit": 369000,
+    "bookerbob_profit": 160999,
+    "loss_pct": 56.4,
+    "profit_ltv_zero": 93718,
+    "loss_pct_ltv_zero": 74.6,
+    "profit_per_sale": {
+      "none": 18.45,
+      "bookerbob": 8.05,
+      "bookerbob_ltv_zero": 4.69
+    },
+    "break_even_ltv_multiple": 4.09,
+    "break_even_volume": 2.29,
+    "break_even_volume_ltv_zero": 3.94,
+    "break_even_elasticity": 2.43,
+    "elastic_demand_assumed": [
+      {
+        "elasticity": 0,
+        "volume": 1,
+        "merchant_profit": 160999,
+        "vs_none_pct": -56.4
+      },
+      {
+        "elasticity": 1,
+        "volume": 1.41,
+        "merchant_profit": 226603,
+        "vs_none_pct": -38.6
+      },
+      {
+        "elasticity": 2,
+        "volume": 1.98,
+        "merchant_profit": 318941,
+        "vs_none_pct": -13.6
+      },
+      {
+        "elasticity": 3,
+        "volume": 2.79,
+        "merchant_profit": 448904,
+        "vs_none_pct": 21.7
+      }
+    ],
+    "discount_per_sale": 11.87,
+    "effective_cac_assumed": [
+      {
+        "incremental": 1,
+        "cost_per_new_customer": 11.87
+      },
+      {
+        "incremental": 0.5,
+        "cost_per_new_customer": 23.74
+      },
+      {
+        "incremental": 0.25,
+        "cost_per_new_customer": 47.48
+      }
+    ]
+  }
 }

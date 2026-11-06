@@ -66,7 +66,7 @@ export function plan(merchants, proven) {
   return best.bits;
 }
 
-function simulate(regime, seed = 7) {
+function simulate(regime, seed = 7, ltvScale = 1) {
   const r = rng(seed);
   const merchants = merchantsFrom(new URL("../agents/merchants.json", import.meta.url));
   const population = Array.from({ length: 2000 }, () => KNOWN_PREDICATES.filter((p) => r() < PREDICATES[p].share));
@@ -85,7 +85,7 @@ function simulate(regime, seed = 7) {
       const win = quotes.reduce((a, q) => (q.p < a.p || (q.p === a.p && q.m.i < a.m.i) ? q : a));
       const ltv = revealed.reduce((a, p) => a + PREDICATES[p].ltv, 0) / 100;
       win.m.wins++;
-      win.m.profit += win.p - win.m.cost + win.p * ltv;
+      win.m.profit += win.p - win.m.cost + win.p * ltv * ltvScale;
       paid += win.p;
       baseline += Math.min(...merchants.map((m) => m.base));
       bits += revealed.length;
@@ -130,7 +130,33 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`market-eval: ${ROUNDS} rounds x ${BUYERS_PER_ROUND} buyers, 22 adaptive hoodie merchants, seed 7 (a model, not market data)\n`);
   console.log("regime      avg price  saving  bits  anonymity set  merchant profit  wins");
   for (const x of rows) console.log(`${x.regime.padEnd(10)}  ${String(x.avg_price).padStart(9)}  ${String(x.avg_saving_vs_lowest_base).padStart(6)}  ${String(x.avg_bits_revealed).padStart(4)}  ${String(x.avg_anonymity_set).padStart(13)}  ${String(x.merchant_profit_total).padStart(15)}  ${x.winners}`);
-  const report = JSON.stringify({ assumptions: { rounds: ROUNDS, buyers_per_round: BUYERS_PER_ROUND, max_bits: MAX_BITS, predicates: PREDICATES, cost: "0.55 x base", floor: "0.62 x base", seed: 7 }, rows }, null, 2) + "\n";
+  // The merchant's side, all from the same run. LTV only moves the books here: merchants adapt
+  // the same way, so profit is linear in the assumed uplift and the break-even is exact.
+  const [none, book] = [rows[0], rows[1]];
+  const flat = simulate("bookerbob", 7, 0);
+  const margin = (x) => x.merchant_profit_total / x.sales;
+  const lift = book.merchant_profit_total - flat.merchant_profit_total;
+  const elastic = [0, 1, 2, 3].map((e) => {
+    const volume = (none.avg_price / book.avg_price) ** e;
+    return { elasticity: e, volume: +volume.toFixed(2), merchant_profit: Math.round(book.merchant_profit_total * volume), vs_none_pct: +((100 * (book.merchant_profit_total * volume)) / none.merchant_profit_total - 100).toFixed(1) };
+  });
+  const merchant = {
+    none_profit: none.merchant_profit_total,
+    bookerbob_profit: book.merchant_profit_total,
+    loss_pct: +((100 * (none.merchant_profit_total - book.merchant_profit_total)) / none.merchant_profit_total).toFixed(1),
+    profit_ltv_zero: flat.merchant_profit_total,
+    loss_pct_ltv_zero: +((100 * (none.merchant_profit_total - flat.merchant_profit_total)) / none.merchant_profit_total).toFixed(1),
+    profit_per_sale: { none: +margin(none).toFixed(2), bookerbob: +margin(book).toFixed(2), bookerbob_ltv_zero: +margin(flat).toFixed(2) },
+    break_even_ltv_multiple: +((none.merchant_profit_total - flat.merchant_profit_total) / lift).toFixed(2),
+    break_even_volume: +(none.merchant_profit_total / book.merchant_profit_total).toFixed(2),
+    break_even_volume_ltv_zero: +(none.merchant_profit_total / flat.merchant_profit_total).toFixed(2),
+    break_even_elasticity: +(Math.log(none.merchant_profit_total / book.merchant_profit_total) / Math.log(none.avg_price / book.avg_price)).toFixed(2),
+    elastic_demand_assumed: elastic,
+    discount_per_sale: book.avg_saving_vs_lowest_base,
+    effective_cac_assumed: [1, 0.5, 0.25].map((incremental) => ({ incremental, cost_per_new_customer: +(book.avg_saving_vs_lowest_base / incremental).toFixed(2) })),
+  };
+  console.log(`\nmerchant side: ${merchant.loss_pct}% less profit than no disclosure, ${merchant.loss_pct_ltv_zero}% with LTV 0; break-even at ${merchant.break_even_ltv_multiple}x the assumed LTV, or ${merchant.break_even_volume}x volume (elasticity ${merchant.break_even_elasticity})`);
+  const report = JSON.stringify({ assumptions: { rounds: ROUNDS, buyers_per_round: BUYERS_PER_ROUND, max_bits: MAX_BITS, predicates: PREDICATES, cost: "0.55 x base", floor: "0.62 x base", seed: 7 }, rows, merchant }, null, 2) + "\n";
   const file = new URL("../docs/market-eval.json", import.meta.url);
   // --check: the table the docs publish must be what this code computes.
   if (process.argv.includes("--check")) {
