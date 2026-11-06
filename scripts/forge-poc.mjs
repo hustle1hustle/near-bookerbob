@@ -1,15 +1,11 @@
 #!/usr/bin/env node
-// `make forge-poc`: a KNOWN LIMIT, shown on purpose. Nothing here touches the chain.
+// `make forge-poc`: the attack the verdict evaluator exists for. Nothing here touches the chain.
 //
-// On the model path the buyer writes the prompt and the facts. The contract sees only the hash
-// of the request, and check_binding only checks that it is hex, so a real TEE signature on a
-// real answer says what the model was told, not what is true. This script asks the attested
-// model about a fact we invent, with no proof and no notary, and gets the predicate with a valid
-// TEE signature. Submitting that answer with a real binding is the forgery; the contract test
-// known_limit_the_prompt_is_never_checked shows the contract has nothing to refuse it with.
-//
-// Bound today: the buyer still gets the discount only at schedule prices, and the facts are
-// synthetic on every purchase. The fix (an evaluator countersignature) is not built. About $0.001.
+// A real TEE signature on a real answer says what the model was told, not what is true. This
+// script asks the attested model about a fact we invent, with no proof and no notary, and gets the
+// predicate with a valid TEE signature. The record predates the fix on purpose: today the contract
+// refuses such an answer, because the evaluator never signed that request (contract test
+// a_signed_answer_about_a_prompt_the_evaluator_did_not_build_is_refused). About $0.001.
 // `node scripts/forge-poc.mjs verify` rechecks the committed record offline, no key.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { clientKey, edVerify, fieldKey, openField, openWith, sealTo, sha } from "./lib/e2ee.mjs";
@@ -25,7 +21,7 @@ function verify() {
   const answer = JSON.parse(openField(body.choices[0].message.content, Buffer.from(r.response_key, "hex")).match(/\{[\s\S]*\}/)[0]);
   const [, sReq, sRes] = r.signature.text.split(":");
   const ok = edVerify(r.signature.text, r.signature.signature, r.signing_key) && sRes === sha(Buffer.from(r.response)) && sReq === r.request_sha256 && answer.predicates.includes(RULE.predicate) && answer.bind === r.bind;
-  console.log(`${ok ? "PASS" : "FAIL"}  forge PoC: the model attested ${RULE.predicate} from a typed fact, TEE signature valid (a known limit, README)`);
+  console.log(`${ok ? "PASS" : "FAIL"}  forge PoC: the model attested ${RULE.predicate} from a typed fact, TEE signature valid (the contract refuses it without the evaluator)`);
   return ok;
 }
 

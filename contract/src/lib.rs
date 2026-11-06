@@ -2110,6 +2110,23 @@ impl Bazaar {
         env::storage_read(b"voprf_key").and_then(|b| String::from_utf8(b).ok())
     }
 
+    /// The evaluator's ed25519 key (hex): a model verdict needs its signature on the request, so
+    /// a buyer cannot bring an answer about facts of their own typing. An anchor: it waits out the
+    /// public delay. Unset, the model path is closed.
+    pub fn set_evaluator_key(&mut self, public_key: String) {
+        self.assert_owner();
+        require!(bookerbob_core::is_hex32(&public_key), "bad evaluator key");
+        if self.queue_anchor("evaluator_key", serde_json::json!({ "public_key": public_key })) {
+            return;
+        }
+        env::storage_write(b"evaluator_key", public_key.as_bytes());
+        emit("evaluator_key_set", serde_json::json!({ "public_key": public_key }));
+    }
+
+    pub fn evaluator_key(&self) -> Option<String> {
+        env::storage_read(b"evaluator_key").and_then(|b| String::from_utf8(b).ok())
+    }
+
     pub fn quote_verifier(&self) -> Option<AccountId> {
         stored_quote_verifier()
     }
@@ -2181,6 +2198,11 @@ impl Bazaar {
         if let Err(msg) = bookerbob_core::near_ai::check_binding(&envelope, &proof) {
             env::panic_str(msg);
         }
+        let evaluator = self.evaluator_key().unwrap_or_else(|| env::panic_str("no evaluator key anchored"));
+        let esig: [u8; 64] = decode(&proof.evaluator_sig, "evaluator signature");
+        let ekey: [u8; 32] = decode(&evaluator, "evaluator key");
+        let msg = bookerbob_core::near_ai::evaluator_message(&envelope, &proof.request_sha256);
+        require!(env::ed25519_verify(&esig, &msg, &ekey), "bad evaluator signature");
         self.accept_verdict(&envelope, format!("near-ai:{}", proof.signing_key));
         emit("near_ai_verdict", serde_json::json!({ "nullifier": envelope.nullifier, "chat_id": proof.chat_id, "signing_key": proof.signing_key }));
         charge_storage_plus(before, RECORD_RESERVE_BYTES);

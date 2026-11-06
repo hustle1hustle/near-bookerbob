@@ -1135,19 +1135,70 @@ mod near_ai {
             tcb_status: e.attestation.tcb_status.clone(),
         };
         c.register_model_attestation(p.signing_key.clone(), att);
+        c.set_evaluator_key(hex::encode(evaluator().verifying_key().to_bytes()));
         attest(&mut c, &e.cnf, 9);
         set(&e.cnf);
+        let mut p = p;
+        p.evaluator_sig = countersign(&e, &p.request_sha256);
         (c, e, p)
     }
 
-    /// KNOWN LIMIT, not a feature (README, "Known limits"; make forge-poc). The buyer writes the
-    /// prompt and the facts. The request hash is only checked to be hex, so nothing ties an
-    /// answer to a proof: the contract has nothing to refuse an answer about invented facts with.
+    fn evaluator() -> SigningKey {
+        SigningKey::from_bytes(&[8u8; 32])
+    }
+
+    fn countersign(e: &Envelope, request_sha256: &str) -> String {
+        hex::encode(evaluator().sign(&bookerbob_core::near_ai::evaluator_message(e, request_sha256)).to_bytes())
+    }
+
+    /// `make forge-poc`: a real TEE signature on an answer about a typed fact. The binding alone
+    /// passes, so the evaluator's signature is what stands between that answer and a record.
     #[test]
-    fn known_limit_the_prompt_is_never_checked() {
-        let (_, e, mut p) = chain();
-        p.request_sha256 = bookerbob_core::sha256_hex(b"any prompt the buyer wrote, any facts");
+    #[should_panic(expected = "evaluator signature")]
+    fn a_signed_answer_about_a_prompt_the_evaluator_did_not_build_is_refused() {
+        let (mut c, e, mut p) = chain();
+        p.evaluator_sig = String::new();
         assert!(bookerbob_core::near_ai::check_binding(&e, &p).is_ok());
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "bad evaluator signature")]
+    fn an_evaluator_signature_does_not_move_to_another_request() {
+        let (mut c, e, mut p) = chain();
+        p.evaluator_sig = countersign(&e, &"ab".repeat(32));
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "bad evaluator signature")]
+    fn an_evaluator_signature_does_not_move_to_another_envelope() {
+        let (mut c, e, mut p) = chain();
+        let mut other = e.clone();
+        other.max_spend += 1;
+        p.evaluator_sig = countersign(&other, &p.request_sha256);
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "no evaluator key anchored")]
+    fn with_no_evaluator_key_the_model_path_is_closed() {
+        let (e, p) = captured();
+        set("owner.testnet");
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        let att = ModelAttestation { model: e.attestation.model.clone(), nonce: p.nonce.clone(), report_hash: bookerbob_core::sha256_hex(REPORT), tcb_status: e.attestation.tcb_status.clone() };
+        c.register_model_attestation(p.signing_key.clone(), att);
+        set(&e.cnf);
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    fn the_evaluator_key_is_an_anchor() {
+        let (mut c, _, _) = chain();
+        set("owner.testnet");
+        c.set_anchor_delay(60_000);
+        c.set_evaluator_key("cd".repeat(32));
+        assert_ne!(c.evaluator_key(), Some("cd".repeat(32)));
     }
 
     #[test]

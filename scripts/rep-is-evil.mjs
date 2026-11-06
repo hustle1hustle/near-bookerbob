@@ -45,6 +45,13 @@ export const KEYS = [
     shown: "make verify check 22 and the 2-of-3 threshold contract tests",
   },
   {
+    key: "the verdict evaluator key (KEYS_DIR/evaluator.seed, one holder: REP)",
+    live: async () => `evaluator_key ${(await view(LIVE, "evaluator_key"))?.slice(0, 12) ?? "none"}.. on ${LIVE}`,
+    worst: "countersigns a model request about facts it made up, which is the buyer's forgery done by REP; reads every fact it is given, in the clear",
+    limits: "an anchor behind the public delay, nothing else; schedule prices and one spend per nullifier still hold",
+    shown: "cargo test -p bookerbob-bazaar evaluator",
+  },
+  {
     key: "the VOPRF evaluator key (KEYS_DIR/voprf.seed, one holder: REP)",
     live: async () => `voprf_key ${(await view(LIVE, "voprf_key"))?.slice(0, 12) ?? "none"}.. anchored on ${LIVE}; ${await view(LIVE, "spent_count")} nullifiers spent, the VOPRF ones since 2026-11-05 (earlier ones are an HMAC or a labelled fixture placeholder, both recomputable)`,
     worst: "refuses to evaluate; evaluates twice for one person in one context (a second nullifier: a sybil, like the issuer key); sees which requester asked in which context and when, so a lone request just before a purchase is a timing link",

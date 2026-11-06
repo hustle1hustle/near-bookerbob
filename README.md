@@ -167,7 +167,8 @@ case, reads live from testnet that the key is trusted today, and names the offli
 | **the referee and the Jolt worker** | a false receipt or a false standing update | the contract accepts only a price its own schedule code produces; an arbiter re-runs the receipt check; a standing update can be challenged with a bond and a false one slashes the worker | **REP** (seeds; the OutLayer attested key is not registered yet) | signs receipts for unproven claims, or a false standing list; capped at schedule prices, and a standing update can be challenged (by REP's arbiter today) |
 | **the dispute arbiter** | uphold a false update or overturn an honest receipt | nothing on chain beyond its signature; a threshold of distinct arbiters is built (2 of 3 in tests) | **REP**: the one live arbiter key (threshold 1) and all three test keys | with the referee, a false receipt stands and a false update is upheld; nothing outside REP checks it today |
 | **a broken TEE** (the NEAR AI enclave: Intel TDX, NVIDIA GPU) | reads the facts sealed to it; signs predicates the facts do not prove; signs eval answers | what still holds: the referee re-checks every claim against the proof set, the contract pays only a price its own schedule code produces, the Jolt proofs (price, referee, standing, cohort) and the VOPRF nullifier do not depend on the TEE; what does not: the sealed facts leak, and model-issued verdicts and eval scores can be forged | Intel and NVIDIA (the attestation roots) and NEAR AI (the operator) | (not REP; REP cannot break it, and it cannot tell from chain that it was broken) |
-| **the buyer, on the model path** | facts it made up: the buyer writes the prompt and the facts | nothing today: the contract sees only the request's hash and checks only that it is hex, and the model attests what it was told (`make forge-poc`, one live answer about a typed fact; a labelled contract test) | the buyer | (not REP); an evaluator countersignature would close it, not built. Bound today: schedule prices, one spend per nullifier |
+| **the buyer, on the model path** | facts it made up: a signed answer about a typed fact (`make forge-poc`, one live) | the contract refuses a model verdict without the verdict evaluator's signature on that request and envelope, so a buyer's own chat has no way in (contract tests) | the buyer | (not REP). Bound as well: schedule prices, one spend per nullifier |
+| **the verdict evaluator** | signs a request about any facts: the same forgery, from REP | nothing on chain: the key is an anchor behind the public delay, and that is all | REP (one key, `evaluator.seed`) | it reads the facts in the clear and builds the prompt; a worker in a TEE would move this, not built |
 | **the zkTLS notary** | a transcript it never saw | nothing at settle: no contract path reads a notary signature; `make try` and `make prove-me` check it off chain, on the buyer's own machine | **REP** (one pinned key on Fly, not TEE-attested) | signs any transcript; nothing on chain notices |
 | a merchant after payment | takes the money and ships nothing | nothing on chain: settle pays on the receipt, delivery is not checked; a refund bond covers an overturned receipt, not a missing parcel. The orders so far are test-store orders | the merchant | (not REP) |
 | **one operator** | the market looks like many parties | the labels on the board (`REP-run`); nothing else: the relayer, treasury, issuer, referee, arbiter, evaluator and all 30 listed merchants are REP | **REP** | can bid against itself and see every funded account; competition on testnet is simulated, one outside agent aside |
@@ -214,10 +215,12 @@ calls were the founder's, not a session's:
 
 ## Known limits
 
-- **The model path checks the answer, not the prompt.** The buyer writes the prompt and the
-  facts, `check_binding` only checks that `request_sha256` is hex, and no notary proof is
-  checked at settle. `make forge-poc` shows the model attesting a typed fact with a valid TEE
-  signature. Not fixed.
+- **The model path trusts one evaluator with the prompt.** The contract cannot read a sealed
+  request, so it requires the signature of REP's verdict evaluator, which builds the request
+  from the proof set the envelope names. That closes the buyer's forgery (`make forge-poc`) and
+  moves the trust to REP: the evaluator reads the facts in the clear, checks that the proof set
+  is the one named, not a notary's signature, and no notary proof is checked at settle. Verdicts
+  from before the evaluator were not countersigned.
 - **A sealed verdict hides predicates, the price does not.** L10 prints which bit sets each
   settled amount leaves; on m01 every amount so far leaves one. Buying groups on a fixed tier
   do not decode, which is why the k-gate routes small sets there.

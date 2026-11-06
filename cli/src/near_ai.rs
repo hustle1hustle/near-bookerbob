@@ -54,6 +54,7 @@ pub fn proof(dir: &Path) -> (Envelope, bookerbob_core::near_ai::NearAiProof) {
         response,
         response_key: cap.response_key,
         signature: sig.signature,
+        evaluator_sig: String::new(),
     };
     (cap.envelope, p)
 }
@@ -319,7 +320,7 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
 
 /// One fresh bazaar on the mocked chain: owner registers the model attestation with
 /// `registered_nonce`, the agent binds its World ID, then submits the NEAR AI verdict.
-fn chain_case(e: Envelope, p: bookerbob_core::near_ai::NearAiProof, registered_nonce: String, report_hash: String, tcb: String) -> Result<String, String> {
+fn chain_case(e: Envelope, mut p: bookerbob_core::near_ai::NearAiProof, registered_nonce: String, report_hash: String, tcb: String) -> Result<String, String> {
     use bookerbob_bazaar::{Bazaar, ModelAttestation, RECORD_DEPOSIT};
     use near_sdk::test_utils::VMContextBuilder;
     use near_sdk::testing_env;
@@ -341,6 +342,10 @@ fn chain_case(e: Envelope, p: bookerbob_core::near_ai::NearAiProof, registered_n
         p.signing_key.clone(),
         ModelAttestation { model: e.attestation.model.clone(), nonce: registered_nonce, report_hash, tcb_status: tcb },
     );
+    // The fixture evaluator: the capture predates it, so its signature is made here.
+    let evaluator = ed25519_dalek::SigningKey::from_bytes(&[8u8; 32]);
+    c.set_evaluator_key(hex::encode(evaluator.verifying_key().to_bytes()));
+    p.evaluator_sig = hex::encode(ed25519_dalek::Signer::sign(&evaluator, &bookerbob_core::near_ai::evaluator_message(&e, &p.request_sha256)).to_bytes());
     at(&e.cnf);
     c.attest_human(w);
     let n = e.nullifier.clone();

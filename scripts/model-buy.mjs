@@ -7,7 +7,8 @@
 //     quote verification). It answers with the predicates the rules derive and echoes `bind`, a
 //     digest of every envelope field it does not compute. Its TEE signature covers both wire hashes.
 //  3. submit_near_ai_verdict: the contract checks the registered key, the attestation nonce, the
-//     TEE signature, the binding and that every revealed predicate is one the model attested.
+//     TEE signature, the evaluator's signature on this request, the binding and that every
+//     revealed predicate is one the model attested.
 //  4. The gate: the same verdict asks vetted (its eval gate, fixtures/live/eval-gate/run.json) for
 //     a receipt, and the contract refuses it.
 //  5. m01 (no gate): receipt, escrow, settle in dUSDC, the replay refused.
@@ -80,6 +81,9 @@ export async function issue(client, bazaar, base, proofsPath, keysDir) {
   const [, sReq, sRes] = sig.text.split(":");
   if (!edVerify(sig.text, sig.signature, sig.signing_address) || sReq !== sha(req) || sRes !== sha(resBytes) || sig.signing_address !== MODEL_KEY) throw new Error("the TEE signature does not cover these bytes with the registered key");
   const proof = { chat_id: body.id, signing_key: MODEL_KEY, nonce: att.nonce, request_sha256: sha(req), response: resBytes.toString("utf8"), response_key: fieldKey(wire, me.xSecret), signature: sig.signature };
+  // The evaluator: this process built the request above from the proof set, so it signs that
+  // request for this envelope. A buyer's own chat about typed facts gets no such signature.
+  proof.evaluator_sig = cli(["evaluator-sign", keysDir, join(dir, "draft.json"), proof.request_sha256, proofsPath]);
   console.log(`   ${att.model} (E2EE v2, facts sealed to the registered key ${MODEL_KEY.slice(0, 12)}..): ${answer.predicates.join(", ")}; binding echoed; TEE signature valid`);
   return { envelope: { ...draft, predicates: base.predicates }, proof, record: { model: att.model, signing_key: MODEL_KEY, chat_id: body.id, request_sha256: sha(req), response_sha256: sha(resBytes), attested: answer.predicates } };
 }

@@ -33,6 +33,16 @@ pub struct NearAiProof {
     pub response_key: String,
     /// Hex ed25519 TEE signature over `signed_text`.
     pub signature: String,
+    /// Hex ed25519 signature of the evaluator over `evaluator_message`: it built this request
+    /// from the proof set the envelope names. Empty on records from before the evaluator.
+    #[serde(default)]
+    pub evaluator_sig: String,
+}
+
+/// What the evaluator signs: this request belongs to this envelope, so an answer about a prompt
+/// the evaluator did not build, or moved to another verdict, has no signature.
+pub fn evaluator_message(e: &Envelope, request_sha256: &str) -> Vec<u8> {
+    format!("bookerbob/evaluator/v1|{request_sha256}|{}", hex::encode(e.digest())).into_bytes()
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
