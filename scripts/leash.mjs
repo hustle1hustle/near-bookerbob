@@ -17,7 +17,7 @@ const TGAS = 10n ** 12n;
 const fc = (method_name, args, deposit = 0n, gas = 100n * TGAS) => ({ type: "FunctionCall", method_name, args, gas, deposit });
 
 /** The bytes the owner signs: core/src/mandate.rs, same string (tested on both sides). */
-export const mandateMessage = (m) => `bookerbob/mandate/v1|${JSON.stringify([m.agent, m.owner_key, m.max_per_purchase, m.max_total, m.expires_at_ms, m.round ?? null, m.nonce])}`;
+export const mandateMessage = (m) => `bookerbob/mandate/v1|${JSON.stringify([m.bazaar, m.agent, m.owner_key, m.max_per_purchase, m.max_total, m.expires_at_ms, m.round ?? null, m.nonce])}`;
 export const mandateHash = (m) => createHash("sha256").update(mandateMessage(m)).digest("hex");
 
 async function run() {
@@ -33,7 +33,7 @@ async function run() {
     beforeSettle: async ({ tester, rec, d }) => {
       const expires_at_ms = Date.now() + 3_600_000;
       const leash = async (nonce, per, total, r) => {
-        const m = { agent: tester.id, owner_key: owner.pub, max_per_purchase: String(per), max_total: String(total), expires_at_ms, round: r, nonce };
+        const m = { bazaar: c.bazaar, agent: tester.id, owner_key: owner.pub, max_per_purchase: String(per), max_total: String(total), expires_at_ms, round: r, nonce };
         const signature = sign(null, Buffer.from(mandateMessage(m)), owner.priv).toString("hex");
         const t = await d.relay("set_mandate", tester, c.bazaar, fc("set_mandate", { mandate: m, signature }, 10n * MILLI));
         out.mandates.push({ ...m, tx: t.hash });

@@ -40,7 +40,7 @@ async function run() {
   if (persons < 5) throw new Error(`${c.merchant} has ${persons} people in its group, under k`);
   const out = { merchant: c.merchant, bazaar: c.bazaar, bps: BPS, txs: {} };
   if ((await d.client.view(c.bazaar, "returning_bps", { merchant: c.merchant })) !== BPS) {
-    const r = spawnSync("near", ["contract", "call-function", "as-transaction", c.bazaar, "set_returning_bps", "json-args", JSON.stringify({ bps: BPS }), "prepaid-gas", "30.0 Tgas", "attached-deposit", "0 NEAR", "sign-as", c.merchant, "network-config", "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
+    const r = spawnSync("near", ["contract", "call-function", "as-transaction", c.bazaar, "set_returning_bps", "json-args", JSON.stringify({ bps: BPS }), "prepaid-gas", "30.0 Tgas", "attached-deposit", "0.001 NEAR", "sign-as", c.merchant, "network-config", "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
     if (r.status !== 0) throw new Error(`set_returning_bps: ${(r.stderr ?? "").slice(-300)}`);
     out.txs.set_bps = /Transaction ID: (\S+)/.exec(`${r.stdout}${r.stderr}`)?.[1] ?? null;
   }

@@ -787,6 +787,44 @@ fn an_overturned_receipt_after_settle_refunds_the_buyer_from_the_merchant_bond()
     assert!(get_logs().iter().any(|l| l.contains("dispute_overturned_after_settle") && l.contains(&format!("\"refund\":\"{price}\""))));
 }
 
+/// A settled purchase with a bond behind it and one signed overturning decision, at `bps` off.
+fn disputed_purchase(bps: u16) -> (Bazaar, SignedVerdict, (Vec<Claim>, WorkerResult), u128) {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    set(USDC);
+    let _ = c.ft_on_transfer(acc("m01.bazaar.testnet"), U128(500_000_000), "bond".into());
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    assert!(c.submit_referee_result(forged.clone()));
+    let m = acc("m01.bazaar.testnet");
+    near_sdk::env::storage_write(format!("rc|{}", e.nullifier).as_bytes(), &[&bps.to_le_bytes()[..], m.as_bytes()].concat());
+    let receipt = c.verdict(e.nullifier.clone()).unwrap().receipt.unwrap().price.0;
+    let paid = receipt - receipt * bps as u128 / 10_000;
+    set("agent.testnet");
+    let _ = c.settle(e.nullifier.clone(), m, "o-1".into(), U128(paid));
+    (c, v, (cheat, forged), paid)
+}
+
+#[test]
+#[should_panic(expected = "already refunded for this dispute")]
+fn a_signed_decision_refunds_once() {
+    let (mut c, v, (cheat, forged), _) = disputed_purchase(0);
+    assert!(c.submit_dispute_decision(decide(&v, &forged, cheat.clone())));
+    c.submit_dispute_decision(decide(&v, &forged, cheat));
+}
+
+#[test]
+fn a_dispute_refunds_what_was_paid_not_the_receipt() {
+    let (mut c, v, (cheat, forged), paid) = disputed_purchase(2000);
+    assert!(c.submit_dispute_decision(decide(&v, &forged, cheat)));
+    assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)), "whole, and not ahead");
+    assert_eq!(c.merchant_bond(acc("m01.bazaar.testnet"), "usdc".into()), U128(500_000_000 - paid));
+}
+
 #[test]
 fn a_bond_from_an_unapproved_account_is_returned() {
     let mut c = setup();
@@ -1148,7 +1186,7 @@ mod near_ai {
     }
 
     fn countersign(e: &Envelope, request_sha256: &str) -> String {
-        hex::encode(evaluator().sign(&bookerbob_core::near_ai::evaluator_message(e, request_sha256)).to_bytes())
+        hex::encode(evaluator().sign(&bookerbob_core::near_ai::evaluator_message("bazaar.testnet", e, request_sha256)).to_bytes())
     }
 
     /// `make forge-poc`: a real TEE signature on an answer about a typed fact. The binding alone
@@ -1177,6 +1215,15 @@ mod near_ai {
         let mut other = e.clone();
         other.max_spend += 1;
         p.evaluator_sig = countersign(&other, &p.request_sha256);
+        c.submit_near_ai_verdict(e, p);
+    }
+
+    #[test]
+    #[should_panic(expected = "bad evaluator signature")]
+    fn an_evaluator_signature_does_not_move_to_another_bazaar() {
+        let (mut c, e, mut p) = chain();
+        let msg = bookerbob_core::near_ai::evaluator_message("market.testnet", &e, &p.request_sha256);
+        p.evaluator_sig = hex::encode(evaluator().sign(&msg).to_bytes());
         c.submit_near_ai_verdict(e, p);
     }
 
@@ -3406,6 +3453,14 @@ mod group_treasury {
     }
 
     #[test]
+    #[should_panic(expected = "pledges stand on the current offer")]
+    fn a_pledged_pot_cannot_be_moved_to_another_offer() {
+        let (mut c, _, key, _) = pledged();
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key, 1000);
+    }
+
+    #[test]
     fn pledges_stay_in_the_bazaar_until_the_dao_releases_them() {
         let (mut c, b, key, price) = pledged();
         let t = c.group_treasury(key.clone()).unwrap();
@@ -3602,6 +3657,7 @@ mod leash {
 
     fn mandate(per: u128, total: u128, nonce: u64) -> Mandate {
         Mandate {
+            bazaar: "bazaar.testnet".into(),
             agent: AGENT.into(),
             owner_key: hex::encode(owner().verifying_key().to_bytes()),
             max_per_purchase: per,
@@ -3742,6 +3798,27 @@ mod leash {
         m.owner_key = hex::encode(k.verifying_key().to_bytes());
         set(AGENT);
         c.set_mandate(m.clone(), hex::encode(k.sign(&m.signing_message()).to_bytes()));
+    }
+
+    #[test]
+    #[should_panic(expected = "mandate is for another bazaar")]
+    fn a_mandate_does_not_move_to_another_bazaar() {
+        let mut c = setup();
+        let mut m = mandate(PRICE, PRICE, 1);
+        m.bazaar = "market.testnet".into();
+        leash(&mut c, &m);
+    }
+
+    #[test]
+    #[should_panic(expected = "not the winner of the mandate's round")]
+    fn a_loser_that_later_undercuts_is_not_paid_its_old_receipt() {
+        let mut c = round_mandate(true);
+        at("m01.bazaar.testnet", REVEAL_UNTIL);
+        let mut s = schedule();
+        s.base_price = 50_000_000;
+        c.merchants.get_mut(&acc("m01.bazaar.testnet")).unwrap().schedule = s;
+        at(AGENT, REVEAL_UNTIL);
+        let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "o".into(), U128(PRICE));
     }
 
     #[test]

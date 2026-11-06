@@ -83,7 +83,7 @@ export async function issue(client, bazaar, base, proofsPath, keysDir) {
   const proof = { chat_id: body.id, signing_key: MODEL_KEY, nonce: att.nonce, request_sha256: sha(req), response: resBytes.toString("utf8"), response_key: fieldKey(wire, me.xSecret), signature: sig.signature };
   // The evaluator: this process built the request above from the proof set, so it signs that
   // request for this envelope. A buyer's own chat about typed facts gets no such signature.
-  proof.evaluator_sig = cli(["evaluator-sign", keysDir, join(dir, "draft.json"), proof.request_sha256, proofsPath]);
+  proof.evaluator_sig = cli(["evaluator-sign", keysDir, bazaar, join(dir, "draft.json"), proof.request_sha256, proofsPath]);
   console.log(`   ${att.model} (E2EE v2, facts sealed to the registered key ${MODEL_KEY.slice(0, 12)}..): ${answer.predicates.join(", ")}; binding echoed; TEE signature valid`);
   return { envelope: { ...draft, predicates: base.predicates }, proof, record: { model: att.model, signing_key: MODEL_KEY, chat_id: body.id, request_sha256: sha(req), response_sha256: sha(resBytes), attested: answer.predicates } };
 }

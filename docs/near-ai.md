@@ -29,7 +29,7 @@ scheme without encryption.
 
 1. `GET /v1/attestation/report?model=...&signing_algo=ed25519&nonce=<32 random bytes>`.
 2. One E2EE v2 chat, built by the verdict evaluator from the proof set the envelope names. It
-   signs `bookerbob/evaluator/v1|request_sha256|envelope digest`, and `submit_near_ai_verdict`
+   signs `bookerbob/evaluator/v1|bazaar|request_sha256|envelope digest`, and `submit_near_ai_verdict`
    refuses a verdict without that signature under the anchored `evaluator_key`, because the
    contract cannot read a sealed request. The system prompt and the user message (rule table, the synthetic
    fixture facts, and `bind`) are sealed to the attested model key. The model answers

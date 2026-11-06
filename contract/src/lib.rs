@@ -1396,11 +1396,14 @@ impl Bazaar {
     }
 
     /// The merchant's discount for a proven returning customer, in bps, at most 2000.
+    #[payable]
     pub fn set_returning_bps(&mut self, bps: u16) {
+        let before = env::storage_usage();
         let merchant = env::predecessor_account_id();
         require!(self.merchants.contains_key(&merchant), "unknown merchant");
         require!(bps <= 2000, "returning discount over 20%");
         env::storage_write(format!("rb|{merchant}").as_bytes(), &bps.to_le_bytes());
+        charge_storage(before);
     }
 
     pub fn returning_bps(&self, merchant: AccountId) -> u16 {
@@ -1683,6 +1686,8 @@ impl Bazaar {
         require!(m.category == g.category, "another category");
         require!(GROUP_TIERS.iter().any(|(_, b)| *b == bps), "offer one of the fixed tiers (10% or 20%)");
         require!(bps <= group_tier(g.persons), "the group has not reached that tier");
+        // Members pledged to a merchant's receipt: the pot cannot be moved to another one.
+        require!(group_treasuries().get(&group).is_none_or(|t| t.pledged.is_empty()), "pledges stand on the current offer");
         let first = g.members.first().expect("a group has members");
         let v = self.verdicts.get(first).expect("member verdict");
         let base = self.quote_for(&m.schedule, v).price;
@@ -1771,6 +1776,9 @@ impl Bazaar {
         require!(!t.refunded.contains(&nullifier), "already refunded");
         let agent = self.verdicts.get(&nullifier).expect("member verdict").agent.clone();
         self.credit(&agent, amount, true);
+        if mandate_of(&agent).is_some() {
+            set_mandate_spent(&agent, mandate_spent(&agent).saturating_sub(amount));
+        }
         let mut sf = settle_fees();
         if let Some(fee) = sf.remove(&nullifier) {
             sf.flush();
@@ -2100,6 +2108,7 @@ impl Bazaar {
     #[payable]
     pub fn set_mandate(&mut self, mandate: bookerbob_core::mandate::Mandate, signature: String) {
         let before = env::storage_usage();
+        require!(mandate.bazaar == env::current_account_id().as_str(), "mandate is for another bazaar");
         let agent: AccountId = mandate.agent.parse().unwrap_or_else(|_| env::panic_str("bad agent"));
         let sig: [u8; 64] = decode(&signature, "mandate signature");
         let key: [u8; 32] = decode(&mandate.owner_key, "owner key");
@@ -2257,7 +2266,7 @@ impl Bazaar {
         let evaluator = self.evaluator_key().unwrap_or_else(|| env::panic_str("no evaluator key anchored"));
         let esig: [u8; 64] = decode(&proof.evaluator_sig, "evaluator signature");
         let ekey: [u8; 32] = decode(&evaluator, "evaluator key");
-        let msg = bookerbob_core::near_ai::evaluator_message(&envelope, &proof.request_sha256);
+        let msg = bookerbob_core::near_ai::evaluator_message(env::current_account_id().as_str(), &envelope, &proof.request_sha256);
         require!(env::ed25519_verify(&esig, &msg, &ekey), "bad evaluator signature");
         self.accept_verdict(&envelope, format!("near-ai:{}", proof.signing_key));
         emit("near_ai_verdict", serde_json::json!({ "nullifier": envelope.nullifier, "chat_id": proof.chat_id, "signing_key": proof.signing_key }));
@@ -2739,10 +2748,13 @@ impl Bazaar {
             }
             "overturned" => {
                 if record.spent {
+                    // Once: the signed decision is public, and anyone could send it again.
+                    require!(!record.disputed, "already refunded for this dispute");
                     record.disputed = true;
                     // The liability ledger pays: the merchant's bond in the token the buyer
-                    // paid refunds the price (up to the bond) into the buyer's escrow.
-                    let (agent, price, merchant) = (record.agent.clone(), receipt.price.0, receipt.merchant.clone());
+                    // paid refunds what was paid (up to the bond) into the buyer's escrow.
+                    let paid = env::storage_read(format!("pp|{}", b.nullifier).as_bytes()).map(|v| u128::from_le_bytes(v.try_into().expect("u128")));
+                    let (agent, price, merchant) = (record.agent.clone(), paid.unwrap_or(receipt.price.0), receipt.merchant.clone());
                     let demo = demo_paid().contains_key(&b.nullifier);
                     let mut bonds = merchant_bonds();
                     let key = format!("{merchant}|{}", if demo { "demo" } else { "usdc" });
@@ -2914,6 +2926,10 @@ impl Bazaar {
         let record = self.verdicts.get_mut(nullifier).expect("checked above");
         record.spent = true;
         record.checkout_ref = Some(checkout_ref.to_string());
+        // Under the receipt price, a dispute must refund this, not the receipt.
+        if group_bps > 0 {
+            env::storage_write(format!("pp|{nullifier}").as_bytes(), &price.to_le_bytes());
+        }
         // The liability record: what this payment relied on, hashed, queryable per nullifier.
         // Written before draw_reserve, so its bytes come from the agent's prepaid reserve.
         let record = self.verdicts.get(nullifier).expect("checked above");
@@ -2988,8 +3004,10 @@ impl Bazaar {
         let spent = mandate_spent(agent) + price;
         require!(spent <= m.max_total, "over the mandate's total limit");
         if let Some(round) = &m.round {
-            let winner = self.round_winner(round, nullifier).map(|q| q.merchant);
-            require!(winner.as_ref() == Some(merchant), "not the winner of the mandate's round");
+            // Live schedules, so a receipt from before a later bid must still be the winner's price.
+            let receipt = self.verdicts.get(nullifier).and_then(|r| r.receipt.as_ref()).map(|r| r.price.0);
+            let won = self.round_winner(round, nullifier).is_some_and(|q| &q.merchant == merchant && Some(q.quote.price) == receipt);
+            require!(won, "not the winner of the mandate's round");
         }
         set_mandate_spent(agent, spent);
         Some(m.hash_hex())

@@ -229,7 +229,8 @@ calls were the founder's, not a session's:
 - The Leash (`set_mandate`) bounds one account, not a person. It holds what that account pays:
   per purchase, in total, by expiry, to a round's winner, and a live mandate shuts `withdraw`.
   An agent can open another account, and an agent that sets its own key as owner has no leash,
-  so check `mandate(agent)`. After expiry `withdraw` goes to the agent's account, so an owner who
+  so check `mandate(agent)`. A round mandate needs a revealed verdict and a fresh receipt: it reads
+  the winner from live schedules and refuses a receipt at any other price. After expiry `withdraw` goes to the agent's account, so an owner who
   fears the agent key should drain first. A dispute refund does not give the limit back.
 - `reveal_bid` has no forfeit: a merchant that committed can skip the reveal and lose nothing,
   so a late look at rivals is free.

@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Mandate {
+    /// The bazaar it holds on: a mandate signed for one does not move to another.
+    pub bazaar: String,
     pub agent: String,
     /// Hex ed25519 key of the owner; the only key that can replace this mandate.
     pub owner_key: String,
@@ -22,7 +24,16 @@ pub struct Mandate {
 impl Mandate {
     /// The bytes the owner signs. scripts/leash.mjs builds the same string.
     pub fn signing_message(&self) -> Vec<u8> {
-        let body = (&self.agent, &self.owner_key, self.max_per_purchase.to_string(), self.max_total.to_string(), self.expires_at_ms, &self.round, self.nonce);
+        let body = (
+            &self.bazaar,
+            &self.agent,
+            &self.owner_key,
+            self.max_per_purchase.to_string(),
+            self.max_total.to_string(),
+            self.expires_at_ms,
+            &self.round,
+            self.nonce,
+        );
         format!("bookerbob/mandate/v1|{}", serde_json::to_string(&body).expect("json")).into_bytes()
     }
 
@@ -37,7 +48,16 @@ mod tests {
 
     #[test]
     fn the_signed_string_is_the_one_the_script_builds() {
-        let m = Mandate { agent: "a.testnet".into(), owner_key: "ab".into(), max_per_purchase: 5, max_total: 7, expires_at_ms: 9, round: None, nonce: 1 };
-        assert_eq!(String::from_utf8(m.signing_message()).unwrap(), r#"bookerbob/mandate/v1|["a.testnet","ab","5","7",9,null,1]"#);
+        let m = Mandate {
+            bazaar: "b.testnet".into(),
+            agent: "a.testnet".into(),
+            owner_key: "ab".into(),
+            max_per_purchase: 5,
+            max_total: 7,
+            expires_at_ms: 9,
+            round: None,
+            nonce: 1,
+        };
+        assert_eq!(String::from_utf8(m.signing_message()).unwrap(), r#"bookerbob/mandate/v1|["b.testnet","a.testnet","ab","5","7",9,null,1]"#);
     }
 }

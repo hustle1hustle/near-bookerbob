@@ -51,7 +51,7 @@ fn load_seed(dir: &Path, role: &str) -> Result<SigningKey, String> {
 /// `evaluator-sign`: the evaluator's signature on a request it built itself from this proof set,
 /// which the envelope must name. It cannot read a sealed request, so the seed belongs only to the
 /// process that builds the prompt. Only the signature leaves `dir`.
-pub fn evaluator_sign(dir: &Path, draft: &Path, request_sha256: &str, proofs: &Path) -> Result<String, String> {
+pub fn evaluator_sign(dir: &Path, bazaar: &str, draft: &Path, request_sha256: &str, proofs: &Path) -> Result<String, String> {
     use ed25519_dalek::Signer;
     let read = |p: &Path| std::fs::read_to_string(p).map_err(|e| format!("read {}: {e}", p.display()));
     let e: bookerbob_core::Envelope = serde_json::from_str(&read(draft)?).map_err(|e| e.to_string())?;
@@ -63,7 +63,7 @@ pub fn evaluator_sign(dir: &Path, draft: &Path, request_sha256: &str, proofs: &P
         return Err("the envelope names another proof set".into());
     }
     let key = load_seed(dir, "evaluator")?;
-    Ok(hex::encode(key.sign(&bookerbob_core::near_ai::evaluator_message(&e, request_sha256)).to_bytes()))
+    Ok(hex::encode(key.sign(&bookerbob_core::near_ai::evaluator_message(bazaar, &e, request_sha256)).to_bytes()))
 }
 
 /// A standing score update for `submit_graph_scores`, signed by the referee (worker) seed:

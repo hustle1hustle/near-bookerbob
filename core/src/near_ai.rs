@@ -40,9 +40,9 @@ pub struct NearAiProof {
 }
 
 /// What the evaluator signs: this request belongs to this envelope, so an answer about a prompt
-/// the evaluator did not build, or moved to another verdict, has no signature.
-pub fn evaluator_message(e: &Envelope, request_sha256: &str) -> Vec<u8> {
-    format!("bookerbob/evaluator/v1|{request_sha256}|{}", hex::encode(e.digest())).into_bytes()
+/// the evaluator did not build, moved to another verdict or to another bazaar has no signature.
+pub fn evaluator_message(bazaar: &str, e: &Envelope, request_sha256: &str) -> Vec<u8> {
+    format!("bookerbob/evaluator/v1|{bazaar}|{request_sha256}|{}", hex::encode(e.digest())).into_bytes()
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]

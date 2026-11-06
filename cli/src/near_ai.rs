@@ -345,7 +345,9 @@ fn chain_case(e: Envelope, mut p: bookerbob_core::near_ai::NearAiProof, register
     // The fixture evaluator: the capture predates it, so its signature is made here.
     let evaluator = ed25519_dalek::SigningKey::from_bytes(&[8u8; 32]);
     c.set_evaluator_key(hex::encode(evaluator.verifying_key().to_bytes()));
-    p.evaluator_sig = hex::encode(ed25519_dalek::Signer::sign(&evaluator, &bookerbob_core::near_ai::evaluator_message(&e, &p.request_sha256)).to_bytes());
+    p.evaluator_sig = hex::encode(
+        ed25519_dalek::Signer::sign(&evaluator, &bookerbob_core::near_ai::evaluator_message(crate::fixtures::OWNER, &e, &p.request_sha256)).to_bytes(),
+    );
     at(&e.cnf);
     c.attest_human(w);
     let n = e.nullifier.clone();

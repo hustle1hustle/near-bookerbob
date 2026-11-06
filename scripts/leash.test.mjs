@@ -2,10 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LOSER, OVER, mandateHash, mandateMessage, verifyRun } from "./leash.mjs";
 
-const m = { agent: "a.testnet", owner_key: "ab", max_per_purchase: "5", max_total: "7", expires_at_ms: 9, round: null, nonce: 1 };
+const m = { bazaar: "b.testnet", agent: "a.testnet", owner_key: "ab", max_per_purchase: "5", max_total: "7", expires_at_ms: 9, round: null, nonce: 1 };
 
 test("the signed string is the one core/src/mandate.rs builds", () => {
-  assert.equal(mandateMessage(m), 'bookerbob/mandate/v1|["a.testnet","ab","5","7",9,null,1]');
+  assert.equal(mandateMessage(m), 'bookerbob/mandate/v1|["b.testnet","a.testnet","ab","5","7",9,null,1]');
 });
 
 const failed = (why) => ({ transaction_outcome: { outcome: { logs: [], status: {} } }, receipts_outcome: [{ outcome: { logs: [], status: { Failure: { ActionError: { kind: { FunctionCallError: { ExecutionError: why } } } } } } }] });
