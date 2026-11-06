@@ -39,6 +39,7 @@ export const PREDICATES = {
   booking_genius: { share: 0.2, ltv: 9 },
   uber_regular: { share: 0.35, ltv: 6 },
   steam_veteran: { share: 0.15, ltv: 3 },
+  github_builder: { share: 0.1, ltv: 8 },
 };
 
 export function merchantsFrom(file) {
@@ -129,5 +130,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`market-eval: ${ROUNDS} rounds x ${BUYERS_PER_ROUND} buyers, 22 adaptive hoodie merchants, seed 7 (a model, not market data)\n`);
   console.log("regime      avg price  saving  bits  anonymity set  merchant profit  wins");
   for (const x of rows) console.log(`${x.regime.padEnd(10)}  ${String(x.avg_price).padStart(9)}  ${String(x.avg_saving_vs_lowest_base).padStart(6)}  ${String(x.avg_bits_revealed).padStart(4)}  ${String(x.avg_anonymity_set).padStart(13)}  ${String(x.merchant_profit_total).padStart(15)}  ${x.winners}`);
-  writeFileSync(new URL("../docs/market-eval.json", import.meta.url), JSON.stringify({ assumptions: { rounds: ROUNDS, buyers_per_round: BUYERS_PER_ROUND, max_bits: MAX_BITS, predicates: PREDICATES, cost: "0.55 x base", floor: "0.62 x base", seed: 7 }, rows }, null, 2) + "\n");
+  const report = JSON.stringify({ assumptions: { rounds: ROUNDS, buyers_per_round: BUYERS_PER_ROUND, max_bits: MAX_BITS, predicates: PREDICATES, cost: "0.55 x base", floor: "0.62 x base", seed: 7 }, rows }, null, 2) + "\n";
+  const file = new URL("../docs/market-eval.json", import.meta.url);
+  // --check: the table the docs publish must be what this code computes.
+  if (process.argv.includes("--check")) {
+    if (readFileSync(file, "utf8") !== report) {
+      console.error("FAIL  docs/market-eval.json differs from this run: make market-eval and commit it");
+      process.exit(1);
+    }
+    console.log("\nPASS  docs/market-eval.json is what this code computes");
+  } else writeFileSync(file, report);
 }

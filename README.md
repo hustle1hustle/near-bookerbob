@@ -12,12 +12,12 @@ merchants compete for you. none of them learns who you are.
 
 | command | what you see |
 |---|---|
-| `make judge` | about 2 s offline (2.1 s on a fresh clone), about a minute online (longer when public RPC rate-limits); ends `PASS  make judge` |
+| `make judge` | about 3 s offline, about a minute online (longer when public RPC rate-limits); ends `PASS  make judge` |
 | `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live` |
 | `make verify` | the contract on near-sdk's mocked chain (Rust), ends `ALL PASS (26 checks)`; with no network, `make verify-offline` (the same checks from the vendored crates) |
 
 **Fresh clone, timed** (2026-11-05, a clean clone, an empty `CARGO_HOME`, macOS arm64):
-`make judge` about 2 s offline (2.1 s on a fresh clone),
+`make judge` 2.1 s offline (about 1 s more since it runs `make market-eval`),
 about a minute online (longer when public RPC rate-limits); `make verify-offline` 77 s with no network; `make verify` 114 s with the network
 (crates fetched); `make verify-live` 17 s; `make test` 36 s; `make zk-verify-prebuilt` 1.3 s.
 All pass. Logs: `fixtures/live/offline-run/`.
@@ -29,9 +29,9 @@ All pass. Logs: `fixtures/live/offline-run/`.
 - a sealed verdict (hashes only on chain) settled at 38.40, an amount 5 buyers share: [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS)
 - a buying group of 5 at the 10% tier on m01, 32.40 each (`make leak` gates every amount and funding set at k >= 5)
 
-**What is synthetic.** Every fact behind every verdict, with one exception: a `make prove-me`
-pipeline test notarized a public GitHub profile (a real fact about a public account, not proof
-that the buyer holds it; docs/prove-me.md). The phone run is parked (docs/device-run.md). Also synthetic: the rest of every proof set, the World ID action (a placeholder, our verifier key) and
+**What is synthetic.** Every fact behind every verdict, with two exceptions of one kind: a
+`make prove-me` and a `make try` pipeline test each notarized a public GitHub profile (a real
+fact about a public account, not proof that the buyer holds it; docs/prove-me.md). The phone run is parked (docs/device-run.md). Also synthetic: the rest of every proof set, the World ID action (a placeholder, our verifier key) and
 the money (dUSDC on testnet; nothing is on mainnet). Every trust key is REP's today: the
 issuer, the referee, the one live arbiter (and the three test arbiters) and the nullifier key
 (see "Who can lie" below).
@@ -108,7 +108,7 @@ Every feature with its status and evidence: [the table below](#every-feature-its
 
 ## Try it
 
-- `make judge`: about 2 s offline (2.1 s on a fresh clone), about a minute online (longer when public RPC rate-limits).
+- `make judge`: about 3 s offline, about a minute online (longer when public RPC rate-limits).
   Node 22, no keys, no build. It checks every testnet claim over public RPC, or from
   the committed RPC snapshot with no network (`JUDGE_OFFLINE=1` forces it), the committed Jolt
   proofs' outputs and program hashes, the REP Eval and NVIDIA checks, and the JS suites.
@@ -214,7 +214,8 @@ calls were the founder's, not a session's:
 - Callers pay for the storage they add (`submit_verdict`, `register_merchant`,
   `attest_human`, unused deposit refunded); `storage_deposit` opens an escrow entry for
   0.01 NEAR.
-- No refunds after a dispute that lands after settle; the record is only flagged.
+- A dispute that lands after settle refunds the buyer only from a merchant's refund bond, up to
+  that bond; with no bond the record is only flagged, and no refund has run live.
 - Sealed reviews: group membership is public (a commitment joins right after a settle),
   the anonymity set is the group size (5 at worst), the sender of `submit_review` and
   `reveal_review` is public (use a fresh account or a relayer), and a member who skips

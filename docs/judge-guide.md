@@ -15,7 +15,7 @@ chain, offline.
 
 ## Minute 1: open
 
-- `README.md`, the "NEAR features used" table: every row says live, built, stub or planned.
+- `README.md`, "Every feature, its status and its evidence": every row says live, built, stub or planned.
   It is generated from `docs/status.json`, and `make judge` fails if a row drifts.
 - `docs/evidence.md`: measured numbers (time, eval pass rate, storage and gas per method,
   who pays).
@@ -23,7 +23,7 @@ chain, offline.
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only: about 2 s offline (2.1 s on a fresh clone), about a minute online (longer when public RPC rate-limits)
+make judge           # Node 22 only: about 3 s offline, about a minute online (longer when public RPC rate-limits)
 make verify          # Rust stable; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```

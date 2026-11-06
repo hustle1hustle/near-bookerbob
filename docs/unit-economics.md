@@ -48,7 +48,7 @@ for itself at 1%; a buying group settles one record per member, so it does not h
 ## The merchant's side
 
 - **What a discount buys:** in the market model (`docs/market-eval.md`, a simulation with
-  stated assumptions, not market data) a proven buyer pays 29.26 against 41.00 with no
+  stated assumptions, not market data) a proven buyer pays 29.13 against 41.00 with no
   disclosure. The merchant pays that discount for a customer the proof says is worth it.
 - **The discount is real: the base-price anchor.** A "20% off" means nothing if the merchant
   raised the base first. `set_price_anchor` caps a merchant's base at a public price from a

@@ -234,8 +234,9 @@ and 0 on the live bazaar today.
   (docs/jolt.md).
 - A valid TDX quote here binds a measured image, but only the one we observed: MRTD, RTMR0-3
   and the compose hash are checked and pinned to our capture, not yet to NEAR AI's published
-  build; the GPU is not attested; and `tcb_status` on chain is what the owner registered after
-  the off-chain check (docs/near-ai.md).
+  build; the GPU is attested off chain only (NVIDIA NRAS, `scripts/nras.mjs`); and `tcb_status`
+  on chain comes from the on-chain quote check, while the measurement pin stays off chain
+  (docs/near-ai.md).
 - TEE side channels: the NEAR AI verdict path trusts Intel TDX. A side-channel break leaks
   the facts sealed to the enclave; it does not let anyone forge a contract-side check
   (signatures, nullifiers, Semaphore, the k floor).

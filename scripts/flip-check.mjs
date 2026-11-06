@@ -27,6 +27,7 @@ async function pre() {
   run("cargo fmt --all -- --check", "cargo", ["fmt", "--all", "--", "--check"]);
   run("cargo clippy, warnings denied", "cargo", ["clippy", "--workspace", "--all-targets", "-j", "2", "--", "-D", "warnings"]);
   run("make test", "make", ["test"]);
+  run("make market-eval: the published table is what the code computes", "node", ["scripts/market-eval.mjs", "--check"]);
   run("make wasm-parity: this source rebuilds the deployed wasm", "make", ["wasm-parity"]);
   const files = execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split("\n");
   const bad = files.filter((f) => /\.(seed|key|pem|p12)$|(^|\/)\.env$|\.presentation$|^PANEL\/|(^|\/)FOUNDER-COMMANDS/i.test(f));

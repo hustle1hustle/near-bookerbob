@@ -50,6 +50,8 @@ if (live.status !== 0) console.log(live.stdout.split("\n").filter((l) => l.start
 
 // 1b. the README's status table is generated from docs/status.json and every live row has
 // testnet evidence; a stale phrase anywhere in the docs fails here.
+const mk = spawnSync("node", ["scripts/market-eval.mjs", "--check"], { cwd: root, encoding: "utf8" });
+line(mk.status === 0, "make market-eval: the published table is what the code computes", mk.status === 0 ? "1,000 simulated rounds, a model with stated assumptions" : mk.stderr.trim().split("\n").pop());
 const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
 line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
 
@@ -76,10 +78,21 @@ for (const [v, what] of [["v2", "600 tokens: the budget result"], ["v3", "2,000 
 {
   const dep = JSON.parse(readFileSync(`${root}contract/DEPLOYED.json`, "utf8"));
   if (online) {
-    const rpcUrl = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
-    const hashOf = async (a) => (await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "view_account", finality: "final", account_id: a } }) }).then((r) => r.json()).catch(() => null))?.result?.code_hash;
-    const hashes = await Promise.all(dep.accounts.map(hashOf));
-    line(hashes.every((h) => h === dep.code_hash), `code parity: ${dep.accounts.join(" and ")} run the tagged build ${dep.tag} (make wasm-parity rebuilds it)`, hashes.map((h, i) => `${dep.accounts[i].split(".")[0]} ${h?.slice(0, 10)}..`).join(", ") + `; DEPLOYED ${dep.code_hash.slice(0, 10)}..`);
+    // Public RPC rate-limits: retry, then a second and third endpoint. A hash we could not read
+    // is a SKIP, not a FAIL; only a hash that differs is a failure.
+    const rpcs = [process.env.NEAR_RPC || "https://test.rpc.fastnear.com", "https://archival-rpc.testnet.fastnear.com", "https://rpc.testnet.fastnear.com"];
+    const hashOf = async (a) => {
+      for (let i = 0; i < 6; i++) {
+        const r = await fetch(rpcs[i % rpcs.length], { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(10_000), body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "view_account", finality: "final", account_id: a } }) }).then((x) => (x.ok ? x.json() : null)).catch(() => null);
+        if (r?.result?.code_hash) return r.result.code_hash;
+        await new Promise((d) => setTimeout(d, 500 * (i + 1)));
+      }
+      return null;
+    };
+    const hashes = [];
+    for (const a of dep.accounts) hashes.push(await hashOf(a));
+    if (hashes.some((h) => !h) && hashes.every((h) => !h || h === dep.code_hash)) console.log(`SKIP  code parity: public RPC unreachable after retries on ${rpcs.length} endpoints (DEPLOYED.json names ${dep.code_hash.slice(0, 10)}.., tag ${dep.tag})`);
+    else line(hashes.every((h) => h === dep.code_hash), `code parity: ${dep.accounts.join(" and ")} run the tagged build ${dep.tag} (make wasm-parity rebuilds it)`, hashes.map((h, i) => `${dep.accounts[i].split(".")[0]} ${h?.slice(0, 10)}..`).join(", ") + `; DEPLOYED ${dep.code_hash.slice(0, 10)}..`);
   } else console.log(`SKIP  code parity: no network (DEPLOYED.json names ${dep.code_hash.slice(0, 10)}.., tag ${dep.tag})`);
 }
 

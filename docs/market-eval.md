@@ -7,11 +7,11 @@ adaptive merchants under three disclosure regimes:
 | regime | what a merchant learns | avg price | saving vs lowest base | bits revealed | anonymity set (of 2,000) |
 |---|---|---|---|---|---|
 | none | nothing | 41.00 | 0.00 | 0 | 2,000 |
-| bookerbob | at most 3 proven bits, picked by the planner | 29.26 | 11.74 | 1.57 | about 562 |
-| full | every proven bit and who the buyer is | 29.26 | 11.74 | 1.88 | 1 |
+| bookerbob | at most 3 proven bits, picked by the planner | 29.13 | 11.87 | 1.62 | about 541 |
+| full | every proven bit and who the buyer is | 29.13 | 11.87 | 1.99 | 1 |
 
 Reading: with competing merchants, BookerBob's buyer gets the same price as a buyer who
-gives everything away, while revealing fewer bits and staying one of about 562 people who
+gives everything away, while revealing fewer bits and staying one of about 541 people who
 match what was revealed, instead of one of one. Without disclosure, nobody can price the
 value a proven customer brings, so everyone pays the lowest base price.
 

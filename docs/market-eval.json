@@ -27,6 +27,10 @@
       "steam_veteran": {
         "share": 0.15,
         "ltv": 3
+      },
+      "github_builder": {
+        "share": 0.1,
+        "ltv": 8
       }
     },
     "cost": "0.55 x base",
@@ -49,23 +53,23 @@
       "regime": "bookerbob",
       "rounds": 1000,
       "sales": 20000,
-      "avg_price": 29.26,
-      "avg_saving_vs_lowest_base": 11.74,
-      "avg_bits_revealed": 1.57,
-      "avg_anonymity_set": 562,
-      "merchant_profit_total": 161597,
-      "winners": "m01:226 m02:2666 m03:73 m04:1712 m05:2945 m06:49 m07:15 m08:979 m09:2140 m10:29 m11:51 m12:38 m13:158 m14:34 m15:17 m16:2678 m17:61 m18:415 m19:1565 m20:15 m21:1972 m22:2162"
+      "avg_price": 29.13,
+      "avg_saving_vs_lowest_base": 11.87,
+      "avg_bits_revealed": 1.62,
+      "avg_anonymity_set": 541,
+      "merchant_profit_total": 160999,
+      "winners": "m01:279 m02:2647 m03:64 m04:1678 m05:2636 m06:56 m07:19 m08:1115 m09:2155 m10:30 m11:68 m12:38 m13:168 m14:34 m15:20 m16:2429 m17:52 m18:548 m19:1592 m20:15 m21:1963 m22:2394"
     },
     {
       "regime": "full",
       "rounds": 1000,
       "sales": 20000,
-      "avg_price": 29.26,
-      "avg_saving_vs_lowest_base": 11.74,
-      "avg_bits_revealed": 1.88,
+      "avg_price": 29.13,
+      "avg_saving_vs_lowest_base": 11.87,
+      "avg_bits_revealed": 1.99,
       "avg_anonymity_set": 1,
-      "merchant_profit_total": 168576,
-      "winners": "m01:231 m02:2655 m03:69 m04:1673 m05:3014 m06:48 m07:18 m08:946 m09:2122 m10:33 m11:53 m12:38 m13:175 m14:34 m15:20 m16:2826 m17:64 m18:430 m19:1511 m20:19 m21:1888 m22:2133"
+      "merchant_profit_total": 169745,
+      "winners": "m01:261 m02:2696 m03:91 m04:1662 m05:2658 m06:50 m07:17 m08:1089 m09:2034 m10:38 m11:104 m12:37 m13:183 m14:44 m15:25 m16:2532 m17:71 m18:460 m19:1496 m20:19 m21:2071 m22:2362"
     }
   ]
 }
