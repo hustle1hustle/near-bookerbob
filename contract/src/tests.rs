@@ -817,6 +817,59 @@ fn a_signed_decision_refunds_once() {
     c.submit_dispute_decision(decide(&v, &forged, cheat));
 }
 
+/// The public replay: an overturned receipt sent again, settled, the old decision sent again.
+#[test]
+#[should_panic(expected = "this referee result was overturned")]
+fn an_overturned_result_cannot_be_brought_back() {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    assert!(c.submit_referee_result(forged.clone()));
+    assert!(c.submit_dispute_decision(decide(&v, &forged, cheat)));
+    c.submit_referee_result(forged);
+}
+
+#[test]
+fn an_honest_result_still_lands_after_an_overturned_one() {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    assert!(c.submit_referee_result(forged.clone()));
+    assert!(c.submit_dispute_decision(decide(&v, &forged, cheat)));
+    assert!(c.submit_referee_result(referee_result(&e, honest_claims(), &referee_key())));
+}
+
+#[test]
+fn a_failed_payout_clears_what_was_paid() {
+    let mut c = setup();
+    let e = envelope(1, "agent.testnet");
+    submit_with_receipt(&mut c, e.clone());
+    let m = acc("m01.bazaar.testnet");
+    near_sdk::env::storage_write(format!("rc|{}", e.nullifier).as_bytes(), &[&500u16.to_le_bytes()[..], m.as_bytes()].concat());
+    let _ = c.settle(e.nullifier.clone(), m, "o-1".into(), U128(143_640_000));
+    let n = e.nullifier;
+    assert!(near_sdk::env::storage_has_key(format!("pp|{n}").as_bytes()));
+    testing_env!(
+        ctx("bazaar.testnet").build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![PromiseResult::Failed]
+    );
+    assert!(!c.on_settle_transfer(n.clone(), acc("agent.testnet"), U128(143_640_000), None));
+    assert!(!near_sdk::env::storage_has_key(format!("pp|{n}").as_bytes()));
+}
+
 #[test]
 fn a_dispute_refunds_what_was_paid_not_the_receipt() {
     let (mut c, v, (cheat, forged), paid) = disputed_purchase(2000);
@@ -3450,6 +3503,50 @@ mod group_treasury {
             c.pledge_group_demo(n.clone(), format!("g-{i}"), U128(price));
         }
         (c, b, key, price)
+    }
+
+    /// An arbiter's overturning decision on what the chain holds for this pledge.
+    fn overturn(c: &mut Bazaar, n: &str) -> bool {
+        set("owner.testnet");
+        c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+        let r = c.verdict(n.to_string()).unwrap();
+        let body = bookerbob_core::DisputeBody {
+            v: 0,
+            nullifier: n.to_string(),
+            verdict_digest: r.digest.clone(),
+            referee_result_sha256: r.receipt.unwrap().result_sha256,
+            decision: "overturned".into(),
+            reasons: vec!["test".into()],
+        };
+        let signature = hex::encode(arbiter_key().sign(&body.signing_message()).to_bytes());
+        c.submit_dispute_decision(bookerbob_core::DisputeDecision { body, arbiter_key: hex::encode(arbiter_key().verifying_key().to_bytes()), signature })
+    }
+
+    #[test]
+    #[should_panic(expected = "the group's DAO holds this pledge")]
+    fn a_held_pledge_is_the_daos_to_refund_not_the_bonds() {
+        let (mut c, b, _, _) = pledged();
+        overturn(&mut c, &b[0].1);
+    }
+
+    #[test]
+    #[should_panic(expected = "the group's DAO holds this pledge")]
+    fn a_pledge_the_dao_refunded_gets_nothing_from_the_bond() {
+        let (mut c, b, key, _) = pledged();
+        set_no_deposit(DAO);
+        c.refund_group(key, b[0].1.clone());
+        overturn(&mut c, &b[0].1);
+    }
+
+    #[test]
+    fn an_offer_reopens_once_every_pledge_is_refunded() {
+        let (mut c, b, key, _) = pledged();
+        for (_, n) in &b {
+            set_no_deposit(DAO);
+            c.refund_group(key.clone(), n.clone());
+        }
+        set_no_deposit("m01.bazaar.testnet");
+        c.offer_group(key, 1000);
     }
 
     #[test]

@@ -231,7 +231,8 @@ calls were the founder's, not a session's:
   An agent can open another account, and an agent that sets its own key as owner has no leash,
   so check `mandate(agent)`. A round mandate needs a revealed verdict and a fresh receipt: it reads
   the winner from live schedules and refuses a receipt at any other price. After expiry `withdraw` goes to the agent's account, so an owner who
-  fears the agent key should drain first. A dispute refund does not give the limit back.
+  fears the agent key should drain first. A dispute refund does not give the limit back, and a refund after the owner replaced the mandate
+  comes off the new one's count.
 - `reveal_bid` has no forfeit: a merchant that committed can skip the reveal and lose nothing,
   so a late look at rivals is free.
 - The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's

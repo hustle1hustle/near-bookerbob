@@ -1687,7 +1687,7 @@ impl Bazaar {
         require!(GROUP_TIERS.iter().any(|(_, b)| *b == bps), "offer one of the fixed tiers (10% or 20%)");
         require!(bps <= group_tier(g.persons), "the group has not reached that tier");
         // Members pledged to a merchant's receipt: the pot cannot be moved to another one.
-        require!(group_treasuries().get(&group).is_none_or(|t| t.pledged.is_empty()), "pledges stand on the current offer");
+        require!(group_treasuries().get(&group).is_none_or(|t| t.pledged.iter().all(|(n, _)| t.refunded.contains(n))), "pledges stand on the current offer");
         let first = g.members.first().expect("a group has members");
         let v = self.verdicts.get(first).expect("member verdict");
         let base = self.quote_for(&m.schedule, v).price;
@@ -1774,7 +1774,9 @@ impl Bazaar {
         let mut t = self.assert_group_dao(&group);
         let amount = t.pledged.iter().find(|(n, _)| n == &nullifier).map(|(_, a)| a.0).unwrap_or_else(|| env::panic_str("not a pledge in this group"));
         require!(!t.refunded.contains(&nullifier), "already refunded");
-        let agent = self.verdicts.get(&nullifier).expect("member verdict").agent.clone();
+        let record = self.verdicts.get(&nullifier).expect("member verdict");
+        require!(!record.disputed, "already refunded by a dispute");
+        let agent = record.agent.clone();
         self.credit(&agent, amount, true);
         if mandate_of(&agent).is_some() {
             set_mandate_spent(&agent, mandate_spent(&agent).saturating_sub(amount));
@@ -2654,6 +2656,8 @@ impl Bazaar {
         let merchant: AccountId = b.merchant.parse().unwrap_or_else(|_| env::panic_str("bad merchant"));
         let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
         let current = self.verdicts.get(&b.nullifier).cloned().unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        // The signed result is public: an overturned one cannot be sent again to bring it back.
+        require!(!env::storage_has_key(format!("ot|{}", hex::encode(env::sha256_array(b.signing_message()))).as_bytes()), "this referee result was overturned");
         if b.outcome == "receipt" {
             if let Some(why) = self.eval_gate_refusal(&merchant, &current.issuer) {
                 env::panic_str(&why);
@@ -2750,6 +2754,13 @@ impl Bazaar {
                 if record.spent {
                     // Once: the signed decision is public, and anyone could send it again.
                     require!(!record.disputed, "already refunded for this dispute");
+                    // A pledge in a pot the merchant has not been paid is the DAO's to refund,
+                    // and one it refunded is whole: the bond owes neither.
+                    if let Some(t) = intents().get(&b.nullifier).and_then(|k| group_treasuries().get(k).cloned()) {
+                        if t.pledged.iter().any(|(n, _)| n == &b.nullifier) {
+                            require!(t.released && !t.refunded.contains(&b.nullifier), "the group's DAO holds this pledge");
+                        }
+                    }
                     record.disputed = true;
                     // The liability ledger pays: the merchant's bond in the token the buyer
                     // paid refunds what was paid (up to the bond) into the buyer's escrow.
@@ -2771,6 +2782,7 @@ impl Bazaar {
                     );
                 } else {
                     record.receipt = None;
+                    env::storage_write(format!("ot|{}", b.referee_result_sha256).as_bytes(), b"1");
                     emit("dispute_overturned", serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons, "referee": receipt.referee }));
                 }
                 true
@@ -2926,10 +2938,6 @@ impl Bazaar {
         let record = self.verdicts.get_mut(nullifier).expect("checked above");
         record.spent = true;
         record.checkout_ref = Some(checkout_ref.to_string());
-        // Under the receipt price, a dispute must refund this, not the receipt.
-        if group_bps > 0 {
-            env::storage_write(format!("pp|{nullifier}").as_bytes(), &price.to_le_bytes());
-        }
         // The liability record: what this payment relied on, hashed, queryable per nullifier.
         // Written before draw_reserve, so its bytes come from the agent's prepaid reserve.
         let record = self.verdicts.get(nullifier).expect("checked above");
@@ -2958,6 +2966,11 @@ impl Bazaar {
         l.flush();
         self.verdicts.flush();
         self.draw_reserve(nullifier, before);
+        // Under the receipt price, a dispute must refund this, not the receipt. Past the reserve
+        // on purpose: the record's 768 bytes are spoken for. A failed payout clears it.
+        if group_bps > 0 {
+            env::storage_write(format!("pp|{nullifier}").as_bytes(), &price.to_le_bytes());
+        }
         self.spent_count += 1;
         emit(
             "settled",
@@ -3015,6 +3028,7 @@ impl Bazaar {
 
     fn on_settle_rollback(&mut self, nullifier: &str, agent: &AccountId, amount: U128, demo: bool) {
         self.credit(agent, amount.0, demo);
+        env::storage_remove(format!("pp|{nullifier}").as_bytes());
         if mandate_of(agent).is_some() {
             set_mandate_spent(agent, mandate_spent(agent).saturating_sub(amount.0));
         }
