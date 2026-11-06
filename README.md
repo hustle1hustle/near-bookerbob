@@ -221,6 +221,11 @@ calls were the founder's, not a session's:
   moves the trust to REP: the evaluator reads the facts in the clear, checks that the proof set
   is the one named, not a notary's signature, and no notary proof is checked at settle. Verdicts
   from before the evaluator were not countersigned.
+- **Two money bugs are live until the Nov 10 redeploy.** Testnet tokens and merchant bonds only.
+  A signed dispute decision can be sent again, and each replay refunds the buyer from the
+  merchant's bond. A lower group offer posted after members pledged moves their pot to a merchant
+  with no receipt for it. Found by our own audit on 2026-11-06, both fixed in the contract batch
+  (`contract-batch`), not yet deployed.
 - **A sealed verdict hides predicates, the price does not.** L10 prints which bit sets each
   settled amount leaves; on m01 every amount so far leaves one. Buying groups on a fixed tier
   do not decode, which is why the k-gate routes small sets there.
@@ -250,6 +255,8 @@ calls were the founder's, not a session's:
   the anonymity set is the group size (5 at worst), the sender of `submit_review` and
   `reveal_review` is public (use a fresh account or a relayer), and a member who skips
   the reveal drops out silently. The trusted setup is Semaphore's V4 ceremony.
+- A pledge counts as paid when `on_group_release` runs. A group's own DAO that starves that
+  callback of gas leaves the pot sent and its members unable to dispute.
 - Buy Twice (`claim_returning`) proves a past purchase, not loyalty. REP, or anyone, can buy the
   bit for one purchase at price plus fee, and a membership then earns a claim every 30 days. A
   member can hand a proof to a chosen buyer. A person with two purchases holds two memberships

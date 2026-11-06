@@ -297,7 +297,7 @@ fn set_mandate_spent(agent: &AccountId, v: u128) {
 
 /// A live mandate holds the escrow: `withdraw` would walk around every limit it sets.
 fn require_no_live_mandate(agent: &AccountId) {
-    require!(!mandate_of(agent).is_some_and(|m| env::block_timestamp_ms() < m.expires_at_ms), "a live mandate holds this escrow");
+    require!(mandate_of(agent).is_none_or(|m| env::block_timestamp_ms() >= m.expires_at_ms), "a live mandate holds this escrow");
 }
 
 fn stored_quote_verifier() -> Option<AccountId> {
@@ -2112,7 +2112,7 @@ impl Bazaar {
         let agent: AccountId = mandate.agent.parse().unwrap_or_else(|_| env::panic_str("bad agent"));
         let sig: [u8; 64] = decode(&signature, "mandate signature");
         let key: [u8; 32] = decode(&mandate.owner_key, "owner key");
-        require!(env::ed25519_verify(&sig, &mandate.signing_message(), &key), "bad mandate signature");
+        require!(env::ed25519_verify(&sig, mandate.signing_message(), &key), "bad mandate signature");
         match mandate_of(&agent) {
             Some(old) => {
                 require!(old.owner_key == mandate.owner_key, "another owner holds this agent");
