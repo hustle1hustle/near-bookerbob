@@ -780,6 +780,7 @@ fn an_overturned_receipt_after_settle_refunds_the_buyer_from_the_merchant_bond()
     set("agent.testnet");
     let _ = c.settle(e.nullifier.clone(), acc("m01.bazaar.testnet"), "o-1".into(), U128(price));
     assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000 - price)));
+    payout_lands(&mut c, &e.nullifier, price);
     assert!(c.submit_dispute_decision(decide(&v, &forged, cheat)));
     assert!(c.verdict(e.nullifier.clone()).unwrap().disputed);
     assert_eq!(c.escrow_of(acc("agent.testnet")), Some(U128(200_000_000)), "the price is back in the buyer's escrow");
@@ -806,7 +807,37 @@ fn disputed_purchase(bps: u16) -> (Bazaar, SignedVerdict, (Vec<Claim>, WorkerRes
     let paid = receipt - receipt * bps as u128 / 10_000;
     set("agent.testnet");
     let _ = c.settle(e.nullifier.clone(), m, "o-1".into(), U128(paid));
+    payout_lands(&mut c, &e.nullifier, paid);
     (c, v, (cheat, forged), paid)
+}
+
+fn payout_lands(c: &mut Bazaar, n: &str, amount: u128) {
+    testing_env!(
+        ctx("bazaar.testnet").build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![PromiseResult::Successful(vec![])]
+    );
+    assert!(c.on_settle_transfer(n.to_string(), acc("agent.testnet"), U128(amount), None));
+}
+
+#[test]
+#[should_panic(expected = "payment not confirmed yet")]
+fn no_dispute_refund_before_the_payout_lands() {
+    let mut c = setup();
+    set("owner.testnet");
+    c.register_arbiter(hex::encode(arbiter_key().verifying_key().to_bytes()), "fixture arbiter".into());
+    let e = envelope(1, "agent.testnet");
+    let v = sign_ed(e.clone());
+    set("agent.testnet");
+    c.submit_verdict(v.clone());
+    let (cheat, forged) = forged_receipt(&e);
+    assert!(c.submit_referee_result(forged.clone()));
+    let price = c.verdict(e.nullifier.clone()).unwrap().receipt.unwrap().price.0;
+    set("agent.testnet");
+    let _ = c.settle(e.nullifier.clone(), acc("m01.bazaar.testnet"), "o-1".into(), U128(price));
+    c.submit_dispute_decision(decide(&v, &forged, cheat));
 }
 
 #[test]
@@ -845,7 +876,9 @@ fn an_honest_result_still_lands_after_an_overturned_one() {
     c.submit_verdict(v.clone());
     let (cheat, forged) = forged_receipt(&e);
     assert!(c.submit_referee_result(forged.clone()));
+    let reserve_with_receipt = c.verdicts.get(&e.nullifier).unwrap().storage_reserve;
     assert!(c.submit_dispute_decision(decide(&v, &forged, cheat)));
+    assert!(c.verdicts.get(&e.nullifier).unwrap().storage_reserve > reserve_with_receipt, "the receipt's bytes are back");
     assert!(c.submit_referee_result(referee_result(&e, honest_claims(), &referee_key())));
 }
 
@@ -3523,14 +3556,14 @@ mod group_treasury {
     }
 
     #[test]
-    #[should_panic(expected = "the group's DAO holds this pledge")]
+    #[should_panic(expected = "payment not confirmed yet")]
     fn a_held_pledge_is_the_daos_to_refund_not_the_bonds() {
         let (mut c, b, _, _) = pledged();
         overturn(&mut c, &b[0].1);
     }
 
     #[test]
-    #[should_panic(expected = "the group's DAO holds this pledge")]
+    #[should_panic(expected = "payment not confirmed yet")]
     fn a_pledge_the_dao_refunded_gets_nothing_from_the_bond() {
         let (mut c, b, key, _) = pledged();
         set_no_deposit(DAO);

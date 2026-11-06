@@ -287,7 +287,7 @@ fn mandate_of(agent: &AccountId) -> Option<bookerbob_core::mandate::Mandate> {
     env::storage_read(format!("mn|{agent}").as_bytes()).map(|b| serde_json::from_slice(&b).expect("stored mandate"))
 }
 
-fn mandate_spent(agent: &AccountId) -> u128 {
+fn spent_under(agent: &AccountId) -> u128 {
     env::storage_read(format!("ms|{agent}").as_bytes()).map(|b| u128::from_le_bytes(b.try_into().expect("u128"))).unwrap_or(0)
 }
 
@@ -1774,12 +1774,10 @@ impl Bazaar {
         let mut t = self.assert_group_dao(&group);
         let amount = t.pledged.iter().find(|(n, _)| n == &nullifier).map(|(_, a)| a.0).unwrap_or_else(|| env::panic_str("not a pledge in this group"));
         require!(!t.refunded.contains(&nullifier), "already refunded");
-        let record = self.verdicts.get(&nullifier).expect("member verdict");
-        require!(!record.disputed, "already refunded by a dispute");
-        let agent = record.agent.clone();
+        let agent = self.verdicts.get(&nullifier).expect("member verdict").agent.clone();
         self.credit(&agent, amount, true);
         if mandate_of(&agent).is_some() {
-            set_mandate_spent(&agent, mandate_spent(&agent).saturating_sub(amount));
+            set_mandate_spent(&agent, spent_under(&agent).saturating_sub(amount));
         }
         let mut sf = settle_fees();
         if let Some(fee) = sf.remove(&nullifier) {
@@ -2133,7 +2131,7 @@ impl Bazaar {
     }
 
     pub fn mandate_spent(&self, agent: AccountId) -> U128 {
-        U128(mandate_spent(&agent))
+        U128(spent_under(&agent))
     }
 
     /// Owner registers a NEAR AI model key after checking its attestation report off chain.
@@ -2725,6 +2723,7 @@ impl Bazaar {
     /// The same decision body signed by at least `arbiter_threshold` distinct registered
     /// arbiters; one key, or one key twice, is not enough when the threshold is above 1.
     pub fn submit_dispute_decisions(&mut self, decisions: Vec<DisputeDecision>) -> bool {
+        let before = env::storage_usage();
         let first = decisions.first().unwrap_or_else(|| env::panic_str("no decision"));
         let b = first.body.clone();
         require!(b.v == 0, "unsupported dispute decision");
@@ -2754,13 +2753,9 @@ impl Bazaar {
                 if record.spent {
                     // Once: the signed decision is public, and anyone could send it again.
                     require!(!record.disputed, "already refunded for this dispute");
-                    // A pledge in a pot the merchant has not been paid is the DAO's to refund,
-                    // and one it refunded is whole: the bond owes neither.
-                    if let Some(t) = intents().get(&b.nullifier).and_then(|k| group_treasuries().get(k).cloned()) {
-                        if t.pledged.iter().any(|(n, _)| n == &b.nullifier) {
-                            require!(t.released && !t.refunded.contains(&b.nullifier), "the group's DAO holds this pledge");
-                        }
-                    }
+                    // Only money the merchant has: spent is set before the transfer lands, and a
+                    // pledge is paid only when its pot is. Until then the DAO or a rollback refunds.
+                    require!(record.paid, "payment not confirmed yet");
                     record.disputed = true;
                     // The liability ledger pays: the merchant's bond in the token the buyer
                     // paid refunds what was paid (up to the bond) into the buyer's escrow.
@@ -2782,6 +2777,8 @@ impl Bazaar {
                     );
                 } else {
                     record.receipt = None;
+                    // The receipt's bytes go back to the reserve, or a new receipt could not settle.
+                    self.draw_reserve(&b.nullifier, before);
                     env::storage_write(format!("ot|{}", b.referee_result_sha256).as_bytes(), b"1");
                     emit("dispute_overturned", serde_json::json!({ "nullifier": b.nullifier, "reasons": b.reasons, "referee": receipt.referee }));
                 }
@@ -3014,7 +3011,7 @@ impl Bazaar {
         let m = mandate_of(agent)?;
         require!(env::block_timestamp_ms() < m.expires_at_ms, "mandate expired");
         require!(price <= m.max_per_purchase, "over the mandate's limit per purchase");
-        let spent = mandate_spent(agent) + price;
+        let spent = spent_under(agent) + price;
         require!(spent <= m.max_total, "over the mandate's total limit");
         if let Some(round) = &m.round {
             // Live schedules, so a receipt from before a later bid must still be the winner's price.
@@ -3030,7 +3027,7 @@ impl Bazaar {
         self.credit(agent, amount.0, demo);
         env::storage_remove(format!("pp|{nullifier}").as_bytes());
         if mandate_of(agent).is_some() {
-            set_mandate_spent(agent, mandate_spent(agent).saturating_sub(amount.0));
+            set_mandate_spent(agent, spent_under(agent).saturating_sub(amount.0));
         }
         let mut sf = settle_fees();
         if let Some(fee) = sf.remove(nullifier) {
