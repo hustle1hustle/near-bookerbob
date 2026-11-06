@@ -79,6 +79,11 @@ export function fieldKey(wireHex, xSecretRaw) {
   const shared = diffieHellman({ privateKey: xPriv(xSecretRaw), publicKey: xPub(b.subarray(0, 32)) });
   return Buffer.from(hkdfSync("sha256", shared, Buffer.alloc(0), INFO, 32)).toString("hex");
 }
+/** Open one sealed field with its disclosed per-field key (raw 32 bytes). */
+export function openField(wireHex, key) {
+  const b = Buffer.from(wireHex, "hex");
+  return xchachaOpen(key, b.subarray(32, 56), b.subarray(56)).toString();
+}
 export function clientKey() {
   const seed = randomBytes(32);
   const ed = createPrivateKey({ key: Buffer.concat([ED_PKCS8, seed]), format: "der", type: "pkcs8" });

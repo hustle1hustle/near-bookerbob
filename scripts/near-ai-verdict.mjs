@@ -11,15 +11,15 @@
 // 3. The TEE signature over `model:sha256(request wire):sha256(response wire)`.
 // 4. The envelope: the buyer's revealed subset of the attested predicates, bound to this
 //    chat (chat id, both wire hashes, signing key, report hash).
-// Disclosure: the one-time client X25519 secret is written out, so any verifier can open
-// the sealed answer (it only opens responses to that key). The sealed request, which
-// holds the facts, stays sealed to the model key.
+// Disclosure: response_key, the key for the answer field only, so any verifier can open the
+// answer. The client secret is never written: it would open the reasoning too. The sealed
+// request, which holds the facts, stays sealed to the model key.
 // Writes fixtures/live/near-ai/. About $0.001 a run.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
-import { clientKey, edVerify, openWith, sealTo, sha } from "./lib/e2ee.mjs";
+import { clientKey, edVerify, fieldKey, openWith, sealTo, sha } from "./lib/e2ee.mjs";
 
 const API = process.env.NEAR_AI_BASE ?? "https://cloud-api.near.ai/v1";
 const MODEL = process.env.NEAR_AI_MODEL ?? "z-ai/glm-5.3-flash";
@@ -105,13 +105,13 @@ writeFileSync(
   `${OUT}/capture.json`,
   JSON.stringify(
     {
-      note: "NEAR AI verdict under E2EE v2, live capture. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so verifiers can open the sealed answer.",
+      note: "NEAR AI verdict under E2EE v2, live capture. Facts are the synthetic fixture proof set. response_key is the key for the sealed answer field only, so verifiers can open the answer; the reasoning field stays sealed.",
       at: new Date().toISOString(),
       model: MODEL,
       nonce,
       chat_id: body.id,
       signing_address: modelPub,
-      client_x25519_secret: me.xSecret.toString("hex"),
+      response_key: fieldKey(body.choices[0].message.content, me.xSecret),
       answer,
       bind,
       envelope,

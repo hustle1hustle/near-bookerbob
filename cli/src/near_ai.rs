@@ -6,9 +6,6 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use bookerbob_core::{derive, Envelope, ProofSet};
-use chacha20poly1305::aead::{Aead, KeyInit};
-use chacha20poly1305::{XChaCha20Poly1305, XNonce};
-use curve25519_dalek::montgomery::MontgomeryPoint;
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
@@ -19,7 +16,8 @@ struct Capture {
     nonce: String,
     chat_id: String,
     signing_address: String,
-    client_x25519_secret: String,
+    /// The key for the sealed answer field only; the client secret is never kept.
+    response_key: String,
     bind: String,
     envelope: Envelope,
 }
@@ -41,44 +39,20 @@ fn sha_hex(b: &[u8]) -> String {
     hex::encode(Sha256::digest(b))
 }
 
-/// The per-field key: HKDF-SHA256(X25519(client secret, eph_pub), info "ed25519_encryption").
-pub fn field_key(wire_hex: &str, x_secret: [u8; 32]) -> Result<[u8; 32], String> {
-    let w = hex::decode(wire_hex).map_err(|_| "sealed field is not hex")?;
-    if w.len() < 32 + 24 + 16 {
-        return Err("sealed field too short".into());
-    }
-    let eph: [u8; 32] = w[..32].try_into().unwrap();
-    let shared = MontgomeryPoint(eph).mul_clamped(x_secret).to_bytes();
-    let mut key = [0u8; 32];
-    hkdf::Hkdf::<Sha256>::new(None, &shared).expand(b"ed25519_encryption", &mut key).map_err(|_| "hkdf")?;
-    Ok(key)
-}
-
-/// E2EE v2: wire = eph_pub(32) || nonce(24) || xchacha20poly1305 ; key = `field_key`.
-fn open(wire_hex: &str, x_secret: [u8; 32]) -> Result<String, String> {
-    let key = field_key(wire_hex, x_secret)?;
-    let w = hex::decode(wire_hex).map_err(|_| "sealed field is not hex")?;
-    let pt = XChaCha20Poly1305::new(&key.into()).decrypt(XNonce::from_slice(&w[32..56]), &w[56..]).map_err(|_| "does not open with the disclosed key")?;
-    String::from_utf8(pt).map_err(|_| "not utf-8".into())
-}
-
 /// The on-chain proof for `submit_near_ai_verdict`, built from the capture: the exact
-/// response bytes and the disclosed key for its sealed answer field (not the client secret).
+/// response bytes and the disclosed key for its sealed answer field.
 pub fn proof(dir: &Path) -> (Envelope, bookerbob_core::near_ai::NearAiProof) {
     let read = |n: &str| std::fs::read(dir.join(n)).unwrap_or_else(|e| panic!("read {n}: {e}"));
     let cap: Capture = serde_json::from_slice(&read("capture.json")).expect("parse capture");
     let sig: Sig = serde_json::from_slice(&read("signature.json")).expect("parse signature");
     let response = String::from_utf8(read("response.json")).expect("utf-8 response");
-    let body: serde_json::Value = serde_json::from_str(&response).expect("parse response");
-    let x: [u8; 32] = hex::decode(&cap.client_x25519_secret).ok().and_then(|b| b.try_into().ok()).expect("client secret");
-    let key = field_key(body["choices"][0]["message"]["content"].as_str().unwrap_or_default(), x).expect("field key");
     let p = bookerbob_core::near_ai::NearAiProof {
         chat_id: cap.chat_id,
         signing_key: cap.signing_address,
         nonce: cap.nonce,
         request_sha256: sha_hex(&read("request.json")),
         response,
-        response_key: hex::encode(key),
+        response_key: cap.response_key,
         signature: sig.signature,
     };
     (cap.envelope, p)
@@ -256,17 +230,13 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
             Err("hash mismatch".into())
         },
     );
-    // 5. Open the sealed answer with the disclosed one-time client key.
-    let body: serde_json::Value = serde_json::from_slice(&resp).expect("parse response");
-    let x: [u8; 32] = hex::decode(&cap.client_x25519_secret).ok().and_then(|b| b.try_into().ok()).unwrap_or([0; 32]);
-    let answer = open(body["choices"][0]["message"]["content"].as_str().unwrap_or_default(), x);
+    // 5. Open the sealed answer with its disclosed per-field key. The reasoning stays sealed.
+    let answer = bookerbob_core::near_ai::open_answer(std::str::from_utf8(&resp).unwrap_or_default(), &cap.response_key);
     check(
-        "the answer was sealed and opens with the disclosed one-time client key",
-        answer.as_ref().map(|a| format!("{} bytes", a.len())).map_err(|e| e.clone()),
+        "the answer was sealed and opens with the disclosed per-field key",
+        answer.as_ref().map(|a| format!("{} predicates", a.predicates.len())).map_err(|e| e.to_string()),
     );
-    let parsed: Option<serde_json::Value> = answer.ok().and_then(|a| a.find('{').and_then(|i| a.rfind('}').and_then(|j| serde_json::from_str(&a[i..=j]).ok())));
-    let attested: Vec<String> =
-        parsed.as_ref().and_then(|p| p["predicates"].as_array()).map(|v| v.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default();
+    let attested: Vec<String> = answer.as_ref().map(|a| a.predicates.clone()).unwrap_or_default();
     // 6. The model computed what the code computes.
     let by_code = derive(&proofs).predicates();
     check(
@@ -275,7 +245,7 @@ pub fn check_dir(dir: &Path, proofs_path: &Path, print: bool) -> (usize, usize) 
     );
     // 7. The answer binds this envelope, and the envelope binds this chat.
     let e = &cap.envelope;
-    let echoed = parsed.as_ref().and_then(|p| p["bind"].as_str().map(String::from)).unwrap_or_default();
+    let echoed = answer.as_ref().map(|a| a.bind.clone()).unwrap_or_default();
     check(
         "the sealed answer echoes the envelope binding (context, nullifier, commitment, agent, cap, times)",
         if echoed == e.near_ai_bind() && echoed == cap.bind { Ok(format!("{}..", &echoed[..16])) } else { Err("binding differs".into()) },
@@ -444,7 +414,7 @@ mod tests {
     fn a_wrong_disclosed_key_does_not_open_the_answer() {
         let d = copy("key");
         let mut c: serde_json::Value = serde_json::from_slice(&std::fs::read(d.join("capture.json")).unwrap()).unwrap();
-        c["client_x25519_secret"] = "11".repeat(32).into();
+        c["response_key"] = "11".repeat(32).into();
         std::fs::write(d.join("capture.json"), serde_json::to_vec(&c).unwrap()).unwrap();
         let (p, t) = super::check_dir(&d, &proofs(), false);
         assert!(p <= t - 3, "open, predicates and binding all fail");

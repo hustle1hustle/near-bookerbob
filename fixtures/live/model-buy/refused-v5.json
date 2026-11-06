@@ -12,7 +12,6 @@
     "chat_id": "chatcmpl-f9fd1bde-5a03-42f2-bd93-f09acb221803",
     "request_sha256": "f51676654c7baf188e85de065fbfd7167e04d8037a7f4465d59696a8075fa5b0",
     "response_sha256": "52e090d7f0a5404bce0774457d2c950f81feae7c222973a91f07d21ac958cf2e",
-    "client_x25519_secret": "30196a8be92203c7256f0862f5a6e7ee3b3d23212063be9b972c4fc101f46440",
     "attested": [
       "airbnb_frequent",
       "booking_genius",

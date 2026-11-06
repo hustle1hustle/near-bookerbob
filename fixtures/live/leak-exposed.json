@@ -1,0 +1,45 @@
+{
+  "note": "One-time client secrets committed by the build, each opening both sealed fields of one model response, the reasoning (which restates the facts) included. Removed 2026-11-06. They stay in git history: history is not rewritten. Every fact behind them is the synthetic fixture proof set, and each key was generated for one chat, so nothing real was exposed and nothing needs rotating. Hashes only; L9 recovers the keys from history to reproduce the opening.",
+  "date": "2026-11-06",
+  "keys": [
+    {
+      "key_sha256": "258b72938e5ae8d4b24fdb9421e974add648d5e02f098a243b0abb289823c403",
+      "file": "fixtures/live/near-ai/capture.json",
+      "added_in": "1cb5f71",
+      "added": "2026-11-04",
+      "opens": [
+        "fixtures/live/near-ai content",
+        "fixtures/live/near-ai reasoning_content"
+      ]
+    },
+    {
+      "key_sha256": "e6eb6a03d11f7bf932b9a7fb8ae394ad62541850b65101a4a540550916ff24f3",
+      "file": "fixtures/live/model-buy/run.json",
+      "added_in": "bb0ee59",
+      "added": "2026-11-05",
+      "opens": [
+        "tx 8JfM9iTS content",
+        "tx 8JfM9iTS reasoning_content"
+      ]
+    },
+    {
+      "key_sha256": "2efc551d4463304d50f918aa10715a2f47b209f549faa113e12dd3805eec4993",
+      "file": "fixtures/live/model-buy/refused-v5.json",
+      "added_in": "3ca1ead",
+      "added": "2026-11-06",
+      "opens": [
+        "tx DCqyqPjE content",
+        "tx DCqyqPjE reasoning_content"
+      ]
+    }
+  ],
+  "over_disclosed": {
+    "note": "Model answers, disclosed on chain by response_key as the contract requires, that name a predicate the verdict did not reveal. Fixed for new runs: the model is asked only about the revealed predicates.",
+    "txs": [
+      "8JfM9iTS",
+      "6fnSf2Bc",
+      "DCqyqPjE"
+    ],
+    "predicate": "booking_genius"
+  }
+}

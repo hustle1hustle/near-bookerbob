@@ -23,6 +23,31 @@ funding) for the txs in `fixtures/live/testnet-manifest.json` and applies these 
 | L3 funding | review senders funded by the same relayer as the buyers |
 | L4 reveal | a revealed rating opens one sealed hash, so it is tied to its sender |
 | L8 account name | a subaccount of the treasury shows its parent; a new one fails `make leak` |
+| L9 committed keys | every 32-byte value in the repo and its history tried on every sealed model field; anything beyond the disclosed answer fails |
+
+## L9: an exposure we found and fixed (2026-11-06)
+
+A round-8 review opened tx `8JfM9iTS` from public data. The build had committed the one-time
+client X25519 secret of three NEAR AI chats, on the reasoning that it opens only the sealed
+answer. That was wrong: a response has two sealed fields, and the secret opens both. The
+second is the model's reasoning, which restates the facts.
+
+- Exposed: 6 sealed fields of 3 responses: `fixtures/live/near-ai/` (added 2026-11-04), tx
+  `8JfM9iTS` (2026-11-05), tx `DCqyqPjE` (2026-11-06, the same mistake repeated after the
+  first was committed).
+- Contents: the synthetic fixture proof set. No real fact was exposed, and each key was made
+  for one chat, so nothing real needs rotating. The keys stay in git history, which is not
+  rewritten; `fixtures/live/leak-exposed.json` lists their hashes.
+- Fixed: the capture and the records hold `response_key`, the key for the answer field, and
+  new runs never write the client secret.
+- L9 also found what the review did not: the disclosed answer of 3 model txs names
+  `booking_genius`, which the verdict did not reveal. The contract needs the answer disclosed,
+  so a model that rules on more than the verdict reveals says it in public. New runs ask the
+  model only about the revealed predicates.
+
+`make leak` prints the old openings as KNOWN and fails on any new one, and on a listed key
+that comes back at HEAD. `make try` runs L9 first, so a real fact cannot reach the model path
+while a committed key opens a field.
 
 ## Before (2026-11-05, round 5979413, `docs/leak-before.json`)
 

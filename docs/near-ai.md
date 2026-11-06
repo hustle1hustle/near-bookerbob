@@ -40,16 +40,23 @@ scheme without encryption.
 Offline checks (N1 to N8): the TDX quote verifies to Intel's root CA with that collateral
 (dcap-qvl, status `UpToDate`, no advisories); report_data[0..32] is the signing key,
 [32..64] our nonce; the ed25519 TEE signature is valid and from that key; it covers
-sha256 of the committed request and response bytes; the sealed answer opens with the
-disclosed one-time client X25519 secret; the attested predicates equal what
+sha256 of the committed request and response bytes; the sealed answer opens with its
+disclosed per-field key; the attested predicates equal what
 `core/src/tier.rs` derives; the answer echoes the envelope's binding; the envelope
 reveals a subset of the attested predicates and names this model, report and TCB status.
 Tamper tests: one changed response byte, a raised predicate set, another nullifier, a
 wrong disclosed key.
 
-What the disclosure gives away: the one-time client secret opens only answers sealed to
-it (this one). The request, which holds the facts, is sealed to the model key and stays
-sealed. Chat ids to look up: verdict `08af1d014f2d4f379dba94094562d9ba`; buyer "why"
+What the disclosure gives away: the buyer discloses `response_key`, the key for the answer
+field only. The reasoning field has its own key and stays sealed, and so does the request,
+which holds the facts and is sealed to the model key. The disclosed answer is public, so the
+model is asked only about the predicates the verdict reveals.
+
+Corrected 2026-11-06. This section used to say a disclosed client secret opens only the
+answer. It opens every field of the response, the reasoning too, which restates the facts.
+Three responses were exposed that way, the facts all synthetic: `docs/leak.md`, L9.
+
+Chat ids to look up: verdict `08af1d014f2d4f379dba94094562d9ba`; buyer "why"
 runs `68657600d12549518664defcf8fb0dd1` (honest), `bfbb3d0db39447918285c8b6570ddc7f`
 (injected), `b7b3a69052d84f938b2702e435ef41ff` (direct). NEAR AI's page
 https://cloud.near.ai/verify does not take a chat id: checked read-only on 2026-11-04,

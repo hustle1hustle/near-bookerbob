@@ -1,11 +1,11 @@
 {
-  "note": "NEAR AI verdict under E2EE v2, live capture. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so verifiers can open the sealed answer.",
+  "note": "NEAR AI verdict under E2EE v2, live capture. Facts are the synthetic fixture proof set. response_key is the key for the sealed answer field only, so verifiers can open the answer; the reasoning field stays sealed. Until 2026-11-06 this file held the client secret, see docs/leak.md L9.",
   "at": "2026-11-04T12:20:05.066Z",
   "model": "z-ai/glm-5.3-flash",
   "nonce": "0b6e10a283da35ffea5440106d5431d63511e76d9d7d84bf9b333e2291a5c93d",
   "chat_id": "08af1d014f2d4f379dba94094562d9ba",
   "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
-  "client_x25519_secret": "a0b29b6a31a6d889aeb63d4b5bcc68ee7d19186cd39895c7f04983c704e03477",
+  "response_key": "fc7a7bc7c04860c53acb59c56e78f056422b69dbde78f2d90443f4f1fa8825ce",
   "answer": "{\"predicates\": [\"airbnb_frequent\", \"booking_genius\", \"claude_spender\", \"world_id_human\"], \"bind\": \"5b9c5576db08f8df84ba98c6e121d879d1aa32496e1f4790ed185b1b7e4428aa\"}",
   "bind": "5b9c5576db08f8df84ba98c6e121d879d1aa32496e1f4790ed185b1b7e4428aa",
   "envelope": {

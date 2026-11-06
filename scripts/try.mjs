@@ -16,6 +16,7 @@
 //
 // TRY_DRY=1 stops before the first transaction. Testnet only; dUSDC is a demo token.
 // A fine-grained token with no permissions is enough for /user; revoke it after.
+import { execFileSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
 import { config, guard } from "./demo-tester.mjs";
 import { run } from "./prove-me.mjs";
@@ -32,6 +33,8 @@ if (no) {
   console.error(`refusing: ${no}`);
   process.exit(2);
 }
+// A real fact does not go near the model path while a committed key opens a sealed field.
+execFileSync("node", ["scripts/leak-keys.mjs"], { stdio: "inherit" });
 console.log(`make try: you are the buyer. round ${round}, ${process.env.TRY_MPC ? "MPC-TLS" : "proxy mode"}, a one-time implicit account\n`);
 run(c, round, Boolean(process.env.TRY_DRY), null, { tokenFile: token, proxy: !process.env.TRY_MPC, implicit: true, out: `try-${new Date().toISOString().replace(/[:.]/g, "-")}` }).catch((e) => {
   console.error(`\nmake try: STOP ${e.message}`);

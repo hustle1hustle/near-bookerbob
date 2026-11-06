@@ -11,8 +11,8 @@
 //  4. The gate: the same verdict asks vetted (its eval gate, fixtures/live/eval-gate/run.json) for
 //     a receipt, and the contract refuses it.
 //  5. m01 (no gate): receipt, escrow, settle in dUSDC, the replay refused.
-//  6. fixtures/live/model-buy/run.json: hashes and txs; the one-time client secret is disclosed
-//     so anyone can open the sealed answer (the sealed request, with the facts, stays sealed).
+//  6. fixtures/live/model-buy/run.json: hashes and txs. The tx discloses the answer's key only;
+//     the client secret is never written (the sealed request, with the facts, stays sealed).
 //
 // Testnet only; dUSDC is a demo token. Needs NEAR_AI_KEY or ~/.rep-secrets/near-ai.key (never logged).
 import { execFileSync } from "node:child_process";
@@ -62,7 +62,8 @@ export async function issue(client, bazaar, base, proofsPath, keysDir) {
   const bind = cli(["near-ai-bind", join(dir, "draft.json")]);
   const proofs = JSON.parse(readFileSync(proofsPath, "utf8"));
   const system = 'You are a verdict issuer. Apply the rule table exactly: a fact proves a predicate when platform and field match and value >= min. Output only JSON {"predicates": [sorted predicate names that are proven], "bind": "<the bind value, unchanged>"}.';
-  const user = JSON.stringify({ rules: RULES.map(([platform, field, min, predicate]) => ({ platform, field, min, predicate })), facts: proofs.facts.map(({ id, platform, field, value }) => ({ id, platform, field, value })), bind });
+  // The answer is disclosed on chain, so the model rules only on what the verdict reveals.
+  const user = JSON.stringify({ rules: RULES.filter(([, , , p]) => base.predicates.includes(p)).map(([platform, field, min, predicate]) => ({ platform, field, min, predicate })), facts: proofs.facts.map(({ id, platform, field, value }) => ({ id, platform, field, value })), bind });
   const me = clientKey();
   const req = Buffer.from(JSON.stringify({ model: att.model, max_tokens: 3000, temperature: 0, messages: [{ role: "system", content: sealTo(system, MODEL_KEY) }, { role: "user", content: sealTo(user, MODEL_KEY) }] }));
   const res = await fetch(`${API}/chat/completions`, { method: "POST", headers: { ...auth, "Content-Type": "application/json", "X-Signing-Algo": "ed25519", "X-Client-Pub-Key": me.pubHex, "X-Model-Pub-Key": MODEL_KEY, "X-Encryption-Version": "2", "x-no-aliasing": "true" }, body: req });
@@ -80,7 +81,7 @@ export async function issue(client, bazaar, base, proofsPath, keysDir) {
   if (!edVerify(sig.text, sig.signature, sig.signing_address) || sReq !== sha(req) || sRes !== sha(resBytes) || sig.signing_address !== MODEL_KEY) throw new Error("the TEE signature does not cover these bytes with the registered key");
   const proof = { chat_id: body.id, signing_key: MODEL_KEY, nonce: att.nonce, request_sha256: sha(req), response: resBytes.toString("utf8"), response_key: fieldKey(wire, me.xSecret), signature: sig.signature };
   console.log(`   ${att.model} (E2EE v2, facts sealed to the registered key ${MODEL_KEY.slice(0, 12)}..): ${answer.predicates.join(", ")}; binding echoed; TEE signature valid`);
-  return { envelope: { ...draft, predicates: base.predicates }, proof, record: { model: att.model, signing_key: MODEL_KEY, chat_id: body.id, request_sha256: sha(req), response_sha256: sha(resBytes), client_x25519_secret: me.xSecret.toString("hex"), attested: answer.predicates } };
+  return { envelope: { ...draft, predicates: base.predicates }, proof, record: { model: att.model, signing_key: MODEL_KEY, chat_id: body.id, request_sha256: sha(req), response_sha256: sha(resBytes), attested: answer.predicates } };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -102,7 +103,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const { keyFromSeed } = await import("../relayer/near.mjs");
     await d.direct("dUSDC storage_deposit for the gated merchant", c.treasury, keyFromSeed(readFileSync(join(c.keysDir, "treasury.seed"), "utf8")), c.dusdc, [{ type: "FunctionCall", method_name: "storage_deposit", args: { account_id: gate.merchant, registration_only: true }, gas: 30n * 10n ** 12n, deposit: 1250n * 10n ** 18n }]);
   }
-  const out = { note: "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so anyone can open the sealed answer; the sealed request, which holds the facts, stays sealed to the model key." };
+  const out = { note: "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. Anyone can open the sealed answer with response_key in the tx; the sealed request, which holds the facts, stays sealed to the model key." };
   const beforeReceipt = async ({ tester, rec, live, d: demo }) => {
     // The same verdict asks the eval-gated merchant first: refused, the model is under its gate.
     const dir = gatedDir;

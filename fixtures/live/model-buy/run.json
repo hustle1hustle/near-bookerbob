@@ -1,5 +1,5 @@
 {
-  "note": "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. client_x25519_secret is a one-time key disclosed so anyone can open the sealed answer; the sealed request, which holds the facts, stays sealed to the model key.",
+  "note": "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. Anyone can open the sealed answer with response_key in the tx; the sealed request, which holds the facts, stays sealed to the model key. Until 2026-11-06 this file held the client secret, see docs/leak.md L9.",
   "tester": "t-f7883a.bookerbob-demo.testnet",
   "merchant": "m01.bookerbob.testnet",
   "nullifier": "19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0",
@@ -12,7 +12,6 @@
     "chat_id": "dad184a319724369a78158806e69b9a9",
     "request_sha256": "dc5b20c7ab3bb5d6be15d0a06674425506c5ed9471452dec117e93b1a12620a2",
     "response_sha256": "33d2f42245728a6baeaf5613730f3ba3fe6efe334c76f0f5c7e4dd940b934ed7",
-    "client_x25519_secret": "78df644bf6e17b3e69727b2d37893d5a724c74b3669a9f123938472ab1175669",
     "attested": [
       "airbnb_frequent",
       "booking_genius",

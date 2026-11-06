@@ -8,6 +8,7 @@
 //   L2 timing order   the k-th sealed rating follows the k-th review-group join
 //   L3 funding        a one-time account funded by the same relayer as the buyers
 //   L4 reveal         a revealed rating opens one sealed hash, so it is tied to that sender
+//   L9 committed keys every 32-byte value in the repo tried on every sealed model field
 // Prints each link with the anonymity set it leaves, and writes docs/leak-report.json.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -165,6 +166,11 @@ const newNamed = named.filter((r) => !knownNamed.has(r.tester));
 const reused = rows.length - new Set(rows.map((r) => r.tester)).size;
 links.push({ rule: "L8 account name", what: `${rows.length} buyers: ${named.length} named under ${m.treasury}, ${rows.length - named.length} one-time implicit; ${reused} account(s) used twice`, linked: newNamed.length > 0 || reused > 0, note: `${knownNamed.size} named before implicit became the default (${beforeImplicit.date}), listed in fixtures/live/leak-before-implicit.json; ${newNamed.length} since`, anonymity_set: rows.length - named.length });
 
+// L9: a key in this repo that opens more than the one field a buyer disclosed.
+const { l9, report } = await import("./leak-keys.mjs");
+const keyScan = await l9(rpc, m.treasury);
+links.push({ rule: "L9 committed keys", what: `${keyScan.keys} values on ${keyScan.checked} sealed fields of ${keyScan.model} model txs and 1 capture`, linked: keyScan.fresh.length + keyScan.freshExtra.length > 0, note: `${keyScan.exposures.length} field(s) opened by keys since removed, all synthetic facts, fixtures/live/leak-exposed.json; ${keyScan.fresh.length} open today`, anonymity_set: keyScan.fresh.length ? 1 : buyers.length });
+
 const ratingToBuyer = links.find((l) => l.rule.startsWith("L2")).linked;
 console.log(`make leak: ${m.bazaar}, ${buyers.length} buyers, ${seals.length} sealed ratings (round ${round.round})\n`);
 for (const l of links) console.log(`${l.linked ? "LINKED  " : "unlinked"}  ${l.rule.padEnd(16)} ${l.what}  (anonymity set ${l.anonymity_set}${l.correct !== undefined ? `, ${l.correct}/${l.of} right` : ""}${l.note ? `; ${l.note}` : ""})`);
@@ -174,4 +180,5 @@ for (const u of under) console.log(`${known.has(u.r.nullifier) ? "KNOWN " : "FAI
 console.log(newUnder.length ? `FAIL  k-gate: ${newUnder.length} purchase(s) after the gate sit in a set under ${K}` : `PASS  k-gate: no purchase after the gate (${gate.date}) sits in a set under ${K}; ${under.length} known one(s) before it, listed above`);
 writeFileSync(new URL(`../docs/leak-report-${round.round}.json`, import.meta.url), JSON.stringify({ when: new Date().toISOString(), bazaar: m.bazaar, round: round.round, links, rating_to_buyer_linked: ratingToBuyer, k_gate: { k: K, pass: newUnder.length === 0, known: under.filter((u) => known.has(u.r.nullifier)).map((u) => ({ nullifier: u.r.nullifier, what: u.what })) } }, null, 2) + "\n");
 console.log(`${newNamed.length ? "FAIL " : "PASS "} account names: ${newNamed.length} new named buyer(s) since ${beforeImplicit.date}, ${reused} reused`);
-if (newUnder.length || newNamed.length || reused) process.exit(1);
+for (const l of report(keyScan)) console.log(l);
+if (newUnder.length || newNamed.length || reused || keyScan.fresh.length || keyScan.freshExtra.length) process.exit(1);
