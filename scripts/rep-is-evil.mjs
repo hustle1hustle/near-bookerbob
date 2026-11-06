@@ -20,7 +20,7 @@ export const KEYS = [
     key: "the verdict issuer (testnet issuer seed)",
     live: async () => `${(await view(LIVE, "issuers"))?.length ?? "?"} issuer keys registered on ${LIVE}`,
     worst: "signs a verdict with any predicates for an agent it controls: a sybil buyer takes discounts it never earned",
-    limits: "one agent per World person (attest_human), the referee refuses claims the proof set does not back, the per-context nullifier is spent once; a merchant with an eval gate takes only a verdict a NEAR AI model issued, which this key cannot sign (make model-buy); but REP also holds the World verifier key",
+    limits: "one agent per World person (attest_human, and the World key is REP's too), the per-context nullifier is spent once; the referee is no limit here, it checks claims against a proof set the issuer's side wrote; a merchant with an eval gate takes only a verdict a NEAR AI model issued, which this key cannot sign (make model-buy); but REP also holds the World verifier key",
     shown: "make verify checks 10 and 13 (a registered enclave key's verdict is accepted) and 12 (one agent per World person); make eval-gate (an issuer-key verdict refused by a gated merchant, live)",
   },
   {

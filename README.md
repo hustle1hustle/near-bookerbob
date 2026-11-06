@@ -26,7 +26,7 @@ All pass. Logs: `fixtures/live/offline-run/`.
 
 - a hotel buying group of 5 on one fixed tier: its own DAO treasury paid h05 367.20 for each
   member, an amount 5 buyers share: [5A8LgNQn…](https://testnet.nearblocks.io/txns/5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A)
-- a sealed verdict (hashes only on chain) settled at 38.40, an amount 5 buyers share: [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS)
+- a sealed verdict (hashes only on chain) settled at 38.40, an amount 5 buyers share, though the price itself decodes to its three bits (`make leak`, L10): [2UVVTmja…](https://testnet.nearblocks.io/txns/2UVVTmjaHGMGazQAvtry4FBxUMUyoPYy2TJCxKVAe4pS)
 - a buying group of 5 at the 10% tier on m01, 32.40 each (`make leak` gates every amount and funding set at k >= 5)
 
 **What is synthetic.** Every fact behind every verdict, with two exceptions of one kind: a
@@ -73,14 +73,17 @@ self-audit: [docs/audit.md](docs/audit.md).
 A server run by us could compute the same prices. It could not give these three properties
 to parties that do not trust us or each other:
 
-- **One spent-set shared by distrusting merchants.** A proof used at m01 cannot be used again
-  at m02. With 30 independent merchant agents, the only place all of them can check "this
-  nullifier is spent" without trusting one operator is a shared ledger
-  (`submit_verdict`, `settle`).
+- **One spent-set shared by distrusting merchants.** A nullifier spent at m01 cannot be spent
+  again at m02. Merchants who do not trust each other can only check "this nullifier is spent"
+  without trusting one operator on a shared ledger (`submit_verdict`, `settle`). Today REP runs
+  all 30 listed merchant agents and one outside agent has joined, so this is the design, not
+  yet a market of strangers. The set stops reuse of a nullifier, not a second one: on the VOPRF
+  path the buyer picks the input, so one person can obtain two.
 - **Atomic settle gated on a receipt.** Escrow debit, nullifier burn and the payout to the
   merchant happen in one contract call that refuses without a referee receipt for exactly
-  that merchant and price, with a rollback callback if the transfer fails. Nobody, us
-  included, can pay a merchant without the receipt or reuse it.
+  that merchant and price, with a rollback callback if the transfer fails. Nobody can pay a
+  merchant without a receipt or reuse one. REP holds the referee key, so REP can sign one, at
+  schedule prices only.
 - **Proof checks anyone can rerun.** Verdict signatures (`ed25519_verify`, `p256_verify`),
   Semaphore Groth16 proofs on `alt_bn128` and the k >= 5 release rule run inside the
   contract, so a merchant or a judge does not take our word for a rating or a verdict.
@@ -91,6 +94,7 @@ to parties that do not trust us or each other:
 | pay only on a receipt, atomically with the burn | our code, unauditable from outside | per operator | one public contract call, with rollback |
 | rerun the proof checks (signatures, Semaphore, k floor) | on our word | per operator | inside the contract |
 | who can rewrite history or censor | us | a majority of operators | nobody can rewrite; a relayer can refuse, anyone can run another |
+| what it costs in privacy | only we see the amount and the merchant | the operators see them | everyone sees them, forever: amount, merchant, time and account (`make leak`, L6, L7, L10) |
 | trust still left | everything | the operators | the owner key: it registers trust anchors (verdict issuers, referee, arbiter, World verifier), approves merchants outside the open category and sets `min_tcb`. One key on the live bazaar; a 2-of-3 Sputnik DAO with a timelock on the test bazaar |
 
 ## What is live and what is offline
@@ -159,10 +163,14 @@ case, reads live from testnet that the key is trusted today, and names the offli
 
 | who can lie | the lie | what catches it | who holds the key | if REP turns malicious |
 |---|---|---|---|---|
-| **the verdict issuer** | predicates the facts do not prove | the referee refuses any claim the proof set does not back; on the NEAR AI path the TDX quote and TEE signature bind the answer to the attested model | **REP** (the testnet issuer seed; the NEAR AI model key is attested, its registration is REP's) | mints verdicts with any predicates for agents it controls (sybil buyers who take discounts), and with the World key binds each one as a separate human; not to a merchant with an eval gate, which takes only a model-issued verdict (`make model-buy`: one live) |
+| **the verdict issuer** | predicates the facts do not prove | nothing, against a dishonest issuer: the referee checks claims only against a proof set the same side wrote; on the NEAR AI path the TDX quote and TEE signature bind the answer to the attested model, not to the truth of what it was told | **REP** (the testnet issuer seed; the NEAR AI model key is attested, its registration is REP's) | mints verdicts with any predicates for agents it controls (sybil buyers who take discounts), and with the World key binds each one as a separate human; not to a merchant with an eval gate, which takes only a model-issued verdict (`make model-buy`: one live) |
 | **the referee and the Jolt worker** | a false receipt or a false standing update | the contract accepts only a price its own schedule code produces; an arbiter re-runs the receipt check; a standing update can be challenged with a bond and a false one slashes the worker | **REP** (seeds; the OutLayer attested key is not registered yet) | signs receipts for unproven claims, or a false standing list; capped at schedule prices, and a standing update can be challenged (by REP's arbiter today) |
 | **the dispute arbiter** | uphold a false update or overturn an honest receipt | nothing on chain beyond its signature; a threshold of distinct arbiters is built (2 of 3 in tests) | **REP**: the one live arbiter key (threshold 1) and all three test keys | with the referee, a false receipt stands and a false update is upheld; nothing outside REP checks it today |
 | **a broken TEE** (the NEAR AI enclave: Intel TDX, NVIDIA GPU) | reads the facts sealed to it; signs predicates the facts do not prove; signs eval answers | what still holds: the referee re-checks every claim against the proof set, the contract pays only a price its own schedule code produces, the Jolt proofs (price, referee, standing, cohort) and the VOPRF nullifier do not depend on the TEE; what does not: the sealed facts leak, and model-issued verdicts and eval scores can be forged | Intel and NVIDIA (the attestation roots) and NEAR AI (the operator) | (not REP; REP cannot break it, and it cannot tell from chain that it was broken) |
+| **the buyer, on the model path** | facts it made up: the buyer writes the prompt and the facts | nothing today: the contract sees only the request's hash and checks only that it is hex, and the model attests what it was told (`make forge-poc`, one live answer about a typed fact; a labelled contract test) | the buyer | (not REP); an evaluator countersignature would close it, not built. Bound today: schedule prices, one spend per nullifier |
+| **the zkTLS notary** | a transcript it never saw | nothing at settle: no contract path reads a notary signature; `make try` and `make prove-me` check it off chain, on the buyer's own machine | **REP** (one pinned key on Fly, not TEE-attested) | signs any transcript; nothing on chain notices |
+| a merchant after payment | takes the money and ships nothing | nothing on chain: settle pays on the receipt, delivery is not checked; a refund bond covers an overturned receipt, not a missing parcel. The orders so far are test-store orders | the merchant | (not REP) |
+| **one operator** | the market looks like many parties | the labels on the board (`REP-run`); nothing else: the relayer, treasury, issuer, referee, arbiter, evaluator and all 30 listed merchants are REP | **REP** | can bid against itself and see every funded account; competition on testnet is simulated, one outside agent aside |
 | a merchant agent | a pitch or a claim the buyer never proved | code computes the price, the referee refuses unproven claims, an open-category merchant posts a bond | the merchant | (not REP) |
 | **the owner and the full-access key** | change the rules or redeploy the code | anchor changes can wait out a public delay (0 on the live bazaar); a DAO owns a test bazaar; nothing stops a redeploy by the full-access key | **REP** (one key on `bookerbob.testnet`) | on `bookerbob.testnet`: redeploys any code, so every rule above; on `market` after the lock: only DAO-voted, publicly delayed changes |
 | **the VOPRF evaluator** | link one person's purchases across contexts | the nullifier is a VOPRF output of a fresh input the buyer blinded; the buyer checks the proof under the bazaar's anchored `voprf_key`, so no per-buyer key | **REP** (one key, `KEYS_DIR/voprf.seed`; enclave and committee decided, not built) | cannot recompute a nullifier or tie one to the request it came from; can refuse to evaluate, evaluate twice for one person (a sybil, like the issuer key), and see who asked when (timing); purchases before the VOPRF stay linkable |
@@ -176,6 +184,7 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 |---|---|---|
 | the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); never the chain | not public |
 | revealed predicates | everyone, for an ordinary verdict; nobody on chain for a sealed one (the referee reads its opening) | the cohort: 29 verdicts on chain reveal `world_id_human` in the demo context (`cohort_size`) |
+| the bits behind a price | everyone: the schedule and the amount are public, so 38.40 at m01 can only be all three bits, a sealed verdict included (`make leak`, L10) | 1 of 8 bit sets on m01; the buyers sharing the amount are the only cover |
 | settled amount | everyone | 36.00 x10, 38.40 x5, 32.40 x5, 367.20 x5, 28.00 x2, 408 x1: `make leak` fails any new purchase in a set under 5 (L6); the 408 stay and the two 28 pipeline tests came before that gate and are listed |
 | merchant and checkout_ref | everyone | m01: 19 buyers, h05: 6, builders: 2, vetted: 1 |
 | the agent account | everyone | 1: one account per purchase links its verdict, settle and review join (L1); since 2026-11-06 it is a one-time implicit account, its name says nothing (L8), and the treasury still funds it (L7) |
@@ -205,6 +214,17 @@ calls were the founder's, not a session's:
 
 ## Known limits
 
+- **The model path checks the answer, not the prompt.** The buyer writes the prompt and the
+  facts, `check_binding` only checks that `request_sha256` is hex, and no notary proof is
+  checked at settle. `make forge-poc` shows the model attesting a typed fact with a valid TEE
+  signature. Not fixed.
+- **A sealed verdict hides predicates, the price does not.** L10 prints which bit sets each
+  settled amount leaves; on m01 every amount so far leaves one. Buying groups on a fixed tier
+  do not decode, which is why the k-gate routes small sets there.
+- `take_payment_at` has no round check: a buyer can settle with a merchant that lost a blind
+  round, given a receipt for it. A round orders quotes, it does not bind the payment.
+- `reveal_bid` has no forfeit: a merchant that committed can skip the reveal and lose nothing,
+  so a late look at rivals is free.
 - The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's
   evaluator sees a blinded element only. REP still holds the one evaluator key (an enclave and a
   committee are decided, not built), sees who asked and when, and earlier purchases used an HMAC

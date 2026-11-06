@@ -1,0 +1,27 @@
+{
+  "note": "KNOWN LIMIT, shown on purpose (scripts/forge-poc.mjs). The fact below was typed by us and has no proof. Nothing here went on chain, nothing was bought. response_key opens the answer only.",
+  "model": "z-ai/glm-5.3-flash",
+  "signing_key": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+  "chat_id": "31efcdb36d344b11bbf17886e3f2c287",
+  "invented_fact": {
+    "id": "F1",
+    "platform": "anthropic",
+    "field": "monthly_spend_usd",
+    "value": 999
+  },
+  "rule": {
+    "platform": "anthropic",
+    "field": "monthly_spend_usd",
+    "min": 20,
+    "predicate": "claude_spender"
+  },
+  "bind": "cb07fcd2f4afcf1b56425d4cde1ffe5d18afb284904feb87a99e74d975943074",
+  "request_sha256": "0c470dbc0d5ec3608795c08e58ed84555b65a87e4324853e45c387917310cee3",
+  "response": "{\"id\":\"31efcdb36d344b11bbf17886e3f2c287\",\"object\":\"chat.completion\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"364bf55904f5676f515af95d208ddc38c2b4ffdf222e1bba3ece1f7238f8571410b2abf3c4792a3e434face9bafab2a50c2ea19d82b476e3555c54630d69c93bd30864cff941aa568b63dda4422fdf378690098f89426134b404b9e175acfc953f015201a33102d00675aa1b072f99414b3af1b5137e13f9ac424e5218637ec9409320da611ccb9c2a276d0d8ec97ffa941a2ff9eab91f70e0ceb683c847a624fa8453332ce02a03fe31c5e864a5b18b7f7c1f398e2b\",\"reasoning_content\":\"9077da4897164fe1b1db7982d04387d4c9544fe21c8069733564eaa757cd8a25edf4591b4646553485172b52ea670baeb311a326270b26cd25c85390f864ad377f6ab7a246eb516cf3ee54324a69f21e4e72928d98488f258cbf2a1d199b396af2bda512473ade880a23b3e16cb1aea696b002e56d9e508caa2113c430104228b6162baa7ceb2635ef8b7c0748f4b4af9a4f0ac8337982de6c77a8d58b87b541e4557e30b1401a9c65c8a8b695af61c354dea250ae862ac05d9b2fdd9c0016b3633910edc81191c5e0b12562decb4e38c65bc50e865e3eff41a1f6d7028af4f1cae54e12968e6612e3465607739ac07bad042b1e18e2ff8fbef9c584f6b83820925b2cee3c4f255e921b1cd8a5b0ac90fe961c850a9dec606246c21afeef8890e73aa170c1\"},\"finish_reason\":\"stop\",\"logprobs\":null,\"matched_stop\":154827}],\"model\":\"z-ai/glm-5.3-flash\",\"created\":1793930211,\"usage\":{\"prompt_tokens\":163,\"total_tokens\":284,\"completion_tokens\":121,\"prompt_tokens_details\":null,\"reasoning_tokens\":64,\"completion_tokens_details\":{\"reasoning_tokens\":64}}}",
+  "response_key": "67f6169571cc7eb597b3b9dfb1da611b4fb8f1d8dc9fed1370e2c4cc9dca6104",
+  "signature": {
+    "text": "z-ai/glm-5.3-flash:0c470dbc0d5ec3608795c08e58ed84555b65a87e4324853e45c387917310cee3:6ba9d4f44bbaaef4e60a676fd243d37f7066aea228951a181e24ff8e1493b2fc",
+    "signature": "a5a2ce16cdc7e2478e74605352ddaad3b7848344349e49709aa2514604928cfa9e635c1836157231ecd567f021d96415688dcf372ed55018930af3e8bf52970a",
+    "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+  }
+}

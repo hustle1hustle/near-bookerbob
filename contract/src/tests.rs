@@ -1140,6 +1140,16 @@ mod near_ai {
         (c, e, p)
     }
 
+    /// KNOWN LIMIT, not a feature (README, "Known limits"; make forge-poc). The buyer writes the
+    /// prompt and the facts. The request hash is only checked to be hex, so nothing ties an
+    /// answer to a proof: the contract has nothing to refuse an answer about invented facts with.
+    #[test]
+    fn known_limit_the_prompt_is_never_checked() {
+        let (_, e, mut p) = chain();
+        p.request_sha256 = bookerbob_core::sha256_hex(b"any prompt the buyer wrote, any facts");
+        assert!(bookerbob_core::near_ai::check_binding(&e, &p).is_ok());
+    }
+
     #[test]
     fn verdict_issued_by_near_ai_is_accepted_with_its_proof() {
         let (mut c, e, p) = chain();

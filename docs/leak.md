@@ -14,7 +14,7 @@
 | the notary (`make prove-me`, `make try`) | that a session ran, its transcript commitments | the redacted fields |
 
 `make leak` reads only public testnet data (signers, receivers, args, events, block heights,
-funding) for the txs in `fixtures/live/testnet-manifest.json` and applies these rules (L5 to L8 are below):
+funding) for the txs in `fixtures/live/testnet-manifest.json` and applies these rules (L5 to L10 are below):
 
 | rule | signal |
 |---|---|
@@ -48,6 +48,16 @@ second is the model's reasoning, which restates the facts.
 `make leak` prints the old openings as KNOWN and fails on any new one, and on a listed key
 that comes back at HEAD. `make try` runs L9 first, so a real fact cannot reach the model path
 while a committed key opens a field.
+
+## L10: the price decodes (added 2026-11-06)
+
+A schedule is public and a settled amount is public, so `make leak` lists every subset of a
+merchant's bits that gives the amount. On m01, 38.40 and 36.00 each leave 1 of 8 subsets, and
+408 at h05 leaves 1 of 8: the bits are readable from the amount. That includes the sealed
+verdict in the README's first screen. It hid its predicates in the tx and the price gave them
+back. What remains is the buyers who share the amount (L6). L10 is reported, not gated: every
+single purchase so far decodes. Fixed tiers in a buying group do not, and that is the working
+fix: the grid, not the seal.
 
 ## Before (2026-11-05, round 5979413, `docs/leak-before.json`)
 

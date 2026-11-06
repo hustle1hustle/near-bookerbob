@@ -52,6 +52,8 @@ if (live.status !== 0) console.log(live.stdout.split("\n").filter((l) => l.start
 // testnet evidence; a stale phrase anywhere in the docs fails here.
 const mk = spawnSync("node", ["scripts/market-eval.mjs", "--check"], { cwd: root, encoding: "utf8" });
 line(mk.status === 0, "make market-eval: the published table is what the code computes", mk.status === 0 ? "1,000 simulated rounds, a model with stated assumptions" : mk.stderr.trim().split("\n").pop());
+const forge = spawnSync("node", ["scripts/forge-poc.mjs", "verify"], { cwd: root, encoding: "utf8" });
+line(forge.status === 0, "known limit, shown on purpose: the model attested a typed fact (make forge-poc), the contract cannot tell", "README, Known limits");
 const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
 line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
 

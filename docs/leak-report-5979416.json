@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-05T21:41:38.179Z",
+  "when": "2026-11-06T01:58:48.569Z",
   "bazaar": "bookerbob.testnet",
   "round": 5979416,
   "links": [
@@ -166,6 +166,31 @@
       "linked": false,
       "note": "25 named before implicit became the default (2026-11-06), listed in fixtures/live/leak-before-implicit.json; 0 since",
       "anonymity_set": 3
+    },
+    {
+      "rule": "L10 price decode",
+      "what": "38.4 at m01 (single): 1 of 8 bit sets give this amount: {claude_spender, world_id_human, airbnb_frequent}",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L10 price decode",
+      "what": "408 at h05 (hotel): 1 of 8 bit sets give this amount: {airbnb_frequent, claude_spender, world_id_human}",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L10 price decode",
+      "what": "36 at m01 (single): 1 of 8 bit sets give this amount: {claude_spender, world_id_human, airbnb_frequent}",
+      "linked": true,
+      "anonymity_set": 1
+    },
+    {
+      "rule": "L9 committed keys",
+      "what": "4557 values on 8 sealed fields of 3 model txs and 1 capture",
+      "linked": false,
+      "note": "6 field(s) opened by keys since removed, all synthetic facts, fixtures/live/leak-exposed.json; 0 open today",
+      "anonymity_set": 18
     }
   ],
   "rating_to_buyer_linked": false,

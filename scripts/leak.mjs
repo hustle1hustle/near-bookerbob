@@ -8,6 +8,7 @@
 //   L2 timing order   the k-th sealed rating follows the k-th review-group join
 //   L3 funding        a one-time account funded by the same relayer as the buyers
 //   L4 reveal         a revealed rating opens one sealed hash, so it is tied to that sender
+//   L10 price decode  a settled amount, read against the public schedule, names the bits
 //   L9 committed keys every 32-byte value in the repo tried on every sealed model field
 // Prints each link with the anonymity set it leaves, and writes docs/leak-report.json.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -165,6 +166,21 @@ const named = rows.filter((r) => r.tester.endsWith(`.${m.treasury}`));
 const newNamed = named.filter((r) => !knownNamed.has(r.tester));
 const reused = rows.length - new Set(rows.map((r) => r.tester)).size;
 links.push({ rule: "L8 account name", what: `${rows.length} buyers: ${named.length} named under ${m.treasury}, ${rows.length - named.length} one-time implicit; ${reused} account(s) used twice`, linked: newNamed.length > 0 || reused > 0, note: `${knownNamed.size} named before implicit became the default (${beforeImplicit.date}), listed in fixtures/live/leak-before-implicit.json; ${newNamed.length} since`, anonymity_set: rows.length - named.length });
+
+// L10: the price decodes. The schedule is public and the amount is public, so a sealed verdict
+// hides its predicates only as far as other bit sets give the same amount. Reported, not gated:
+// every purchase settled so far decodes, and the k-gate (L6) counts buyers, not bits.
+const { decodeAmount } = await import("./leak-decode.mjs");
+const schedules = new Map(JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url))).map((x) => [x.account, x.schedule]));
+const seenAmounts = new Set();
+const decoded = rows.flatMap((r) => {
+  const s = schedules.get(r.merchant);
+  const id = `${r.merchant} ${r.paid}`;
+  if (!s || seenAmounts.has(id) || !["single", "sealed", "hotel"].includes(r.kind)) return [];
+  seenAmounts.add(id);
+  return [{ merchant: r.merchant.split(".")[0], amount: Number(r.paid) / 1e6, kind: r.kind, ...decodeAmount(s, r.paid) }];
+});
+for (const d of decoded) links.push({ rule: "L10 price decode", what: `${d.amount} at ${d.merchant} (${d.kind}): ${d.sets.length} of ${d.of} bit sets give this amount: ${d.sets.map((x) => `{${x.join(", ") || "none"}}`).join(" or ")}`, linked: d.sets.length === 1, anonymity_set: d.sets.length });
 
 // L9: a key in this repo that opens more than the one field a buyer disclosed.
 const { l9, report } = await import("./leak-keys.mjs");
