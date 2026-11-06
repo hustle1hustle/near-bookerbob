@@ -1278,6 +1278,7 @@ mod reviews {
     const REVIEWS: &str = include_str!("../../fixtures/semaphore/reviews.json");
     const SMALL: &str = include_str!("../../fixtures/semaphore/reviews-small-group.json");
     const GROUP: &str = include_str!("../../fixtures/semaphore/group.json");
+    const RETURNING: &str = include_str!("../../fixtures/semaphore/returning.json");
     /// Fixture clock (cli/src/fixtures.rs), inside the proofs' round.
     const T: u64 = 1_793_793_600_000;
 
@@ -1363,6 +1364,78 @@ mod reviews {
             r["reason_hash"].as_str().unwrap().into(),
             r["salt"].as_str().unwrap().into(),
         );
+    }
+
+    /// Buy Twice: an unspent verdict of a fresh account, with a receipt at 40.00 from `merchant`.
+    fn returning_buyer(c: &mut Bazaar, i: usize, merchant: &str) -> (String, String) {
+        let agent = format!("fresh{i}.testnet");
+        let n = hex::encode([220 + i as u8; 32]);
+        let tmp = settled(c, 40 + i, &agent, merchant);
+        let mut r = c.verdicts.get(&tmp).unwrap().clone();
+        r.spent = false;
+        r.paid = false;
+        r.checkout_ref = None;
+        c.verdicts.insert(n.clone(), r);
+        (agent, n)
+    }
+
+    fn claim(c: &mut Bazaar, agent: &str, n: &str, entry: &serde_json::Value) {
+        at(agent, T);
+        c.claim_returning(acc("m01.bookerbob.testnet"), n.to_string(), proof(entry));
+    }
+
+    #[test]
+    fn a_past_buyer_claims_from_a_fresh_account_and_the_rate_stays_dark_below_k() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let m = acc("m01.bookerbob.testnet");
+        let epoch = T / RETURNING_EPOCH_MS;
+        assert_eq!(f["epoch"].as_u64(), Some(epoch));
+        for i in 0..5 {
+            assert!(c.returning_rate(m.clone(), epoch).is_none());
+            let (agent, n) = returning_buyer(&mut c, i, m.as_str());
+            claim(&mut c, &agent, &n, &f["claims"][i]["proof"]);
+        }
+        assert_eq!(c.returning_rate(m, epoch), Some((5, 6)));
+    }
+
+    #[test]
+    #[should_panic(expected = "already claimed this epoch")]
+    fn one_member_claims_once_per_epoch() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let (a, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
+        claim(&mut c, &a, &n, &f["claims"][0]["proof"]);
+        let (a, n) = returning_buyer(&mut c, 6, "m01.bookerbob.testnet");
+        claim(&mut c, &a, &n, &f["again"]["proof"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid Semaphore proof")]
+    fn a_claim_proof_does_not_move_to_another_verdict() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let (a, n) = returning_buyer(&mut c, 1, "m01.bookerbob.testnet");
+        claim(&mut c, &a, &n, &f["claims"][0]["proof"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "agent mismatch")]
+    fn only_the_verdicts_agent_can_claim() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let (_, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
+        claim(&mut c, "stranger.testnet", &n, &f["claims"][0]["proof"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "merchant has no review group")]
+    fn a_claim_needs_a_group_at_that_merchant() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let (a, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
+        at(&a, T);
+        c.claim_returning(acc("m02.bookerbob.testnet"), n, proof(&f["claims"][0]["proof"]));
     }
 
     fn six() -> (Bazaar, serde_json::Value) {
@@ -2002,6 +2075,19 @@ mod demo {
         c.set_demo_token(acc(DUSDC));
         set(DUSDC);
         assert_eq!(refund(c.ft_on_transfer(acc("agent.testnet"), U128(7), String::new())), 7);
+    }
+
+    #[test]
+    fn a_claimed_returning_discount_comes_off_the_receipt_price() {
+        let mut c = demo_setup();
+        let n = hex::encode([1u8; 32]);
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let m = acc("m01.bazaar.testnet");
+        near_sdk::env::storage_write(format!("rb|{m}").as_bytes(), &500u16.to_le_bytes());
+        near_sdk::env::storage_write(format!("rc|{n}").as_bytes(), m.as_bytes());
+        let _ = c.settle_demo(n.clone(), m, "demo-1".into(), U128(143_640_000));
+        assert_eq!(c.nullifier_status(n), NullifierStatus::Spent);
+        assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(56_360_000)));
     }
 
     #[test]

@@ -77,6 +77,11 @@ pub fn review_scope(merchant: &str, round: u64) -> String {
     semaphore_hash(&crate::sha256(format!("bookerbob/review/v0|{merchant}|{round}").as_bytes()))
 }
 
+/// The returning-customer scope: one claim per member per merchant per epoch.
+pub fn returning_scope(merchant: &str, epoch: u64) -> String {
+    semaphore_hash(&crate::sha256(format!("bookerbob/returning/v0|{merchant}|{epoch}").as_bytes()))
+}
+
 /// LeanIMT (zk-kit), the tree Semaphore v4 groups use: a node is Poseidon(left, right);
 /// a lone left child is carried up unhashed. Keeps only the side nodes, so an insert is
 /// at most `depth` hashes.

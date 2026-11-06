@@ -259,6 +259,29 @@ pub struct ModelAttestation {
     pub tcb_status: String,
 }
 
+/// Buy Twice: one claim per member per merchant per 30-day epoch.
+pub const RETURNING_EPOCH_MS: u64 = 30 * 86_400_000;
+
+fn raw_u64(key: &[u8]) -> u64 {
+    env::storage_read(key).map(|b| u64::from_le_bytes(b.try_into().expect("u64"))).unwrap_or(0)
+}
+
+fn returning_count_key(merchant: &AccountId, epoch: u64) -> Vec<u8> {
+    format!("rn|{merchant}|{epoch}").into_bytes()
+}
+
+fn returning_bps_of(merchant: &AccountId) -> u16 {
+    env::storage_read(format!("rb|{merchant}").as_bytes()).map(|b| u16::from_le_bytes(b.try_into().expect("u16"))).unwrap_or(0)
+}
+
+/// The discount a claimed verdict earns at this merchant: only the merchant it was claimed for.
+fn returning_bps_for(nullifier: &str, merchant: &AccountId) -> u16 {
+    match env::storage_read(format!("rc|{nullifier}").as_bytes()) {
+        Some(m) if m == merchant.as_bytes() => returning_bps_of(merchant),
+        _ => 0,
+    }
+}
+
 fn stored_quote_verifier() -> Option<AccountId> {
     env::storage_read(b"quote_verifier").and_then(|b| String::from_utf8(b).ok()).and_then(|s| s.parse().ok())
 }
@@ -1310,6 +1333,58 @@ impl Bazaar {
         self.review_nullifiers.flush();
         self.review_rounds.flush();
         charge_storage(before);
+    }
+
+    /// Buy Twice: a Semaphore proof from a fresh account that some earlier buyer of `merchant` is
+    /// behind this verdict, with no link to that purchase. Scope merchant plus epoch: one claim per
+    /// member per merchant per epoch. The message binds this verdict, so a proof cannot be replayed
+    /// for another. New state is raw storage only: no migrate method exists.
+    #[payable]
+    pub fn claim_returning(&mut self, merchant: AccountId, nullifier: String, proof: ReviewProof) {
+        let before = env::storage_usage();
+        let record = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        require!(record.agent == env::predecessor_account_id(), "agent mismatch");
+        require!(!record.spent, "nullifier spent");
+        let message = bookerbob_core::semaphore::review_message(&nullifier).unwrap_or_else(|| env::panic_str("bad nullifier"));
+        let g = self.review_groups.get(&merchant).unwrap_or_else(|| env::panic_str("merchant has no review group"));
+        require!(
+            bookerbob_core::semaphore::is_canonical_field(&proof.nullifier) && bookerbob_core::semaphore::is_canonical_field(&proof.merkle_root),
+            "nullifier and root must be canonical field elements"
+        );
+        require!(g.recent_roots.contains(&proof.merkle_root), "proof is not for this merchant's group");
+        let epoch = env::block_timestamp_ms() / RETURNING_EPOCH_MS;
+        let scope = bookerbob_core::semaphore::returning_scope(merchant.as_str(), epoch);
+        let seen = format!("rt|{scope}|{}", proof.nullifier).into_bytes();
+        require!(!env::storage_has_key(&seen), "already claimed this epoch");
+        let ok =
+            groth16::verify(&groth16::SemaphoreProof { depth: proof.depth, points: &proof.points }, [&proof.merkle_root, &proof.nullifier, &message, &scope])
+                .unwrap_or_else(|e| env::panic_str(e));
+        require!(ok, "invalid Semaphore proof");
+        env::storage_write(&seen, b"1");
+        env::storage_write(format!("rc|{nullifier}").as_bytes(), merchant.as_bytes());
+        let key = returning_count_key(&merchant, epoch);
+        env::storage_write(&key, &(raw_u64(&key) + 1).to_le_bytes());
+        emit("returning_claimed", serde_json::json!({ "merchant": merchant, "epoch": epoch }));
+        charge_storage(before);
+    }
+
+    /// The merchant's discount for a proven returning customer, in bps, at most 2000.
+    pub fn set_returning_bps(&mut self, bps: u16) {
+        let merchant = env::predecessor_account_id();
+        require!(self.merchants.contains_key(&merchant), "unknown merchant");
+        require!(bps <= 2000, "returning discount over 20%");
+        env::storage_write(format!("rb|{merchant}").as_bytes(), &bps.to_le_bytes());
+    }
+
+    pub fn returning_bps(&self, merchant: AccountId) -> u16 {
+        returning_bps_of(&merchant)
+    }
+
+    /// Claims this epoch and the merchant's group size, nothing below K_MIN claims: a repeat
+    /// rate with no customer list.
+    pub fn returning_rate(&self, merchant: AccountId, epoch: u64) -> Option<(u64, u64)> {
+        let n = raw_u64(&returning_count_key(&merchant, epoch));
+        (n >= bookerbob_core::K_MIN as u64).then(|| (n, self.review_persons(merchant)))
     }
 
     /// After the round closes (within the next round): open a sealed rating. Refused while
@@ -2701,7 +2776,7 @@ impl Bazaar {
     /// place for both paths. One payout per receipt: a spent record cannot pay again,
     /// whichever path paid it.
     fn take_payment(&mut self, nullifier: &str, merchant: &AccountId, checkout_ref: &str, amount: U128, path: &str, demo: bool) -> (Merchant, u128, AccountId) {
-        self.take_payment_at(nullifier, merchant, checkout_ref, amount, path, demo, 0)
+        self.take_payment_at(nullifier, merchant, checkout_ref, amount, path, demo, returning_bps_for(nullifier, merchant))
     }
 
     /// `take_payment` at the receipt price minus a group tier (`group_bps`, 0 for a single buyer).

@@ -38,3 +38,9 @@ test("L10: the m01 headline price decodes to very few bit sets", async () => {
   assert.equal(d.of, 8);
   assert.ok(d.sets.length <= 2 && d.sets.some((x) => x.length === 3), JSON.stringify(d.sets));
 });
+
+test("L10: a returning discount adds a bit the amount can decode to", async () => {
+  const { decodeAmount } = await import("./leak-decode.mjs");
+  const s = { base_price: "48000000", rules: [{ predicate: "c", bps: 1000 }], cap_bps: 2000 };
+  assert.deepEqual(decodeAmount(s, "41040000", 500).sets, [["c", "returning"]]);
+});
