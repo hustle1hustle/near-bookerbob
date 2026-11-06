@@ -40,6 +40,22 @@
     ]
   },
   {
+    "feature": "Verdict evaluator: a model verdict needs its signature on the request and envelope, so a signed answer about a typed fact is refused",
+    "tracks": "security, privacy",
+    "where": "`contract/src/lib.rs` `submit_near_ai_verdict`, `core/src/near_ai.rs`",
+    "status": "built",
+    "detail": "`cargo test -p bookerbob-bazaar evaluator`; live with the contract batch; one REP key, see Known limits",
+    "evidence": []
+  },
+  {
+    "feature": "The Leash: an owner signs limits on an agent (per purchase, total, expiry, a round's winner); the contract refuses a payment outside them and a live mandate shuts withdraw",
+    "tracks": "security, agents",
+    "where": "`contract/src/lib.rs` `set_mandate`, `spend_under_mandate`, `core/src/mandate.rs`",
+    "status": "built",
+    "detail": "`cargo test -p bookerbob-bazaar leash`; live with the contract batch; `make audit` recomputes `liability`",
+    "evidence": []
+  },
+  {
     "feature": "Buy Twice: a past buyer proves it from a fresh account with a Semaphore proof and pays less; a repeat count held below k, with no customer list",
     "tracks": "privacy, realworld",
     "where": "`contract/src/lib.rs` `claim_returning`, `docs/semaphore.md`",

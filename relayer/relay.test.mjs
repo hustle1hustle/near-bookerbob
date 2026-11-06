@@ -100,6 +100,10 @@ test("demo: a tester's escrow deposit and settle_demo are accepted", () => {
   assert.deepEqual(checkDemo(settle, demoCtx), { ok: true });
 });
 
+test("demo: a tester's set_mandate is relayed", () => {
+  assert.deepEqual(checkDemo(demoDelegate({ receiver_id: BAZAAR }, { method_name: "set_mandate", args: {}, deposit: String(10n ** 22n) }), demoCtx), { ok: true });
+});
+
 test("demo: a tester's claim_returning is relayed, its deposit capped", () => {
   const claim = (deposit) => demoDelegate({ receiver_id: BAZAAR }, { method_name: "claim_returning", args: { merchant: "m01.bookerbob.testnet", nullifier: "aa", proof: {} }, deposit });
   assert.deepEqual(checkDemo(claim(String(20n * 10n ** 21n)), demoCtx), { ok: true });

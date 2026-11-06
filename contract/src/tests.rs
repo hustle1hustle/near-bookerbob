@@ -1186,7 +1186,12 @@ mod near_ai {
         let (e, p) = captured();
         set("owner.testnet");
         let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
-        let att = ModelAttestation { model: e.attestation.model.clone(), nonce: p.nonce.clone(), report_hash: bookerbob_core::sha256_hex(REPORT), tcb_status: e.attestation.tcb_status.clone() };
+        let att = ModelAttestation {
+            model: e.attestation.model.clone(),
+            nonce: p.nonce.clone(),
+            report_hash: bookerbob_core::sha256_hex(REPORT),
+            tcb_status: e.attestation.tcb_status.clone(),
+        };
         c.register_model_attestation(p.signing_key.clone(), att);
         set(&e.cnf);
         c.submit_near_ai_verdict(e, p);
@@ -3577,5 +3582,215 @@ mod voprf_anchor {
         let mut c = setup();
         set_no_deposit("owner.testnet");
         c.set_voprf_key("zz".into());
+    }
+}
+
+/// The Leash: an owner's signed limits on an agent, checked where every payment passes.
+mod leash {
+    use super::*;
+    use bookerbob_core::mandate::Mandate;
+
+    const AGENT: &str = "agent.testnet";
+    const PRICE: u128 = 151_200_000;
+
+    fn owner() -> SigningKey {
+        SigningKey::from_bytes(&[9u8; 32])
+    }
+
+    fn mandate(per: u128, total: u128, nonce: u64) -> Mandate {
+        Mandate {
+            agent: AGENT.into(),
+            owner_key: hex::encode(owner().verifying_key().to_bytes()),
+            max_per_purchase: per,
+            max_total: total,
+            expires_at_ms: NOW_MS + 3_000_000,
+            round: None,
+            nonce,
+        }
+    }
+
+    fn sign(m: &Mandate) -> String {
+        hex::encode(owner().sign(&m.signing_message()).to_bytes())
+    }
+
+    fn leash(c: &mut Bazaar, m: &Mandate) {
+        set(AGENT);
+        c.set_mandate(m.clone(), sign(m));
+    }
+
+    fn buy(c: &mut Bazaar, byte: u8) {
+        submit_with_receipt(c, envelope(byte, AGENT));
+        set_no_deposit(AGENT);
+        let _ = c.settle(hex::encode([byte; 32]), acc("m01.bazaar.testnet"), format!("o-{byte}"), U128(PRICE));
+    }
+
+    #[test]
+    fn a_purchase_inside_the_mandate_settles_counts_and_is_named_in_the_liability() {
+        let mut c = setup();
+        let m = mandate(PRICE, 2 * PRICE, 1);
+        leash(&mut c, &m);
+        buy(&mut c, 1);
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(PRICE));
+        assert!(get_logs().iter().any(|l| l.contains("\"event\":\"settled\"") && l.contains(&m.hash_hex())));
+    }
+
+    #[test]
+    #[should_panic(expected = "over the mandate's limit per purchase")]
+    fn over_the_limit_per_purchase_is_refused() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE - 1, 10 * PRICE, 1));
+        buy(&mut c, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "over the mandate's total limit")]
+    fn over_the_total_limit_is_refused() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE + 1, 1));
+        buy(&mut c, 1);
+        buy(&mut c, 2);
+    }
+
+    #[test]
+    #[should_panic(expected = "mandate expired")]
+    fn an_expired_mandate_stops_the_agent() {
+        let mut c = setup();
+        let mut m = mandate(PRICE, PRICE, 1);
+        m.expires_at_ms = NOW_MS;
+        leash(&mut c, &m);
+        buy(&mut c, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "a live mandate holds this escrow")]
+    fn a_live_mandate_shuts_the_withdraw_door() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE, 1));
+        let mut b = ctx(AGENT);
+        b.attached_deposit(NearToken::from_yoctonear(1));
+        testing_env!(b.build());
+        let _ = c.withdraw(U128(1));
+    }
+
+    #[test]
+    fn an_expired_mandate_opens_the_withdraw_door_again() {
+        let mut c = setup();
+        let mut m = mandate(PRICE, PRICE, 1);
+        m.expires_at_ms = NOW_MS;
+        leash(&mut c, &m);
+        let mut b = ctx(AGENT);
+        b.attached_deposit(NearToken::from_yoctonear(1));
+        testing_env!(b.build());
+        let _ = c.withdraw(U128(1));
+    }
+
+    #[test]
+    fn a_failed_payout_gives_the_limit_back() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE, 1));
+        buy(&mut c, 1);
+        testing_env!(
+            ctx("bazaar.testnet").build(),
+            near_sdk::test_vm_config(),
+            near_sdk::RuntimeFeesConfig::test(),
+            Default::default(),
+            vec![PromiseResult::Failed]
+        );
+        assert!(!c.on_settle_transfer(hex::encode([1u8; 32]), acc(AGENT), U128(PRICE), None));
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(0));
+    }
+
+    #[test]
+    #[should_panic(expected = "the agent sets its first mandate")]
+    fn nobody_leashes_a_stranger() {
+        let mut c = setup();
+        let m = mandate(PRICE, PRICE, 1);
+        set("stranger.testnet");
+        c.set_mandate(m.clone(), sign(&m));
+    }
+
+    #[test]
+    fn the_owner_replaces_it_from_any_sender_and_the_count_restarts() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE, 1));
+        buy(&mut c, 1);
+        let m = mandate(PRICE, 3 * PRICE, 2);
+        set("relayer.testnet");
+        c.set_mandate(m.clone(), sign(&m));
+        assert_eq!(c.mandate(acc(AGENT)), Some(m));
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(0));
+    }
+
+    #[test]
+    #[should_panic(expected = "stale mandate")]
+    fn an_old_mandate_cannot_be_replayed() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE, 2));
+        leash(&mut c, &mandate(10 * PRICE, 10 * PRICE, 1));
+    }
+
+    #[test]
+    #[should_panic(expected = "another owner holds this agent")]
+    fn the_agent_cannot_swap_in_its_own_key() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE, 1));
+        let k = SigningKey::from_bytes(&[10u8; 32]);
+        let mut m = mandate(10 * PRICE, 10 * PRICE, 2);
+        m.owner_key = hex::encode(k.verifying_key().to_bytes());
+        set(AGENT);
+        c.set_mandate(m.clone(), hex::encode(k.sign(&m.signing_message()).to_bytes()));
+    }
+
+    #[test]
+    #[should_panic(expected = "bad mandate signature")]
+    fn a_mandate_the_owner_did_not_sign_is_refused() {
+        let mut c = setup();
+        leash(&mut c, &mandate(PRICE, PRICE, 1));
+        let m = mandate(10 * PRICE, 10 * PRICE, 2);
+        set(AGENT);
+        c.set_mandate(m, sign(&mandate(PRICE, PRICE, 2)));
+    }
+
+    /// m01 and a cheaper m02 bid (`both`), or m01 alone; the mandate names the round.
+    fn round_mandate(both: bool) -> Bazaar {
+        let mut c = setup();
+        set("m02.bazaar.testnet");
+        c.register_merchant(Schedule { base_price: 189_000_000, rules: vec![], cap_bps: 0, cohort: None }, "hoodie".into(), None);
+        approve(&mut c, "m02.bazaar.testnet");
+        set_no_deposit("owner.testnet");
+        c.open_round("r1".into(), "hoodie".into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        let mut m = mandate(PRICE, PRICE, 1);
+        m.round = Some("r1".into());
+        m.expires_at_ms = REVEAL_UNTIL + 1000;
+        leash(&mut c, &m);
+        at("m01.bazaar.testnet", NOW_MS);
+        c.commit_bid("r1".into(), sealed("m01.bazaar.testnet", &schedule(), 1));
+        if both {
+            at("m02.bazaar.testnet", NOW_MS);
+            c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+        }
+        at("m01.bazaar.testnet", COMMIT_UNTIL);
+        c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
+        if both {
+            at("m02.bazaar.testnet", COMMIT_UNTIL);
+            c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32]));
+        }
+        submit_with_receipt(&mut c, envelope(1, AGENT));
+        at(AGENT, REVEAL_UNTIL);
+        c
+    }
+
+    #[test]
+    #[should_panic(expected = "not the winner of the mandate's round")]
+    fn a_mandate_on_a_round_refuses_the_loser() {
+        let mut c = round_mandate(true);
+        let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "o".into(), U128(PRICE));
+    }
+
+    #[test]
+    fn a_mandate_on_a_round_pays_the_winner() {
+        let mut c = round_mandate(false);
+        let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "o".into(), U128(PRICE));
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(PRICE));
     }
 }

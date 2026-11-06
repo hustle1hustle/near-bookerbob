@@ -224,8 +224,13 @@ calls were the founder's, not a session's:
 - **A sealed verdict hides predicates, the price does not.** L10 prints which bit sets each
   settled amount leaves; on m01 every amount so far leaves one. Buying groups on a fixed tier
   do not decode, which is why the k-gate routes small sets there.
-- `take_payment_at` has no round check: a buyer can settle with a merchant that lost a blind
-  round, given a receipt for it. A round orders quotes, it does not bind the payment.
+- A round binds a payment only under a mandate that names it. With no mandate, a buyer can settle
+  with a merchant that lost a blind round, given a receipt for it.
+- The Leash (`set_mandate`) bounds one account, not a person. It holds what that account pays:
+  per purchase, in total, by expiry, to a round's winner, and a live mandate shuts `withdraw`.
+  An agent can open another account, and an agent that sets its own key as owner has no leash,
+  so check `mandate(agent)`. After expiry `withdraw` goes to the agent's account, so an owner who
+  fears the agent key should drain first. A dispute refund does not give the limit back.
 - `reveal_bid` has no forfeit: a merchant that committed can skip the reveal and lose nothing,
   so a late look at rivals is free.
 - The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's
@@ -266,6 +271,8 @@ calls were the founder's, not a session's:
 | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | **live**: every testnet verdict passed it |
 | NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 18 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | **live**: every testnet tx above logs them |
+| Verdict evaluator: a model verdict needs its signature on the request and envelope, so a signed answer about a typed fact is refused | security, privacy | `contract/src/lib.rs` `submit_near_ai_verdict`, `core/src/near_ai.rs` | **built**: `cargo test -p bookerbob-bazaar evaluator`; live with the contract batch; one REP key, see Known limits |
+| The Leash: an owner signs limits on an agent (per purchase, total, expiry, a round's winner); the contract refuses a payment outside them and a live mandate shuts withdraw | security, agents | `contract/src/lib.rs` `set_mandate`, `spend_under_mandate`, `core/src/mandate.rs` | **built**: `cargo test -p bookerbob-bazaar leash`; live with the contract batch; `make audit` recomputes `liability` |
 | Buy Twice: a past buyer proves it from a fresh account with a Semaphore proof and pays less; a repeat count held below k, with no customer list | privacy, realworld | `contract/src/lib.rs` `claim_returning`, `docs/semaphore.md` | **built**: `make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`; live with the contract batch |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | **built**: `make verify`, 50/50 referee evals |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | **built**: `make verify` checks 04 and 05 |

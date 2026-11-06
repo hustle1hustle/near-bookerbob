@@ -283,6 +283,23 @@ fn returning_bps_for(nullifier: &str, merchant: &AccountId) -> u16 {
     }
 }
 
+fn mandate_of(agent: &AccountId) -> Option<bookerbob_core::mandate::Mandate> {
+    env::storage_read(format!("mn|{agent}").as_bytes()).map(|b| serde_json::from_slice(&b).expect("stored mandate"))
+}
+
+fn mandate_spent(agent: &AccountId) -> u128 {
+    env::storage_read(format!("ms|{agent}").as_bytes()).map(|b| u128::from_le_bytes(b.try_into().expect("u128"))).unwrap_or(0)
+}
+
+fn set_mandate_spent(agent: &AccountId, v: u128) {
+    env::storage_write(format!("ms|{agent}").as_bytes(), &v.to_le_bytes());
+}
+
+/// A live mandate holds the escrow: `withdraw` would walk around every limit it sets.
+fn require_no_live_mandate(agent: &AccountId) {
+    require!(!mandate_of(agent).is_some_and(|m| env::block_timestamp_ms() < m.expires_at_ms), "a live mandate holds this escrow");
+}
+
 fn stored_quote_verifier() -> Option<AccountId> {
     env::storage_read(b"quote_verifier").and_then(|b| String::from_utf8(b).ok()).and_then(|s| s.parse().ok())
 }
@@ -2029,9 +2046,13 @@ impl Bazaar {
     /// Lowest price among bids revealed in the round, for this verdict. Only after the
     /// reveal deadline: before it, a merchant could still learn and react.
     pub fn round_best_quote(&self, round_id: String, nullifier: String) -> Option<MerchantQuote> {
-        let round = self.rounds.get(&round_id).unwrap_or_else(|| env::panic_str("unknown round"));
+        self.round_winner(&round_id, &nullifier)
+    }
+
+    fn round_winner(&self, round_id: &str, nullifier: &str) -> Option<MerchantQuote> {
+        let round = self.rounds.get(round_id).unwrap_or_else(|| env::panic_str("unknown round"));
         require!(env::block_timestamp_ms() >= round.reveal_until_ms, "round still open");
-        let v = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
+        let v = self.verdicts.get(nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         let mut best: Option<MerchantQuote> = None;
         for id in &round.revealed {
             let Some(m) = self.merchants.get(id).filter(|m| m.approved) else { continue };
@@ -2067,6 +2088,37 @@ impl Bazaar {
         require!(verify_signature(&verdict), "bad signature");
         self.accept_verdict(&verdict.envelope, key_id);
         charge_storage_plus(before, RECORD_RESERVE_BYTES);
+    }
+
+    /// The Leash: an owner's signed limits on an agent. The agent sets the first one (so nobody
+    /// can leash a stranger); after that only the owner's key replaces it, from any sender, with
+    /// a higher nonce. New state is raw storage only.
+    #[payable]
+    pub fn set_mandate(&mut self, mandate: bookerbob_core::mandate::Mandate, signature: String) {
+        let before = env::storage_usage();
+        let agent: AccountId = mandate.agent.parse().unwrap_or_else(|_| env::panic_str("bad agent"));
+        let sig: [u8; 64] = decode(&signature, "mandate signature");
+        let key: [u8; 32] = decode(&mandate.owner_key, "owner key");
+        require!(env::ed25519_verify(&sig, &mandate.signing_message(), &key), "bad mandate signature");
+        match mandate_of(&agent) {
+            Some(old) => {
+                require!(old.owner_key == mandate.owner_key, "another owner holds this agent");
+                require!(mandate.nonce > old.nonce, "stale mandate");
+            }
+            None => require!(env::predecessor_account_id() == agent, "the agent sets its first mandate"),
+        }
+        env::storage_write(format!("mn|{agent}").as_bytes(), &serde_json::to_vec(&mandate).expect("json"));
+        set_mandate_spent(&agent, 0);
+        emit("mandate_set", serde_json::json!({ "agent": agent, "mandate": mandate.hash_hex() }));
+        charge_storage(before);
+    }
+
+    pub fn mandate(&self, agent: AccountId) -> Option<bookerbob_core::mandate::Mandate> {
+        mandate_of(&agent)
+    }
+
+    pub fn mandate_spent(&self, agent: AccountId) -> U128 {
+        U128(mandate_spent(&agent))
     }
 
     /// Owner registers a NEAR AI model key after checking its attestation report off chain.
@@ -2719,6 +2771,7 @@ impl Bazaar {
     pub fn withdraw(&mut self, amount: U128) -> Promise {
         near_sdk::assert_one_yocto();
         let account = env::predecessor_account_id();
+        require_no_live_mandate(&account);
         let bal = self.escrow.get_mut(&account).unwrap_or_else(|| env::panic_str("no escrow"));
         require!(amount.0 > 0 && *bal >= amount.0, "insufficient escrow");
         *bal -= amount.0;
@@ -2736,6 +2789,7 @@ impl Bazaar {
         near_sdk::assert_one_yocto();
         let token = demo_token_id().unwrap_or_else(|| env::panic_str("no demo token"));
         let account = env::predecessor_account_id();
+        require_no_live_mandate(&account);
         let mut demo = demo_escrow();
         let bal = demo.get_mut(&account).unwrap_or_else(|| env::panic_str("no escrow"));
         require!(amount.0 > 0 && *bal >= amount.0, "insufficient escrow");
@@ -2836,6 +2890,7 @@ impl Bazaar {
         };
         require!(amount.0 == price, "amount differs from quote");
         require!(price <= record.max_spend.0, "over verdict cap");
+        let mandate = self.spend_under_mandate(&agent, merchant, nullifier, price);
         if demo {
             let mut d = demo_escrow();
             let bal = d.get_mut(&agent).unwrap_or_else(|| env::panic_str("no escrow"));
@@ -2861,11 +2916,13 @@ impl Bazaar {
         let receipt_hash = record.receipt.as_ref().map(|r| r.receipt_hash.clone()).unwrap_or_default();
         // The market fee: taken from the price, never added to it; conserved (merchant + fee = price).
         let fee = price * fee_rate() as u128 / 10_000;
-        let liability = hex::encode(env::sha256_array(
-            serde_json::to_vec(&(&record.digest, &receipt_hash, merchant.as_str(), price.to_string(), if demo { "demo" } else { "usdc" }, fee.to_string()))
-                .expect("json")
-                .as_slice(),
-        ));
+        // A purchase under a mandate also names the mandate it spent against.
+        let token = if demo { "demo" } else { "usdc" };
+        let liable = match &mandate {
+            Some(h) => serde_json::to_vec(&(&record.digest, &receipt_hash, merchant.as_str(), price.to_string(), token, fee.to_string(), h)),
+            None => serde_json::to_vec(&(&record.digest, &receipt_hash, merchant.as_str(), price.to_string(), token, fee.to_string())),
+        };
+        let liability = hex::encode(env::sha256_array(liable.expect("json").as_slice()));
         if fee > 0 {
             let mut sf = settle_fees();
             sf.insert(nullifier.to_string(), fee);
@@ -2894,6 +2951,7 @@ impl Bazaar {
                 "token": if demo { "demo" } else { "usdc" },
                 "liability": liability,
                 "fee": U128(fee),
+                "mandate": mandate,
             }),
         );
         (m, price, agent)
@@ -2917,8 +2975,27 @@ impl Bazaar {
         false
     }
 
+    /// The Leash at the one place every payment passes: the limits, then the count. Returns the
+    /// mandate's hash for the liability record.
+    fn spend_under_mandate(&self, agent: &AccountId, merchant: &AccountId, nullifier: &str, price: u128) -> Option<String> {
+        let m = mandate_of(agent)?;
+        require!(env::block_timestamp_ms() < m.expires_at_ms, "mandate expired");
+        require!(price <= m.max_per_purchase, "over the mandate's limit per purchase");
+        let spent = mandate_spent(agent) + price;
+        require!(spent <= m.max_total, "over the mandate's total limit");
+        if let Some(round) = &m.round {
+            let winner = self.round_winner(round, nullifier).map(|q| q.merchant);
+            require!(winner.as_ref() == Some(merchant), "not the winner of the mandate's round");
+        }
+        set_mandate_spent(agent, spent);
+        Some(m.hash_hex())
+    }
+
     fn on_settle_rollback(&mut self, nullifier: &str, agent: &AccountId, amount: U128, demo: bool) {
         self.credit(agent, amount.0, demo);
+        if mandate_of(agent).is_some() {
+            set_mandate_spent(agent, mandate_spent(agent).saturating_sub(amount.0));
+        }
         let mut sf = settle_fees();
         if let Some(fee) = sf.remove(nullifier) {
             sf.flush();

@@ -5,6 +5,7 @@ pub mod bid;
 pub mod delegation;
 pub mod disclosure;
 pub mod envelope;
+pub mod mandate;
 pub mod near_ai;
 pub mod poseidon;
 mod poseidon_params;

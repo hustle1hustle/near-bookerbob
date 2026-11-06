@@ -11,10 +11,12 @@
 //      for the merchant's schedule on chain and the verdict's revealed predicates. A sealed
 //      verdict reveals none: its price must be one the schedule produces for some subset.
 //   3. the settle tx: its `settled` event names this nullifier, merchant and amount, and the
-//      dUSDC transfer to the merchant is the amount minus the fee; a replay was refused.
+//      dUSDC transfer to the merchant is the amount minus the fee; the `liability` record is
+//      recomputed from those fields; a replay was refused.
 //
 //   node scripts/audit.mjs <nullifier> [bazaar]
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { rpcClient } from "../relayer/near.mjs";
 import { quote as sdkQuote } from "../sdk/merchant.mjs";
@@ -114,6 +116,14 @@ if (settleTx) {
   const fee = BigInt(settled?.fee ?? 0);
   const ok = !outs.some((o) => o.outcome.status.Failure) && settled && (settled.nullifier ?? nullifier) === nullifier && BigInt(transfer?.amount ?? -1) + fee === BigInt(settled.amount ?? settled.price ?? 0);
   line(Boolean(ok), "the settle tx: its event names this purchase and the merchant got the amount minus the fee", `${settleTx.slice(0, 8)}.., paid ${usd(settled?.amount ?? 0)}, merchant ${usd(transfer?.amount ?? 0)}, fee ${usd(fee)}`);
+  // The liability record, recomputed: what this payment relied on, hash for hash.
+  const want = await client.view(bazaar, "liability", { nullifier });
+  if (want && settled) {
+    const base = [v.digest, r.receipt_hash, r.merchant, String(settled.amount ?? settled.price), settled.token ?? "demo"];
+    const shapes = settled.mandate ? [[...base, String(fee), settled.mandate]] : [[...base, String(fee)], base];
+    const hit = shapes.find((x) => createHash("sha256").update(JSON.stringify(x)).digest("hex") === want);
+    line(Boolean(hit), "the liability record recomputes from the verdict, the receipt and the settle", `${want.slice(0, 12)}..${settled.mandate ? `, under mandate ${settled.mandate.slice(0, 12)}..` : ""}`);
+  } else console.log("SKIP  the liability record: none for this purchase (group settles and early purchases)");
 } else console.log("SKIP  the settle tx: this nullifier is not in the public manifest (its views above are still checked)");
 if (txs?.replay) {
   const t = await client.rpc("tx", { tx_hash: txs.replay, sender_account_id: m.treasury, wait_until: "FINAL" });

@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -115,6 +115,10 @@ eval-verify:
 
 # One testnet purchase whose verdict a NEAR AI model issued, through the eval gate (docs/eval.md).
 # A past buyer proves it from a fresh account and pays less (needs the contract batch on testnet).
+# An owner's signed limits on an agent, refused and honoured on testnet (needs the batch deployed).
+leash:
+	node scripts/leash.mjs run
+
 buy-twice:
 	node scripts/buy-twice.mjs run
 
@@ -173,7 +177,7 @@ test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
 
 test-ucp:
-	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/buy-twice.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs relayer/relay.test.mjs relayer/near.test.mjs relayer/serve.test.mjs scripts/mainnet-moment.test.mjs scripts/device-run.test.mjs scripts/eval-run.test.mjs scripts/status.test.mjs sdk/buy.test.mjs scripts/rep-eval.test.mjs scripts/live-pages.test.mjs scripts/prove-me.test.mjs scripts/rep-eval-v2.test.mjs scripts/nras.test.mjs scripts/leak-keys.test.mjs
+	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/buy-twice.test.mjs scripts/leash.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs relayer/relay.test.mjs relayer/near.test.mjs relayer/serve.test.mjs scripts/mainnet-moment.test.mjs scripts/device-run.test.mjs scripts/eval-run.test.mjs scripts/status.test.mjs sdk/buy.test.mjs scripts/rep-eval.test.mjs scripts/live-pages.test.mjs scripts/prove-me.test.mjs scripts/rep-eval-v2.test.mjs scripts/nras.test.mjs scripts/leak-keys.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures
