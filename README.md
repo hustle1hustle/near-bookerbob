@@ -197,10 +197,12 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 used, the repository layout, what `make verify` checks and what is mocked, measured evidence, and
 the full threat model.
 
-## What a human decided
+## What the founder designed
 
-The code here is written with Claude Code sessions (PRIOR_WORK.md, "AI assistance"). These
-calls were the founder's, not a session's:
+The code here is written with Claude Code sessions (PRIOR_WORK.md, "AI assistance"). The product
+and its core architecture are the founder's: agents buy on a verified verdict about a person,
+never on their data; price tiers come from verified context; cohorts stay above a k floor; account
+nullifiers per context; the verdict path and the DAO-owned market. His calls also include:
 
 - Testnet only, with dUSDC, a demo token; mainnet (Circle USDC, 1Click, Agent Market) only on
   his word, and nothing on mainnet yet ([7889d94](https://github.com/hustle1hustle/near-bookerbob/commit/7889d94), [8f0efd7](https://github.com/hustle1hustle/near-bookerbob/commit/8f0efd7)).
@@ -209,8 +211,6 @@ calls were the founder's, not a session's:
   (2026-11-05, [1ec99ee](https://github.com/hustle1hustle/near-bookerbob/commit/1ec99ee)); the post-quantum pack goes in ([c121717](https://github.com/hustle1hustle/near-bookerbob/commit/c121717)); OutLayer only in
   reversible steps (nothing is registered yet, docs/outlayer.md).
 - Hotel prices are JMPR's public rates as of 2026-11-04; JMPR is not a participant and no real room is booked ([85161a9](https://github.com/hustle1hustle/near-bookerbob/commit/85161a9)).
-- What stays his to do: making this repository public, the market lock, every outward post
-  ([065264d](https://github.com/hustle1hustle/near-bookerbob/commit/065264d) and [17379ea](https://github.com/hustle1hustle/near-bookerbob/commit/17379ea) stage them; none is done by a session).
 
 ## Known limits
 
