@@ -323,6 +323,14 @@ if (existsSync(new URL("../fixtures/live/model-buy/passing.json", import.meta.ur
     return [ok, `issuer ${v?.issuer?.slice(0, 20)}.., model key registered (${att?.tcb_status}), gate ${gate?.threshold}, eval_passes ${passes}, receipt from ${v?.receipt?.merchant?.split(".")[0]}`];
   });
 }
+if (existsSync(new URL("../fixtures/live/buy-twice/run.json", import.meta.url))) {
+  const { verifyRun } = await import("./buy-twice.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  await attempt("Buy Twice: a past buyer claimed from a fresh account and settled under the receipt price", async () => {
+    const lines = await verifyRun(view, raw);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+}
 if (existsSync(new URL("../fixtures/live/eval-gate/run.json", import.meta.url))) {
   const { verifyGate } = await import("./eval-gate.mjs");
   const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;

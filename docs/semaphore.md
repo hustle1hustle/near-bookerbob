@@ -2,7 +2,7 @@
 
 Status: **built** (2026-11-04), on the mocked chain, not deployed. Written first as the
 spec; changes made while building are marked "built:". Run: `make verify` (`bookerbob
-reviews`, 15 checks) and `cargo test -p bookerbob-bazaar reviews`.
+reviews`, 17 checks) and `cargo test -p bookerbob-bazaar reviews`.
 
 ## Goal
 
@@ -22,6 +22,25 @@ From the circuit source (`packages/circuits/src/semaphore.circom`, semaphore-pro
   (`packages/proof/src/hash.ts`).
 - One verification key per tree depth (`vk_delta_2` and `IC` differ by depth, the rest is
   shared), from `@semaphore-protocol/proof`'s `verification-keys.json`.
+
+## Buy Twice: the same group, a second use (built on the contract batch)
+
+`claim_returning(merchant, nullifier, proof)`: the agent of an unspent verdict proves membership
+of the merchant's group, so a fresh account can show an earlier purchase with no link to it.
+
+- Scope `bookerbob/returning/v0|{merchant}|{epoch}`, epoch 30 days: one claim per membership per
+  merchant per epoch. Message: the verdict nullifier, so a proof does not move to another verdict.
+  The scope prefix differs from a review's, so neither proof passes as the other.
+- A verdict claims once. The group must hold at least k people, and the merchant must offer a
+  discount: a claim says something about the buyer and is refused where it buys nothing.
+- The discount (`set_returning_bps`, at most 20%) is fixed at the claim, so the merchant cannot
+  move the price between claim and settle. It comes off the receipt price in `take_payment`, the
+  same place as a group tier. Group settles pass their own tier and ignore it.
+- `returning_rate(merchant, epoch)` counts confirmed payments, not claims, so each one cost a
+  purchase, and holds the count below k.
+- New state is raw storage only (`rt|`, `rc|`, `rn|`, `rb|`), because no migrate method exists.
+
+Limits are in the README. `make buy-twice` runs it live once the batch is deployed.
 
 ## Trusted setup, disclosed
 

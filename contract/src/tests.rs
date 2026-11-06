@@ -1381,22 +1381,93 @@ mod reviews {
 
     fn claim(c: &mut Bazaar, agent: &str, n: &str, entry: &serde_json::Value) {
         at(agent, T);
+        near_sdk::env::storage_write(b"rb|m01.bookerbob.testnet", &500u16.to_le_bytes());
         c.claim_returning(acc("m01.bookerbob.testnet"), n.to_string(), proof(entry));
     }
 
+    /// The transfer of a settled purchase confirms.
+    fn confirm(c: &mut Bazaar, agent: &str, n: &str) {
+        testing_env!(
+            VMContextBuilder::new()
+                .current_account_id(acc("bazaar.testnet"))
+                .predecessor_account_id(acc("bazaar.testnet"))
+                .block_timestamp(T * 1_000_000)
+                .build(),
+            near_sdk::test_vm_config(),
+            near_sdk::RuntimeFeesConfig::test(),
+            Default::default(),
+            vec![PromiseResult::Successful(vec![])],
+        );
+        assert!(c.on_settle_transfer(n.to_string(), acc(agent), U128(1), Some(true)));
+    }
+
     #[test]
-    fn a_past_buyer_claims_from_a_fresh_account_and_the_rate_stays_dark_below_k() {
+    fn the_rate_counts_paid_repeat_purchases_and_stays_dark_below_k() {
         let (mut c, _) = six();
         let f = j(RETURNING);
         let m = acc("m01.bookerbob.testnet");
         let epoch = T / RETURNING_EPOCH_MS;
         assert_eq!(f["epoch"].as_u64(), Some(epoch));
         for i in 0..5 {
-            assert!(c.returning_rate(m.clone(), epoch).is_none());
             let (agent, n) = returning_buyer(&mut c, i, m.as_str());
             claim(&mut c, &agent, &n, &f["claims"][i]["proof"]);
+            assert!(c.returning_rate(m.clone(), epoch).is_none(), "a claim alone counts for nothing");
+            confirm(&mut c, &agent, &n);
+            assert_eq!(c.returning_rate(m.clone(), epoch).is_some(), i == 4, "dark below k");
         }
         assert_eq!(c.returning_rate(m, epoch), Some((5, 6)));
+    }
+
+    #[test]
+    fn a_purchase_with_no_claim_does_not_count_as_a_repeat() {
+        let (mut c, _) = six();
+        let m = acc("m01.bookerbob.testnet");
+        let (agent, n) = returning_buyer(&mut c, 0, m.as_str());
+        confirm(&mut c, &agent, &n);
+        assert_eq!(near_sdk::env::storage_read(format!("rn|{m}|{}", T / RETURNING_EPOCH_MS).as_bytes()), None);
+    }
+
+    #[test]
+    #[should_panic(expected = "this verdict already claimed")]
+    fn a_verdict_claims_once_whoever_holds_the_second_membership() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let (a, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
+        claim(&mut c, &a, &n, &f["claims"][0]["proof"]);
+        claim(&mut c, &a, &n, &f["claims"][1]["proof"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "group under k")]
+    fn a_claim_is_refused_below_k_people() {
+        let g = j(GROUP);
+        let few: Vec<_> = g["members"].as_array().unwrap()[..4].to_vec();
+        let mut c = group(&few, "m01.bookerbob.testnet");
+        let f = j(RETURNING);
+        let (a, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
+        claim(&mut c, &a, &n, &f["claims"][0]["proof"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "merchant offers no returning discount")]
+    fn a_claim_says_nothing_for_nothing() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let (a, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
+        at(&a, T);
+        c.claim_returning(acc("m01.bookerbob.testnet"), n, proof(&f["claims"][0]["proof"]));
+    }
+
+    #[test]
+    fn a_claim_keeps_its_discount_when_the_merchant_moves_it() {
+        let (mut c, _) = six();
+        let f = j(RETURNING);
+        let m = acc("m01.bookerbob.testnet");
+        let (a, n) = returning_buyer(&mut c, 0, m.as_str());
+        claim(&mut c, &a, &n, &f["claims"][0]["proof"]);
+        near_sdk::env::storage_write(b"rb|m01.bookerbob.testnet", &0u16.to_le_bytes());
+        assert_eq!(returning_bps_for(&n, &m), 500);
+        assert_eq!(returning_bps_for(&n, &acc("m02.bookerbob.testnet")), 0);
     }
 
     #[test]
@@ -1435,6 +1506,7 @@ mod reviews {
         let f = j(RETURNING);
         let (a, n) = returning_buyer(&mut c, 0, "m01.bookerbob.testnet");
         at(&a, T);
+        near_sdk::env::storage_write(b"rb|m02.bookerbob.testnet", &500u16.to_le_bytes());
         c.claim_returning(acc("m02.bookerbob.testnet"), n, proof(&f["claims"][0]["proof"]));
     }
 
@@ -2083,8 +2155,7 @@ mod demo {
         let n = hex::encode([1u8; 32]);
         submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
         let m = acc("m01.bazaar.testnet");
-        near_sdk::env::storage_write(format!("rb|{m}").as_bytes(), &500u16.to_le_bytes());
-        near_sdk::env::storage_write(format!("rc|{n}").as_bytes(), m.as_bytes());
+        near_sdk::env::storage_write(format!("rc|{n}").as_bytes(), &[&500u16.to_le_bytes()[..], m.as_bytes()].concat());
         let _ = c.settle_demo(n.clone(), m, "demo-1".into(), U128(143_640_000));
         assert_eq!(c.nullifier_status(n), NullifierStatus::Spent);
         assert_eq!(c.demo_escrow_of(acc("agent.testnet")), Some(U128(56_360_000)));

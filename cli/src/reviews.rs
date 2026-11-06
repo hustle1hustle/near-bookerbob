@@ -72,6 +72,17 @@ pub(crate) fn call<T>(f: impl FnOnce() -> T) -> Result<T, String> {
 
 /// One purchase: World ID binding, escrow, verdict, referee receipt, settle.
 pub(crate) fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::WorldAttestation, merchant: &fixtures::MerchantFixture) -> Result<(), String> {
+    buy_as(c, v, world, merchant, None)
+}
+
+/// `buy`, with a Buy Twice proof claimed before the settle when `returning` is given.
+fn buy_as(
+    c: &mut Bazaar,
+    v: &SignedVerdict,
+    world: &bookerbob_core::WorldAttestation,
+    merchant: &fixtures::MerchantFixture,
+    returning: Option<&Value>,
+) -> Result<(), String> {
     let e = &v.envelope;
     at(&e.cnf, NOW_MS);
     call(|| c.attest_human(world.clone()))?;
@@ -106,8 +117,14 @@ pub(crate) fn buy(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::Wor
         return Err("no receipt".into());
     }
     at(&e.cnf, NOW_MS);
-    call(|| drop(c.settle(e.nullifier.clone(), acc(&merchant.account), format!("review-order-{}", &e.nullifier[..8]), U128(q.price))))?;
-    confirm_payout(c, &e.nullifier, &e.cnf, q.price)
+    let mut price = q.price;
+    if let Some(p) = returning {
+        call(|| c.claim_returning(acc(&merchant.account), e.nullifier.clone(), proof(p)))?;
+        price -= price * c.returning_bps(acc(&merchant.account)) as u128 / 10_000;
+        at(&e.cnf, NOW_MS);
+    }
+    call(|| drop(c.settle(e.nullifier.clone(), acc(&merchant.account), format!("review-order-{}", &e.nullifier[..8]), U128(price))))?;
+    confirm_payout(c, &e.nullifier, &e.cnf, price)
 }
 
 /// The USDC contract's answer to settle's ft_transfer: success, as the runtime would
@@ -245,6 +262,23 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
         Err(m) => Err(format!("refused for another reason: {m}")),
         Ok(()) => Err("accepted".into()),
     };
+    // Buy Twice: a past buyer of m01 proves it from a fresh account, 5% off the receipt price.
+    let returning = load("returning.json");
+    at(&m01.account, NOW_MS);
+    c.set_returning_bps(500);
+    let mut fresh_buy = |i: usize, entry: &Value| {
+        let agent = format!("fresh{i}.bookerbob.testnet");
+        let mut e = fixtures::envelope(&agent);
+        e.nullifier = entry["nullifier"].as_str().unwrap().into();
+        buy_as(&mut c, &fixtures::sign_ed(e), &fixtures::world_attestation(&agent, &format!("fixture-person-fresh-{i}")), m01, Some(&entry["proof"]))
+    };
+    let first = fresh_buy(0, &returning["claims"][0]);
+    let again = fresh_buy(1, &returning["again"]);
+    out.push((
+        "Buy Twice: a past buyer claims from a fresh account and settles 5% under the receipt price".into(),
+        first.map(|_| "one Semaphore proof, no link to the earlier purchase".to_string()),
+    ));
+    out.push(("the same member claims once per merchant per epoch".into(), refused(again, "already claimed this epoch")));
     // Before the real ratings: reviewer 3's proof with another sealed rating.
     let mut changed = proofs[3]["review"].clone();
     changed["sealed"] = bookerbob_core::sha256_hex(b"another rating").into();
@@ -393,6 +427,7 @@ pub fn run(dir: &Path, out_path: Option<&Path>, check: bool) -> ExitCode {
             "mean_x100": s.mean_x100,
             "delivered_pct": s.delivered_pct,
             "score_x100": s.score_x100,
+            "repeat_purchases": c.returning_rate(acc(m), NOW_MS / bookerbob_bazaar::RETURNING_EPOCH_MS).map(|(n, _)| n),
         })
     };
     let data = serde_json::json!({

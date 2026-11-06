@@ -274,10 +274,11 @@ fn returning_bps_of(merchant: &AccountId) -> u16 {
     env::storage_read(format!("rb|{merchant}").as_bytes()).map(|b| u16::from_le_bytes(b.try_into().expect("u16"))).unwrap_or(0)
 }
 
-/// The discount a claimed verdict earns at this merchant: only the merchant it was claimed for.
+/// The discount a claimed verdict earns at this merchant, fixed at the claim (bps, then the
+/// merchant): a later `set_returning_bps` moves no price, and no other merchant owes it.
 fn returning_bps_for(nullifier: &str, merchant: &AccountId) -> u16 {
     match env::storage_read(format!("rc|{nullifier}").as_bytes()) {
-        Some(m) if m == merchant.as_bytes() => returning_bps_of(merchant),
+        Some(v) if v.len() > 2 && &v[2..] == merchant.as_bytes() => u16::from_le_bytes([v[0], v[1]]),
         _ => 0,
     }
 }
@@ -1338,15 +1339,22 @@ impl Bazaar {
     /// Buy Twice: a Semaphore proof from a fresh account that some earlier buyer of `merchant` is
     /// behind this verdict, with no link to that purchase. Scope merchant plus epoch: one claim per
     /// member per merchant per epoch. The message binds this verdict, so a proof cannot be replayed
-    /// for another. New state is raw storage only: no migrate method exists.
+    /// for another, and a verdict is claimed once. Refused below k people, where a claim would say
+    /// too much, and with no discount on offer, where it would say it for nothing. New state is raw
+    /// storage only: no migrate method exists.
     #[payable]
     pub fn claim_returning(&mut self, merchant: AccountId, nullifier: String, proof: ReviewProof) {
         let before = env::storage_usage();
         let record = self.verdicts.get(&nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         require!(record.agent == env::predecessor_account_id(), "agent mismatch");
         require!(!record.spent, "nullifier spent");
+        let claimed = format!("rc|{nullifier}").into_bytes();
+        require!(!env::storage_has_key(&claimed), "this verdict already claimed");
+        let bps = returning_bps_of(&merchant);
+        require!(bps > 0, "merchant offers no returning discount");
         let message = bookerbob_core::semaphore::review_message(&nullifier).unwrap_or_else(|| env::panic_str("bad nullifier"));
         let g = self.review_groups.get(&merchant).unwrap_or_else(|| env::panic_str("merchant has no review group"));
+        require!(self.review_persons(merchant.clone()) >= bookerbob_core::K_MIN as u64, "group under k");
         require!(
             bookerbob_core::semaphore::is_canonical_field(&proof.nullifier) && bookerbob_core::semaphore::is_canonical_field(&proof.merkle_root),
             "nullifier and root must be canonical field elements"
@@ -1361,9 +1369,7 @@ impl Bazaar {
                 .unwrap_or_else(|e| env::panic_str(e));
         require!(ok, "invalid Semaphore proof");
         env::storage_write(&seen, b"1");
-        env::storage_write(format!("rc|{nullifier}").as_bytes(), merchant.as_bytes());
-        let key = returning_count_key(&merchant, epoch);
-        env::storage_write(&key, &(raw_u64(&key) + 1).to_le_bytes());
+        env::storage_write(&claimed, &[&bps.to_le_bytes()[..], merchant.as_bytes()].concat());
         emit("returning_claimed", serde_json::json!({ "merchant": merchant, "epoch": epoch }));
         charge_storage(before);
     }
@@ -1380,8 +1386,9 @@ impl Bazaar {
         returning_bps_of(&merchant)
     }
 
-    /// Claims this epoch and the merchant's group size, nothing below K_MIN claims: a repeat
-    /// rate with no customer list.
+    /// Paid repeat purchases this epoch and the merchant's group size, nothing below K_MIN: a
+    /// repeat rate with no customer list. Counted when the payment confirms, so each one cost a
+    /// purchase. The view holds it back; the claim and settle txs themselves are public.
     pub fn returning_rate(&self, merchant: AccountId, epoch: u64) -> Option<(u64, u64)> {
         let n = raw_u64(&returning_count_key(&merchant, epoch));
         (n >= bookerbob_core::K_MIN as u64).then(|| (n, self.review_persons(merchant)))
@@ -2873,8 +2880,14 @@ impl Bazaar {
     #[private]
     pub fn on_settle_transfer(&mut self, nullifier: String, agent: AccountId, amount: U128, demo: Option<bool>) -> bool {
         if env::promise_result_checked(0, 64).is_ok() {
+            let mut merchant = None;
             if let Some(r) = self.verdicts.get_mut(&nullifier) {
                 r.paid = true;
+                merchant = r.receipt.as_ref().map(|x| x.merchant.clone());
+            }
+            if let Some(m) = merchant.filter(|m| returning_bps_for(&nullifier, m) > 0) {
+                let key = returning_count_key(&m, env::block_timestamp_ms() / RETURNING_EPOCH_MS);
+                env::storage_write(&key, &(raw_u64(&key) + 1).to_le_bytes());
             }
             return true;
         }

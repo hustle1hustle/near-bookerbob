@@ -282,6 +282,8 @@ export class Demo {
       console.log(`   in group ${String(rec.group).slice(0, 12)}..`);
       return rec;
     }
+    // Buy Twice (make buy-twice): the claim moves the price the settle must pay.
+    if (opts.beforeSettle) await opts.beforeSettle({ tester, rec, d: this });
     step(10, "settle_demo");
     rec.checkout_ref = `demo-${hex6}`;
     const s = await this.relay("settle_demo", tester, c.bazaar, fc("settle_demo", { nullifier: rec.nullifier, merchant: c.merchant, checkout_ref: rec.checkout_ref, amount: String(rec.price) }, 0n, 150n * TGAS));

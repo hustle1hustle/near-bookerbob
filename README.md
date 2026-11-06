@@ -240,6 +240,14 @@ calls were the founder's, not a session's:
   the anonymity set is the group size (5 at worst), the sender of `submit_review` and
   `reveal_review` is public (use a fresh account or a relayer), and a member who skips
   the reveal drops out silently. The trusted setup is Semaphore's V4 ceremony.
+- Buy Twice (`claim_returning`) proves a past purchase, not loyalty. REP, or anyone, can buy the
+  bit for one purchase at price plus fee, and a membership then earns a claim every 30 days. A
+  member can hand a proof to a chosen buyer. A person with two purchases holds two memberships
+  and claims twice in an epoch, so the repeat count is purchases, not people. The claim tx is
+  public: it says this account's buyer is one of the group at the proof's root, at least k people
+  when the contract checked, smaller if the client picks an old root. The discount is one more
+  bit in the price (L10), and it does not stack with a buying group's tier. `returning_rate`
+  holds its count below k, but anyone can count the txs.
 - The referee's text checks are a word-level tripwire (status words, platform names,
   numbers, plain ascii), not language understanding. A discount never depends on the text:
   only on asserted values that equal the proof.
@@ -255,6 +263,7 @@ calls were the founder's, not a session's:
 | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | `contract/src/lib.rs` `verify_signature` | **live**: every testnet verdict passed it |
 | NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | `contract/src/lib.rs` | **live**: payout rollback in `on_settle_transfer`; on testnet the same path ran 18 times in dUSDC (`settle_demo`, its own escrow, testnet only) |
 | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | `contract/src/lib.rs` `emit` | **live**: every testnet tx above logs them |
+| Buy Twice: a past buyer proves it from a fresh account with a Semaphore proof and pays less; a repeat count held below k, with no customer list | privacy, realworld | `contract/src/lib.rs` `claim_returning`, `docs/semaphore.md` | **built**: `make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`; live with the contract batch |
 | deterministic tier, price stack, referee (cheat mode) | security, swarms | `core/src/` | **built**: `make verify`, 50/50 referee evals |
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | **built**: `make verify` checks 04 and 05 |
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | **live**: unlocked on testnet once k >= 5 verdicts revealed `world_id_human` (38.40 to 36.00) |

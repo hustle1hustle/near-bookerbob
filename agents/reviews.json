@@ -41,7 +41,8 @@
       ],
       "mean_x100": 383,
       "delivered_pct": 83,
-      "score_x100": 345
+      "score_x100": 345,
+      "repeat_purchases": null
     },
     {
       "merchant": "m02.bookerbob.testnet",
@@ -51,7 +52,8 @@
       "ratings": null,
       "mean_x100": 0,
       "delivered_pct": 0,
-      "score_x100": 300
+      "score_x100": 300,
+      "repeat_purchases": null
     }
   ],
   "delegation": {
@@ -62,6 +64,10 @@
     "accounts": 9
   },
   "refused": [
+    {
+      "case": "the same member claims once per merchant per epoch",
+      "result": "refused: already claimed this epoch"
+    },
     {
       "case": "a sealed rating swapped under a real proof is refused",
       "result": "refused: invalid Semaphore proof"

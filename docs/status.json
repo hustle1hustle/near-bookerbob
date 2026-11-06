@@ -40,6 +40,14 @@
     ]
   },
   {
+    "feature": "Buy Twice: a past buyer proves it from a fresh account with a Semaphore proof and pays less; a repeat count held below k, with no customer list",
+    "tracks": "privacy, realworld",
+    "where": "`contract/src/lib.rs` `claim_returning`, `docs/semaphore.md`",
+    "status": "built",
+    "detail": "`make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`; live with the contract batch",
+    "evidence": []
+  },
+  {
     "feature": "deterministic tier, price stack, referee (cheat mode)",
     "tracks": "security, swarms",
     "where": "`core/src/`",

@@ -57,7 +57,8 @@ merchant's bits that gives the amount. On m01, 38.40 and 36.00 each leave 1 of 8
 verdict in the README's first screen. It hid its predicates in the tx and the price gave them
 back. What remains is the buyers who share the amount (L6). L10 is reported, not gated: every
 single purchase so far decodes. Fixed tiers in a buying group do not, and that is the working
-fix: the grid, not the seal.
+fix: the grid, not the seal. Buy Twice adds a bit: a merchant's returning discount doubles the
+subsets, and each claim's amount is checked by L10 once one runs live.
 
 ## Before (2026-11-05, round 5979413, `docs/leak-before.json`)
 
