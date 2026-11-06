@@ -218,6 +218,11 @@ calls were the founder's, not a session's:
   facts, `check_binding` only checks that `request_sha256` is hex, and no notary proof is
   checked at settle. `make forge-poc` shows the model attesting a typed fact with a valid TEE
   signature. Not fixed.
+- **Two money bugs are live until the Nov 10 redeploy.** Testnet tokens and merchant bonds only.
+  A signed dispute decision can be sent again, and each replay refunds the buyer from the
+  merchant's bond. A lower group offer posted after members pledged moves their pot to a merchant
+  with no receipt for it. Found by our own audit on 2026-11-06, both fixed in the contract batch
+  (`contract-batch`), not yet deployed.
 - **A sealed verdict hides predicates, the price does not.** L10 prints which bit sets each
   settled amount leaves; on m01 every amount so far leaves one. Buying groups on a fixed tier
   do not decode, which is why the k-gate routes small sets there.
