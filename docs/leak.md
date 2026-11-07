@@ -6,8 +6,9 @@
 |---|---|---|
 | anyone reading the chain | nullifier, commitments, tcb_status, cap, settled amount, merchant, checkout_ref, the account and who funded it; revealed predicates, except on a sealed verdict | the facts; a sealed verdict's predicates; the person |
 | the merchant | what the chain shows, the Shopify order in the test store | the facts, the account's owner |
-| the relayer and the treasury (REP today) | every account it funds and relays for, and when; so it can link a buyer's calls in one purchase | the facts |
+| the relayer and the treasury (REP today) | every account it funds and relays for, and when; so it can link a buyer's calls in one purchase; a rating, when it carries the reveal | the facts |
 | NEAR AI enclave | the facts, sealed to its attested key | who the account is |
+| the NEAR AI gateway | the API key, size and time of each request | the facts (E2EE v2 seals them past it) |
 | the referee and the arbiter | the proof set they judge; a sealed verdict's opening | the person, other purchases |
 | REP as verdict issuer | the facts it signs over (synthetic so far) | |
 | REP as VOPRF evaluator | who asked, in which context, and when; a blinded element | the input and the nullifier it produces, so timing is its only link |

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // `make market-eval`: a seeded simulation of the hoodie market over 1,000 rounds, comparing
-// three disclosure regimes for the same buyers and the same adaptive merchants:
+// disclosure regimes for the same buyers and the same adaptive merchants:
 //
 //   none      buyers reveal nothing: every merchant quotes its base price
+//   price war buyers reveal nothing, and each merchant adapts one public price by the same rule
+//             (a loser cuts it by STEP bps, a winner raises it 25), down to its floor
 //   bookerbob buyers reveal at most 3 proven bits, picked by the planner (lowest best price,
 //             then fewest bits), as core/src/disclosure.rs does
 //   full      buyers reveal every proven bit and who they are (anonymity set 1)
@@ -19,6 +21,11 @@ import { quote, schedule, KNOWN_PREDICATES } from "../sdk/merchant.mjs";
 const ROUNDS = Number(process.env.ROUNDS ?? 1000);
 const BUYERS_PER_ROUND = 20;
 const MAX_BITS = 3;
+// The market fee on market.bookerbob.testnet: 100 bps of the settled amount (set_fee), paid by
+// the merchant on a BookerBob sale only.
+export const FEE = 0.01;
+// The public-price step of the price-war baseline, in bps; the report also prints 60 and 150.
+const STEPS = [60, 100, 150];
 
 // Deterministic PRNG (mulberry32), seed fixed so the report is reproducible.
 function rng(seed) {
@@ -66,7 +73,9 @@ export function plan(merchants, proven) {
   return best.bits;
 }
 
-function simulate(regime, seed = 7, ltvScale = 1) {
+// forged: the share of buyers who claim every bit with no proof behind it (no notary check),
+// and bring no lifetime value for it. With a notary check that share is 0.
+function simulate(regime, seed = 7, ltvScale = 1, { step = 100, forged = 0 } = {}) {
   const r = rng(seed);
   const merchants = merchantsFrom(new URL("../agents/merchants.json", import.meta.url));
   const population = Array.from({ length: 2000 }, () => KNOWN_PREDICATES.filter((p) => r() < PREDICATES[p].share));
@@ -74,18 +83,25 @@ function simulate(regime, seed = 7, ltvScale = 1) {
   const setKey = (s) => [...s].sort().join(",");
   const freq = new Map();
   for (const b of population) freq.set(setKey(b), (freq.get(setKey(b)) ?? 0) + 1);
+  const war = regime === "price war";
+  // A separate stream for the forger draw, so forged = 0 leaves the run identical.
+  const fr = rng(seed + 1);
+  for (const m of merchants) m.pub = m.base;
   for (let round = 0; round < ROUNDS; round++) {
     for (let j = 0; j < BUYERS_PER_ROUND; j++) {
       const buyer = population[Math.floor(r() * population.length)];
-      const revealed = regime === "none" ? [] : regime === "full" ? buyer : plan(merchants, buyer);
+      const forger = forged > 0 && fr() < forged;
+      const claims = forger ? KNOWN_PREDICATES : buyer;
+      const revealed = regime === "none" || war ? [] : regime === "full" ? claims : plan(merchants, claims);
       // Every merchant quotes the code's price, never below its floor. (Under full disclosure
       // a merchant could also price upward per buyer where competition is thin; this model
       // does not, so it understates what full disclosure costs the buyer.)
-      const quotes = merchants.map((m) => ({ m, p: Math.max(price(m, revealed), m.floor) }));
+      const quotes = merchants.map((m) => ({ m, p: war ? m.pub : Math.max(price(m, revealed), m.floor) }));
       const win = quotes.reduce((a, q) => (q.p < a.p || (q.p === a.p && q.m.i < a.m.i) ? q : a));
-      const ltv = revealed.reduce((a, p) => a + PREDICATES[p].ltv, 0) / 100;
+      const ltv = forger ? 0 : revealed.reduce((a, p) => a + PREDICATES[p].ltv, 0) / 100;
+      const fee = regime === "bookerbob" ? win.p * FEE : 0;
       win.m.wins++;
-      win.m.profit += win.p - win.m.cost + win.p * ltv * ltvScale;
+      win.m.profit += win.p - fee - win.m.cost + win.p * ltv * ltvScale;
       paid += win.p;
       baseline += Math.min(...merchants.map((m) => m.base));
       bits += revealed.length;
@@ -97,6 +113,7 @@ function simulate(regime, seed = 7, ltvScale = 1) {
     // raise the discount on the predicates the clearing buyers revealed, clamped by code.
     for (const m of merchants) {
       const lost = m.lastWins === m.wins;
+      if (war) m.pub = Math.max(m.floor, Math.min(m.base, m.pub * (1 + (lost ? -step : 25) / 10000)));
       for (const p of KNOWN_PREDICATES) {
         const target = lost ? m.bps[p] + Math.round(PREDICATES[p].ltv * 15) : m.bps[p] - 25;
         m.bps[p] = Math.max(0, Math.min(target, Math.floor((1 - m.floor / m.base) * 10000)));
@@ -127,9 +144,10 @@ function freqOf(_freq, population, revealed) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const rows = ["none", "bookerbob", "full"].map((x) => simulate(x));
+  const wars = STEPS.map((step) => ({ step_bps: step, ...simulate("price war", 7, 1, { step }) }));
   console.log(`market-eval: ${ROUNDS} rounds x ${BUYERS_PER_ROUND} buyers, 22 adaptive hoodie merchants, seed 7 (a model, not market data)\n`);
   console.log("regime      avg price  saving  bits  anonymity set  merchant profit  wins");
-  for (const x of rows) console.log(`${x.regime.padEnd(10)}  ${String(x.avg_price).padStart(9)}  ${String(x.avg_saving_vs_lowest_base).padStart(6)}  ${String(x.avg_bits_revealed).padStart(4)}  ${String(x.avg_anonymity_set).padStart(13)}  ${String(x.merchant_profit_total).padStart(15)}  ${x.winners}`);
+  for (const x of [...rows, ...wars]) console.log(`${(x.step_bps ? `war ${x.step_bps}` : x.regime).padEnd(10)}  ${String(x.avg_price).padStart(9)}  ${String(x.avg_saving_vs_lowest_base).padStart(6)}  ${String(x.avg_bits_revealed).padStart(4)}  ${String(x.avg_anonymity_set).padStart(13)}  ${String(x.merchant_profit_total).padStart(15)}  ${x.winners}`);
   // The merchant's side, all from the same run. LTV only moves the books here: merchants adapt
   // the same way, so profit is linear in the assumed uplift and the break-even is exact.
   const [none, book] = [rows[0], rows[1]];
@@ -155,8 +173,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     discount_per_sale: book.avg_saving_vs_lowest_base,
     effective_cac_assumed: [1, 0.5, 0.25].map((incremental) => ({ incremental, cost_per_new_customer: +(book.avg_saving_vs_lowest_base / incremental).toFixed(2) })),
   };
+  // Against a price war: the same merchants cutting one public price instead.
+  merchant.against_price_war = wars.map((w) => ({ step_bps: w.step_bps, war_avg_price: w.avg_price, war_profit: w.merchant_profit_total, bookerbob_vs_war_pct: +((100 * book.merchant_profit_total) / w.merchant_profit_total - 100).toFixed(1), bookerbob_ltv_zero_vs_war_pct: +((100 * flat.merchant_profit_total) / w.merchant_profit_total - 100).toFixed(1) }));
+  // Forged claims with no notary check: forgers claim every bit and bring no LTV.
+  merchant.forged = [0, 0.25, 0.5, 1].map((f) => ({ forged_share: f, bookerbob_profit: f ? simulate("bookerbob", 7, 1, { forged: f }).merchant_profit_total : book.merchant_profit_total }));
   console.log(`\nmerchant side: ${merchant.loss_pct}% less profit than no disclosure, ${merchant.loss_pct_ltv_zero}% with LTV 0; break-even at ${merchant.break_even_ltv_multiple}x the assumed LTV, or ${merchant.break_even_volume}x volume (elasticity ${merchant.break_even_elasticity})`);
-  const report = JSON.stringify({ assumptions: { rounds: ROUNDS, buyers_per_round: BUYERS_PER_ROUND, max_bits: MAX_BITS, predicates: PREDICATES, cost: "0.55 x base", floor: "0.62 x base", seed: 7 }, rows, merchant }, null, 2) + "\n";
+  for (const w of merchant.against_price_war) console.log(`against a price war at ${w.step_bps} bps: avg price ${w.war_avg_price}, merchant profit ${w.war_profit}; BookerBob ${w.bookerbob_vs_war_pct}% (${w.bookerbob_ltv_zero_vs_war_pct}% with LTV 0)`);
+  console.log(`forged claims, no notary check: ${merchant.forged.map((f) => `${f.forged_share * 100}% forged ${f.bookerbob_profit}`).join(", ")}`);
+  const report = JSON.stringify({ assumptions: { rounds: ROUNDS, buyers_per_round: BUYERS_PER_ROUND, max_bits: MAX_BITS, predicates: PREDICATES, cost: "0.55 x base", floor: "0.62 x base", fee: `${FEE * 100}% of a BookerBob sale`, price_war_steps_bps: STEPS, seed: 7 }, rows, price_war: wars, merchant }, null, 2) + "\n";
   const file = new URL("../docs/market-eval.json", import.meta.url);
   // --check: the table the docs publish must be what this code computes.
   if (process.argv.includes("--check")) {

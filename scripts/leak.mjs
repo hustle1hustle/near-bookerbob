@@ -18,14 +18,33 @@ import { homedir } from "node:os";
 const RPC = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
 const m = JSON.parse(readFileSync(new URL("../fixtures/live/testnet-manifest.json", import.meta.url)));
 
+// A slow public RPC is not a finding: 408, 429, 5xx, a network error or a JSON-RPC timeout is
+// retried, and if it never answers the run prints SKIP and exits 0 without a verdict.
+class RpcSkip extends Error {}
+process.on("uncaughtException", (e) => {
+  if (!(e instanceof RpcSkip)) { console.error(e); process.exit(1); }
+  console.log(`SKIP  make leak: ${e.message}; no verdict, run it again when the RPC answers`);
+  process.exit(0);
+});
 async function rpc(method, params) {
+  let last = "", transient = true;
   for (let i = 0; i < 8; i++) {
     const url = i % 2 ? "https://archival-rpc.testnet.fastnear.com" : RPC;
-    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "leak", method, params }) });
-    if (r.status === 429 || r.status >= 500) { await new Promise((s) => setTimeout(s, 1000 * (i + 1))); continue; }
-    return r.json();
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "leak", method, params }), signal: AbortSignal.timeout(30000) });
+      if (r.status === 408 || r.status === 429 || r.status >= 500) { last = `HTTP ${r.status}`; transient = true; throw 0; }
+      const j = await r.json();
+      // Any JSON-RPC error is tried again: an old block or tx is gone from the regular RPC and
+      // the next try goes to the archival one. Only a timeout on every try ends as SKIP.
+      if (j.error) { last = j.error.cause?.name ?? j.error.name ?? "an RPC error"; transient = /TIMEOUT/i.test(last); throw 0; }
+      return j;
+    } catch (e) {
+      if (e !== 0) { last = e.message; transient = true; }
+      await new Promise((s) => setTimeout(s, 1000 * (i + 1)));
+    }
   }
-  throw new Error("rpc failed");
+  if (!transient) throw new Error(`${method}: ${last} on both RPCs after 8 tries`);
+  throw new RpcSkip(`the testnet RPC did not answer ${method} after 8 tries (${last})`);
 }
 const heights = new Map();
 async function height(blockHash) {

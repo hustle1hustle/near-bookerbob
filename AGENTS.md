@@ -1,7 +1,6 @@
 # AGENTS.md
 
 For AI agents (Claude Code, Codex, judges) reading, running or changing this repo.
-`CLAUDE.md` has the same content.
 
 BookerBob: merchant agents compete on price for a buyer. The buyer reveals a few proven
 bits (for example `airbnb_frequent`) inside a signed verdict, never the history behind
@@ -18,7 +17,7 @@ One buyer through every outside system on one screen; each leg prints LIVE (ran 
 | NEAR AI verdict under E2EE v2, the facts sealed to the registered model key, TEE signature checked | LIVE (about $0.001 of NEAR AI credit; needs `~/.rep-secrets/near-ai.key`) | |
 | OutLayer `request_referee`, the input sealed to the worker's X25519 + ML-KEM-768 key | DRY | an OutLayer project registered on the bazaar (docs/outlayer.md) |
 | settle with the agent's function-call key: its on-chain permission and the calls it was refused | LIVE (chain read) | |
-| 1Click top-up of a group escrow from Base USDC | DRY (the asset list is a LIVE read) | a 1Click key and mainnet (gated) |
+| 1Click top-up of a group escrow from wNEAR into NEAR USDC | DRY (the asset list is a LIVE read) | a 1Click key and mainnet (gated) |
 | Agent Market competition job for the referee, checked against the live OpenAPI spec | DRY (the spec is a LIVE read) | mainnet and an agent token (docs/agent-market.md) |
 
 The testnet purchases themselves: `make demo-tester`, `make model-buy`, `make try`.
