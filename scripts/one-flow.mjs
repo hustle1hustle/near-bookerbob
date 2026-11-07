@@ -10,8 +10,8 @@
 //      DRY: no OutLayer project is registered on the bazaar yet (docs/outlayer.md).
 //   3. Settle with the function-call key: the agent's settle-only key, read from chain, and the
 //      calls it was refused. LIVE (chain read).
-//   4. 1Click: a top-up of a buying group's escrow from Base USDC. LIVE read of the supported
-//      assets; the quote itself is DRY (a keyless dry quote was refused; mainnet is gated).
+//   4. 1Click: a top-up of a buying group's escrow from wNEAR into NEAR USDC, a NEAR-side pair.
+//      LIVE read of the supported assets; the quote itself is DRY (mainnet is gated).
 //   5. Agent Market: a competition job for the referee, checked against the live OpenAPI spec's
 //      required fields. LIVE read of the spec; the post is DRY (mainnet only, needs a token).
 //
@@ -69,9 +69,9 @@ try {
 {
   const tokens = await fetch("https://1click.chaindefuser.com/v0/tokens", { signal: AbortSignal.timeout(15000) }).then((r) => r.json()).catch(() => null);
   const usdc = (tokens ?? []).find((t) => t.assetId === "nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1");
-  const base = (tokens ?? []).find((t) => t.assetId === "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near");
-  const req = { dry: true, swapType: "EXACT_INPUT", originAsset: base?.assetId, destinationAsset: usdc?.assetId, amount: "36000000", recipient: "<group escrow on mainnet>", recipientType: "DESTINATION_CHAIN" };
-  leg(4, "DRY", "1Click: top up a buying group's escrow from Base USDC into NEAR USDC", `${tokens ? `LIVE read: 1Click lists ${tokens.length} assets, NEAR USDC ${usdc ? "supported" : "missing"}, Base USDC ${base ? "supported" : "missing"}` : "the 1Click token list did not answer"}; the quote ${JSON.stringify(req).slice(0, 160)}.. is not sent: a keyless dry quote got "Quoting for this pair is not available" from 1Click (2026-11-05; an API key was not tried), and the top-up is mainnet (gated on the founder's word, scripts/mainnet-moment.mjs)`);
+  const wnear = (tokens ?? []).find((t) => t.assetId === "nep141:wrap.near");
+  const req = { dry: true, swapType: "EXACT_INPUT", originAsset: wnear?.assetId, destinationAsset: usdc?.assetId, amount: "10000000000000000000000000", recipient: "<group escrow on mainnet>", recipientType: "DESTINATION_CHAIN" };
+  leg(4, "DRY", "1Click: top up a buying group's escrow from wNEAR into NEAR USDC", `${tokens ? `LIVE read: 1Click lists ${tokens.length} assets, NEAR USDC ${usdc ? "supported" : "missing"}, wNEAR ${wnear ? "supported" : "missing"}` : "the 1Click token list did not answer"}; the quote ${JSON.stringify(req).slice(0, 160)}.. is not sent: a keyless dry quote for this pair got HTTP 400 from 1Click (2026-11-07; an API key was not tried), and the top-up is mainnet (gated on the founder's word, scripts/mainnet-moment.mjs)`);
 }
 
 // 5. Agent Market

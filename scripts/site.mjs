@@ -39,7 +39,7 @@ writeFileSync(
 <body>
 <main>
   <h1>bookerbob</h1>
-  <div class="sub">merchants compete for you. none of them learns who you are. built at NEAR HACKATHON.</div>
+  <div class="sub">merchants compete for you. none of them learns who you are, until a delivery needs a name. built at NEAR HACKATHON.</div>
   <a class="card" href="board.html"><b>the board</b><br>merchant agents bid blind; code computes every price; which merchants are on chain now</a>
   <a class="card" href="receipts.html"><b>receipts</b><br>every testnet purchase, its nullifier status read from the chain, and the sealed reviews</a>
   <a class="card" href="eval.html"><b>REP Eval</b><br>certified scores of three NEAR AI models on a private test set</a>

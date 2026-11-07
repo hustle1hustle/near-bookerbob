@@ -35,6 +35,12 @@
     },
     "cost": "0.55 x base",
     "floor": "0.62 x base",
+    "fee": "1% of a BookerBob sale",
+    "price_war_steps_bps": [
+      60,
+      100,
+      150
+    ],
     "seed": 7
   },
   "rows": [
@@ -57,7 +63,7 @@
       "avg_saving_vs_lowest_base": 11.87,
       "avg_bits_revealed": 1.62,
       "avg_anonymity_set": 541,
-      "merchant_profit_total": 160999,
+      "merchant_profit_total": 155173,
       "winners": "m01:279 m02:2647 m03:64 m04:1678 m05:2636 m06:56 m07:19 m08:1115 m09:2155 m10:30 m11:68 m12:38 m13:168 m14:34 m15:20 m16:2429 m17:52 m18:548 m19:1592 m20:15 m21:1963 m22:2394"
     },
     {
@@ -72,45 +78,83 @@
       "winners": "m01:261 m02:2696 m03:91 m04:1662 m05:2658 m06:50 m07:17 m08:1089 m09:2034 m10:38 m11:104 m12:37 m13:183 m14:44 m15:25 m16:2532 m17:71 m18:460 m19:1496 m20:19 m21:2071 m22:2362"
     }
   ],
+  "price_war": [
+    {
+      "step_bps": 60,
+      "regime": "price war",
+      "rounds": 1000,
+      "sales": 20000,
+      "avg_price": 26.85,
+      "avg_saving_vs_lowest_base": 14.15,
+      "avg_bits_revealed": 0,
+      "avg_anonymity_set": 2000,
+      "merchant_profit_total": 80386,
+      "winners": "m02:5740 m04:120 m05:260 m08:40 m09:180 m16:320 m18:20 m19:80 m21:140 m22:13100"
+    },
+    {
+      "step_bps": 100,
+      "regime": "price war",
+      "rounds": 1000,
+      "sales": 20000,
+      "avg_price": 26.45,
+      "avg_saving_vs_lowest_base": 14.55,
+      "avg_bits_revealed": 0,
+      "avg_anonymity_set": 2000,
+      "merchant_profit_total": 74386,
+      "winners": "m02:4040 m04:60 m05:160 m08:20 m09:100 m16:200 m19:40 m21:80 m22:15300"
+    },
+    {
+      "step_bps": 150,
+      "regime": "price war",
+      "rounds": 1000,
+      "sales": 20000,
+      "avg_price": 26.22,
+      "avg_saving_vs_lowest_base": 14.78,
+      "avg_bits_revealed": 0,
+      "avg_anonymity_set": 2000,
+      "merchant_profit_total": 70874,
+      "winners": "m02:2920 m04:40 m05:100 m09:80 m16:120 m19:20 m21:60 m22:16660"
+    }
+  ],
   "merchant": {
     "none_profit": 369000,
-    "bookerbob_profit": 160999,
-    "loss_pct": 56.4,
-    "profit_ltv_zero": 93718,
-    "loss_pct_ltv_zero": 74.6,
+    "bookerbob_profit": 155173,
+    "loss_pct": 57.9,
+    "profit_ltv_zero": 87892,
+    "loss_pct_ltv_zero": 76.2,
     "profit_per_sale": {
       "none": 18.45,
-      "bookerbob": 8.05,
-      "bookerbob_ltv_zero": 4.69
+      "bookerbob": 7.76,
+      "bookerbob_ltv_zero": 4.39
     },
-    "break_even_ltv_multiple": 4.09,
-    "break_even_volume": 2.29,
-    "break_even_volume_ltv_zero": 3.94,
-    "break_even_elasticity": 2.43,
+    "break_even_ltv_multiple": 4.18,
+    "break_even_volume": 2.38,
+    "break_even_volume_ltv_zero": 4.2,
+    "break_even_elasticity": 2.53,
     "elastic_demand_assumed": [
       {
         "elasticity": 0,
         "volume": 1,
-        "merchant_profit": 160999,
-        "vs_none_pct": -56.4
+        "merchant_profit": 155173,
+        "vs_none_pct": -57.9
       },
       {
         "elasticity": 1,
         "volume": 1.41,
-        "merchant_profit": 226603,
-        "vs_none_pct": -38.6
+        "merchant_profit": 218403,
+        "vs_none_pct": -40.8
       },
       {
         "elasticity": 2,
         "volume": 1.98,
-        "merchant_profit": 318941,
-        "vs_none_pct": -13.6
+        "merchant_profit": 307399,
+        "vs_none_pct": -16.7
       },
       {
         "elasticity": 3,
         "volume": 2.79,
-        "merchant_profit": 448904,
-        "vs_none_pct": 21.7
+        "merchant_profit": 432660,
+        "vs_none_pct": 17.3
       }
     ],
     "discount_per_sale": 11.87,
@@ -126,6 +170,47 @@
       {
         "incremental": 0.25,
         "cost_per_new_customer": 47.48
+      }
+    ],
+    "against_price_war": [
+      {
+        "step_bps": 60,
+        "war_avg_price": 26.85,
+        "war_profit": 80386,
+        "bookerbob_vs_war_pct": 93,
+        "bookerbob_ltv_zero_vs_war_pct": 9.3
+      },
+      {
+        "step_bps": 100,
+        "war_avg_price": 26.45,
+        "war_profit": 74386,
+        "bookerbob_vs_war_pct": 108.6,
+        "bookerbob_ltv_zero_vs_war_pct": 18.2
+      },
+      {
+        "step_bps": 150,
+        "war_avg_price": 26.22,
+        "war_profit": 70874,
+        "bookerbob_vs_war_pct": 118.9,
+        "bookerbob_ltv_zero_vs_war_pct": 24
+      }
+    ],
+    "forged": [
+      {
+        "forged_share": 0,
+        "bookerbob_profit": 155173
+      },
+      {
+        "forged_share": 0.25,
+        "bookerbob_profit": 129528
+      },
+      {
+        "forged_share": 0.5,
+        "bookerbob_profit": 103018
+      },
+      {
+        "forged_share": 1,
+        "bookerbob_profit": 53238
       }
     ]
   }

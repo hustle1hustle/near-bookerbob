@@ -1,6 +1,6 @@
 # BookerBob
 
-merchants compete for you. none of them learns who you are.
+merchants compete for you. none of them learns who you are, until a delivery needs a name.
 
 **The market in three lines.** On NEAR, testnet only so far:
 
@@ -41,7 +41,8 @@ fact about your own history without showing it, code turns the fact into a price
 compete for it blind, and NEAR records that the proof was used once and pays the winner.
 Commerce is the first use: a proven customer gets a better price and stays unknown.
 
-TEE for privacy, SNARK for correctness, chain for uniqueness and settlement.
+TEE for privacy from the chain and the merchants, SNARK for correctness, chain for uniqueness
+and settlement. Not privacy from REP: REP's verdict issuer reads the facts it signs over.
 
 Three flows, everything else is plumbing:
 
@@ -182,13 +183,13 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 
 | field | who sees it in plaintext | set size on testnet today |
 |---|---|---|
-| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); never the chain | not public |
+| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); REP as verdict issuer, which reads the facts it signs over; never the chain. The NEAR AI gateway sees the API key, size and time of each request, not the facts | not public |
 | revealed predicates | everyone, for an ordinary verdict; nobody on chain for a sealed one (the referee reads its opening) | the cohort: 29 verdicts on chain reveal `world_id_human` in the demo context (`cohort_size`) |
 | the bits behind a price | everyone: the schedule and the amount are public, so 38.40 at m01 can only be all three bits, a sealed verdict included (`make leak`, L10) | 1 of 8 bit sets on m01; the buyers sharing the amount are the only cover |
 | settled amount | everyone | 36.00 x10, 38.40 x5, 32.40 x5, 367.20 x5, 28.00 x2, 408 x1: `make leak` fails any new purchase in a set under 5 (L6); the 408 stay and the two 28 pipeline tests came before that gate and are listed |
 | merchant and checkout_ref | everyone | m01: 19 buyers, h05: 6, builders: 2, vetted: 1 |
 | the agent account | everyone | 1: one account per purchase links its verdict, settle and review join (L1); since 2026-11-06 it is a one-time implicit account, its name says nothing (L8), and the treasury still funds it (L7) |
-| a rating | everyone, after release, sorted by hash | the review group, at least 5 (Semaphore, k floor) |
+| a rating | everyone, after release, sorted by hash; before that, the relayer that carries the reveal | the review group, at least 5 (Semaphore, k floor) |
 | the person behind the nullifier | REP: by the HMAC key for the older purchases; for a VOPRF purchase (one so far) not by the key, but it sees who asked, in which context and when, so timing can link | 1 |
 
 ## In depth
@@ -234,6 +235,18 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   evaluator sees a blinded element only. REP still holds the one evaluator key (an enclave and a
   committee are decided, not built), sees who asked and when, and earlier purchases used an HMAC
   it can recompute. In fixtures the nullifier is a labelled placeholder.
+- **Delivery reveals a name.** Shipping and hotel check-in need a name and an address, and the
+  merchant sees them. The test store's orders set `requiresShipping: false` (`ucp/src/near-usdc.mjs`),
+  a test-store shortcut, not a private delivery path.
+- **One World ID binds one account.** `attest_human` refuses a second account for one person, so
+  a buyer on one-time accounts gets the World bit on one of them only, or reuses that account and
+  links its purchases (L1).
+- **The referee picks among sealed prices.** For a sealed verdict the referee reads the opening
+  and computes the prices; the chain cannot recheck a sealed price, so that pick is trusted.
+- **Wash reviews.** A review group admits anyone who settled with the merchant, the merchant's own
+  accounts included, so a merchant can buy from itself and rate itself.
+- **Ratings and the k floor.** `submit_review` accepts a proof against any of the group's last 32
+  roots, so a rating can be made against a root at which the group was still under the floor.
 - World ID runs on fixtures with a placeholder action. Say "proven customer", not
   "verified human", until the live path ships.
 - Callers pay for the storage they add (`submit_verdict`, `register_merchant`,

@@ -49,8 +49,10 @@ for itself at 1%; a buying group settles one record per member, so it does not h
 
 - **What a discount buys:** in the market model (`docs/market-eval.md`, a simulation with
   stated assumptions, not market data) a proven buyer pays 29.13 against 41.00 with no
-  disclosure. In that model total merchant profit falls 56%, and it breaks even only at 4.09
-  times the assumed LTV or 2.29 times the volume. No merchant has shown it is worth paying.
+  disclosure. Against fixed prices total merchant profit falls 57.9% after the 1% fee, and it
+  breaks even only at 4.18 times the assumed LTV or 2.38 times the volume. Against the same
+  merchants in a price war on one public price, merchants keep 9% to 24% more with LTV 0, and
+  the buyer pays 2.28 to 2.91 more. No merchant has shown it is worth paying.
 - **The discount is real: the base-price anchor.** A "20% off" means nothing if the merchant
   raised the base first. `set_price_anchor` caps a merchant's base at a public price from a
   named source; `register_merchant` and `reveal_bid` refuse a base above it (contract test

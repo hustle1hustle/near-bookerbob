@@ -73,6 +73,13 @@ export const KEYS = [
     shown: "tools/dcap-spike/README.md (a tampered quote fails at finalize)",
   },
   {
+    key: "the owner key, with a rented TDX machine",
+    live: async () => `model keys register through ${await view(LIVE, "quote_verifier")}, which checks Intel's signature, the TCB status and report_data; no MRTD or RTMR is read`,
+    worst: "rents any TDX VM, runs its own code in it, gets a genuine Intel-signed quote for a key that signs whatever verdict it likes, and registers that key as a NEAR AI model (owner call, behind the anchor delay)",
+    limits: "the public anchor delay before the key is live, and the lock (no owner after it); no image pin: the contract cannot tell NEAR AI's image from REP's",
+    shown: "contract/src/lib.rs register_model_attestation_verified (no measurement field)",
+  },
+  {
     key: "the REP notary (MPC-TLS, Fly, key 02114d7e)",
     live: async () => "not a contract key: verified off chain against the pinned notary key",
     worst: "signs a presentation for a TLS session that never happened: a fake fact behind a real-looking proof",
