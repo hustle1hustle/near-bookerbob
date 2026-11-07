@@ -32,6 +32,10 @@ async function pre() {
   const files = execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split("\n");
   const bad = files.filter((f) => /\.(seed|key|pem|p12)$|(^|\/)\.env$|\.presentation$|^PANEL\/|(^|\/)FOUNDER-COMMANDS/i.test(f));
   line(bad.length === 0, "no tracked key, seed, .env, presentation or panel file", bad.slice(0, 5).join(", ") || `${files.length} tracked files`);
+  // Conflict markers left by a merge read as broken code to a screening model.
+  const marked = files.filter((f) => existsSync(f) && !/\.(png|jpg|gif|wasm|xz|bin|ico|pdf)$/i.test(f) && /^(<{7}|>{7})( |$)/m.test(readFileSync(f, "latin1")));
+  line(marked.length === 0, "no merge conflict markers in tracked files", marked.slice(0, 5).join(", "));
+  line(!files.some((f) => /^(RESUME|CLAUDE)\.md$/.test(f)), "session files (RESUME.md, CLAUDE.md) are not tracked");
   line(existsSync("LICENSE"), "LICENSE present");
   const readme = readFileSync("README.md", "utf8");
   const links = [...readme.matchAll(/\]\((?!https?:|#|mailto:)([^)\s#]+)/g)].map((x) => x[1]);
