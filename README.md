@@ -42,7 +42,8 @@ compete for it blind, and NEAR records that the proof was used once and pays the
 Commerce is the first use: a proven customer gets a better price and stays unknown.
 
 TEE for privacy from the chain and the merchants, SNARK for correctness, chain for uniqueness
-and settlement. Not privacy from REP: REP's verdict issuer reads the facts it signs over.
+and settlement. Not privacy from REP: REP's verdict issuer reads the facts it signs over, and on
+the model path REP's verdict evaluator reads them in the clear to build the request.
 
 Three flows, everything else is plumbing:
 
@@ -184,7 +185,7 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 
 | field | who sees it in plaintext | set size on testnet today |
 |---|---|---|
-| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); REP as verdict issuer, which reads the facts it signs over; never the chain. The NEAR AI gateway sees the API key, size and time of each request, not the facts | not public |
+| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys); REP as verdict issuer, which reads the facts it signs over, and REP's verdict evaluator on the model path, which reads them in the clear; never the chain. The NEAR AI gateway sees the API key, size and time of each request, not the facts | not public |
 | revealed predicates | everyone, for an ordinary verdict; nobody on chain for a sealed one (the referee reads its opening) | the cohort: 29 verdicts on chain reveal `world_id_human` in the demo context (`cohort_size`) |
 | the bits behind a price | everyone: the schedule and the amount are public, so 38.40 at m01 can only be all three bits, a sealed verdict included (`make leak`, L10) | 1 of 8 bit sets on m01; the buyers sharing the amount are the only cover |
 | settled amount | everyone | 36.00 x10, 38.40 x5, 32.40 x5, 367.20 x5, 28.00 x2, 408 x1: `make leak` fails any new purchase in a set under 5 (L6); the 408 stay and the two 28 pipeline tests came before that gate and are listed |

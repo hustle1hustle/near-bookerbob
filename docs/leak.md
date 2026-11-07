@@ -11,6 +11,7 @@
 | the NEAR AI gateway | the API key, size and time of each request | the facts (E2EE v2 seals them past it) |
 | the referee and the arbiter | the proof set they judge; a sealed verdict's opening | the person, other purchases |
 | REP as verdict issuer | the facts it signs over (synthetic so far) | |
+| REP as verdict evaluator (model path) | the facts in the clear, and the prompt it builds from them | |
 | REP as VOPRF evaluator | who asked, in which context, and when; a blinded element | the input and the nullifier it produces, so timing is its only link |
 | the notary (`make prove-me`, `make try`) | that a session ran, its transcript commitments | the redacted fields |
 
