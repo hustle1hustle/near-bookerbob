@@ -13,6 +13,20 @@ verdicts are synthetic; the NEAR AI verdict, the merchant pitches and the eval a
 real live captures. `make verify` also runs the same contract code on near-sdk's mocked
 chain, offline.
 
+## The first minute: one command, one transaction
+
+```sh
+JUDGE_OFFLINE=1 make judge     # Node 22 only, about 20 s, no network, no keys: ends `PASS  make judge`
+```
+
+It replays a recorded snapshot of the testnet reads (101 checks), runs the JS suites, the
+referee, the Jolt verifier and the page's wasm verifier. Then open one live transaction, the
+hotel purchase at 408 dUSDC:
+[9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6).
+The live re-derivation (`make verify-live`, or `make judge` with the network) reads about 170
+old transactions from a rate-limited public archive and takes 5 to 13 minutes: run it last, or
+read the last daily run of the `live` workflow.
+
 ## Minute 1: open
 
 - `README.md`, "Every feature, its status and its evidence": every row says live, built, stub or planned.

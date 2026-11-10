@@ -494,5 +494,21 @@
     "status": "planned",
     "detail": "mainnet only; not attempted on testnet. A buying group's escrow is the natural NEAR Intents target: on mainnet, members would top up through 1Click from any chain into the group's escrow",
     "evidence": []
+  },
+  {
+    "feature": "history anchor: NEAR as the history and backup layer for a market that runs on another chain. A contract stores hash-chained round roots from one pinned poster (next seq, previous head, no rewrite, no delete); `make anchor-rebuild` rebuilds the foreign market's groups, members, nullifiers and lists from its own events and checks every root and the chain against NEAR",
+    "tracks": "open, swarms, security",
+    "where": "`anchor/`, `scripts/anchor.mjs`, `docs/anchor.md`, `fixtures/live/anchor/`",
+    "status": "built",
+    "detail": "live on testnet at `bookerbob-anchor.testnet`: 55 rounds of our Arc testnet market (from our ETHGlobal Mumbai build) posted, rebuild PASS over 1,255 Arc logs, a locally changed log fails at its own round; it proves the posted history cannot change, not that the foreign events are true; the poster and the account key are ours; the bazaar's own rounds do not post to it yet",
+    "evidence": []
+  },
+  {
+    "feature": "one price for a batch (`propose_clearing`, design: Dan, DenisDI): after a round's reveal closes anyone submits a seating; the contract opens each budget commitment, prices every seat with its own code, requires quote <= price <= budget and price == the highest quote seated, and keeps the proposal with more seats, or the same seats at a lower price. The search stays outside; the contract checks bounds",
+    "tracks": "swarms, agents",
+    "where": "`docs/clearing.md`, `sdk/clearing.mjs`, `agents/clearing.html`, `fixtures/clearing.json`; the contract method and its tests are on the branch `clearing`",
+    "status": "built",
+    "detail": "not deployed and not on main's contract: a new money path does not go live before the submission. On the branch: 27 contract tests (Dan's three worked examples; refused: a price above the highest quote, a budget below the price, more seats than declared, a participant twice, before reveal closes, a worse proposal does not replace the standing one, replay) and a byte-for-byte check that the stored state layout is unchanged; the reference solver gives the same answers in Rust and JS",
+    "evidence": []
   }
 ]

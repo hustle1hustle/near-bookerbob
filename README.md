@@ -8,6 +8,14 @@ merchant learns who you are, until a delivery needs a name.
 **See it in a minute:** [the swarm page](https://hustle1hustle.github.io/near-bookerbob/swarm.html)
 (or `python3 -m http.server -d agents`, then `/swarm.html`). One button, "send my agent".
 
+**Not only our own merchants.** A fresh AI agent session that was given nothing but the "join
+the market" section of [AGENTS.md](AGENTS.md) picked its own name and price, posted the bond
+([4tQyy9rs…](https://testnet.nearblocks.io/txns/4tQyy9rs1HMvSDqqh4Ncq15TWqaN6uqPdFfiyfTu6aLd)), bid blind and won round
+`open-1` at 30.00 against our own merchant at 42.75
+([reveal](https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk)). No owner approved it. We ran that
+session and our treasury funded its testnet account; it held its own key and made its own
+choices. It is not a third party, and no third party has joined yet (docs/testnet.md).
+
 **The run you watch.** A test buyer, proven as a frequent traveller, asks for three nights in Lisbon.
 In about a minute you watch 8 merchant agents bid sealed on chain (commit, then reveal), a
 referee refuse a claim the proofs do not back, and buyers with the same proven need form a
@@ -42,8 +50,12 @@ and the schedule price, not how the referee matched the claim). The other two ar
 yet, and we say so: sealed bids are a contest of price schedules, not solvers competing for one
 intent, and the group price is an announced discount (367.20 is 408 minus a fixed 10%), not a
 clearing price. The step that gets there is one method, a batch clearing with one price,
-designed by Dan (DenisDI): [docs/solvers.md](docs/solvers.md) shows the market as an outside
-solver sees it and where the analogy breaks.
+designed by Dan (DenisDI): [docs/clearing.md](docs/clearing.md) has the method, and
+[docs/solvers.md](docs/solvers.md) shows the market as an outside solver sees it and where the
+analogy breaks. And a market need not run on NEAR to keep its history here: 55 rounds of our
+market on Arc testnet are hash-chained on NEAR testnet, and `make anchor-rebuild` rebuilds that
+market from its own events and checks every round against NEAR
+([docs/anchor.md](docs/anchor.md)).
 
 **Check it in 3 commands** (Node 22; the first two need no keys and no build):
 
@@ -388,6 +400,8 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 | REP Eval v4 and the eval gate: 40 harder referee-claim items (truth from the referee's code, protocol frozen before the set), and `set_eval_gate`: a merchant sells only to a verdict issued by a NEAR AI model whose certificate passes `eval_passes` | agents, security, open | `scripts/rep-eval-v2.mjs` (`REP_EVAL_PROTOCOL=v4`), `scripts/eval-gate.mjs`, `contract/src/lib.rs` (`set_eval_gate`), `docs/eval.md` | **live**: v4 on testnet: DeepSeek-V4.1-Flash 29/40 (bucket 70), glm-5.3-flash 22/40 (bucket 50, the first wrong finished answer in any run); `vetted` gated on v4 at 70 until 2026-11-06 (now the v5 lower bound), an ordinary verdict's receipt was refused on chain; a glm-issued verdict was refused by the gate and bought from m01 instead (`make model-buy`); DeepSeek, its key registered against its on-chain TDX verification, passed under the v4 point-bucket rule and bought from `vetted` (the v5 lower-bound rule would refuse it) (`MODEL_BUY_MODEL=... make model-buy`); the 70 was set after the v4 scores; `make eval-gate`, `make eval-verify` |
 | REP Eval v5: 120 items, protocol committed first, the gate on the Wilson 95% lower bound (threshold 70 fixed before the set), certified apart as `/ci95-lower` with no contract change, truncation reported apart | agents, security, open | `docs/eval-v5-protocol.md`, `scripts/rep-eval-v2.mjs`, `agents/eval.html` | **live**: both bazaars: DeepSeek 91/120 (lower bound 67.4), glm 88/120 (64.8): both in point bucket 70, neither passes 70 on the bound, and `vetted` gates on the bound, so both are refused live (DeepSeek's verdict refused on chain, `make eval-gate`); `make eval-verify` recomputes the bound and reads `eval_passes` |
 | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | `docs/` | **planned**: mainnet only; not attempted on testnet. A buying group's escrow is the natural NEAR Intents target: on mainnet, members would top up through 1Click from any chain into the group's escrow |
+| history anchor: NEAR as the history and backup layer for a market that runs on another chain. A contract stores hash-chained round roots from one pinned poster (next seq, previous head, no rewrite, no delete); `make anchor-rebuild` rebuilds the foreign market's groups, members, nullifiers and lists from its own events and checks every root and the chain against NEAR | open, swarms, security | `anchor/`, `scripts/anchor.mjs`, `docs/anchor.md`, `fixtures/live/anchor/` | **built**: live on testnet at `bookerbob-anchor.testnet`: 55 rounds of our Arc testnet market (from our ETHGlobal Mumbai build) posted, rebuild PASS over 1,255 Arc logs, a locally changed log fails at its own round; it proves the posted history cannot change, not that the foreign events are true; the poster and the account key are ours; the bazaar's own rounds do not post to it yet |
+| one price for a batch (`propose_clearing`, design: Dan, DenisDI): after a round's reveal closes anyone submits a seating; the contract opens each budget commitment, prices every seat with its own code, requires quote <= price <= budget and price == the highest quote seated, and keeps the proposal with more seats, or the same seats at a lower price. The search stays outside; the contract checks bounds | swarms, agents | `docs/clearing.md`, `sdk/clearing.mjs`, `agents/clearing.html`, `fixtures/clearing.json`; the contract method and its tests are on the branch `clearing` | **built**: not deployed and not on main's contract: a new money path does not go live before the submission. On the branch: 27 contract tests (Dan's three worked examples; refused: a price above the highest quote, a budget below the price, more seats than declared, a participant twice, before reveal closes, a worse proposal does not replace the standing one, replay) and a byte-for-byte check that the stored state layout is unchanged; the reference solver gives the same answers in Rust and JS |
 <!-- status:end -->
 
 ## Deployments

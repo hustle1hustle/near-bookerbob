@@ -1,0 +1,53 @@
+{
+  "note": "One-price clearing, design: Dan (DenisDI). His three worked examples, an illustration, not a testnet round. Whole units. core/src/clearing.rs and sdk/clearing.mjs must both give `expect`.",
+  "cases": [
+    {
+      "name": "cheap seats run out",
+      "offers": [
+        { "merchant": "A", "price": "340", "seats": 2 },
+        { "merchant": "B", "price": "355", "seats": 2 },
+        { "merchant": "C", "price": "368", "seats": 2 },
+        { "merchant": "D", "price": "390", "seats": 3 }
+      ],
+      "budgets": ["400", "400", "380", "370", "360"],
+      "expect": {
+        "price": "355",
+        "fills": [[0, "A"], [1, "A"], [2, "B"], [3, "B"]],
+        "left_out": [4],
+        "steps": [[1, "340", 5, true], [2, "340", 5, true], [3, "355", 5, true], [4, "355", 5, true], [5, "368", 4, false]]
+      }
+    },
+    {
+      "name": "last budget 368",
+      "offers": [
+        { "merchant": "A", "price": "340", "seats": 2 },
+        { "merchant": "B", "price": "355", "seats": 2 },
+        { "merchant": "C", "price": "368", "seats": 2 },
+        { "merchant": "D", "price": "390", "seats": 3 }
+      ],
+      "budgets": ["400", "400", "380", "370", "368"],
+      "expect": {
+        "price": "368",
+        "fills": [[0, "A"], [1, "A"], [2, "B"], [3, "B"], [4, "C"]],
+        "left_out": [],
+        "steps": [[1, "340", 5, true], [2, "340", 5, true], [3, "355", 5, true], [4, "355", 5, true], [5, "368", 5, true]]
+      }
+    },
+    {
+      "name": "one merchant with five seats",
+      "offers": [
+        { "merchant": "A", "price": "340", "seats": 5 },
+        { "merchant": "B", "price": "355", "seats": 2 },
+        { "merchant": "C", "price": "368", "seats": 2 },
+        { "merchant": "D", "price": "390", "seats": 3 }
+      ],
+      "budgets": ["400", "400", "380", "370", "360"],
+      "expect": {
+        "price": "340",
+        "fills": [[0, "A"], [1, "A"], [2, "A"], [3, "A"], [4, "A"]],
+        "left_out": [],
+        "steps": [[1, "340", 5, true], [2, "340", 5, true], [3, "340", 5, true], [4, "340", 5, true], [5, "340", 5, true]]
+      }
+    }
+  ]
+}

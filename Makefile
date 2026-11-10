@@ -177,7 +177,7 @@ test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
 
 test-ucp:
-	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/buy-twice.test.mjs scripts/leash.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs relayer/relay.test.mjs relayer/near.test.mjs relayer/serve.test.mjs scripts/mainnet-moment.test.mjs scripts/device-run.test.mjs scripts/eval-run.test.mjs scripts/status.test.mjs sdk/buy.test.mjs scripts/rep-eval.test.mjs scripts/live-pages.test.mjs scripts/prove-me.test.mjs scripts/rep-eval-v2.test.mjs scripts/nras.test.mjs scripts/leak-keys.test.mjs
+	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/buy-twice.test.mjs scripts/leash.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs relayer/relay.test.mjs relayer/near.test.mjs relayer/serve.test.mjs scripts/mainnet-moment.test.mjs scripts/device-run.test.mjs scripts/eval-run.test.mjs scripts/status.test.mjs sdk/buy.test.mjs scripts/rep-eval.test.mjs scripts/live-pages.test.mjs scripts/prove-me.test.mjs scripts/rep-eval-v2.test.mjs scripts/nras.test.mjs scripts/leak-keys.test.mjs sdk/clearing.test.mjs scripts/anchor.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures
@@ -197,6 +197,25 @@ wasm:
 	cd contract && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
 	cd dusdc && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
 	cd gate && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
+
+# History anchor (docs/anchor.md): a market on another chain, its round roots hash-chained on NEAR.
+# anchor-rebuild recomputes every root from the Arc testnet logs and checks it against NEAR
+# (ANCHOR_FLAGS=--tamper changes one log locally and must fail at its round; "--snapshot --anchors"
+# runs with no network from fixtures/live/anchor/). The crate is outside the workspace, with its own lock.
+.PHONY: anchor-rebuild anchor-verify anchor-test anchor-wasm
+ANCHOR_FLAGS ?=
+anchor-rebuild:
+	node scripts/anchor.mjs rebuild $(ANCHOR_FLAGS)
+
+anchor-verify:
+	node scripts/anchor.mjs verify
+
+anchor-test:
+	cd anchor && $(CARGO) test $(CARGO_FLAGS) --locked && $(CARGO) fmt -- --check && $(CARGO) clippy $(CARGO_FLAGS) --locked --all-targets -- -D warnings
+	node --test scripts/anchor.test.mjs
+
+anchor-wasm:
+	cd anchor && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
 
 clean:
 	$(CARGO) clean
