@@ -39,6 +39,18 @@ and the prove page), a "change one number, see it refused" check, and a daily re
 claims (`.github/workflows/live.yml`). The two wasm32 fixes in `zk/browser/jolt-wasm32.patch`
 are upstream's, not ours: a16z/jolt issue #1913 and 0xAndoroid/jolt-wasm-prover.
 
+Also from that build, for the history anchor (`anchor/`, `scripts/anchor.mjs`, own code; that
+build kept its history on Ethereum Sepolia, here NEAR holds it):
+
+- Keep a market's public history on a second chain as a hash chain of round roots, so changing an old round changes every later root and a round cannot be skipped.
+- A round is every public log in blocks whose `timestamp / epochLength` is the round number, in (block, logIndex) order; a round with no logs gets no post.
+- A post proves only who sent it, so a reader trusts one named poster, and a rebuild from the source chain is what makes that poster worth trusting.
+- A posted round can never be posted again or replaced.
+- Nullifiers appear in no event: read them from the calldata of the `join`, `review` and `proveReturn` calls, found by selector through any wrapper.
+- Rebuild the market state by replaying logs in order: contexts, members and replacements, receipt groups, join queues and their closing, reviews, mints, lists.
+- Use the Semaphore group roots as a check that members were inserted in the same order.
+- One documented byte format that the poster and the rebuild both follow, and a `make anchor-rebuild` that checks one against the other.
+
 ## Prior REP work, used only as named services or dependencies
 
 None of this code is copied into the repository. Where a component is used, it is called

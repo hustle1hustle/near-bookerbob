@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["core", "contract", "cli", "worker", "graph", "zkcore", "dusdc", "gate"]
-exclude = ["tools/tdx-collateral", "tools/prove-me", "tools/dcap-spike", "zk"]
+exclude = ["tools/tdx-collateral", "tools/prove-me", "tools/dcap-spike", "zk", "anchor"]
 
 [workspace.package]
 edition = "2021"
