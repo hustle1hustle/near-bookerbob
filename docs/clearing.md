@@ -78,7 +78,7 @@ offer; one verdict pays once, whichever path it takes.
 
 The code price of a seat is fixed by the schedule, so there is no price to search, only seats
 to assign. For one predicate set the price depends on the merchant alone, and the enumeration
-is exact (`core/src/clearing.rs`, `sdk/clearing.mjs`, both tested on `fixtures/clearing.json`):
+is exact (`sdk/clearing.mjs` here, `core/src/clearing.rs` on the branch `clearing`, both tested on `fixtures/clearing.json`):
 
 1. Expand capacity into seats and sort them by code price.
 2. For each r take the r cheapest seats. P is the code price of the r-th.

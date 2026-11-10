@@ -34,7 +34,7 @@ demo-tester:
 	node scripts/demo-tester.mjs run
 
 # Re-derive every testnet claim over public RPC (no keys, no build).
-# The fast path for judges: about a minute from a clean clone, Node only; under a second offline.
+# The fast path for judges, Node only: 20 to 90 s offline, 5 to 13 minutes with the network.
 # Full-history secret scan before the repo goes public (patterns + exact values from ~/.rep-secrets).
 secret-scan:
 	scripts/secret-scan.sh

@@ -16,7 +16,7 @@ chain, offline.
 ## The first minute: one command, one transaction
 
 ```sh
-JUDGE_OFFLINE=1 make judge     # Node 22 only, about 20 s, no network, no keys: ends `PASS  make judge`
+JUDGE_OFFLINE=1 make judge     # Node 22 only, 20 to 90 s, no network, no keys: ends `PASS  make judge`
 ```
 
 It replays a recorded snapshot of the testnet reads (101 checks), runs the JS suites, the
@@ -37,7 +37,7 @@ read the last daily run of the `live` workflow.
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only: about 3 s offline, 5 to 13 minutes online (it re-derives the testnet claims; old txs come from a rate-limited public archive)
+make judge           # Node 22 only: 20 to 90 s offline, 5 to 13 minutes online (it re-derives the testnet claims; old txs come from a rate-limited public archive)
 make verify          # Rust stable; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
@@ -47,7 +47,7 @@ What each block of PASS lines proves:
 | output | proves |
 |---|---|
 | `PASS 01` to `09` | the proof set hash, the tier and predicates derived by code, the 3-bit disclosure budget, merchant asks for raw history declined, the commitment, and both signature schemes |
-| `PASS 10` to `17` | the contract accepts ed25519 and p256 verdicts with the NEAR host functions, binds one agent per World ID person, quotes by code, and opens the group price at k=6 |
+| `PASS 10` to `17` | the contract accepts ed25519 and p256 verdicts with the NEAR host functions, binds one agent per World ID person, quotes by code, and opens the group price at k >= 5 (k is 6 in this run) |
 | `PASS 19` to `23` | the referee refuses an injected claim (`F9 not in proof set`), settle is blocked without a receipt, and a dispute arbiter overturns a forged receipt |
 | `PASS 24` to `26` | settle debits escrow, burns the nullifier and schedules the USDC transfer; a second verdict for the same account from another wallet is refused (`nullifier spent`) |
 | `ALL PASS (26 checks)` | the whole purchase path above |
@@ -55,7 +55,7 @@ What each block of PASS lines proves:
 | `PASS  referee evals 50/50` | 50 authored cases, 30 of them prompt-injection style ("guest is marriott platinum" citing a real fact is refused) |
 | `PASS  NEAR AI verdict: 17 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
 | `PASS  Jolt results: 4 guests consistent ...` | the committed Jolt proofs for standing, price, referee and cohort claim exactly what the contract's code computes (`docs/jolt.md` has prove time, RAM and size) |
-| `PASS  the NEAR AI TDX quote verified on chain in 5 calls ...` (in `make verify-live` and the judge's testnet step) | the model's TDX quote was checked on chain by a dcap-qvl fork split over five calls (40, 100, 99, 132, 69 Tgas; the block's time); a quote with one changed byte failed at the last step; the bazaar registered the model key only against that finalized verification. The Intel collateral is fetched off chain and its signatures checked on chain; until the founder's lock the verifier keeps REP's full-access key (`tools/dcap-spike/README.md`) |
+| `PASS  the NEAR AI TDX quote verified on chain in 5 calls ...` (in `make verify-live` and the judge's testnet step) | the model's TDX quote was checked on chain by a dcap-qvl fork split over five calls (40, 100, 99, 132, 69 Tgas; the block's time); a quote with one changed byte failed at the last step; the bazaar registered the model key only against that finalized verification. The Intel collateral is fetched off chain and its signatures checked on chain; until the founder locks it the verifier account keeps our (REP's, the team's) full-access key (`tools/dcap-spike/README.md`) |
 | `PASS  sealed reviews: 17 checks` | 10 purchases on the mocked chain join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
 
 ## Minute 4: look
@@ -64,6 +64,10 @@ What each block of PASS lines proves:
 python3 -m http.server -d agents     # then open /board.html and /receipts.html
 ```
 
+- `/swarm.html`: one button replays the hotel round (8 sealed bids, a refused claim, the group
+  of 5), every step linked to its testnet tx. `/prove.html`: your browser makes and checks a
+  Jolt proof of the agent's pick, then refuses a changed claim. `/clearing.html`: the one-price
+  batch, numbers editable (an illustration; the method is not deployed).
 - `/board.html`: 30 bids, the buyer column shows only k and the bits revealed, merchant
   asks answered by rule, the red refused receipt, and the sealed reviews panel.
 - `/receipts.html`: every verdict and purchase from the contract's own NEP-297 events, and
@@ -78,7 +82,9 @@ every sealed rating (delegate actions; `make verify-live` checks them).
   Circle USDC): 31 purchases (21 single settles: one with the 1% fee, two with a sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group; 5 through a buying group's own DAO treasury),
   all re-derived by `make verify-live`. No real zkTLS proof yet (the facts are synthetic).
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
-  not inside the contract (and since 2026-11-05 also on chain: tools/dcap-spike); the NVIDIA GPU
+  not inside the bazaar contract; since 2026-11-05 a separate verifier contract checks the
+  quote on chain in five calls (tools/dcap-spike), and the bazaar registers the model key only
+  against that result; the NVIDIA GPU
   evidence is checked offline from NVIDIA's signed NRAS reply (`scripts/nras.mjs`).
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
 - Jolt: the four proofs are committed (`zk/out/`); `make verify` checks their outputs against

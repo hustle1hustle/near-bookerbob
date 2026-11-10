@@ -99,7 +99,7 @@ registers.
 the 8 hotel offers with the same `zkcore` price rule and checks the agent's pick (listed, priced
 by code, inside the budget, the cheapest that fits). 39,159 cycles, padded to 2^16; native
 prove 1.53 s, verify 28 ms, proof 78,527 bytes (Apple M3 Pro, 11 threads); headless Chrome
-5.7 s on 8 threads and about 21 s on one, and the browser's proof is byte for byte the native
+5.7 to 15 s on 8 threads across runs and about 21 s on one, and the browser's proof is byte for byte the native
 one. A static host sends no cross-origin isolation headers, so the page registers its own
 small service worker (`agents/coi-prove-sw.js`, scope `prove` only) that adds them; without it
 the page falls back to one thread and says so. The page then

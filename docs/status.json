@@ -136,7 +136,7 @@
     "tracks": "swarms, privacy, open",
     "where": "`agents/prove.html`, `agents/prove/`, `agents/coi-prove-sw.js`, `zk/browser/` (its own Jolt pin `b4eb62480d76`, separate from the four guests the contract anchors)",
     "status": "built",
-    "detail": "39,159 cycles; native prove 1.53 s, verify 28 ms, proof 78,527 bytes; headless Chrome 5.7 s on 8 threads (the page's own service worker adds the isolation headers a static host cannot send) and 21 s on one thread, byte-identical proof both ways; not zero-knowledge (every input is public), verified in the page and not on chain; no phone timed yet; the two wasm32 fixes are upstream's (a16z/jolt#1913, 0xAndoroid/jolt-wasm-prover)",
+    "detail": "39,159 cycles; native prove 1.53 s, verify 28 ms, proof 78,527 bytes; headless Chrome 5.7 to 15 s on 8 threads across runs (the page's own service worker adds the isolation headers a static host cannot send) and 21 s on one thread, byte-identical proof both ways; not zero-knowledge (every input is public), verified in the page and not on chain; no phone timed yet; the two wasm32 fixes are upstream's (a16z/jolt#1913, 0xAndoroid/jolt-wasm-prover)",
     "evidence": []
   },
   {
