@@ -134,6 +134,15 @@ owner's price anchor.
 
 ## 5. Mapping (honest)
 
+Reviewed by Dan (DenisDI, who runs a solver on CoW Protocol), 2026-11-10. His verdict, which
+this table follows: of the three mappings we first drew, one is honest. The referee and its
+receipts are checkable settlement, with one caveat: the referee key is ours, and the contract
+checks its signature and the schedule price, not how the referee matched the claim to the
+proofs. Sealed bids are a contest of schedules, not solver competition. The group tier is an
+announced discount (367.20 is 408 minus a fixed 10%, a number in the tier table before the
+group formed), not a clearing price. A batch with one price is a third mechanism, not built
+into the deployed contract; it matters only when the cheap merchant runs out of seats.
+
 | CoW / NEAR Intents | BookerBob today | where the analogy breaks |
 |---|---|---|
 | intent | verdict (bits, cap, expiry, nullifier) + off-chain ask | no signed order with sell/buy amounts; the chain never holds the ask or a limit price |

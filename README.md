@@ -35,14 +35,15 @@ number. Timed on a laptop only so far: 5.7 s on 8 threads, 21 s on one.
 
 **Where this points.** Today NEAR intents move liquidity and tokens: a user states an outcome
 and solvers compete to deliver it. We see the next step as intents for agents: a person's agent
-states a need (a hotel for five, under a budget, with proven context) and other agents compete
-to fulfil it. BookerBob is that market working on testnet today, and its pieces map onto the
-same shape: sealed bids are solvers competing, the referee and its receipts are settlement
-anyone can check, standing says which solvers to trust, and the group price is batching. This
-is a direction, not a claim beyond what the table below marks live. Where the analogy breaks
-today (no intent object for a single purchase, schedules instead of per-intent bids, a fixed
-group tier instead of a clearing price) is listed in [docs/solvers.md](docs/solvers.md), which
-also shows how an outside solver sees a round.
+states a need (a hotel stay under a budget, with proven context) and other agents compete to
+fill it. Of our pieces, one maps onto that honestly today: the referee and its receipts are
+settlement anyone can check (the referee key is still ours; the contract checks its signature
+and the schedule price, not how the referee matched the claim). The other two are not there
+yet, and we say so: sealed bids are a contest of price schedules, not solvers competing for one
+intent, and the group price is an announced discount (367.20 is 408 minus a fixed 10%), not a
+clearing price. The step that gets there is one method, a batch clearing with one price,
+designed by Dan (DenisDI): [docs/solvers.md](docs/solvers.md) shows the market as an outside
+solver sees it and where the analogy breaks.
 
 **Check it in 3 commands** (Node 22; the first two need no keys and no build):
 
