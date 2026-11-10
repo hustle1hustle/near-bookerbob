@@ -30,6 +30,14 @@ number. Timed on a laptop only so far: 5.7 s on 8 threads, 21 s on one.
 2. **Competition.** Bid rounds are sealed on chain, and code, not a model, computes every price.
 3. **Context.** The buyer's proven private facts set the price, the referee refuses a false claim, and the group price opens at k >= 5.
 
+**Where this points.** Today NEAR intents move liquidity and tokens: a user states an outcome
+and solvers compete to deliver it. We see the next step as intents for agents: a person's agent
+states a need (a hotel for five, under a budget, with proven context) and other agents compete
+to fulfil it. BookerBob is that market working on testnet today, and its pieces map onto the
+same shape: sealed bids are solvers competing, the referee and its receipts are settlement
+anyone can check, standing says which solvers to trust, and the group price is batching. This
+is a direction, not a claim beyond what the table below marks live.
+
 **Check it in 3 commands** (Node 22; the first two need no keys and no build):
 
 | command | what you see |
