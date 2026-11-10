@@ -588,3 +588,20 @@ accounts. Code hash `3Gb1xQKz73sgquUyqofxbDavYyCYEswMKC8YsHVnjyWh`, tag `bazaar-
 
 `make verify-live` after it: 101 checks, all pass. The two money-bug fixes are covered by
 contract tests; neither attack was replayed on chain.
+
+## 2026-11-10, second redeploy: a silent bid costs the merchant
+
+Code hash `ERVZP8X9B8VQAUG5iNVBdCR5Y8LyrLAF8pgURiDdAYxd`, tag `bazaar-2026-11-10b`, state kept
+(market first, the same views returned the same bytes before and after on both accounts):
+market [7qYedWcy…](https://testnet.nearblocks.io/txns/7qYedWcyTGeBkcuM5DtvMbfHaasEnqtZoTkmEwY), `bookerbob.testnet` [FmVRnxNj…](https://testnet.nearblocks.io/txns/FmVRnxNjgD75psVFHjupbv7uwMCu1pbbvbiLjcPUVKs7). The same build passes explicit numeric
+resource limits to OutLayer in `request_referee` (not exercised live).
+
+Round `silent-1` (category `open`, opened by the owner [9wtsN7qP…](https://testnet.nearblocks.io/txns/9wtsN7qPdsu21FdYcCgmCv9hHNyZiXJesTr4pa7Qxzvu)): two bonded merchants of ours
+committed ([EuUKRkZZ…](https://testnet.nearblocks.io/txns/EuUKRkZZ3Uz5Z9jZdijeLsDcf3NYa1vGR32DbYFqFF8r), [A9bdFJbv…](https://testnet.nearblocks.io/txns/A9bdFJbvtJEWk6CK5c9RJ6TwtW6Kkni6LDdGxaycVLSa)), one revealed ([ErT2LGGL…](https://testnet.nearblocks.io/txns/ErT2LGGLNAaFhEdzctdUWQWfZMCq7g8nYy64AdPqftEf)), one stayed silent.
+After the reveal deadline another account called `mark_unrevealed`:
+
+- on the merchant that revealed: refused, "this merchant revealed in time" [F6aG4Tqa…](https://testnet.nearblocks.io/txns/F6aG4Tqa7Hc183vnJ9esZ4uagb4JhnfrC3w49UdBbnkD)
+- on the silent one: marked, 1 dUSDC of its 10 dUSDC bond forfeited (`forfeited_bonds("demo")` went from 0 to 1000000), `is_barred` true for 24 hours [DEd5NAPw…](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ)
+- again on the silent one: refused, "already marked for this round" [97oR8pKf…](https://testnet.nearblocks.io/txns/97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw)
+
+Also on 2026-11-10: `set_anchor_delay(300000)` on `bookerbob.testnet` [4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt).

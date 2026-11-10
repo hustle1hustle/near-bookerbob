@@ -954,6 +954,24 @@
       "review_join": "6G15di4YWVcoaR7BGdqWwWN8LHgtqRQfYh218iZ3ZVBR"
     }
   },
+  "unrevealed": {
+    "round": "silent-1",
+    "quiet": "quietbid.bookerbob-demo.testnet",
+    "loud": "loudbid.bookerbob-demo.testnet",
+    "txs": {
+      "marked": "DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ",
+      "revealed_refused": "F6aG4Tqa7Hc183vnJ9esZ4uagb4JhnfrC3w49UdBbnkD",
+      "second_mark_refused": "97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw"
+    },
+    "views": {
+      "defaults": 1,
+      "is_barred": true,
+      "barred_until_ms": 1794425443972,
+      "forfeited_demo_before": "0",
+      "forfeited_demo_after": "1000000",
+      "loud_defaults": 0
+    }
+  },
   "leash": {
     "bazaar": "bookerbob.testnet",
     "merchant": "m01.bookerbob.testnet",

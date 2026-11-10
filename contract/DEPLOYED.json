@@ -1,10 +1,10 @@
 {
   "note": "The bazaar wasm both testnet bazaars run. Built with `make wasm` (cargo near build non-reproducible-wasm) at the tagged commit; rebuilding on the same toolchain gives the same bytes (make wasm-parity). make judge checks that both accounts' on-chain code hash is this one.",
-  "tag": "bazaar-2026-11-10",
-  "commit": "061e5c3",
+  "tag": "bazaar-2026-11-10b",
+  "commit": "5a0b2cf",
   "toolchain": "rustc 1.96.0, cargo-near 0.22.0, macOS arm64",
-  "wasm_sha256": "21b58c6caa799b7edf03948ca8af66327339e19381c58e71db0d85e48e6c9c7a",
-  "code_hash": "3Gb1xQKz73sgquUyqofxbDavYyCYEswMKC8YsHVnjyWh",
+  "wasm_sha256": "c76e2912550b3cc2fa6a0b0111d34ee8d7c06c6f18f55c9a44a3ad6c68deea5e",
+  "code_hash": "ERVZP8X9B8VQAUG5iNVBdCR5Y8LyrLAF8pgURiDdAYxd",
   "accounts": [
     "bookerbob.testnet",
     "market.bookerbob.testnet"

@@ -109,9 +109,11 @@
     "feature": "a sealed bid never revealed costs the merchant: after the reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once; 1 token of its bond is forfeited (held by the contract, paid to no one) and `commit_bid` refuses it for 24 hours (finding: Dan, DenisDI)",
     "tracks": "swarms, security",
     "where": "`contract/src/lib.rs` (`mark_unrevealed`, `unrevealed_defaults`, `barred_until`, `is_barred`, `forfeited_bonds`)",
-    "status": "built",
-    "detail": "in code, not deployed; the state sits under new raw keys and a test pins the borsh bytes of every stored type against main; `cargo test -p bookerbob-bazaar unrevealed` (18 tests); a merchant with no bond only sits out, and a linked merchant in an `open` round is not marked (Known limits)",
-    "evidence": []
+    "status": "live",
+    "detail": "deployed on both bazaars 2026-11-10 and run once in round `silent-1`: the merchant that revealed could not be marked [F6aG4Tqa\u2026](https://testnet.nearblocks.io/txns/F6aG4Tqa7Hc183vnJ9esZ4uagb4JhnfrC3w49UdBbnkD), the silent one was marked, lost 1 dUSDC of its bond and is refused by `commit_bid` for 24 hours [DEd5NAPw\u2026](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ), a second marking was refused [97oR8pKf\u2026](https://testnet.nearblocks.io/txns/97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw); both merchants were ours; `cargo test -p bookerbob-bazaar unrevealed` (18 tests); a merchant with no bond only sits out, and a linked merchant in an `open` round is not marked (Known limits)",
+    "evidence": [
+      "unrevealed.txs.marked"
+    ]
   },
   {
     "feature": "NEAR AI Cloud inference for every merchant pitch and the buyer's cited \"why\", response signatures verified",

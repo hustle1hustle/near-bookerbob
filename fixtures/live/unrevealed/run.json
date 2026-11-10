@@ -1,0 +1,33 @@
+{
+  "bazaar": "bookerbob.testnet",
+  "round": "silent-1",
+  "by": "bookerbob-anchor.testnet",
+  "date": "2026-11-10",
+  "loud": "loudbid.bookerbob-demo.testnet",
+  "quiet": "quietbid.bookerbob-demo.testnet",
+  "revealed_refused": {
+    "hash": "F6aG4Tqa7Hc183vnJ9esZ4uagb4JhnfrC3w49UdBbnkD",
+    "error": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: this merchant revealed in time\"}}}}",
+    "logs": []
+  },
+  "marked": {
+    "hash": "DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ",
+    "error": null,
+    "logs": [
+      "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"bid_unrevealed\",\"data\":[{\"round\":\"silent-1\",\"merchant\":\"quietbid.bookerbob-demo.testnet\",\"by\":\"bookerbob-anchor.testnet\",\"defaults\":1,\"barred_until_ms\":1794425443972,\"forfeit_usdc\":\"0\",\"forfeit_demo\":\"1000000\"}]}"
+    ]
+  },
+  "second_mark_refused": {
+    "hash": "97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw",
+    "error": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: already marked for this round\"}}}}",
+    "logs": []
+  },
+  "views": {
+    "defaults": 1,
+    "is_barred": true,
+    "barred_until_ms": 1794425443972,
+    "forfeited_demo_before": "0",
+    "forfeited_demo_after": "1000000",
+    "loud_defaults": 0
+  }
+}
