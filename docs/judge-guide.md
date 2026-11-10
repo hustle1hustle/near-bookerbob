@@ -23,7 +23,7 @@ chain, offline.
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only: about 3 s offline, about 6 minutes online (it re-derives the testnet claims; old txs come from a rate-limited public archive)
+make judge           # Node 22 only: about 3 s offline, 5 to 13 minutes online (it re-derives the testnet claims; old txs come from a rate-limited public archive)
 make verify          # Rust stable; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
@@ -61,7 +61,7 @@ every sealed rating (delegate actions; `make verify-live` checks them).
 ## Minute 5: check what is not claimed
 
 - Testnet only. Payments ran in dUSDC, a testnet demo token with no value (production uses
-  Circle USDC): 28 purchases (18 single settles: one with the 1% fee, two with a sealed verdict, three with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group; 5 through a buying group's own DAO treasury),
+  Circle USDC): 31 purchases (21 single settles: one with the 1% fee, two with a sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group; 5 through a buying group's own DAO treasury),
   all re-derived by `make verify-live`. No real zkTLS proof yet (the facts are synthetic).
 - The NEAR AI TDX quote is checked off chain before the owner registers the model key,
   not inside the contract (and since 2026-11-05 also on chain: tools/dcap-spike); the NVIDIA GPU

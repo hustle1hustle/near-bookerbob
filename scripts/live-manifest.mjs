@@ -38,6 +38,8 @@ const m = {
   rep_eval: existsSync("fixtures/live/eval/rep-eval.json") ? (({ set_root, issuer_key, txs, models }) => ({ set_root, issuer_key, txs, models: models.map((m) => ({ subject: m.certificate.subject, bucket: m.certificate.score_bucket, submit_tx: m.submit_tx })) }))(JSON.parse(readFileSync("fixtures/live/eval/rep-eval.json", "utf8"))) : prev.rep_eval ?? null,
   standing_root: existsSync("fixtures/live/standing-root/run.json") ? JSON.parse(readFileSync("fixtures/live/standing-root/run.json", "utf8")) : null,
   model_buy: existsSync("fixtures/live/model-buy/run.json") ? (({ tester, nullifier, issuer, near_ai, txs }) => ({ tester, nullifier, issuer, model: near_ai.model, chat_id: near_ai.chat_id, txs }))(JSON.parse(readFileSync("fixtures/live/model-buy/run.json", "utf8"))) : null,
+  leash: existsSync("fixtures/live/leash/run.json") ? JSON.parse(readFileSync("fixtures/live/leash/run.json", "utf8")) : prev.leash ?? null,
+  buy_twice: existsSync("fixtures/live/buy-twice/run.json") ? JSON.parse(readFileSync("fixtures/live/buy-twice/run.json", "utf8")) : prev.buy_twice ?? null,
   quote_verification: existsSync("tools/dcap-spike/run.json") ? JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8")) : prev.quote_verification ?? null,
   cheat: existsSync("fixtures/live/cheat/run.json") ? JSON.parse(readFileSync("fixtures/live/cheat/run.json", "utf8")) : prev.cheat ?? null,
   gate: existsSync("fixtures/live/gate/run.json") ? JSON.parse(readFileSync("fixtures/live/gate/run.json", "utf8")) : prev.gate ?? null,

@@ -64,11 +64,13 @@ async function rpcLive(method, params) {
     let last;
     // An old tx has left the regular node (it waits 10 s, then answers 408), so a tx lookup
     // goes to the archival host. That host rate-limits (429): lookups are spaced TX_GAP_MS
-    // apart, and a 429 pauses every lookup for 5 s. The regular node is asked only when the
+    // apart, and a 429 pauses every lookup for 5 s, then longer (up to 30 s), for up to 40 tries:
+    // a rate limit is not a failed claim. The regular node is asked only when the
     // archive does not know the tx yet (a fresh one).
     const isTx = method === "tx";
     let fresh = false;
-    for (let i = 0; i < (isTx ? 12 : 6); i++) {
+    let limited429 = 0;
+    for (let i = 0; i < (isTx ? 40 : 6); i++) {
       const url = isTx ? (fresh ? RPCS[0] : ARCHIVES[0]) : RPCS[i % RPCS.length];
       if (isTx) await txGap();
       try {
@@ -78,10 +80,10 @@ async function rpcLive(method, params) {
         if (process.env.VL_DEBUG && (limited || !j || j.error)) console.error(`DBG ${method} ${url.slice(8, 20)} ${r.status} ${JSON.stringify(j?.error ?? "").slice(0, 140)} ${JSON.stringify(params).slice(0, 110)}`);
         if (limited || !j) {
           last = `${url} ${r.status} ${JSON.stringify(j?.error ?? "").slice(0, 80)}`;
-          if (isTx) { txNext = Math.max(txNext, Date.now() + 5000); fresh = false; } else await new Promise((s) => setTimeout(s, 800 * (i + 1)));
+          if (isTx) { limited429++; txNext = Math.max(txNext, Date.now() + Math.min(30000, 5000 * limited429)); fresh = false; } else await new Promise((s) => setTimeout(s, 800 * (i + 1)));
           continue;
         }
-        if (j.error && /UNKNOWN_TRANSACTION/.test(JSON.stringify(j.error)) && i < (isTx ? 11 : 5)) { last = JSON.stringify(j.error); fresh = isTx && !fresh; continue; }
+        if (j.error && /UNKNOWN_TRANSACTION/.test(JSON.stringify(j.error)) && i < (isTx ? 39 : 5)) { last = JSON.stringify(j.error); fresh = isTx && !fresh; continue; }
         return j;
       } catch (e) {
         last = `${url} ${e.message}`;

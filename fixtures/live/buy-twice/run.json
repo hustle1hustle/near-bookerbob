@@ -1,0 +1,16 @@
+{
+  "merchant": "m01.bookerbob.testnet",
+  "bazaar": "bookerbob.testnet",
+  "bps": 500,
+  "txs": {
+    "set_bps": "DwB2Vt2BZxmTkCdVv4Cytf4ezBuR93DxfBRRdTPEFPqy",
+    "claim": "Xxy7DqbHuCX18TXAJQ5vX1LVz73uRUqxmThNn8KjTme",
+    "settle": "Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf"
+  },
+  "epoch": 692,
+  "receipt_price": "36000000",
+  "price": "34200000",
+  "tester": "77d19e7fc8d10f9d5050c969b36c62a8f664a04225de45b524455d484efea6f7",
+  "nullifier": "15e586a33478b9bed3037c58012e28674bf5f074bfb1f7a405deb01e2890833b",
+  "date": "2026-11-10"
+}

@@ -1,36 +1,35 @@
 {
-  "note": "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. Anyone can open the sealed answer with response_key in the tx; the sealed request, which holds the facts, stays sealed to the model key. Until 2026-11-06 this file held the client secret, see docs/leak.md L9.",
-  "tester": "t-f7883a.bookerbob-demo.testnet",
+  "note": "One testnet purchase whose verdict a NEAR AI model issued (submit_near_ai_verdict), not REP's issuer key. Facts are the synthetic fixture proof set. Anyone can open the sealed answer with response_key in the tx; the sealed request, which holds the facts, stays sealed to the model key.",
+  "tester": "72ef8c95943851e7bb92fc4c5787d5057281c6111ee56a3443d40ddf243c25eb",
   "merchant": "m01.bookerbob.testnet",
-  "nullifier": "19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0",
+  "nullifier": "c69378aa9fd5cad4d2a8adf15db3e24b3c5fa0eab525b8bbcb29391d3a50bff0",
   "price": "36000000",
   "issuer": "near-ai:5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
   "gate_merchant": "vetted.bookerbob-demo.testnet",
   "near_ai": {
     "model": "z-ai/glm-5.3-flash",
     "signing_key": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
-    "chat_id": "dad184a319724369a78158806e69b9a9",
-    "request_sha256": "dc5b20c7ab3bb5d6be15d0a06674425506c5ed9471452dec117e93b1a12620a2",
-    "response_sha256": "33d2f42245728a6baeaf5613730f3ba3fe6efe334c76f0f5c7e4dd940b934ed7",
+    "chat_id": "4b1d3b8b0e5e4c03b331d4beba24c485",
+    "request_sha256": "f2bef949c492536e6bd38c06b0a80d4413c675fb39f3c0beec7909a28bcea8f6",
+    "response_sha256": "1afdd72d6c96cc4a39ee9048eda03068c2e55d679f58c24c0c682dd99919a9f1",
     "attested": [
       "airbnb_frequent",
-      "booking_genius",
       "claude_spender",
       "world_id_human"
     ]
   },
   "txs": {
-    "account": "CubiPgB1DLUoN1EnYXUxgkjg1nER3FvxCFnZ39c6Qn4M",
-    "escrow_entry": "8n9wp7mhGAX5rydhjRnPZorkTzdaVFGz1isfwHarusPq",
-    "dusdc_storage": "9FPv4SBf4HBFJ1HKrxyq4HzwbfEkAAsPU4T6db6Z6C4G",
-    "mint": "GdLfMrrLXYkFzvMJ7b17A4imiycrdzkyRDXmbBba4AX4",
-    "world": "9CymXg1obHsMh3BWpkNmvdSd23XsPM337q2Df3XkTQpT",
-    "verdict": "8JfM9iTSKr4pczSiuUMTmFDsL2cD5c4tBjne7fgAhVDD",
-    "gate_refused": "EUwhYvwE3k6gqj5UXDz3y9BdL91WEC3PcjeG5BGmFQTy",
-    "receipt": "6kfqMysvac75Hbwb647XXa74xAN5Wwoc6eztyro1pAPy",
-    "escrow": "2EDg6HmHCY3uPz1XRRQCPMxo1ymtLJYc53AqAVKL9HqC",
-    "settle": "DN5yP2kHGFGidcDrr9t6WfuKwcngDeACrjJfC2ouxTDa",
-    "replay": "GMRPqyWDh9dYsGew9grovjNu9WTKHRAq6Tam2XfycRUZ",
-    "review_join": "W6E3hYeq9sbZS4VmT5DaDd6q1QUUF89mpUzms5kipow"
+    "account": "3jLWf7QkYmD6tkjPRMm3xdeCX4D23q7f1tHJRRfAgdbT",
+    "escrow_entry": "DgKoFw1VbG5FZWPvWWdppzVpLw7DGH8hswN4Hi2rDW6b",
+    "dusdc_storage": "FXmPR4qtPccj87qVvhPAGFH9WEi2JV67KFR8Hpuw2zYC",
+    "mint": "89u5YoCFJZBurzZrtoBczhYix67eUhprGSLQ1JJxQn4j",
+    "world": "3At4JXKuKhKHtiiFw1S2URWBfsBYFGUbojdogm6qwYoX",
+    "verdict": "DCoM1asGEoUWWTMBuSAiVJwDBrbh6LYMFW9jaBChSj2J",
+    "gate_refused": "4xmaG1miPnT7wdSeVcsFEVKGUSdvYufTsLeDkANJ6foR",
+    "receipt": "6DJnD2GfyHhGQayvgMoruiQYBqKoCR2noJ9gSRAvEuDX",
+    "escrow": "51djvskpkoR4FjPj1J5s6PPMksKkmJ4Ni4FeuVrbWMTS",
+    "settle": "HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS",
+    "replay": "5C5N4Si5i5Jecbs9uKXtcRcaChUQs7zyKaMYHiAomF8J",
+    "review_join": "6G15di4YWVcoaR7BGdqWwWN8LHgtqRQfYh218iZ3ZVBR"
   }
 }

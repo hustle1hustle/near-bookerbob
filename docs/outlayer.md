@@ -49,8 +49,9 @@ inputs still open.
 
 - Whether the callback's `promise_result(0)` is the raw stdout or a JSON string. The
   callback accepts both; the testnet hello-world decides.
-- Build target: docs show `wasm32-wasip2`; this worker is pure compute and should also
-  build for `wasm32-wasip1`. Neither target is installed here yet.
+- Build target: docs show `wasm32-wasip2`. The worker builds for it unchanged
+  (`cargo build -p bookerbob-referee-worker --release --target wasm32-wasip2`, 410,646 bytes,
+  rustc 1.96.0, 2026-11-10). The build has not been run in a wasm runtime or on OutLayer.
 
 ## Disputes (beat 11)
 
@@ -108,7 +109,10 @@ Open before it can run (stated plainly):
   HTTPS path, which `docs/outlayer.md` "Privacy" already allows for synthetic data only.
 - The attestation response schema is not documented; the deposit amount is not either
   (`estimate_execution_cost` gives the run cost: 0.0070001 NEAR measured).
-- The worker today builds for wasip1; the wasip2 build is untested.
+- The wasip2 build compiles (above) and has not run. It still signs with
+  `REFEREE_SIGNING_SEED`; signing through `outlayer:signing-keys` is not written.
+- `create_project` takes a public `WasmUrl`, so it waits for the repo to be public.
 
 Founder OK needed for step 2 onward (an outside service, irreversible on its side only in
-its deposit). About 3 to 4 hours after the OK, most of it the wasip2 build.
+its deposit). About 2 to 3 hours after the OK and a public URL for the wasm: the host signing interface,
+the project, one run, the attestation check.

@@ -1,0 +1,50 @@
+{
+  "bazaar": "bookerbob.testnet",
+  "merchant": "m01.bookerbob.testnet",
+  "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+  "round": "builder-1",
+  "mandates": [
+    {
+      "bazaar": "bookerbob.testnet",
+      "agent": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+      "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+      "max_per_purchase": "35999999",
+      "max_total": "360000000",
+      "expires_at_ms": 1794333094326,
+      "round": null,
+      "nonce": 1,
+      "tx": "Ch5k3w4z1ZTHTDT3fixF2KfmnzeD1UPwhFz79f6pcQUb"
+    },
+    {
+      "bazaar": "bookerbob.testnet",
+      "agent": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+      "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+      "max_per_purchase": "36000000",
+      "max_total": "360000000",
+      "expires_at_ms": 1794333094326,
+      "round": "builder-1",
+      "nonce": 2,
+      "tx": "HATNZ7jb9WWRUxRRpiH6WKXUtbSDwLc9ipvNbx3xvUyU"
+    },
+    {
+      "bazaar": "bookerbob.testnet",
+      "agent": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+      "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+      "max_per_purchase": "36000000",
+      "max_total": "36000000",
+      "expires_at_ms": 1794333094326,
+      "round": null,
+      "nonce": 3,
+      "tx": "Djj1sP4qB1NQpUAKM1tHtPcgAfAssvnJTsWLPmRnRvYH"
+    }
+  ],
+  "txs": {
+    "over_limit": "uTaWgUCjbPt932TR2ZYgB7zHdUni9T1LD2gojP7qLx6",
+    "non_winner": "9wcKDvctckZPtRKKfwvA1mmvFNqYe5kyz2YPGd9Wi7zv",
+    "settle": "5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp"
+  },
+  "tester": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+  "nullifier": "01c1dd3ed839b3904aed76b067cd41b29a88f625318508e0fe1baf090daa7f6f",
+  "price": "36000000",
+  "date": "2026-11-10"
+}

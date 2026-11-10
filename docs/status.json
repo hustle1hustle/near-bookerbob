@@ -24,7 +24,7 @@
     "tracks": "realworld, agents",
     "where": "`contract/src/lib.rs`",
     "status": "live",
-    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 18 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
+    "detail": "payout rollback in `on_settle_transfer`; on testnet the same path ran 21 times in dUSDC (`settle_demo`, its own escrow, testnet only)",
     "evidence": [
       "testers"
     ]
@@ -43,25 +43,31 @@
     "feature": "Verdict evaluator: a model verdict needs its signature on the request and envelope, so a signed answer about a typed fact is refused",
     "tracks": "security, privacy",
     "where": "`contract/src/lib.rs` `submit_near_ai_verdict`, `core/src/near_ai.rs`",
-    "status": "built",
-    "detail": "`cargo test -p bookerbob-bazaar evaluator`; live with the contract batch; one REP key, see Known limits",
-    "evidence": []
+    "status": "live",
+    "detail": "`evaluator_key` anchored on both bazaars on 2026-11-10 (the market by a DAO vote and the 5 minute delay); one model verdict countersigned by it settled [HV8r4Uvw\u2026](https://testnet.nearblocks.io/txns/HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS); `cargo test -p bookerbob-bazaar evaluator`; one REP key, see Known limits",
+    "evidence": [
+      "model_buy.txs.settle"
+    ]
   },
   {
     "feature": "The Leash: an owner signs limits on an agent (per purchase, total, expiry, a round's winner); the contract refuses a payment outside them and a live mandate shuts withdraw",
     "tracks": "security, agents",
     "where": "`contract/src/lib.rs` `set_mandate`, `spend_under_mandate`, `core/src/mandate.rs`",
-    "status": "built",
-    "detail": "`cargo test -p bookerbob-bazaar leash`; live with the contract batch; `make audit` recomputes `liability`",
-    "evidence": []
+    "status": "live",
+    "detail": "one live run (`make leash`): over the limit refused [uTaWgUCj\u2026](https://testnet.nearblocks.io/txns/uTaWgUCjbPt932TR2ZYgB7zHdUni9T1LD2gojP7qLx6), not the round's winner refused [9wcKDvct\u2026](https://testnet.nearblocks.io/txns/9wcKDvctckZPtRKKfwvA1mmvFNqYe5kyz2YPGd9Wi7zv), inside the limits settled [5phamDzA\u2026](https://testnet.nearblocks.io/txns/5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp); `cargo test -p bookerbob-bazaar leash`; `make audit` recomputes `liability`",
+    "evidence": [
+      "leash.txs.settle"
+    ]
   },
   {
     "feature": "Buy Twice: a past buyer proves it from a fresh account with a Semaphore proof and pays less; a repeat count held below k, with no customer list",
     "tracks": "privacy, realworld",
     "where": "`contract/src/lib.rs` `claim_returning`, `docs/semaphore.md`",
-    "status": "built",
-    "detail": "`make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`; live with the contract batch",
-    "evidence": []
+    "status": "live",
+    "detail": "one live run (`make buy-twice`): a past buyer's proof from a fresh account [Xxy7DqbH\u2026](https://testnet.nearblocks.io/txns/Xxy7DqbHuCX18TXAJQ5vX1LVz73uRUqxmThNn8KjTme), 34.2 paid against 36 on the receipt [Hzp9EmgT\u2026](https://testnet.nearblocks.io/txns/Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf); all testers are ours, so it shows the mechanism, not a stranger's privacy; `make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`",
+    "evidence": [
+      "buy_twice.txs.settle"
+    ]
   },
   {
     "feature": "deterministic tier, price stack, referee (cheat mode)",
@@ -251,7 +257,7 @@
     "tracks": "realworld, agents",
     "where": "`dusdc/`, `contract/src/lib.rs`, `scripts/demo-tester.mjs`, `relayer/`, `docs/demo-mode.md`",
     "status": "live",
-    "detail": "28 dUSDC purchases on testnet (18 single settles: one with the 1% fee, two with a sealed verdict, three with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule), one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
+    "detail": "31 dUSDC purchases on testnet (21 single settles: one with the 1% fee, two with a sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), plus one pledge the DAO refunded; `make verify-live`",
     "evidence": [
       "testers"
     ]
@@ -261,7 +267,7 @@
     "tracks": "realworld",
     "where": "`ucp/src/near-usdc.mjs`",
     "status": "live",
-    "detail": "18 orders between #1055 and #1073",
+    "detail": "21 orders between #1055 and #1085",
     "evidence": [
       "testers"
     ]

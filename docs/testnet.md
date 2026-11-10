@@ -570,3 +570,21 @@ PRIOR_WORK.md). REP's evaluator sees the requester and a blinded element, evalua
   decided, not built); the evaluator sees who asked in which context and when (a lone request
   just before a purchase is a timing link); purchases before this one used an HMAC or a fixture
   placeholder, which stay recomputable.
+
+## 2026-11-10: the contract batch on both bazaars
+
+The batch (verdict evaluator, the Leash, Buy Twice, the two money-bug fixes from the 2026-11-06
+audit) went live. The contract's state struct is unchanged and the new state is in raw storage
+keys, so the state was kept; the same views returned the same bytes before and after on both
+accounts. Code hash `3Gb1xQKz73sgquUyqofxbDavYyCYEswMKC8YsHVnjyWh`, tag `bazaar-2026-11-10`.
+
+- `market.bookerbob.testnet` first, with its temporary key: [HNBFRnXG…](https://testnet.nearblocks.io/txns/HNBFRnXGfvsK28U48bzKAnYPTFaszD1w399izrkxPK3C)
+- `bookerbob.testnet`: [EYLjv4Af…](https://testnet.nearblocks.io/txns/EYLjv4Afm1EQMHQTYnovXyJ9u6DSv8uzZBChU75eq6Ky)
+- `evaluator_key` on `bookerbob.testnet`: [6urVVEdM…](https://testnet.nearblocks.io/txns/6urVVEdMv9gSNR2VoruGKmGBEJyiuANJZPrxBQ76Qbm5)
+- `evaluator_key` on the market, by a DAO vote ([F4Y7Z8kt…](https://testnet.nearblocks.io/txns/F4Y7Z8ktRQcyZdyoe2jGHnWScYzhNsHW3cEpFdtZHr4X)) and, after the 5 minute delay, `execute_anchor` [DbnfZbPM…](https://testnet.nearblocks.io/txns/DbnfZbPMMgmYexQxCRcRHvUTcChdDvyHKRz2XLjqbXeN)
+- `make leash`: over the limit refused [uTaWgUCj…](https://testnet.nearblocks.io/txns/uTaWgUCjbPt932TR2ZYgB7zHdUni9T1LD2gojP7qLx6), not the round's winner refused [9wcKDvct…](https://testnet.nearblocks.io/txns/9wcKDvctckZPtRKKfwvA1mmvFNqYe5kyz2YPGd9Wi7zv), inside the limits settled [5phamDzA…](https://testnet.nearblocks.io/txns/5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp)
+- `make buy-twice`: the claim [Xxy7DqbH…](https://testnet.nearblocks.io/txns/Xxy7DqbHuCX18TXAJQ5vX1LVz73uRUqxmThNn8KjTme), settled at 34.2 against 36 [Hzp9EmgT…](https://testnet.nearblocks.io/txns/Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf)
+- `make model-buy`: a model verdict countersigned by the evaluator, settled [HV8r4Uvw…](https://testnet.nearblocks.io/txns/HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS)
+
+`make verify-live` after it: 101 checks, all pass. The two money-bug fixes are covered by
+contract tests; neither attack was replayed on chain.

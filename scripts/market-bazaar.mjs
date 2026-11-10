@@ -201,6 +201,16 @@ async function upgrade() {
     save();
   }
   console.log(`   ${MARKET}: voprf_key ${(await client.view(MARKET, "voprf_key", {}))?.slice(0, 12)}..`);
+  // DAO proposal: the verdict evaluator's key (a model verdict needs its signature on the
+  // request), the same one bookerbob.testnet anchors. An anchor: it waits out the delay.
+  const evaluator = await client.view("bookerbob.testnet", "evaluator_key", {});
+  if (evaluator && (await client.view(MARKET, "evaluator_key", {})) !== evaluator) {
+    st.evaluator = await viaDao("market bazaar: the verdict evaluator's public key (a model verdict needs its signature on the request)", [["set_evaluator_key", { public_key: evaluator }]]);
+    save();
+    st.evaluator_execute = await executeQueued("set_evaluator_key", await logsOf(st.evaluator.execute));
+    save();
+  }
+  console.log(`   ${MARKET}: evaluator_key ${(await client.view(MARKET, "evaluator_key", {}))?.slice(0, 12)}..`);
   const ownerId = `evalset.${c.treasury}`;
   const owner = seedKey(join(c.keysDir, "eval", `${ownerId}.seed`));
   if (!(await client.view(MARKET, "eval_set", { set_root: v4.set_root }))) {

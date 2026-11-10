@@ -402,6 +402,71 @@
         "replay": "1HxvdsVDVZhtLmJbheFjz3p1x5hG5McpZRtxM6sqjVM",
         "review_join": "98Hh5551hBjAMQS1RFV6rEUNK1M1Bwz7neTwiHK2X7is"
       }
+    },
+    {
+      "tester": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "01c1dd3ed839b3904aed76b067cd41b29a88f625318508e0fe1baf090daa7f6f",
+      "price": "36000000",
+      "cohort_k": 30,
+      "shopify_order": "#1083",
+      "txs": {
+        "account": "HMGihz5akzoi6yb5iWzAtBxvBbG721P1RnfF6K821mRL",
+        "escrow_entry": "CP7mSmao4EgWTxA1cWY1Yu5fE7ACmnEX83rugj4b8rU7",
+        "dusdc_storage": "5VKzeKddZ4mu8EY7nyeK24ADymDCLtFbzu2CjDRGiq92",
+        "mint": "5CXMKRBZfbqq8iGYChmtvVCpMoUs8d9j8hPcVYsGoGNL",
+        "world": "2P3BNejTiz1JoLBPucojhN6LnQcgiM9sY3EK1HDHzJkQ",
+        "verdict": "HGqkkc36PYmea5V26R6DqQZFfR1BrcFtDUktabKtAFVx",
+        "receipt": "4gAzvZEyYgZaDDu2jyfX9uiEKEVnkGTx4z7KN39AcxsK",
+        "escrow": "YrQxn2sEZjNXNQTwUSpgkLrK44V3TPVz1P5oVDXtUbg",
+        "settle": "5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp",
+        "replay": "4qgKQDXNDpaSWahSGopF36jQ4TViAawjSkUmBFLauEfq",
+        "review_join": "6G6nzwswjR6y1yPbR7ah4w5s2S91NJphqdBAFkjTYJ6U"
+      }
+    },
+    {
+      "tester": "77d19e7fc8d10f9d5050c969b36c62a8f664a04225de45b524455d484efea6f7",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "15e586a33478b9bed3037c58012e28674bf5f074bfb1f7a405deb01e2890833b",
+      "price": "34200000",
+      "cohort_k": 31,
+      "shopify_order": "#1084",
+      "txs": {
+        "account": "9QvyjgbQ9GNT1nc7Stpfni3Hv6BJ9rLnSTiPnwyHW4dW",
+        "escrow_entry": "DfbueEs8rM6BkbsTnr3xcaT3WWyD4kMbtgfHk8CFVd3R",
+        "dusdc_storage": "8ZuygqB5BEdcd4ood46JfDCnB45ADUU3xac2SrNLMV8u",
+        "mint": "13QQjBu67LhZkVmv3ChWw37BBXPMVz1XhYgmbWLHMMuh",
+        "world": "9w15EqwBB3mHt8Fad1TU8Dq2zwnY9midZwztjnw5ozRY",
+        "verdict": "HcyYUDYSkg9CgFr1ny5aY9GfXRCwp4z8hV8DwvPrKktN",
+        "receipt": "FWqnuZZqxK1wMXZKHBKnGGXk7ygwjDXhzQg2e81MWcq5",
+        "escrow": "EQ8Mcr7G7ixxdPgLSNynmxi7JYDXsuSZ3w4khwrtaPWW",
+        "settle": "Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf",
+        "replay": "9PwxWEUeHRpHCftDBRhrj5nEeS3UMByZwEtAcMZ4dDV7",
+        "review_join": "Y93m7ADSemJQnCsTn1keCNVrftuAiomsh3rBxcHXSSG"
+      }
+    },
+    {
+      "tester": "72ef8c95943851e7bb92fc4c5787d5057281c6111ee56a3443d40ddf243c25eb",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "c69378aa9fd5cad4d2a8adf15db3e24b3c5fa0eab525b8bbcb29391d3a50bff0",
+      "price": "36000000",
+      "cohort_k": 32,
+      "model_issued": "z-ai/glm-5.3-flash",
+      "shopify_order": "#1085",
+      "txs": {
+        "account": "3jLWf7QkYmD6tkjPRMm3xdeCX4D23q7f1tHJRRfAgdbT",
+        "escrow_entry": "DgKoFw1VbG5FZWPvWWdppzVpLw7DGH8hswN4Hi2rDW6b",
+        "dusdc_storage": "FXmPR4qtPccj87qVvhPAGFH9WEi2JV67KFR8Hpuw2zYC",
+        "mint": "89u5YoCFJZBurzZrtoBczhYix67eUhprGSLQ1JJxQn4j",
+        "world": "3At4JXKuKhKHtiiFw1S2URWBfsBYFGUbojdogm6qwYoX",
+        "verdict": "DCoM1asGEoUWWTMBuSAiVJwDBrbh6LYMFW9jaBChSj2J",
+        "gate_refused": "4xmaG1miPnT7wdSeVcsFEVKGUSdvYufTsLeDkANJ6foR",
+        "receipt": "6DJnD2GfyHhGQayvgMoruiQYBqKoCR2noJ9gSRAvEuDX",
+        "escrow": "51djvskpkoR4FjPj1J5s6PPMksKkmJ4Ni4FeuVrbWMTS",
+        "settle": "HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS",
+        "replay": "5C5N4Si5i5Jecbs9uKXtcRcaChUQs7zyKaMYHiAomF8J",
+        "review_join": "6G15di4YWVcoaR7BGdqWwWN8LHgtqRQfYh218iZ3ZVBR"
+      }
     }
   ],
   "unfinished": [
@@ -869,25 +934,91 @@
     "input": "fixtures/zk/standing-testnet-3-input.json"
   },
   "model_buy": {
-    "tester": "t-f7883a.bookerbob-demo.testnet",
-    "nullifier": "19b62e8cd653ccf6f291bb0e7df8c990e0756ae6301cc59b5c7965c92e82cef0",
+    "tester": "72ef8c95943851e7bb92fc4c5787d5057281c6111ee56a3443d40ddf243c25eb",
+    "nullifier": "c69378aa9fd5cad4d2a8adf15db3e24b3c5fa0eab525b8bbcb29391d3a50bff0",
     "issuer": "near-ai:5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
     "model": "z-ai/glm-5.3-flash",
-    "chat_id": "dad184a319724369a78158806e69b9a9",
+    "chat_id": "4b1d3b8b0e5e4c03b331d4beba24c485",
     "txs": {
-      "account": "CubiPgB1DLUoN1EnYXUxgkjg1nER3FvxCFnZ39c6Qn4M",
-      "escrow_entry": "8n9wp7mhGAX5rydhjRnPZorkTzdaVFGz1isfwHarusPq",
-      "dusdc_storage": "9FPv4SBf4HBFJ1HKrxyq4HzwbfEkAAsPU4T6db6Z6C4G",
-      "mint": "GdLfMrrLXYkFzvMJ7b17A4imiycrdzkyRDXmbBba4AX4",
-      "world": "9CymXg1obHsMh3BWpkNmvdSd23XsPM337q2Df3XkTQpT",
-      "verdict": "8JfM9iTSKr4pczSiuUMTmFDsL2cD5c4tBjne7fgAhVDD",
-      "gate_refused": "EUwhYvwE3k6gqj5UXDz3y9BdL91WEC3PcjeG5BGmFQTy",
-      "receipt": "6kfqMysvac75Hbwb647XXa74xAN5Wwoc6eztyro1pAPy",
-      "escrow": "2EDg6HmHCY3uPz1XRRQCPMxo1ymtLJYc53AqAVKL9HqC",
-      "settle": "DN5yP2kHGFGidcDrr9t6WfuKwcngDeACrjJfC2ouxTDa",
-      "replay": "GMRPqyWDh9dYsGew9grovjNu9WTKHRAq6Tam2XfycRUZ",
-      "review_join": "W6E3hYeq9sbZS4VmT5DaDd6q1QUUF89mpUzms5kipow"
+      "account": "3jLWf7QkYmD6tkjPRMm3xdeCX4D23q7f1tHJRRfAgdbT",
+      "escrow_entry": "DgKoFw1VbG5FZWPvWWdppzVpLw7DGH8hswN4Hi2rDW6b",
+      "dusdc_storage": "FXmPR4qtPccj87qVvhPAGFH9WEi2JV67KFR8Hpuw2zYC",
+      "mint": "89u5YoCFJZBurzZrtoBczhYix67eUhprGSLQ1JJxQn4j",
+      "world": "3At4JXKuKhKHtiiFw1S2URWBfsBYFGUbojdogm6qwYoX",
+      "verdict": "DCoM1asGEoUWWTMBuSAiVJwDBrbh6LYMFW9jaBChSj2J",
+      "gate_refused": "4xmaG1miPnT7wdSeVcsFEVKGUSdvYufTsLeDkANJ6foR",
+      "receipt": "6DJnD2GfyHhGQayvgMoruiQYBqKoCR2noJ9gSRAvEuDX",
+      "escrow": "51djvskpkoR4FjPj1J5s6PPMksKkmJ4Ni4FeuVrbWMTS",
+      "settle": "HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS",
+      "replay": "5C5N4Si5i5Jecbs9uKXtcRcaChUQs7zyKaMYHiAomF8J",
+      "review_join": "6G15di4YWVcoaR7BGdqWwWN8LHgtqRQfYh218iZ3ZVBR"
     }
+  },
+  "leash": {
+    "bazaar": "bookerbob.testnet",
+    "merchant": "m01.bookerbob.testnet",
+    "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+    "round": "builder-1",
+    "mandates": [
+      {
+        "bazaar": "bookerbob.testnet",
+        "agent": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+        "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+        "max_per_purchase": "35999999",
+        "max_total": "360000000",
+        "expires_at_ms": 1794333094326,
+        "round": null,
+        "nonce": 1,
+        "tx": "Ch5k3w4z1ZTHTDT3fixF2KfmnzeD1UPwhFz79f6pcQUb"
+      },
+      {
+        "bazaar": "bookerbob.testnet",
+        "agent": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+        "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+        "max_per_purchase": "36000000",
+        "max_total": "360000000",
+        "expires_at_ms": 1794333094326,
+        "round": "builder-1",
+        "nonce": 2,
+        "tx": "HATNZ7jb9WWRUxRRpiH6WKXUtbSDwLc9ipvNbx3xvUyU"
+      },
+      {
+        "bazaar": "bookerbob.testnet",
+        "agent": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+        "owner_key": "3a4ef684f577406fd5995839889d517bbe9546f2f88b2fb0af2386f8d66b0cc1",
+        "max_per_purchase": "36000000",
+        "max_total": "36000000",
+        "expires_at_ms": 1794333094326,
+        "round": null,
+        "nonce": 3,
+        "tx": "Djj1sP4qB1NQpUAKM1tHtPcgAfAssvnJTsWLPmRnRvYH"
+      }
+    ],
+    "txs": {
+      "over_limit": "uTaWgUCjbPt932TR2ZYgB7zHdUni9T1LD2gojP7qLx6",
+      "non_winner": "9wcKDvctckZPtRKKfwvA1mmvFNqYe5kyz2YPGd9Wi7zv",
+      "settle": "5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp"
+    },
+    "tester": "02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50",
+    "nullifier": "01c1dd3ed839b3904aed76b067cd41b29a88f625318508e0fe1baf090daa7f6f",
+    "price": "36000000",
+    "date": "2026-11-10"
+  },
+  "buy_twice": {
+    "merchant": "m01.bookerbob.testnet",
+    "bazaar": "bookerbob.testnet",
+    "bps": 500,
+    "txs": {
+      "set_bps": "DwB2Vt2BZxmTkCdVv4Cytf4ezBuR93DxfBRRdTPEFPqy",
+      "claim": "Xxy7DqbHuCX18TXAJQ5vX1LVz73uRUqxmThNn8KjTme",
+      "settle": "Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf"
+    },
+    "epoch": 692,
+    "receipt_price": "36000000",
+    "price": "34200000",
+    "tester": "77d19e7fc8d10f9d5050c969b36c62a8f664a04225de45b524455d484efea6f7",
+    "nullifier": "15e586a33478b9bed3037c58012e28674bf5f074bfb1f7a405deb01e2890833b",
+    "date": "2026-11-10"
   },
   "quote_verification": {
     "spike": "spike.bookerbob.testnet",
