@@ -1,26 +1,45 @@
 # BookerBob
 
-merchants compete for you. none of them learns who you are, until a delivery needs a name.
+**Send your agent to book a hotel. A market of agents does the rest.**
 
-**The market in three lines.** On NEAR, testnet only so far:
+**See it in a minute:** [the swarm page](https://hustle1hustle.github.io/near-bookerbob/swarm.html)
+(or `python3 -m http.server -d agents`, then `/swarm.html`). One button, "send my agent".
 
-1. A buyer's agent reveals a few proven bits (like `airbnb_frequent`) in a signed verdict.
-2. Merchant agents bid blind, and code computes the price from those bits.
-3. A contract burns a nullifier and pays the winner against a referee receipt.
+**Do X, get Y.** A test buyer, proven as a frequent traveller, asks for three nights in Lisbon.
+In about a minute you watch 8 merchant agents bid sealed on chain (commit, then reveal), a
+referee refuse a claim the proofs do not back, and buyers with the same proven need form a
+group. The public rate is 510.00. The buyer alone pays 408.00; in a group of 5, 367.20 each.
+Each price ends in a receipt tx on NEAR testnet, and no merchant learns who the buyer is,
+until a delivery needs a name.
+
+It is a replay of rounds that ran on NEAR testnet: the facts behind every verdict are
+synthetic, dUSDC is a test token, nothing is on mainnet.
+
+**Why it is different.** In other agent markets the buyer is unproven and nothing refuses a
+false claim. Here the buyer carries a proven private fact, a referee refuses lies, the price
+comes from code so a model cannot be talked into a discount, and the buyer stays private.
+
+**Three layers, each closing one hole:**
+
+1. **Trust.** A merchant's standing comes only from anonymous ratings by buyers who paid, flows along hire edges at 1/2, and is Jolt-proven and challengeable, so it cannot be bought.
+2. **Competition.** Bid rounds are sealed on chain, and code, not a model, computes every price.
+3. **Context.** The buyer's proven private facts set the price, the referee refuses a false claim, and the group price opens at k >= 5.
 
 **Check it in 3 commands** (Node 22; the first two need no keys and no build):
 
 | command | what you see |
 |---|---|
-| `make judge` | about 3 s offline, about a minute online (longer when public RPC rate-limits); ends `PASS  make judge` |
-| `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live` |
+| `make judge` | about 3 s offline; online it also re-derives the testnet claims, about 6 minutes (see the next row); ends `PASS  make judge` |
+| `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live`. About 5 minutes: 150 old txs are read from a public archival node that serves about 30 a minute (`NEAR_ARCHIVAL_RPC` and `TX_GAP_MS=0` for your own). A scheduled workflow runs it daily (`.github/workflows/live.yml`) |
 | `make verify` | the contract on near-sdk's mocked chain (Rust), ends `ALL PASS (26 checks)`; with no network, `make verify-offline` (the same checks from the vendored crates) |
 
 **Fresh clone, timed** (2026-11-05, a clean clone, an empty `CARGO_HOME`, macOS arm64):
 `make judge` 2.1 s offline (about 1 s more since it runs `make market-eval`),
-about a minute online (longer when public RPC rate-limits); `make verify-offline` 77 s with no network; `make verify` 114 s with the network
-(crates fetched); `make verify-live` 17 s; `make test` 36 s; `make zk-verify-prebuilt` 1.3 s.
-All pass. Logs: `fixtures/live/offline-run/`.
+about a minute online then; `make verify-offline` 77 s with no network; `make verify` 114 s with the network
+(crates fetched); `make verify-live` 17 s then; `make test` 36 s; `make zk-verify-prebuilt` 1.3 s.
+All pass. Logs: `fixtures/live/offline-run/`. Since 2026-11-10 the purchase txs have left the
+regular testnet node, so `make verify-live` reads them from the archive and takes 308 s (measured
+2026-11-10, 90 checks, all pass).
 
 **3 live testnet transactions** (dUSDC, a testnet demo token with no value):
 
@@ -113,7 +132,7 @@ Every feature with its status and evidence: [the table below](#every-feature-its
 
 ## Try it
 
-- `make judge`: about 3 s offline, about a minute online (longer when public RPC rate-limits).
+- `make judge`: about 3 s offline, about 6 minutes online (it re-derives the testnet claims; old txs come from a rate-limited public archive).
   Node 22, no keys, no build. It checks every testnet claim over public RPC, or from
   the committed RPC snapshot with no network (`JUDGE_OFFLINE=1` forces it), the committed Jolt
   proofs' outputs and program hashes, the REP Eval and NVIDIA checks, and the JS suites.
@@ -278,6 +297,7 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | **live**: unlocked on testnet once k >= 5 verdicts revealed `world_id_human` (38.40 to 36.00) |
 | blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline); 30 merchant agents bid through it | swarms | `contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs` | **live**: 30 merchant agents bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | **built**: plain TLS, 33/33 response signatures verified in a recorded live run |
+| the buyer's agent chooses by a real NEAR AI inference among the hotel offers; code computes every price and checks the pick (a listed offer, inside the budget), so text in an offer cannot change what is paid | swarms, agents | `agents/choose.mjs`, `agents/out/buyer-choice.json` | **built**: one recorded live run of 2 calls (z-ai/glm-5.3-flash), both response signatures verified: the model picked h05 at 408, and picked it again when another offer's text claimed a lower price and ordered the model to choose it |
 | NEAR AI issues the verdict under E2EE v2: the facts go sealed to the attested model key, the model derives the predicates and echoes a binding of the envelope, and `make verify` checks the TDX quote (dcap-qvl, Intel root, committed PCS collateral), report_data (signing key and our nonce), the TEE signature over the exact wire bytes, the sealed answer (opened with its disclosed per-field key), predicates equal to the code's, and the binding | privacy, security | `scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md` | **live**: one testnet purchase with a verdict glm-5.3-flash issued (`make model-buy`, 2026-11-05): the facts sealed to the model key registered against its on-chain TDX quote verification, `submit_near_ai_verdict` accepted it (issuer `near-ai:5a0210f2..`), the eval-gated merchant refused it (v4 bucket 50, under 70), m01 settled 36 dUSDC, the replay refused; `make verify-live` re-checks it. one live capture on synthetic facts (chat `08af1d014f2d4f379dba94094562d9ba`, TCB UpToDate). On chain, `submit_near_ai_verdict` accepts it only with a registered model attestation (same nonce), the TEE signature over the exact response bytes, and a sealed answer that opens with the disclosed key and echoes this envelope's binding; `make verify` runs the contract on it and on 4 refusals. The quote check itself happens before `register_model_attestation`, not in the contract; the NVIDIA GPU evidence is checked offline from NVIDIA's signed NRAS reply (`scripts/nras.mjs`) |
 | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | `worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md` | **built**: in `make verify`; not deployed to OutLayer yet (the register step waits on a founder OK). Live `estimate_execution_cost` = 0.0070001 NEAR |
 | dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | `worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md` | **built**: `make verify` check 22; a threshold of distinct arbiter signatures (`set_arbiter_threshold`, `submit_dispute_decisions`, 4 contract tests) is built; the live bazaar runs at threshold 1 with one arbiter key, held by REP |

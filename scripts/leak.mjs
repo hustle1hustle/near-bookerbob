@@ -29,7 +29,7 @@ process.on("uncaughtException", (e) => {
 async function rpc(method, params) {
   let last = "", transient = true;
   for (let i = 0; i < 8; i++) {
-    const url = i % 2 ? "https://archival-rpc.testnet.fastnear.com" : RPC;
+    const url = (i % 2 === 1) !== (method === "tx") ? "https://archival-rpc.testnet.fastnear.com" : RPC; // an old tx is only on the archival host
     try {
       const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "leak", method, params }), signal: AbortSignal.timeout(30000) });
       if (r.status === 408 || r.status === 429 || r.status >= 500) { last = `HTTP ${r.status}`; transient = true; throw 0; }

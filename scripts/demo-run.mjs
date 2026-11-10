@@ -4,6 +4,7 @@
 //
 //   python3 -m http.server -d agents 8000      in another terminal, for the board beat
 //   node scripts/demo-run.mjs                  space or enter: next beat; q: quit
+//   node scripts/demo-run.mjs --short          the 95 s cut: one buyer, one refusal, one purchase
 //   node scripts/demo-run.mjs --rehearse       every beat in a row, no keypress (a dry check)
 //
 // Nothing here buys or writes fixtures: the agent's purchase is shown as a plan (DEMO_RUN=1)
@@ -14,6 +15,7 @@ import { BEATS, X_POST } from "./demo-beats.mjs";
 import { rpcClient } from "../relayer/near.mjs";
 
 const rehearse = process.argv.includes("--rehearse");
+const short = process.argv.includes("--short");
 const client = rpcClient(process.env.NEAR_RPC || "https://test.rpc.fastnear.com");
 const m = JSON.parse(readFileSync("fixtures/live/testnet-manifest.json", "utf8"));
 const sealedNullifier = m.testers.find((t) => t.sealed && !t.prove_me).nullifier;
@@ -56,8 +58,8 @@ async function beat(b) {
   if (b.link) console.log(`tx: ${b.link}`);
 }
 
-console.log(bold("bookerbob, the 2:30 demo") + dim(rehearse ? "  (rehearsal: no keypress)" : "  space/enter: next beat, q: quit"));
-for (const b of BEATS) {
+console.log(bold(short ? "bookerbob, the 95 s cut" : "bookerbob, the 2:30 demo") + dim(rehearse ? "  (rehearsal: no keypress)" : "  space/enter: next beat, q: quit"));
+for (const b of short ? BEATS.filter((x) => x.short) : BEATS) {
   if ((await key()) === "quit") break;
   await beat(b);
 }

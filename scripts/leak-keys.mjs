@@ -145,7 +145,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const RPC = process.env.NEAR_RPC || "https://test.rpc.fastnear.com";
   const rpc = async (method, params) => {
     for (let i = 0; i < 8; i++) {
-      const url = i % 2 ? "https://archival-rpc.testnet.fastnear.com" : RPC;
+      const url = (i % 2 === 1) !== (method === "tx") ? "https://archival-rpc.testnet.fastnear.com" : RPC; // an old tx is only on the archival host
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "l9", method, params }) }).catch(() => null);
       if (!res || res.status === 429 || res.status >= 500) { await new Promise((s) => setTimeout(s, 1000 * (i + 1))); continue; }
       return res.json();

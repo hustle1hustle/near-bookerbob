@@ -39,7 +39,8 @@ if (!online) {
 // Public testnet RPC can drop a request under load: one retry, and the failures are printed.
 // Too slow is not wrong: a run cut off by the limit with no FAIL is a SKIP, and only a check that
 // failed is a failure. A timed-out run is not retried, the second would hit the same limit.
-const LIVE_MS = Number(process.env.JUDGE_LIVE_MS ?? 240_000);
+// 150 old txs come from a public archive at about 30 a minute: verify-live took 308 s on 2026-11-10.
+const LIVE_MS = Number(process.env.JUDGE_LIVE_MS ?? 480_000);
 const verifyLive = () => spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: LIVE_MS });
 const cut = (r) => r.error?.code === "ETIMEDOUT" && !/^FAIL /m.test(r.stdout);
 let live = online ? verifyLive() : { status: 0, stdout: "" };
