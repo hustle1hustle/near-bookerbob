@@ -285,9 +285,18 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
   so a swap of a trust key is queued in public; a code swap is not. Giving the account to a DAO
   and deleting the key closes it and cannot be undone, so it is not done inside the hackathon.
-- **A merchant can stay silent after it sees the other reveals, at no cost.** `reveal_bid` has
-  no bond or forfeit: the commitment stops a merchant from changing its bid, not from
-  withholding it (also Dan's point). Not fixed in the deployed contract.
+- **A merchant that stays silent after it sees the other reveals: the fix is in code, not
+  deployed.** The commitment stops a merchant from changing its bid, not from withholding it
+  (Dan's point), and on the deployed contract silence still costs nothing. In code, after a
+  round's reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once, within 24
+  hours: the merchant forfeits 1 token of its bond (what it has, if less; it stays in the
+  contract under `forfeited_bonds`, paid to no one) and `commit_bid` refuses it for 24 hours.
+  Two limits remain. A merchant with no bond (every owner-approved category today) only sits
+  out. And in an `open` round a merchant linked to one already revealed is not marked, because
+  the one-operator rule would have refused its reveal and the other side can make that link
+  alone (a hire edge, a shared payout): so one operator with two linked bids keeps a free
+  choice between them, and revealing first after hiring a rival still shuts that rival out of
+  the round.
 - **A round does not check the verdict's context against its category.** `round_best_quote`
   prices any unspent verdict against a round's revealed schedules, so a verdict issued in the
   hoodie context is quoted in the hotel round too. Payment is bound to a round only under a
@@ -306,8 +315,9 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   the winner from live schedules and refuses a receipt at any other price. After expiry `withdraw` goes to the agent's account, so an owner who
   fears the agent key should drain first. A dispute refund does not give the limit back, and a refund after the owner replaced the mandate
   comes off the new one's count.
-- `reveal_bid` has no forfeit: a merchant that committed can skip the reveal and lose nothing,
-  so a late look at rivals is free.
+- On the deployed contract `reveal_bid` has no forfeit: a merchant that committed can skip the
+  reveal and lose nothing, so a late look at rivals is free. `mark_unrevealed` (in code, not
+  deployed) makes it cost part of the bond and a 24 hour bar; see the first list above.
 - The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's
   evaluator sees a blinded element only. REP still holds the one evaluator key (an enclave and a
   committee are decided, not built), sees who asked and when, and earlier purchases used an HMAC
@@ -367,6 +377,7 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 | disclosure policy: merchants ask, the buyer agent answers by rule (raw history and identity always declined); a budget caps bits per purchase and the plan shows what each bit saved | privacy | `core/src/disclosure.rs`, `fixtures/disclosure-policy.json`, `fixtures/merchant-asks.json` | **built**: `make verify` checks 04 and 05 |
 | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | `core/src/price.rs` `quote_in_cohort`, `contract/src/lib.rs` | **live**: unlocked on testnet once k >= 5 verdicts revealed `world_id_human` (38.40 to 36.00) |
 | blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline); 30 merchant agents bid through it | swarms | `contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs` | **live**: 30 merchant agents bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests |
+| a sealed bid never revealed costs the merchant: after the reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once; 1 token of its bond is forfeited (held by the contract, paid to no one) and `commit_bid` refuses it for 24 hours (finding: Dan, DenisDI) | swarms, security | `contract/src/lib.rs` (`mark_unrevealed`, `unrevealed_defaults`, `barred_until`, `is_barred`, `forfeited_bonds`) | **built**: in code, not deployed; the state sits under new raw keys and a test pins the borsh bytes of every stored type against main; `cargo test -p bookerbob-bazaar unrevealed` (18 tests); a merchant with no bond only sits out, and a linked merchant in an `open` round is not marked (Known limits) |
 | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | `agents/why.mjs`, `agents/out/live-run.json` | **built**: plain TLS, 33/33 response signatures verified in a recorded live run |
 | the buyer's agent chooses by a real NEAR AI inference among the hotel offers; code computes every price and checks the pick (a listed offer, inside the budget), so text in an offer cannot change what is paid | swarms, agents | `agents/choose.mjs`, `agents/out/buyer-choice.json` | **built**: one recorded live run of 2 calls (z-ai/glm-5.3-flash), both response signatures verified: the model picked h05 at 408, and picked it again when another offer's text claimed a lower price and ordered the model to choose it |
 | a Jolt proof of the agent's pick made in the visitor's own browser: the `decide` guest reprices all 8 hotel offers with the contract's price rule (`zkcore`) and checks the pick is listed, priced by code, inside the budget and the cheapest that fits; the page verifies the proof and refuses the same proof for a claim changed by one unit | swarms, privacy, open | `agents/prove.html`, `agents/prove/`, `agents/coi-prove-sw.js`, `zk/browser/` (its own Jolt pin `b4eb62480d76`, separate from the four guests the contract anchors) | **built**: 39,159 cycles; native prove 1.53 s, verify 28 ms, proof 78,527 bytes; headless Chrome 5.7 s on 8 threads (the page's own service worker adds the isolation headers a static host cannot send) and 21 s on one thread, byte-identical proof both ways; not zero-knowledge (every input is public), verified in the page and not on chain; no phone timed yet; the two wasm32 fixes are upstream's (a16z/jolt#1913, 0xAndoroid/jolt-wasm-prover) |

@@ -165,6 +165,34 @@ pub struct Round {
     pub revealed: Vec<AccountId>,
 }
 
+/// A commit never revealed is a default, see `mark_unrevealed`. Forfeited from the merchant's
+/// bond per default (a tenth of `OPEN_BOND`), in token base units; less if the bond is smaller.
+pub const UNREVEALED_FORFEIT: u128 = 1_000_000;
+/// How long a marked merchant is refused by `commit_bid`, counted from the marking.
+pub const UNREVEALED_BAR_MS: u64 = 24 * 3600 * 1000;
+/// A default can be marked only this long after the round's reveal deadline, so a round that
+/// closed long ago (or before this rule was deployed) cannot be used against a merchant later.
+pub const UNREVEALED_MARK_WINDOW_MS: u64 = 24 * 3600 * 1000;
+
+// Defaults live under raw storage keys, so `Round` and `Merchant` keep their stored layout:
+// `ud|merchant|round` (marked), `un|merchant` (count), `ub|merchant` (barred until, ms),
+// `uf|token` (forfeited bond held by the contract; no method pays it out).
+fn default_marked_key(merchant: &AccountId, round_id: &str) -> Vec<u8> {
+    format!("ud|{merchant}|{round_id}").into_bytes()
+}
+
+fn default_count(merchant: &AccountId) -> u32 {
+    env::storage_read(format!("un|{merchant}").as_bytes()).map(|b| u32::from_le_bytes(b.try_into().expect("u32"))).unwrap_or(0)
+}
+
+fn bar_until_ms(merchant: &AccountId) -> u64 {
+    raw_u64(format!("ub|{merchant}").as_bytes())
+}
+
+fn forfeited_total(token: &str) -> u128 {
+    env::storage_read(format!("uf|{token}").as_bytes()).map(|b| u128::from_le_bytes(b.try_into().expect("u128"))).unwrap_or(0)
+}
+
 #[near(serializers = [json])]
 pub struct MerchantQuote {
     pub merchant: AccountId,
@@ -2001,6 +2029,7 @@ impl Bazaar {
         let merchant = env::predecessor_account_id();
         let m = self.merchants.get(&merchant).cloned().unwrap_or_else(|| env::panic_str("unknown merchant"));
         require!(m.approved, "merchant not approved");
+        require!(env::block_timestamp_ms() >= bar_until_ms(&merchant), "barred from rounds: an earlier sealed bid was never revealed");
         let round = self.rounds.get_mut(&round_id).unwrap_or_else(|| env::panic_str("unknown round"));
         require!(m.category == round.category, "wrong category for this round");
         require!(env::block_timestamp_ms() < round.commit_until_ms, "commit phase is over");
@@ -2049,6 +2078,101 @@ impl Bazaar {
         self.rounds.flush();
         self.merchants.flush();
         charge_storage(before);
+    }
+
+    /// Anyone, after a round's reveal deadline: record that `merchant` committed a sealed bid
+    /// and never opened it. Once per merchant and round. The merchant forfeits
+    /// `UNREVEALED_FORFEIT` of its bond (USDC first, then the demo token; what it has, if less)
+    /// and `commit_bid` refuses it for `UNREVEALED_BAR_MS`. The forfeit stays in the contract
+    /// under a counter nothing pays out: the caller, the owner and the other bidders gain
+    /// nothing by marking, so there is nothing to race for. The caller pays the record's storage.
+    /// Its approval, schedule, earlier rounds and purchases are not touched.
+    #[payable]
+    pub fn mark_unrevealed(&mut self, round_id: String, merchant: AccountId) {
+        let before = env::storage_usage();
+        let round = self.rounds.get(&round_id).unwrap_or_else(|| env::panic_str("unknown round"));
+        let now = env::block_timestamp_ms();
+        require!(now >= round.reveal_until_ms, "reveal phase is still open");
+        require!(now < round.reveal_until_ms.saturating_add(UNREVEALED_MARK_WINDOW_MS), "too late to mark this round");
+        require!(round.commits.iter().any(|(a, _)| a == &merchant), "no committed bid");
+        require!(!round.revealed.contains(&merchant), "this merchant revealed in time");
+        // Open rounds refuse the reveal of a merchant linked to one already revealed, and a
+        // link (a hire edge, a shared payout) can be made by the other side alone. Such a
+        // merchant may have been kept silent, so it is not marked.
+        require!(
+            !(round.category == OPEN_CATEGORY && self.linked_to_revealed(round, &merchant)),
+            "linked to a merchant revealed in this round: its reveal would have been refused"
+        );
+        let marked = default_marked_key(&merchant, &round_id);
+        require!(!env::storage_has_key(&marked), "already marked for this round");
+        env::storage_write(&marked, b"1");
+        let defaults = default_count(&merchant) + 1;
+        env::storage_write(format!("un|{merchant}").as_bytes(), &defaults.to_le_bytes());
+        let barred_until_ms = bar_until_ms(&merchant).max(now + UNREVEALED_BAR_MS);
+        env::storage_write(format!("ub|{merchant}").as_bytes(), &barred_until_ms.to_le_bytes());
+        let mut bonds = merchant_bonds();
+        let mut left = UNREVEALED_FORFEIT;
+        let mut taken = [0u128; 2];
+        for (i, token) in ["usdc", "demo"].into_iter().enumerate() {
+            let key = format!("{merchant}|{token}");
+            let have = bonds.get(&key).copied().unwrap_or(0);
+            let take = have.min(left);
+            if take > 0 {
+                bonds.insert(key, have - take);
+                env::storage_write(format!("uf|{token}").as_bytes(), &(forfeited_total(token) + take).to_le_bytes());
+                left -= take;
+                taken[i] = take;
+            }
+        }
+        bonds.flush();
+        emit(
+            "bid_unrevealed",
+            serde_json::json!({
+                "round": round_id,
+                "merchant": merchant,
+                "by": env::predecessor_account_id(),
+                "defaults": defaults,
+                "barred_until_ms": barred_until_ms,
+                "forfeit_usdc": U128(taken[0]),
+                "forfeit_demo": U128(taken[1]),
+            }),
+        );
+        charge_storage(before);
+    }
+
+    /// The one-operator test of `reveal_bid`, against every merchant revealed in the round.
+    fn linked_to_revealed(&self, round: &Round, merchant: &AccountId) -> bool {
+        let Some(me) = self.merchants.get(merchant) else { return false };
+        let my_hires = self.hires.get(merchant).cloned().unwrap_or_default();
+        round.revealed.iter().any(|other| {
+            self.merchants.get(other).is_some_and(|o| o.payout == me.payout)
+                || my_hires.contains(other)
+                || self.hires.get(other).is_some_and(|h| h.contains(merchant))
+        })
+    }
+
+    /// How many sealed bids of `merchant` were marked as never revealed.
+    pub fn unrevealed_defaults(&self, merchant: AccountId) -> u32 {
+        default_count(&merchant)
+    }
+
+    /// Whether `merchant` was marked for `round_id`.
+    pub fn unrevealed_in_round(&self, round_id: String, merchant: AccountId) -> bool {
+        env::storage_has_key(&default_marked_key(&merchant, &round_id))
+    }
+
+    /// Block time (ms) until which `commit_bid` refuses `merchant`; 0 if it was never marked.
+    pub fn barred_until(&self, merchant: AccountId) -> u64 {
+        bar_until_ms(&merchant)
+    }
+
+    pub fn is_barred(&self, merchant: AccountId) -> bool {
+        env::block_timestamp_ms() < bar_until_ms(&merchant)
+    }
+
+    /// Bond forfeited for unrevealed bids in `token` ("usdc" or "demo"), held by the contract.
+    pub fn forfeited_bonds(&self, token: String) -> U128 {
+        U128(forfeited_total(&token))
     }
 
     pub fn round(&self, round_id: String) -> Option<Round> {

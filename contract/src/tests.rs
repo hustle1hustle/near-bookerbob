@@ -2714,6 +2714,323 @@ mod open_market {
     }
 }
 
+/// A sealed bid never opened: `mark_unrevealed` records the default, takes part of the bond
+/// and bars the merchant from `commit_bid` for a while.
+mod unrevealed {
+    use super::*;
+
+    const M1: &str = "m01.bazaar.testnet";
+    const M2: &str = "m02.bazaar.testnet";
+    const MARKED_AT: u64 = REVEAL_UNTIL + 5;
+    const BAR_ENDS: u64 = MARKED_AT + UNREVEALED_BAR_MS;
+
+    /// Round r1 (hoodie): m01 and m02 commit, m01 reveals, m02 stays silent.
+    fn silent_m02() -> Bazaar {
+        let mut c = round_setup();
+        at(M1, NOW_MS);
+        c.commit_bid("r1".into(), sealed(M1, &schedule(), 1));
+        at(M2, NOW_MS);
+        c.commit_bid("r1".into(), sealed(M2, &cheap(), 2));
+        at(M1, COMMIT_UNTIL);
+        c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
+        c
+    }
+
+    fn mark(c: &mut Bazaar, round: &str, merchant: &str, ms: u64) {
+        at("anyone.testnet", ms);
+        c.mark_unrevealed(round.into(), acc(merchant));
+    }
+
+    /// The owner opens a second hoodie round whose commit phase outlasts the bar.
+    fn open_r2(c: &mut Bazaar) {
+        at("owner.testnet", MARKED_AT);
+        c.open_round("r2".into(), "hoodie".into(), BAR_ENDS + 60_000, BAR_ENDS + 120_000);
+    }
+
+    fn bond(c: &mut Bazaar, token: &str, merchant: &str, amount: u128) {
+        set(token);
+        assert!(matches!(c.ft_on_transfer(acc(merchant), U128(amount), "bond".into()), PromiseOrValue::Value(U128(0))));
+    }
+
+    #[test]
+    fn a_silent_bid_is_marked_after_the_deadline_and_pays() {
+        let mut c = silent_m02();
+        bond(&mut c, USDC, M2, 5_000_000);
+        assert_eq!((c.unrevealed_defaults(acc(M2)), c.barred_until(acc(M2)), c.is_barred(acc(M2))), (0, 0, false));
+        mark(&mut c, "r1", M2, MARKED_AT);
+        let log = get_logs().into_iter().find(|l| l.contains("\"event\":\"bid_unrevealed\"")).expect("one event per marking");
+        for part in [
+            "\"round\":\"r1\"",
+            "\"merchant\":\"m02.bazaar.testnet\"",
+            "\"by\":\"anyone.testnet\"",
+            "\"defaults\":1",
+            &format!("\"barred_until_ms\":{BAR_ENDS}"),
+            "\"forfeit_usdc\":\"1000000\"",
+            "\"forfeit_demo\":\"0\"",
+        ] {
+            assert!(log.contains(part), "{part} missing in {log}");
+        }
+        assert_eq!(c.unrevealed_defaults(acc(M2)), 1);
+        assert!(c.unrevealed_in_round("r1".into(), acc(M2)));
+        assert_eq!(c.barred_until(acc(M2)), BAR_ENDS);
+        assert!(c.is_barred(acc(M2)));
+        assert_eq!(c.merchant_bond(acc(M2), "usdc".into()), U128(5_000_000 - UNREVEALED_FORFEIT));
+        assert_eq!(c.forfeited_bonds("usdc".into()), U128(UNREVEALED_FORFEIT));
+        // The merchant that revealed carries nothing.
+        assert_eq!((c.unrevealed_defaults(acc(M1)), c.barred_until(acc(M1)), c.unrevealed_in_round("r1".into(), acc(M1))), (0, 0, false));
+    }
+
+    #[test]
+    fn a_merchant_with_no_bond_is_barred_and_forfeits_nothing() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M2, MARKED_AT);
+        assert!(c.is_barred(acc(M2)));
+        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(0), U128(0)));
+        assert!(get_logs().iter().any(|l| l.contains("bid_unrevealed") && l.contains("\"forfeit_usdc\":\"0\"")));
+    }
+
+    #[test]
+    #[should_panic(expected = "this merchant revealed in time")]
+    fn a_merchant_that_revealed_in_time_cannot_be_marked() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M1, MARKED_AT);
+    }
+
+    #[test]
+    fn a_reveal_in_the_last_millisecond_cannot_be_marked() {
+        let mut c = silent_m02();
+        at(M2, REVEAL_UNTIL - 1);
+        c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32]));
+        at("anyone.testnet", REVEAL_UNTIL);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.mark_unrevealed("r1".into(), acc(M2)))).is_err());
+        assert_eq!((c.unrevealed_defaults(acc(M2)), c.is_barred(acc(M2))), (0, false));
+    }
+
+    #[test]
+    #[should_panic(expected = "reveal phase is still open")]
+    fn marking_before_the_reveal_deadline_is_refused() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M2, REVEAL_UNTIL - 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "already marked for this round")]
+    fn marking_twice_is_refused() {
+        let mut c = silent_m02();
+        bond(&mut c, USDC, M2, 5_000_000);
+        mark(&mut c, "r1", M2, MARKED_AT);
+        mark(&mut c, "r1", M2, MARKED_AT + 1);
+    }
+
+    #[test]
+    fn a_refused_second_marking_takes_nothing_more() {
+        let mut c = silent_m02();
+        bond(&mut c, USDC, M2, 5_000_000);
+        mark(&mut c, "r1", M2, MARKED_AT);
+        at("anyone.testnet", MARKED_AT + 1000);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.mark_unrevealed("r1".into(), acc(M2)))).is_err());
+        assert_eq!(c.unrevealed_defaults(acc(M2)), 1);
+        assert_eq!(c.barred_until(acc(M2)), BAR_ENDS);
+        assert_eq!(c.merchant_bond(acc(M2), "usdc".into()), U128(5_000_000 - UNREVEALED_FORFEIT));
+    }
+
+    #[test]
+    #[should_panic(expected = "no committed bid")]
+    fn a_merchant_that_never_committed_cannot_be_marked() {
+        let mut c = round_setup();
+        at(M1, NOW_MS);
+        c.commit_bid("r1".into(), sealed(M1, &schedule(), 1));
+        mark(&mut c, "r1", M2, MARKED_AT);
+    }
+
+    #[test]
+    #[should_panic(expected = "unknown round")]
+    fn marking_in_an_unknown_round_is_refused() {
+        let mut c = silent_m02();
+        mark(&mut c, "nope", M2, MARKED_AT);
+    }
+
+    #[test]
+    #[should_panic(expected = "too late to mark this round")]
+    fn a_round_closed_long_ago_cannot_be_marked() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M2, REVEAL_UNTIL + UNREVEALED_MARK_WINDOW_MS);
+    }
+
+    #[test]
+    fn the_last_millisecond_of_the_marking_window_still_marks() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M2, REVEAL_UNTIL + UNREVEALED_MARK_WINDOW_MS - 1);
+        assert_eq!(c.unrevealed_defaults(acc(M2)), 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "barred from rounds: an earlier sealed bid was never revealed")]
+    fn a_barred_merchants_commit_is_refused_until_the_bar_ends() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M2, MARKED_AT);
+        open_r2(&mut c);
+        at(M2, BAR_ENDS - 1);
+        c.commit_bid("r2".into(), sealed(M2, &cheap(), 3));
+    }
+
+    #[test]
+    fn a_barred_merchant_commits_again_once_the_bar_ends() {
+        let mut c = silent_m02();
+        mark(&mut c, "r1", M2, MARKED_AT);
+        open_r2(&mut c);
+        // The bar does not touch the merchant that revealed.
+        at(M1, MARKED_AT + 1);
+        c.commit_bid("r2".into(), sealed(M1, &schedule(), 4));
+        at(M2, BAR_ENDS);
+        assert!(!c.is_barred(acc(M2)));
+        c.commit_bid("r2".into(), sealed(M2, &cheap(), 3));
+        assert_eq!(c.round("r2".into()).unwrap().commits.len(), 2);
+        // The record of the default stays.
+        assert_eq!(c.unrevealed_defaults(acc(M2)), 1);
+    }
+
+    #[test]
+    fn a_forfeit_takes_usdc_first_then_the_demo_token_and_no_more_than_the_bond() {
+        const DUSDC: &str = "dusdc.bazaar.testnet";
+        let mut c = silent_m02();
+        set_no_deposit("owner.testnet");
+        c.set_demo_token(acc(DUSDC));
+        bond(&mut c, USDC, M2, 400_000);
+        bond(&mut c, DUSDC, M2, 900_000);
+        mark(&mut c, "r1", M2, MARKED_AT);
+        assert_eq!((c.merchant_bond(acc(M2), "usdc".into()), c.merchant_bond(acc(M2), "demo".into())), (U128(0), U128(300_000)));
+        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(400_000), U128(600_000)));
+        // A second default, in r2 after the bar: only the 300,000 left can go.
+        open_r2(&mut c);
+        at(M2, BAR_ENDS);
+        c.commit_bid("r2".into(), sealed(M2, &cheap(), 3));
+        mark(&mut c, "r2", M2, BAR_ENDS + 120_000);
+        assert_eq!((c.merchant_bond(acc(M2), "usdc".into()), c.merchant_bond(acc(M2), "demo".into())), (U128(0), U128(0)));
+        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(400_000), U128(900_000)));
+        assert_eq!(c.unrevealed_defaults(acc(M2)), 2);
+        assert_eq!(c.barred_until(acc(M2)), BAR_ENDS + 120_000 + UNREVEALED_BAR_MS);
+    }
+
+    /// Two bonded outside merchants in an open round `o1`; `a` reveals, `b` does not.
+    fn open_round_with_silent_b(link: bool) -> Bazaar {
+        let mut c = setup();
+        for m in ["a.testnet", "b.testnet"] {
+            set(m);
+            c.register_merchant(schedule(), OPEN_CATEGORY.into(), None);
+            bond(&mut c, USDC, m, OPEN_BOND);
+        }
+        if link {
+            // `a` alone makes the link; `b` did nothing.
+            set("a.testnet");
+            c.hire(acc("b.testnet"));
+        }
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        for (m, salt) in [("a.testnet", 1), ("b.testnet", 2)] {
+            at(m, NOW_MS);
+            c.commit_bid("o1".into(), sealed(m, &schedule(), salt));
+        }
+        at("a.testnet", COMMIT_UNTIL);
+        c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]));
+        c
+    }
+
+    #[test]
+    fn an_open_merchants_forfeit_is_exact_and_goes_to_no_one() {
+        let mut c = open_round_with_silent_b(false);
+        mark(&mut c, "o1", "b.testnet", MARKED_AT);
+        assert_eq!(c.merchant_bond(acc("b.testnet"), "usdc".into()), U128(OPEN_BOND - UNREVEALED_FORFEIT));
+        assert_eq!(c.merchant_bond(acc("a.testnet"), "usdc".into()), U128(OPEN_BOND));
+        assert_eq!(c.forfeited_bonds("usdc".into()), U128(UNREVEALED_FORFEIT));
+        // Bonds plus the forfeit counter still add up to what was bonded: nothing left the contract.
+        let held = c.merchant_bond(acc("a.testnet"), "usdc".into()).0 + c.merchant_bond(acc("b.testnet"), "usdc".into()).0 + c.forfeited_bonds("usdc".into()).0;
+        assert_eq!(held, 2 * OPEN_BOND);
+        // No token moves and the caller is paid nothing but its unused storage deposit.
+        let receipts = near_sdk::test_utils::get_created_receipts();
+        assert!(!receipts.iter().any(|r| r.receiver_id.as_str() == USDC));
+        assert!(c.escrow_of(acc("anyone.testnet")).is_none());
+        assert_eq!(c.fees_accrued("usdc".into()), U128(0));
+        // The approval is the owner's or the bond's business; a default does not withdraw it.
+        assert!(c.merchant(acc("b.testnet")).unwrap().approved);
+    }
+
+    #[test]
+    #[should_panic(expected = "linked to a merchant revealed in this round")]
+    fn an_open_merchant_another_one_linked_itself_to_is_not_marked() {
+        let mut c = open_round_with_silent_b(true);
+        // b's reveal is refused by the one-operator rule, through a's hire alone.
+        at("b.testnet", COMMIT_UNTIL + 1);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.reveal_bid("o1".into(), schedule(), hex::encode([2u8; 32])))).is_err());
+        mark(&mut c, "o1", "b.testnet", MARKED_AT);
+    }
+
+    #[test]
+    fn the_marker_pays_the_storage_of_the_record() {
+        let mut c = silent_m02();
+        // storage_usage restarts with every testing_env!, so measure inside one context.
+        at("anyone.testnet", MARKED_AT);
+        let before = usage(&mut c);
+        c.mark_unrevealed("r1".into(), acc(M2));
+        let grown = (usage(&mut c) - before) as u128;
+        assert!(grown > 0);
+        let refund: u128 = near_sdk::test_utils::get_created_receipts()
+            .iter()
+            .filter(|r| r.receiver_id.as_str() == "anyone.testnet")
+            .flat_map(|r| r.actions.iter())
+            .filter_map(|a| match a {
+                near_sdk::mock::MockAction::Transfer { deposit, .. } => Some(deposit.as_yoctonear()),
+                _ => None,
+            })
+            .sum();
+        assert_eq!(refund, RECORD_DEPOSIT.as_yoctonear() - grown * env::storage_byte_cost().as_yoctonear());
+    }
+
+    #[test]
+    fn a_marking_leaves_earlier_rounds_and_settled_purchases_untouched() {
+        let mut c = setup();
+        set(M2);
+        c.register_merchant(cheap(), "hoodie".into(), None);
+        approve(&mut c, M2);
+        set_no_deposit("owner.testnet");
+        c.open_round("r1".into(), "hoodie".into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        // r1: m01 commits, reveals, wins and is paid.
+        at(M1, NOW_MS);
+        c.commit_bid("r1".into(), sealed(M1, &schedule(), 1));
+        at(M1, COMMIT_UNTIL);
+        c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
+        submit_with_receipt(&mut c, envelope(1, "agent.testnet"));
+        let n = hex::encode([1u8; 32]);
+        at("agent.testnet", REVEAL_UNTIL);
+        let _ = c.settle(n.clone(), acc(M1), "order-1".into(), U128(151_200_000));
+        // r2: m01 commits and stays silent.
+        at("owner.testnet", REVEAL_UNTIL);
+        c.open_round("r2".into(), "hoodie".into(), REVEAL_UNTIL + 1000, REVEAL_UNTIL + 2000);
+        at(M1, REVEAL_UNTIL);
+        c.commit_bid("r2".into(), sealed(M1, &cheap(), 9));
+        let snapshot = |c: &Bazaar| {
+            let j = |v: serde_json::Value| v.to_string();
+            (
+                j(serde_json::to_value(c.round("r1".into())).unwrap()),
+                j(serde_json::to_value(c.round("r2".into())).unwrap()),
+                j(serde_json::to_value(c.verdict(n.clone())).unwrap()),
+                j(serde_json::to_value(c.merchant(acc(M1))).unwrap()),
+                c.liability(n.clone()),
+                c.escrow_of(acc("agent.testnet")),
+                c.spent_count(),
+                c.round_best_quote("r1".into(), n.clone()).map(|w| (w.merchant, w.quote.price)),
+            )
+        };
+        at("anyone.testnet", REVEAL_UNTIL + 2000);
+        let before = snapshot(&c);
+        c.mark_unrevealed("r2".into(), acc(M1));
+        assert!(c.is_barred(acc(M1)));
+        assert_eq!(snapshot(&c), before);
+        assert_eq!(before.7, Some((acc(M1), 151_200_000)));
+        assert_eq!(c.nullifier_status(n), NullifierStatus::Spent);
+    }
+}
+
 /// Trust-anchor timelock: with a delay set, register_* queues, anyone executes after it.
 mod anchor_timelock {
     use super::*;
@@ -4002,5 +4319,148 @@ mod leash {
         let mut c = round_mandate(false);
         let _ = c.settle(hex::encode([1u8; 32]), acc("m01.bazaar.testnet"), "o".into(), U128(PRICE));
         assert_eq!(c.mandate_spent(acc(AGENT)), U128(PRICE));
+    }
+}
+
+// ---------- stored layout, pinned against main at b6dc27c ----------
+
+/// Both live bazaars keep their state across redeploys only while the root struct and every
+/// borsh-stored type keep their layout. These bytes were captured from main at b6dc27c: a
+/// field added, removed, reordered or retyped in any of them fails here.
+mod layout {
+    use super::*;
+    use near_sdk::borsh::to_vec;
+
+    fn h<T: near_sdk::borsh::BorshSerialize>(v: &T) -> String {
+        hex::encode(to_vec(v).unwrap())
+    }
+
+    fn samples() -> Vec<(&'static str, String)> {
+        set("owner.testnet");
+        let mut c = Bazaar::new(acc("owner.testnet"), acc(USDC));
+        c.flush_all();
+        let receipt =
+            RefereeReceipt { merchant: acc("m01.bazaar.testnet"), price: U128(7), receipt_hash: "r".into(), referee: "k".into(), result_sha256: "s".into() };
+        vec![
+            ("Bazaar", hex::encode(env::storage_read(b"STATE").expect("root state"))),
+            (
+                "Round",
+                h(&Round {
+                    category: "hoodie".into(),
+                    commit_until_ms: 1,
+                    reveal_until_ms: 2,
+                    commits: vec![(acc("m01.bazaar.testnet"), "ab".into())],
+                    revealed: vec![acc("m01.bazaar.testnet")],
+                }),
+            ),
+            ("Merchant", h(&Merchant { payout: acc("pay.testnet"), category: "open".into(), schedule: cohort_schedule(), approved: true })),
+            (
+                "VerdictRecord",
+                h(&VerdictRecord {
+                    agent: acc("agent.testnet"),
+                    context: "c".into(),
+                    predicates: vec!["p".into()],
+                    commitment: "cm".into(),
+                    proof_hash: "ph".into(),
+                    tier: "silver".into(),
+                    tcb_status: "UpToDate".into(),
+                    issuer: "i".into(),
+                    max_spend: U128(9),
+                    expires_at_ms: 3,
+                    spent: true,
+                    checkout_ref: Some("o".into()),
+                    digest: "d".into(),
+                    receipt: Some(receipt),
+                    disputed: false,
+                    storage_reserve: 768,
+                    review_joined: true,
+                    paid: true,
+                }),
+            ),
+            ("NullifierStatus", h(&NullifierStatus::Spent)),
+            ("ReviewGroup", h(&ReviewGroup { tree: Default::default(), recent_roots: vec!["11".into()] })),
+            (
+                "ReviewRound",
+                h(&ReviewRound {
+                    sealed: vec![("n".into(), "c".into())],
+                    revealed: vec![("n".into(), Review { rating: 5, delivered: true, reason_hash: "h".into() })],
+                    published: true,
+                }),
+            ),
+            ("ModelAttestation", h(&ModelAttestation { model: "m".into(), nonce: "n".into(), report_hash: "r".into(), tcb_status: "UpToDate".into() })),
+            (
+                "PendingGraphUpdate",
+                h(&PendingGraphUpdate {
+                    program_hash: "p".into(),
+                    root: "r".into(),
+                    scores_hash: "s".into(),
+                    proof_sha256: "x".into(),
+                    worker_key: "w".into(),
+                    merchants: vec![(acc("m01.bazaar.testnet"), 1, 2)],
+                    standing: vec![(acc("m01.bazaar.testnet"), U128(3))],
+                    submitted_ms: 4,
+                    challenger: Some((acc("ch.testnet"), U128(5))),
+                }),
+            ),
+            ("PendingAnchor", h(&PendingAnchor { kind: "referee".into(), args: "{}".into(), ready_ms: 6 })),
+            (
+                "BuyingGroup",
+                h(&BuyingGroup {
+                    category: "hoodie".into(),
+                    context: "c".into(),
+                    predicates: vec!["p".into()],
+                    members: vec!["n".into()],
+                    budgets: vec!["b".into()],
+                    persons: 1,
+                    offer: Some((acc("m01.bazaar.testnet"), 500, U128(8))),
+                }),
+            ),
+            (
+                "GroupTreasury",
+                h(&GroupTreasury { dao: Some(acc("dao.testnet")), pledged: vec![("n".into(), U128(1))], refunded: vec!["n".into()], released: true }),
+            ),
+            (
+                "EvalCertificate",
+                h(&EvalCertificate {
+                    v: 0,
+                    subject: "s".into(),
+                    set_root: "r".into(),
+                    n: 50,
+                    correct: 49,
+                    score_bucket: 9,
+                    answers_hash: "a".into(),
+                    issued_at_ms: 7,
+                }),
+            ),
+            ("EvalGate", h(&EvalGate { set_root: "r".into(), subject_suffix: ".x".into(), threshold: 8 })),
+        ]
+    }
+
+    /// Captured by running `samples()` on main at b6dc27c, before `mark_unrevealed` existed.
+    const MAIN_B6DC27C: [(&str, &str); 14] = [
+        ("Bazaar", "0d0000006f776e65722e746573746e65740c000000757364632e746573746e65740000000002000000697602000000696d00000000020000006d76020000006d6d0100000076010000006500000000000000000000000002000000727602000000726d00010000006b0000000002000000777602000000776d00010000006101000000680000000002000000647602000000646d0100000062010000006e01000000670100000071010000006f010000007401000000780000000000000000000000000000000000000000000000000000000000000000000000000000000000010000007a000100000063"),
+        ("Round", "06000000686f6f6469650100000000000000020000000000000001000000120000006d30312e62617a6161722e746573746e657402000000616201000000120000006d30312e62617a6161722e746573746e6574"),
+        ("Merchant", "0b0000007061792e746573746e6574040000006f70656e40e9430b000000000000000000000000020000000f000000616972626e625f6672657175656e74b0040e000000776f726c645f69645f68756d616e2003c409010e000000776f726c645f69645f68756d616e05000000f40101"),
+        ("VerdictRecord", "0d0000006167656e742e746573746e6574010000006301000000010000007002000000636d0200000070680600000073696c766572080000005570546f4461746501000000690900000000000000000000000000000003000000000000000101010000006f010000006401120000006d30312e62617a6161722e746573746e6574070000000000000000000000000000000100000072010000006b01000000730000030000000000000101"),
+        ("NullifierStatus", "02"),
+        ("ReviewGroup", "000000000000000000000000000000000000000001000000020000003131"),
+        ("ReviewRound", "01000000010000006e010000006301000000010000006e0501010000006801"),
+        ("ModelAttestation", "010000006d010000006e0100000072080000005570546f44617465"),
+        ("PendingGraphUpdate", "0100000070010000007201000000730100000078010000007701000000120000006d30312e62617a6161722e746573746e65740100000000000000020000000000000001000000120000006d30312e62617a6161722e746573746e6574030000000000000000000000000000000400000000000000010a00000063682e746573746e657405000000000000000000000000000000"),
+        ("PendingAnchor", "0700000072656665726565020000007b7d0600000000000000"),
+        ("BuyingGroup", "06000000686f6f646965010000006301000000010000007001000000010000006e010000000100000062010000000000000001120000006d30312e62617a6161722e746573746e6574f40108000000000000000000000000000000"),
+        ("GroupTreasury", "010b00000064616f2e746573746e657401000000010000006e0100000000000000000000000000000001000000010000006e01"),
+        ("EvalCertificate", "000100000073010000007232000000310000000901000000610700000000000000"),
+        ("EvalGate", "0100000072020000002e7808"),
+    ];
+
+    #[test]
+    fn stored_types_keep_the_borsh_layout_of_main() {
+        let now = samples();
+        assert_eq!(now.len(), MAIN_B6DC27C.len());
+        for ((name, bytes), (pinned_name, pinned)) in now.iter().zip(MAIN_B6DC27C) {
+            assert_eq!(*name, pinned_name);
+            assert_eq!(bytes, pinned, "the stored layout of {name} changed: a redeploy would not read the live state");
+        }
     }
 }

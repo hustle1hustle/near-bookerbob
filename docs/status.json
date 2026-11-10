@@ -106,6 +106,14 @@
     ]
   },
   {
+    "feature": "a sealed bid never revealed costs the merchant: after the reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once; 1 token of its bond is forfeited (held by the contract, paid to no one) and `commit_bid` refuses it for 24 hours (finding: Dan, DenisDI)",
+    "tracks": "swarms, security",
+    "where": "`contract/src/lib.rs` (`mark_unrevealed`, `unrevealed_defaults`, `barred_until`, `is_barred`, `forfeited_bonds`)",
+    "status": "built",
+    "detail": "in code, not deployed; the state sits under new raw keys and a test pins the borsh bytes of every stored type against main; `cargo test -p bookerbob-bazaar unrevealed` (18 tests); a merchant with no bond only sits out, and a linked merchant in an `open` round is not marked (Known limits)",
+    "evidence": []
+  },
+  {
     "feature": "NEAR AI Cloud inference for every merchant pitch and the buyer's cited \"why\", response signatures verified",
     "tracks": "privacy, swarms",
     "where": "`agents/why.mjs`, `agents/out/live-run.json`",
