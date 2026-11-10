@@ -53,7 +53,7 @@ try {
   writeFileSync(join(dir, "input.json"), cli(["worker-input", "fixtures"]), { mode: 0o600 });
   const sealed = cli(["seal-input", pub, join(dir, "input.json")]);
   const v = JSON.parse(sealed).sealed;
-  leg(2, "DRY", "OutLayer: request_referee, the referee input sealed to the worker key (X25519 + ML-KEM-768)", `would send ${sealed.length} bytes (v${v.v}, kem_ct ${v.kem_ct?.length / 2} bytes, no plaintext fact): near contract call-function as-transaction ${BAZAAR} request_referee json-args '{"project_id":"<owner>/bookerbob-referee","input_data":"<sealed>"}' ...; not sent: no OutLayer project registered on the bazaar (docs/outlayer.md, needs the founder)`);
+  leg(2, "DRY", "OutLayer: request_referee, the referee input sealed to the worker key (X25519 + ML-KEM-768)", `would send ${sealed.length} bytes (v${v.v}, kem_ct ${v.kem_ct?.length / 2} bytes, no plaintext fact): near contract call-function as-transaction ${BAZAAR} request_referee json-args '{"project_id":"<owner>/bookerbob-referee","input_data":"<sealed>"}' ...; not sent: no OutLayer project registered on the bazaar (the component is built and run locally with a mock host, make outlayer-local; the staged live steps: node scripts/outlayer-go.mjs; needs the founder)`);
 }
 
 // 3. the function-call key

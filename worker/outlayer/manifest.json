@@ -1,0 +1,11 @@
+{
+  "display": { "name": "BookerBob referee" },
+  "capabilities": { "network": [] },
+  "signing_keys": [
+    { "path": "referee", "type": "ed25519", "caller": "none" },
+    { "path": "arbiter", "type": "ed25519", "caller": "none" }
+  ],
+  "encryption_keys": [
+    { "path": "sealed-input", "caller": "predecessor" }
+  ]
+}

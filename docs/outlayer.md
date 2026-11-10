@@ -1,7 +1,14 @@
 # OutLayer: the referee worker
 
-Source: `worker/` (crate `bookerbob-referee-worker`, binary `bookerbob-referee`).
-Interface from app.outlayer.ai/docs (getting-started, near-integration), read 2026-11-04.
+Source: `worker/` (crate `bookerbob-referee-worker`, binary `bookerbob-referee`) and
+`worker/outlayer/` (the same referee as an OutLayer component, wasm32-wasip2).
+Interface read from OutLayer's public source, `fastnear/near-outlayer` at commit `e954d4a`
+(2026-11-10), and `app.outlayer.ai/docs`. The file paths are named where a fact is used.
+
+State on 2026-11-10: the component is built and runs locally in wasmtime with a mock of
+OutLayer's host interfaces (`make outlayer-local`). Nothing has run on OutLayer; no project is
+registered. The live steps are staged in `node scripts/outlayer-go.mjs` and wait for the repo to
+be public and for the founder's OK.
 
 ## What the worker does
 
@@ -10,8 +17,8 @@ predicates, the model's claims, the proof set). It runs `bookerbob-core`'s quote
 referee and prints a `WorkerResult`: the outcome bound to the verdict digest, nullifier,
 merchant and code-computed price, signed with ed25519 over
 `"bookerbob/referee/v0\0" || json(body)`. Output is checked to stay within OutLayer's
-900 byte cap (507 bytes for the fixture refusal). The signing seed comes from the
-`REFEREE_SIGNING_SEED` secret.
+900 byte cap (507 bytes for the fixture refusal). The native binary signs with the seed in
+`REFEREE_SIGNING_SEED`; the OutLayer component holds no key and signs through the host (below).
 
 ## What the contract does with it
 
@@ -23,35 +30,162 @@ own quote. A receipt is stored on the verdict; a refusal emits `receipt_refused`
 stores nothing. `settle` requires a receipt for that merchant and price.
 
 `request_referee(project_id, input_data)` calls `request_execution` on the configured
-OutLayer contract (`set_outlayer`) with a `Project` source, default `resource_limits`
+OutLayer contract (`set_outlayer`) with a `Project` source, empty `resource_limits` (see "Open" below)
 and `response_format: "Text"`, then `on_referee_result`.
 
 ## Trust
 
 OutLayer is unaudited. It computes the referee; it is not trusted for the outcome
-beyond its key. The contract checks every signature. The upgrade path is to register
-the key OutLayer's TDX worker registration attests (DCAP), instead of a seed we set.
+beyond its key. The contract checks every signature. The upgrade path, staged below, is to
+register a key OutLayer's keystore derives inside the TEE for our project, instead of a seed we
+set. That key belongs to the project, not to one build: whoever owns the project
+(`bookerbob.testnet`) can publish a new version that signs with the same key, so the owner of
+the project stays trusted for what the code is. A key bound to one exact build exists
+(`bind: "wasm"`), but OutLayer issues it only to a direct run of a wasm URL, and
+`request_referee` calls a project.
+
+## The OutLayer component (`worker/outlayer`)
+
+A crate of its own, outside the workspace, so its one extra dependency (`wit-bindgen`) stays out
+of the root `Cargo.lock` that `vendor/SHA256` pins. The referee logic is the workspace crate,
+unchanged; `run_with` and `arbitrate_with` in `worker/src/lib.rs` take a `ResultSigner`, which
+the native worker fills with its seed key and the component with the host. The native binary
+and its tests behave as before.
+
+What OutLayer's source says, and what the component does with it:
+
+- **Input and output.** A wasm32-wasip2 component exporting `wasi:cli/run`; the input is stdin,
+  the output is stdout (`worker/src/executor/wasi_p2.rs`). A non-zero exit is a failed run.
+- **The manifest** is a wasm custom section named `outlayer.manifest`, covered by the wasm's
+  sha256 (`wasi-examples/CONNECTOR_MANIFEST.md`). It is not a field of `create_project`. Ours is
+  `worker/outlayer/manifest.json`: two signing keys, one encryption key, no network.
+- **Signing.** `outlayer:signing-keys/api@0.1.0` (`worker/wit/deps/signing-keys.wit`):
+  `public-key(path, vault) -> result<list<u8>, string>` and
+  `sign(path, vault, message) -> result<list<u8>, string>`. For an `ed25519` key the public key
+  is 32 bytes and the signature is RFC 8032 over the raw message, 64 bytes, no prehash and no
+  prefix. That is what `submit_referee_result` checks with `env::ed25519_verify` over
+  `"bookerbob/referee/v0\0" || json(body)`, so the host key is compatible as it is.
+- **Which key.** `{"path": "referee", "type": "ed25519", "caller": "none"}` with the default
+  `bind: "project"`: one key for every caller of the project, derived from the project's
+  on-chain uuid (`signing-key:v1:ed25519:project:{project_uuid}:none:{path}`). It is the key
+  `register_referee` pins. A second key, `arbiter`, signs dispute decisions. A project deleted
+  and created again has other keys.
+- **Commands.** `{"cmd":"pubkey"}` prints `referee_key`, `arbiter_key` and the seal key
+  (`seal_x25519`, `seal_pq1_sha256`, `seal_for`), in a statement signed by the referee key under
+  the prefix `bookerbob/referee-keys/v0`. `{"cmd":"sealkey"}` prints the full `pq1:` key. The
+  module signs only messages it composes; no input can ask for a signature over its own bytes.
+
+Corrections to what this file said before: the manifest is inside the wasm, not in the project;
+`bind: "wasm"` cannot be used through a project, so the key is `bind: "project"`; the
+`Text` response reaches the calling contract as a JSON string (`on_execution_response` in
+`contract/src/execution.rs`), which `on_referee_result` already accepts; the 900 byte cap is our
+own margin (OutLayer returns up to 1024 bytes in one call and more through a second one).
+
+## Local run with a mock host (`make outlayer-local`)
+
+`worker/outlayer/build.sh` builds the component (local paths remapped) and prints its sha256:
+`f1bc9b914137aeaea22f9349d2ba48d8d2d533e62d06f531dad79148df38e464`, 413,565 bytes, with
+rustc 1.96.0 on macOS arm64. Another toolchain may give another hash; the hash that goes on
+chain is always the hash of the file that is uploaded.
+
+`worker/outlayer-host` then runs it in wasmtime 36, the runtime major OutLayer's worker uses.
+The two host interfaces are a mock in that crate: fixed test keys, no TEE, no keystore. The
+WIT files are OutLayer's own. Nine checks, each a PASS line: the manifest section and the
+imports; the pubkey statement; an honest result stored by the real contract code
+(`submit_referee_result` on near-sdk's MockedBlockchain, with the mock key registered as the
+referee) and byte-identical to the native worker for the same key; the injected claim refused
+(`receipt_refused`, nothing stored); a rewritten result and an unregistered key rejected by the
+contract; the `fixtures/` worker input and `claims-cheat.json`; a sealed input; a dispute signed
+by the arbiter key; an unknown command.
+
+What this does not show: that OutLayer's keystore issues the keys, that the run fits its
+limits, or anything about the attestation. Those need the live run.
 
 ## Privacy
 
-`input_data` of an on-chain `request_execution` is public. Synthetic fixtures are fine
-there. A real proof set must use OutLayer's HTTPS path (Payment Key) or be sealed to the
-worker key. The second is built: `request_referee` refuses anything but
-`{"sealed":{epk,nonce,ct,commitment}}` (X25519 to the worker key, HKDF-SHA256,
+`input_data` of an on-chain `request_execution` is public. `request_referee` refuses anything
+but `{"sealed":{epk,nonce,ct,commitment}}` (X25519 to the worker key, HKDF-SHA256,
 XChaCha20-Poly1305, sha256 commitment; `worker/src/sealed.rs`, `bookerbob seal-input`).
 Since 2026-11-05 the default is v1, a post-quantum hybrid in the X-Wing style: the worker key
 is also an ML-KEM-768 key (FIPS 203, RustCrypto `ml-kem`), and the shared secrets of both go
-into HKDF, so opening needs both X25519 and ML-KEM-768 broken (`bookerbob referee-pub` prints
-the `pq1:` key; `request_referee` checks a v1 input carries a 1,088-byte KEM ciphertext). v0
-inputs still open.
+into HKDF, so opening needs both X25519 and ML-KEM-768 broken (`request_referee` checks a v1
+input carries a 1,088-byte KEM ciphertext). v0 inputs still open.
 
-## Not verified yet
+Where the decryption key lives on OutLayer. OutLayer has no asymmetric decryption key for a
+module, but it has `outlayer:encryption-keys/api@0.1.0` (`worker/wit/deps/encryption-keys.wit`):
+symmetric keys the keystore derives inside the TEE, with `mac(path, vault, data)`, an
+HMAC-SHA256 that is the same in every run holding the key. The component takes
+`mac("sealed-input", none, "bookerbob/referee-seal-seed/v1")` as the 32-byte seed and derives
+the X25519 and ML-KEM-768 keys from it exactly as the native worker derives them from its seed.
+The seed never leaves the run: it is not printed and not signed. So a buyer seals to a public
+key whose secret exists only inside OutLayer's TEE runs of this project.
 
-- Whether the callback's `promise_result(0)` is the raw stdout or a JSON string. The
-  callback accepts both; the testnet hello-world decides.
-- Build target: docs show `wasm32-wasip2`. The worker builds for it unchanged
-  (`cargo build -p bookerbob-referee-worker --release --target wasm32-wasip2`, 410,646 bytes,
-  rustc 1.96.0, 2026-11-10). The build has not been run in a wasm runtime or on OutLayer.
+The limits, plainly. An encryption key cannot be `caller: "none"` (OutLayer refuses it), so the
+key is `caller: "predecessor"`: it belongs to the account that called OutLayer. Through
+`request_referee` that is the bazaar, so each bazaar has its own seal key, and anyone who can
+make the bazaar call OutLayer reaches that key (the worker opens an input and returns only the
+signed result, never the plaintext). `bookerbob.testnet` reads its key with a direct
+`{"cmd":"sealkey"}` run; `market.bookerbob.testnet` can only ask in the sealed shape
+(`{"sealed":{..,"ct":"00",..}}` through `request_referee`), whose answer is too long for the
+bazaar's callback and has to be read from OutLayer's side. As with the signing key, a new
+version of the project gets the same seed, so the project's owner is trusted not to publish a
+version that prints it. And all of it is checked against a mock only: until the live run, a
+real proof set should not go through this path.
+
+## Open before and during the live run
+
+- **`resource_limits` through the bazaar.** `request_referee` passes `resource_limits: {}`. The
+  OutLayer contract reads that as limits with every field absent and writes them into its event
+  as nulls (`contract/src/lib.rs` `ResourceLimits`, `contract/src/execution.rs`), and the
+  worker's event parser has those three fields as plain numbers
+  (`worker/src/event_monitor.rs`, `ResourceLimits`). From the source, such a request may never
+  be picked up. The coordinator between them is closed source, so this is not settled until one
+  request is sent. If it fails, the fix is one line in the bazaar (pass `null` or explicit
+  limits) and a redeploy; until then a direct `request_execution` with explicit limits plus
+  `submit_referee_result` (anyone may relay) gives the same receipt.
+- **The attestation record's schema** is not in OutLayer's public OpenAPI. The check is
+  `outlayer-verify tx <hash>` (`github.com/out-layer/outlayer-verify`), which reads the record,
+  Intel's collateral and the chain itself.
+- **Cost.** `create_project` takes a storage deposit by size (the excess is refunded, and
+  `delete_project` returns it). A run at default limits is estimated at 0.0070001 NEAR
+  (`fixtures/live/views.json`); the fuel the referee really burns is unmeasured.
+- **A consumed receipt.** The staged `request_referee` is a hello-world: its nullifier has no
+  verdict, so the bazaar logs `referee_failed` with `unknown nullifier` and the result's hash.
+  A receipt that a `settle` consumes needs a fresh purchase whose referee step is
+  `request_referee`; that script is not written.
+
+## Staged: the live run (`node scripts/outlayer-go.mjs`)
+
+Without `--i-have-the-founders-word` the script prints the plan with the real values and sends
+nothing. With it, it runs one named step and stops. Testnet only. In order:
+
+1. `build`: `worker/outlayer/build.sh`, `make outlayer-local`.
+2. `release` (sends): the wasm as a release asset of the public repo;
+   `release-check` compares the URL's sha256 with the build.
+3. `project` (sends): `create_project(name, source)` on `outlayer.testnet` from
+   `bookerbob.testnet`, `source = {"WasmUrl": {url, hash, build_target: "wasm32-wasip2"}}`;
+   the id is `bookerbob.testnet/bookerbob-referee`.
+4. `pubkey`, `sealkey` (send): `request_execution(source = {"Project": {project_id,
+   version_key: null}}, resource_limits, input_data, response_format)` straight from
+   `bookerbob.testnet`; the tx result is the module's JSON.
+5. `attest`: `outlayer-verify tx <pubkey tx>`; the record is also at
+   `testnet-api.outlayer.ai/attestations/by-tx/<tx>`.
+6. `set-outlayer`, `referee` (send): on `bookerbob.testnet` (anchor delay 0, applies at once).
+7. `market`, `market-execute` (send): one DAO proposal on `bookerbob-gov.sputnikv2.testnet`
+   for `market.bookerbob.testnet`, then `execute_anchor` after the 5 minute anchor delay.
+8. `request` (sends): one `request_referee` with a sealed input.
+
+### What verify-live should record
+
+Not written (`scripts/verify-live.mjs` and the manifest are outside this change). After the
+run, an `outlayer` block in `fixtures/live/testnet-manifest.json`: project id and uuid, wasm
+URL and sha256, `referee_key`, `arbiter_key`, the seal key's sha256, the tx hashes
+(`create_project`, pubkey, sealkey, `register_referee`, the DAO proposal and `execute_anchor`,
+`request_referee`) and the `outlayer-verify` bundle. The check re-derives over public RPC:
+`get_project` names that hash as the active version; both bazaars list `referee_key` in
+`referees`; the pubkey tx's result carries that key and its statement verifies under it; the
+`request_referee` tx logged `referee_failed` with the sha256 of an output that is a
+`WorkerResult` signed by `referee_key`.
 
 ## Disputes (beat 11)
 
@@ -72,47 +206,5 @@ the arbiter overturns it with `referee said receipt, re-run says refused: F9 not
 set`, the receipt is cleared and settle is blocked.
 
 The arbiter key should be a different worker and operator than the referee, or the
-dispute adds nothing. Today both are fixture seeds.
-
-## Staged: an attested referee key (panel round 4, action 10; not run)
-
-What OutLayer allows, read from its source and docs on 2026-11-05 (`fastnear/near-outlayer`,
-`app.outlayer.ai/docs`):
-
-- **Worker keys are OutLayer's, not ours.** `register_worker_key(public_key, tdx_quote_hex)` on
-  `worker.outlayer.testnet` is callable only by OutLayer's operator, and a worker key serves
-  every project. So "register the referee worker" means registering a **project**.
-- **A project:** `create_project(name, source)` on `outlayer.testnet`, payable (storage deposit,
-  the excess refunded), id `<caller>/<name>`, source `WasmUrl { url, hash, build_target:
-  "wasm32-wasip2" }`. It is reversible: `delete_project`, `add_version`, `set_active_version`.
-- **An attested key for it:** the project manifest declares `signing_keys` (bind to the wasm
-  hash or the project); inside the TEE the module gets signatures from `outlayer:signing-keys`
-  and never the private key. The binding to hardware is per run: a run's TDX quote commits to
-  code, input and output, fetched from `testnet-api.outlayer.ai/attestations/by-tx/<tx>` and
-  checked with `outlayer-verify tx <hash>`.
-
-The staged steps:
-
-1. Build the referee worker for `wasm32-wasip2` with a `signing_keys` entry (`bind: "wasm"`),
-   signing receipts through the host interface instead of `REFEREE_SIGNING_SEED`.
-2. `create_project("bookerbob-referee", WasmUrl)` from `bookerbob.testnet` (reversible).
-3. One run with input `{"cmd":"pubkey"}`: the module prints its public key; the run's
-   attestation is fetched and checked off chain (`outlayer-verify`).
-4. `register_referee(<that key>)` on the bazaar, as today, but for a key a TDX quote covers.
-5. One live receipt: `request_referee` with a sealed input; `make verify-live` records it.
-
-Open before it can run (stated plainly):
-
-- **Sealed input.** `request_referee` accepts only input sealed to the worker's X25519 key, and
-  `outlayer:signing-keys` signs; it does not decrypt. A key the TEE can decrypt with is not in
-  the docs read. Until one is, the run uses a synthetic proof set in the clear or OutLayer's
-  HTTPS path, which `docs/outlayer.md` "Privacy" already allows for synthetic data only.
-- The attestation response schema is not documented; the deposit amount is not either
-  (`estimate_execution_cost` gives the run cost: 0.0070001 NEAR measured).
-- The wasip2 build compiles (above) and has not run. It still signs with
-  `REFEREE_SIGNING_SEED`; signing through `outlayer:signing-keys` is not written.
-- `create_project` takes a public `WasmUrl`, so it waits for the repo to be public.
-
-Founder OK needed for step 2 onward (an outside service, irreversible on its side only in
-its deposit). About 2 to 3 hours after the OK and a public URL for the wasm: the host signing interface,
-the project, one run, the attestation check.
+dispute adds nothing. Today both are fixture seeds; in the OutLayer component they are two keys
+of one project, which separates the signatures and not the operator.

@@ -1,0 +1,35 @@
+# The referee worker as an OutLayer component (wasm32-wasip2): it signs through the host
+# interface `outlayer:signing-keys` and never holds a key. A crate of its own, outside the
+# workspace, so its one extra dependency (wit-bindgen) stays out of the root Cargo.lock, which
+# vendor/SHA256 pins for `make verify-offline`. The referee logic is the workspace's
+# `bookerbob-referee-worker`, unchanged. Build and local run: `make outlayer-local`.
+[package]
+name = "bookerbob-referee-outlayer"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace]
+
+[[bin]]
+name = "bookerbob-referee-outlayer"
+path = "src/main.rs"
+
+[dependencies]
+bookerbob-referee-worker = { path = ".." }
+serde_json = { version = "1", default-features = false, features = ["alloc", "std"] }
+hex = { version = "0.4", default-features = false, features = ["alloc", "std"] }
+sha2 = { version = "0.10", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wit-bindgen = "0.36"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+strip = true

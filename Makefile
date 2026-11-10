@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -184,6 +184,14 @@ fixtures:
 
 fixtures-check:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures --check
+
+# The referee as an OutLayer component (wasm32-wasip2, worker/outlayer), run in wasmtime with a
+# MOCK of OutLayer's host interfaces; its signed results go to the bazaar contract code on the
+# mocked chain. Sends nothing (docs/outlayer.md). First run compiles wasmtime: a few minutes.
+outlayer-local:
+	JOBS=$(JOBS) worker/outlayer/build.sh
+	$(BOOKERBOB) worker-input fixtures > worker/outlayer/target/fixture-input.json
+	cd worker/outlayer-host && $(CARGO) run $(CARGO_FLAGS) -q --release --locked -- ../outlayer/target/wasm32-wasip2/release/bookerbob-referee-outlayer.wasm ../outlayer/target/fixture-input.json ../../fixtures/claims-cheat.json
 
 wasm:
 	cd contract && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near

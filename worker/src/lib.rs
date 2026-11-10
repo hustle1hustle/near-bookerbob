@@ -67,7 +67,28 @@ fn check_opening(input: &WorkerInput, s: &SealedVerdictInput) -> Result<u128, St
     Ok(s.opening.max_spend)
 }
 
+/// What signs a result: a local key (the native worker, tests) or a key the module never holds
+/// (OutLayer's `outlayer:signing-keys` host interface, `worker/outlayer`). ed25519 over the
+/// raw message, as the contract's `env::ed25519_verify` checks it.
+pub trait ResultSigner {
+    fn result_key(&self) -> Result<[u8; 32], String>;
+    fn sign_result(&self, message: &[u8]) -> Result<[u8; 64], String>;
+}
+
+impl ResultSigner for SigningKey {
+    fn result_key(&self) -> Result<[u8; 32], String> {
+        Ok(self.verifying_key().to_bytes())
+    }
+    fn sign_result(&self, message: &[u8]) -> Result<[u8; 64], String> {
+        Ok(self.sign(message).to_bytes())
+    }
+}
+
 pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
+    run_with(input, key)
+}
+
+pub fn run_with(input: &WorkerInput, key: &dyn ResultSigner) -> Result<String, String> {
     if input.v != 0 {
         return Err("unsupported input version".into());
     }
@@ -89,8 +110,8 @@ pub fn run(input: &WorkerInput, key: &SigningKey) -> Result<String, String> {
         outcome: outcome.into(),
         detail,
     };
-    let signature = hex::encode(key.sign(&body.signing_message()).to_bytes());
-    let out = serde_json::to_string(&WorkerResult { body, worker_key: hex::encode(key.verifying_key().to_bytes()), signature }).expect("serializes");
+    let signature = hex::encode(key.sign_result(&body.signing_message())?);
+    let out = serde_json::to_string(&WorkerResult { body, worker_key: hex::encode(key.result_key()?), signature }).expect("serializes");
     if out.len() > MAX_OUTPUT {
         return Err(format!("output {} bytes over the {MAX_OUTPUT} byte cap", out.len()));
     }
@@ -165,6 +186,10 @@ pub struct DisputeInput {
 
 /// Re-check everything independently and sign `upheld` or `overturned`.
 pub fn arbitrate(d: &DisputeInput, key: &SigningKey) -> Result<String, String> {
+    arbitrate_with(d, key)
+}
+
+pub fn arbitrate_with(d: &DisputeInput, key: &dyn ResultSigner) -> Result<String, String> {
     let r = &d.result.body;
     let mut reasons = Vec::new();
     if !d.issuer_keys.contains(&d.verdict.key_id()) {
@@ -209,8 +234,8 @@ pub fn arbitrate(d: &DisputeInput, key: &SigningKey) -> Result<String, String> {
         decision: if reasons.is_empty() { "upheld" } else { "overturned" }.into(),
         reasons,
     };
-    let signature = hex::encode(key.sign(&body.signing_message()).to_bytes());
-    let out = serde_json::to_string(&DisputeDecision { body, arbiter_key: hex::encode(key.verifying_key().to_bytes()), signature }).expect("serializes");
+    let signature = hex::encode(key.sign_result(&body.signing_message())?);
+    let out = serde_json::to_string(&DisputeDecision { body, arbiter_key: hex::encode(key.result_key()?), signature }).expect("serializes");
     if out.len() > MAX_OUTPUT {
         return Err(format!("output {} bytes over the {MAX_OUTPUT} byte cap", out.len()));
     }
