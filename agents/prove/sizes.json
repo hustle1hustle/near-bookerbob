@@ -1,0 +1,46 @@
+{
+  "note": "bytes on disk, as served. .gz files are gunzipped in the page; unzipped has their sizes after that. download is what each page mode fetches after the page itself.",
+  "jolt": {
+    "repo": "https://github.com/a16z/jolt",
+    "rev": "b4eb62480d76ed8c1f0b16bf7cab6e12f6cda873",
+    "patch": "zk/browser/jolt-wasm32.patch"
+  },
+  "zk": false,
+  "cycles": 39159,
+  "files": {
+    "guest.elf": 23008,
+    "prover.bin": 296233,
+    "public.json": 3109,
+    "sample-proof.bin": 78527,
+    "single/bookerbob_prove_wasm.js": 10976,
+    "single/bookerbob_prove_wasm_bg.wasm.gz": 3431241,
+    "single/snippets/bookerbob-prove-wasm-8d669238bb3c104d/inline0.js": 161,
+    "verifier.bin": 197427,
+    "verifier.wasm.gz": 1606526,
+    "worker.js": 5411
+  },
+  "unzipped": {
+    "verifier.wasm": 4228097,
+    "single/bookerbob_prove_wasm_bg.wasm": 11319009
+  },
+  "download": {
+    "prove": 5554435,
+    "check": 1882480
+  },
+  "native": {
+    "machine": "Apple M3 Pro",
+    "threads": 11,
+    "prove_s": 1.5309325,
+    "verify_ms": 27.952375,
+    "proof_bytes": 78527,
+    "proof_sha256": "3ffc20c1f1888c4196f6d68f61b1585c5ab20ed1eed5dbc014cc25f61db1104f",
+    "refused": [
+      "price + 1",
+      "price - 1",
+      "budget + 1",
+      "budget - 1",
+      "another merchant",
+      "one base price + 1"
+    ]
+  }
+}

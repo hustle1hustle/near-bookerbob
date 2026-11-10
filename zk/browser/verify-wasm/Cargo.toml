@@ -1,0 +1,45 @@
+[package]
+name = "bookerbob-verify-wasm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Jolt verifier for the decide guest, compiled to wasm32. No wasm-bindgen, no imports."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+zk = ["jolt-verifier/zk"]
+
+[dependencies]
+jolt-verifier = { path = "../vendor/jolt/crates/jolt-verifier" }
+common = { path = "../vendor/jolt/common", default-features = false }
+jolt-crypto = { path = "../vendor/jolt/crates/jolt-crypto", default-features = false, features = ["bn254"] }
+jolt-dory = { path = "../vendor/jolt/crates/jolt-dory", default-features = false }
+jolt-field = { path = "../vendor/jolt/crates/jolt-field", features = ["bn254"] }
+jolt-transcript = { path = "../vendor/jolt/crates/jolt-transcript", default-features = false, features = ["transcript-keccak", "bn254"] }
+decide-public = { path = "../public" }
+bincode = { version = "2", features = ["serde"] }
+getrandom = { version = "0.2", features = ["custom"] }
+
+[workspace]
+
+[patch.crates-io]
+ark-bn254 = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ff = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ec = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-serialize = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+
+[patch."https://github.com/a16z/jolt"]
+jolt-field = { path = "../vendor/jolt/crates/jolt-field" }
+jolt-poly = { path = "../vendor/jolt/crates/jolt-poly" }
+jolt-inlines-blake2 = { path = "../vendor/jolt/jolt-inlines/blake2" }
+jolt-inlines-ntt = { path = "../vendor/jolt/jolt-inlines/ntt" }
+jolt-inlines-keccak256 = { path = "../vendor/jolt/jolt-inlines/keccak256" }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+debug = false

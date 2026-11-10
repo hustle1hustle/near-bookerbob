@@ -1,0 +1,11 @@
+{
+  "note": "one thread, headless, from python3 -m http.server. three runs: 20.60 s, 21.02 s, 20.97 s. written by hand from zk/browser/README.md, not by build.sh. no phone has been timed on this page.",
+  "machine": "an Apple M3 Pro laptop",
+  "browser": "headless Chrome 157",
+  "threads": 1,
+  "prove_s": 21.0,
+  "verify_ms": 365,
+  "proof_bytes": 78527,
+  "cycles": 39159,
+  "wasm_memory_bytes": 56950784
+}

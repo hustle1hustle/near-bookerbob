@@ -1,0 +1,26 @@
+[package]
+name = "decide-guest"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[features]
+guest = []
+
+[dependencies]
+jolt = { package = "jolt-sdk", path = "../vendor/jolt/jolt-sdk" }
+# The contract's price rule: the one no_std implementation core and the bazaar contract call.
+bookerbob-zkcore = { path = "../../../zkcore" }
+# no_std guest: Vec and String arguments need serde's alloc feature.
+serde = { version = "1", default-features = false, features = ["alloc"] }
+
+[lib]
+test = false
+doctest = false
+bench = false
+
+[[bin]]
+name = "decide-guest"
+path = "src/main.rs"
+test = false
+bench = false

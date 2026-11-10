@@ -1,0 +1,147 @@
+{
+  "note": "public inputs of the decide proof: agents/board.json hotel-lisbon round, schedules from agents/merchants.json. amounts are dUSDC base units (6 decimals); dUSDC is a testnet demo token.",
+  "budget": "500000000",
+  "revealed": [
+    "airbnb_frequent",
+    "claude_spender",
+    "world_id_human"
+  ],
+  "cohort_k": 6,
+  "offers": [
+    {
+      "merchant": "h05.bookerbob.testnet",
+      "base_price": "510000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        },
+        {
+          "predicate": "claude_spender",
+          "bps": 500
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 1000
+        }
+      ],
+      "cap_bps": 2000
+    },
+    {
+      "merchant": "h08.bookerbob.testnet",
+      "base_price": "669000000",
+      "rules": [
+        {
+          "predicate": "world_id_human",
+          "bps": 1500
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000,
+      "cohort": {
+        "predicate": "world_id_human",
+        "k_min": 5,
+        "bps": 700
+      }
+    },
+    {
+      "merchant": "h07.bookerbob.testnet",
+      "base_price": "831000000",
+      "rules": [
+        {
+          "predicate": "booking_genius",
+          "bps": 500
+        },
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 500
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 1500
+    },
+    {
+      "merchant": "h02.bookerbob.testnet",
+      "base_price": "1008000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 800
+        }
+      ],
+      "cap_bps": 800
+    },
+    {
+      "merchant": "h06.bookerbob.testnet",
+      "base_price": "1305000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1500
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 1800
+    },
+    {
+      "merchant": "h03.bookerbob.testnet",
+      "base_price": "1119000000",
+      "rules": [
+        {
+          "predicate": "booking_genius",
+          "bps": 1500
+        },
+        {
+          "predicate": "uber_regular",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    },
+    {
+      "merchant": "h04.bookerbob.testnet",
+      "base_price": "1452000000",
+      "rules": [
+        {
+          "predicate": "claude_spender",
+          "bps": 1000
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 1000
+        }
+      ],
+      "cap_bps": 2000
+    },
+    {
+      "merchant": "h01.bookerbob.testnet",
+      "base_price": "1593000000",
+      "rules": [
+        {
+          "predicate": "airbnb_frequent",
+          "bps": 1000
+        },
+        {
+          "predicate": "booking_genius",
+          "bps": 800
+        },
+        {
+          "predicate": "world_id_human",
+          "bps": 500
+        }
+      ],
+      "cap_bps": 2000
+    }
+  ],
+  "choice": "h05.bookerbob.testnet",
+  "price": "408000000"
+}

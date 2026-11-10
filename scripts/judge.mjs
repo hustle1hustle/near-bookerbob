@@ -134,6 +134,14 @@ for (const [g, input] of [["standing", "standing-input.json"], ["standing-testne
   else line(zv.status === 0, "Jolt proofs verified with the committed prebuilt verifier (sha256-checked)", last.replace(/^(PASS|FAIL)\s+/, ""));
 }
 
+// 2c. The browser proof (agents/prove.html): the wasm verifier the page ships, run here in Node
+// on the committed proof of the agent's pick. Every changed claim must be refused.
+{
+  const bv = spawnSync("node", ["zk/browser/check.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  const n = (bv.stdout.match(/^PASS /gm) ?? []).length, refused = (bv.stdout.match(/^PASS  refused/gm) ?? []).length;
+  line(bv.status === 0, "Jolt proof of the agent's pick (the one a browser makes at prove.html) verifies in the page's wasm verifier", `${refused} changed claims refused, ${n} checks; zk/browser/README.md`);
+}
+
 // 3. JS suites
 const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs", "scripts/nras.test.mjs"].filter((f) => existsSync(root + f));
 const { NEAR_RPC: _ignored, ...suiteEnv } = process.env;

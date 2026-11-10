@@ -17,6 +17,28 @@ and one build session, with each commit pushed as it was written. Most of the re
 history is dense, not because code was imported. Every commit is in the window; nothing
 predates 2026-11-01. From 2026-11-05, small commits each carry a testnet transaction.
 
+## Ideas taken from our ETHGlobal Mumbai build (2026-11-05 to 2026-11-07), code written here
+
+Our own entry at ETHGlobal Mumbai (BookerBob on another chain, same team, in this hackathon's
+window but for another event) proved a Jolt guest in a phone browser. No file from it is copied
+here. `zk/browser/` and `agents/prove.html` are this repo's own code; these ideas came from it:
+
+- Compile jolt-sdk's host prover to `wasm32-unknown-unknown` behind wasm-bindgen and run it in a Web Worker.
+- Pin Jolt `b4eb62480d76` with Rust 1.95 and wasm-bindgen 0.2.114, and the linker flags (2 GB max memory, 8 MB stack).
+- Keep the wasm32 fixes as a patch file applied to a fetched copy of Jolt at build time.
+- Ship the guest ELF and the serialized prover preprocessing as static files, so the browser neither compiles nor preprocesses.
+- Report prover stages from Jolt's own tracing spans (`prove_stage*`) over a BroadcastChannel, panics too.
+- Count downloaded bytes against a published `sizes.json` for a real progress bar.
+- A verifier with a plain C ABI and no JS glue, which rebuilds the public inputs from `public.json`.
+- Show a refusal by verifying the same proof against a statement with one number changed.
+- The threaded build recipe (atomics, `-Z build-std`, wasm-bindgen-rayon, the worker import fix), kept in `build.sh` and not run here.
+- The iPhone timing above, as that build's reference number.
+
+Also from that build, as ideas only: a page a stranger can use without a wallet (the swarm page
+and the prove page), a "change one number, see it refused" check, and a daily recheck of live
+claims (`.github/workflows/live.yml`). The two wasm32 fixes in `zk/browser/jolt-wasm32.patch`
+are upstream's, not ours: a16z/jolt issue #1913 and 0xAndoroid/jolt-wasm-prover.
+
 ## Prior REP work, used only as named services or dependencies
 
 None of this code is copied into the repository. Where a component is used, it is called

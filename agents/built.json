@@ -57,8 +57,8 @@
     },
     {
       "n": 35,
-      "label": "features live, of 48 listed",
-      "detail": "11 built, 1 stub, 1 planned",
+      "label": "features live, of 49 listed",
+      "detail": "12 built, 1 stub, 1 planned",
       "source": "docs/status.json",
       "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/README.md#every-feature-its-status-and-its-evidence"
     },
@@ -70,8 +70,8 @@
       "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/contract/src/tests.rs"
     },
     {
-      "n": 272,
-      "label": "commits, 2026-11-04 to 2026-11-07",
+      "n": 273,
+      "label": "commits, 2026-11-04 to 2026-11-10",
       "detail": "counted when this page was built",
       "source": "git rev-list --count HEAD",
       "href": "https://github.com/hustle1hustle/near-bookerbob/commits/main"

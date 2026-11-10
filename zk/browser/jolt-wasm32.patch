@@ -1,0 +1,34 @@
+diff --git a/crates/jolt-kernels/src/optimized/registers_read_write/sparse.rs b/crates/jolt-kernels/src/optimized/registers_read_write/sparse.rs
+index 429c3f270..7dd6b2d64 100644
+--- a/crates/jolt-kernels/src/optimized/registers_read_write/sparse.rs
++++ b/crates/jolt-kernels/src/optimized/registers_read_write/sparse.rs
+@@ -27,7 +27,11 @@ impl<F: JoltField> CoeffLut<F> {
+     }
+ 
+     pub(super) fn saturated(&self) -> bool {
+-        self.values.len() * self.values.len() > Self::MAX_VALUES
++        // On a 32-bit usize (wasm32) 65536 * 65536 wraps to 0; the fix proposed in a16z/jolt#1913.
++        self.values
++            .len()
++            .checked_mul(self.values.len())
++            .is_none_or(|squared| squared > Self::MAX_VALUES)
+     }
+ 
+     pub(super) fn bind(&mut self, r: F) {
+diff --git a/tracer/src/parallel.rs b/tracer/src/parallel.rs
+index cb11e4a33..4266b8a18 100644
+--- a/tracer/src/parallel.rs
++++ b/tracer/src/parallel.rs
+@@ -329,7 +329,12 @@ pub const DEFAULT_CHUNK_ROWS: usize = 1 << 20;
+ /// Default output capacity in rows (matches the serial path's reserve).
+ /// Chunks beyond this fall back to a copy-assembled suffix (correct, just
+ /// slower) — see `run_two_pass`; `JOLT_TRACER_CAPACITY_ROWS` overrides.
++#[cfg(not(target_arch = "wasm32"))]
+ pub const DEFAULT_CAPACITY_ROWS: usize = 1 << 24;
++/// wasm32 has no environment for `JOLT_TRACER_CAPACITY_ROWS`, and linear memory never shrinks:
++/// start small and let the Vec grow (as 0xAndoroid/jolt-wasm-prover patch 0009 does).
++#[cfg(target_arch = "wasm32")]
++pub const DEFAULT_CAPACITY_ROWS: usize = 1 << 18;
+ 
+ #[derive(Clone, Copy, Debug)]
+ pub struct TwoPassConfig {

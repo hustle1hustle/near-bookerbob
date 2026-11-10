@@ -3,7 +3,7 @@
 // each reading bookerbob.testnet over public RPC and falling back to its committed snapshot,
 // plus a landing page. Static files only. Pages itself is turned on with the public flip
 // (.github/workflows/pages.yml is manual and does nothing until Pages is enabled).
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 // The swarm page (swarm.html) reads swarm.json and built.json, both written by
@@ -15,6 +15,10 @@ for (const [slot, f] of Object.entries(OPTIONAL)) {
   if (existsSync(join("agents", f)) !== slots[slot]) throw new Error(`agents/built.json is stale about ${f}: run node scripts/built-counts.mjs`);
 }
 const FILES = ["swarm.html", "swarm.json", "built.json", ...Object.values(OPTIONAL).filter((f) => existsSync(join("agents", f))), "board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "eval-v5.json", "live.json", "out/live-run.json"];
+// The prove page (a Jolt proof made in the visitor's browser) ships its built files as they
+// are committed under agents/prove/ (zk/browser/build.sh makes them; the build needs Rust).
+const walk = (d) => readdirSync(join("agents", d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]));
+if (existsSync("agents/prove.html")) FILES.push(...walk("prove"));
 mkdirSync("site/out", { recursive: true });
 for (const f of FILES) {
   mkdirSync(dirname(join("site", f)), { recursive: true });

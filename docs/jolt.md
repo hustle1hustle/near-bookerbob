@@ -93,6 +93,22 @@ Program hash: sha256 of the serialized Jolt verifier preprocessing, which commit
 guest bytecode. That is what a proof is verified against, so it is what the contract
 registers.
 
+## A fifth guest, proved in the browser (separate pin)
+
+`agents/prove.html` proves one more guest, `decide`, in the visitor's own browser: it reprices
+the 8 hotel offers with the same `zkcore` price rule and checks the agent's pick (listed, priced
+by code, inside the budget, the cheapest that fits). 39,159 cycles, padded to 2^16; native
+prove 1.53 s, verify 28 ms, proof 78,527 bytes (Apple M3 Pro, 11 threads); headless Chrome on
+one thread about 21 s, and the browser's proof is byte for byte the native one. The page then
+verifies the same proof against a claim changed by one unit and shows it refused.
+
+It is a separate crate set (`zk/browser/`) on a newer Jolt, rev `b4eb62480d76`, because that
+revision has the known wasm32 fixes (a16z/jolt issue #1913 and 0xAndoroid/jolt-wasm-prover;
+applied here as `zk/browser/jolt-wasm32.patch`, not ours). The four guests above stay on
+`997c1543efd4`, the program the contract anchors. This proof is checked in the page, not on
+chain, and is not zero-knowledge (every input is public). No phone has been timed on it yet.
+Build and numbers: `zk/browser/README.md`.
+
 ## Dependency and prior work
 
 - Jolt: upstream a16z/jolt pinned to `997c1543efd49eb193ca403bb7722fc4b2f8e65b`

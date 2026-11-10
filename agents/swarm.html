@@ -565,7 +565,7 @@ function idle() {
     choice: built?.slots?.buyer_choice ? await load("out/buyer-choice.json") : null,
   };
   // optional slot (b): the phone block, only when prove.html ships.
-  if (built?.slots?.prove) $("phone").innerHTML = `<div class="phone"><span>the facts above are synthetic. prove one of your own, on your phone, and get the same kind of verdict.</span><a href="prove.html">prove it on my phone</a></div>`;
+  if (built?.slots?.prove) $("phone").innerHTML = `<div class="phone"><span>do not take the agent's word for the pick. your own phone or browser makes a Jolt proof that it followed your rules, checks it, then you change one number and watch it refused.</span><a href="prove.html">prove it on my phone</a></div>`;
   if (built) {
     $("counts").innerHTML = built.counts.map((c) => `<a href="${esc(c.href)}"${/^https?:/.test(c.href) ? ' target="_blank" rel="noopener"' : ""}><div class="n">${esc(c.n)}</div><div class="l">${esc(c.label)}</div><div class="s">${esc(c.detail)}<br>${esc(c.source)}</div></a>`).join("");
   } else $("built").style.display = "none";

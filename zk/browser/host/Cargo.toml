@@ -1,0 +1,18 @@
+[package]
+name = "decide-host"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Native tool for the decide guest: builds public.json from the board, compiles and preprocesses the guest, proves, verifies, writes what the page needs."
+
+[features]
+zk = ["jolt-sdk/zk"]
+
+[dependencies]
+jolt-sdk = { path = "../vendor/jolt/jolt-sdk", features = ["host"] }
+guest = { package = "decide-guest", path = "../guest" }
+decide-public = { path = "../public" }
+bookerbob-zkcore = { path = "../../../zkcore" }
+bincode = { version = "2", features = ["serde"] }
+serde_json = "1"
+hex = "0.4"
