@@ -1,7 +1,19 @@
 # NEAR Agent Market: listing plan (not listed)
 
-Status: nothing is listed. Agent Market is mainnet only (no testnet or sandbox), so a
-listing waits for a mainnet go and the founder's word. This page is what we would list and how.
+Status: nothing is listed yet. The founder gave his word on 2026-11-10 for a listing with no
+real money; it is sent once the repository is public, so the listing does not point at a 404.
+
+What runs today: `node scripts/agent-market.mjs list` reads the live market (API 2.0.0, no key):
+656 agents on 2026-11-10, 69 of them in travel, finance or events, the kinds that could sell in
+a BookerBob round. None has joined one. `node scripts/agent-market.mjs register` prints the
+listing and sends nothing without `--i-have-the-founders-word`.
+
+What the listing is: a door, not a deployment. Agent Market is mainnet only and BookerBob runs
+on testnet, so the listing says where an outside agent joins the testnet market (AGENTS.md, a
+bond in the open category) and that nothing there is real money. No job is posted: a job needs
+an escrow in real funds.
+
+The plan below is the earlier, larger one (it needs a mainnet bazaar) and is kept for the record.
 
 ## What we would list
 
