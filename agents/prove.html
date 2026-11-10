@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0A0F">
+<title>bookerbob / prove it on your own device</title>
+<style>
+:root{--bg:#0A0A0F;--ink:#E9E9F2;--dim:#8A8AA3;--faint:#4A4A5E;--line:#1C1C28;--card:#101018;--blue:#3B5BFF;--blue2:#8496FF;--red:#FF4D5E;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+main{max-width:620px;margin:0 auto;padding:20px 20px calc(56px + env(safe-area-inset-bottom))}
+a{color:var(--blue2);text-decoration:none;border-bottom:1px solid rgba(132,150,255,.3)}
+a:hover{border-bottom-color:var(--blue2)}
+.top{display:flex;justify-content:space-between;align-items:baseline;font:13px var(--mono);color:var(--dim);padding:4px 0 28px}
+.top b{color:var(--ink);font-weight:500}.top i{font-style:normal;color:var(--blue)}
+h1{font-size:clamp(30px,8.4vw,44px);line-height:1.04;letter-spacing:-.035em;font-weight:650;margin:0 0 14px}
+h1 em{font-style:normal;color:var(--blue)}
+.lede{color:var(--dim);margin:0 0 26px;font-size:17px;max-width:34em}
+.lede b{color:var(--ink);font-weight:500}
+h2{font:500 12px var(--mono);letter-spacing:.09em;text-transform:lowercase;color:var(--dim);margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 14px}
+.claim .pick{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.claim .who{font:500 15px var(--mono);word-break:break-all}
+.claim .who small{display:block;color:var(--dim);font:13px var(--sans);margin-top:3px}
+.claim .amt{font:650 30px/1 var(--sans);letter-spacing:-.03em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.claim .amt small{font:13px var(--mono);color:var(--dim);font-weight:400;letter-spacing:0;margin-left:5px}
+.claim .was{font:13px var(--mono);color:var(--dim);text-align:right;margin-top:5px}
+.claim .was s{color:var(--faint)}
+ol.rules{list-style:none;margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line);counter-reset:r;display:grid;gap:7px}
+ol.rules li{counter-increment:r;position:relative;padding-left:22px;font-size:14.5px;color:var(--ink)}
+ol.rules li::before{content:counter(r);position:absolute;left:0;font:12px/1.85 var(--mono);color:var(--blue)}
+ol.rules li span{color:var(--dim)}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font:13px var(--mono);color:var(--dim);list-style:none;display:flex;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--blue)}details[open] summary::after{content:"-"}
+.offers{margin-top:12px;display:grid;gap:9px}
+.offer{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;font:13px var(--mono);align-items:baseline}
+.offer .id{color:var(--ink)}.offer .base{color:var(--ink);font-variant-numeric:tabular-nums}
+.offer .sched{grid-column:1/-1;color:var(--dim);font-size:12px}
+.offer.won .id{color:var(--blue2)}
+.bits{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.bits span{font:12px var(--mono);border:1px solid var(--line);border-radius:99px;padding:3px 9px;color:var(--dim)}
+.go{display:block;width:100%;border:0;border-radius:16px;background:var(--blue);color:#fff;font:600 18px var(--sans);padding:18px 20px;margin:20px 0 10px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:transform .12s,filter .12s;box-shadow:0 10px 40px -12px rgba(59,91,255,.75)}
+.go:active{transform:scale(.985);filter:brightness(1.1)}
+.go small{display:block;font:400 13px var(--mono);opacity:.8;margin-top:4px}
+.alt{text-align:center;font-size:14px;color:var(--dim);margin:0 0 6px}
+body:not([data-state=idle]) .go,body:not([data-state=idle]) .alt{display:none}
+#run{display:none}
+body:not([data-state=idle]) #run{display:block}
+.clock{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.clock .t{font:650 34px/1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.clock .t small{font:14px var(--mono);color:var(--dim);font-weight:400;margin-left:4px;letter-spacing:0}
+.clock .what{font:13px var(--mono);color:var(--dim);text-align:right}
+ol.stages{list-style:none;margin:0;padding:0;display:grid;gap:0}
+ol.stages li{display:grid;grid-template-columns:18px 1fr auto;gap:0 10px;align-items:center;padding:9px 0;color:var(--faint);transition:color .2s}
+ol.stages li+li{border-top:1px solid var(--line)}
+ol.stages .dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--faint);margin-left:2px;transition:all .2s}
+ol.stages .name{font-size:15px}
+ol.stages .val{font:13px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+ol.stages .more{grid-column:2/-1;font:12px var(--mono);color:var(--dim);display:none;margin-top:6px}
+ol.stages li.on{color:var(--ink)}ol.stages li.on .dot{border-color:var(--blue);background:var(--blue);box-shadow:0 0 0 5px rgba(59,91,255,.18);animation:pulse 1.1s ease-in-out infinite}
+ol.stages li.on .more,ol.stages li.done .more{display:block}
+ol.stages li.done{color:var(--ink)}ol.stages li.done .dot{border-color:var(--blue);background:var(--blue)}
+ol.stages li.done .val{color:var(--dim)}
+ol.stages li.skip{display:none}
+@keyframes pulse{50%{box-shadow:0 0 0 9px rgba(59,91,255,0)}}
+.bar{height:5px;border-radius:9px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:9px;transition:width .12s linear}
+.segs{display:grid;grid-template-columns:3fr repeat(8,1fr) 2fr;gap:3px}
+.segs i{height:18px;border-radius:4px;background:var(--line);position:relative;transition:background .2s}
+.segs i.done{background:var(--blue)}
+.segs i.on{background:rgba(59,91,255,.35);animation:seg 1s ease-in-out infinite}
+@keyframes seg{50%{background:rgba(59,91,255,.75)}}
+.seglab{display:flex;justify-content:space-between;margin-top:5px}
+#done,#tamper,#fail{display:none}
+body[data-state=verified] #done,body[data-state=refused] #done,body[data-state=rechecking] #done{display:block}
+body[data-state=verified] #tamper,body[data-state=refused] #tamper,body[data-state=rechecking] #tamper{display:block}
+body[data-state=error] #fail{display:block}
+.ok{border-color:rgba(59,91,255,.55);background:linear-gradient(180deg,rgba(59,91,255,.13),rgba(59,91,255,.03) 70%),var(--card)}
+.ok .say{font:600 21px/1.25 var(--sans);letter-spacing:-.02em;margin:0 0 4px}
+.ok .sub{color:var(--dim);font-size:14px;margin:0 0 16px}
+.tag{display:inline-block;font:500 12px var(--mono);letter-spacing:.06em;color:var(--blue2);border:1px solid rgba(59,91,255,.6);border-radius:99px;padding:3px 10px;margin-bottom:12px}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.nums div{background:var(--card);padding:12px 13px}
+.nums b{display:block;font:650 22px/1.1 var(--sans);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.nums b small{font:12px var(--mono);color:var(--dim);font-weight:400;margin-left:3px;letter-spacing:0}
+.nums span{font:12px var(--mono);color:var(--dim)}
+.fine{font:12px/1.55 var(--mono);color:var(--dim);margin:12px 0 0;word-break:break-word}
+.fine button{font:inherit;color:var(--blue2);background:none;border:0;border-bottom:1px solid rgba(132,150,255,.3);padding:0;cursor:pointer}
+.btns{display:grid;gap:8px;margin-top:14px}
+.btn{border:1px solid var(--faint);background:transparent;color:var(--ink);border-radius:13px;font:500 16px var(--sans);padding:14px 16px;cursor:pointer;text-align:left;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.btn:active{background:rgba(255,255,255,.05)}.btn[disabled]{opacity:.5}
+.btn code{font:13px var(--mono);color:var(--dim);white-space:nowrap}
+#tamper p{color:var(--dim);font-size:14.5px;margin:0}
+.verdict{display:none;margin-top:14px;border-radius:13px;padding:14px 15px;border:1px solid var(--red);background:rgba(255,77,94,.07)}
+body[data-state=refused] .verdict{display:block;animation:shake .32s}
+@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.verdict .big{font:650 24px/1 var(--sans);letter-spacing:-.02em;color:var(--red);margin-bottom:8px}
+.verdict .diff{font:13px var(--mono);color:var(--ink)}.verdict .diff s{color:var(--dim)}.verdict .diff b{color:var(--red);font-weight:500}
+.verdict .why{font:12px/1.5 var(--mono);color:var(--dim);margin-top:8px;word-break:break-word}
+.scope{display:grid;gap:14px}
+.scope ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.scope li{font-size:14.5px;color:var(--dim);padding-left:16px;position:relative}
+.scope li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.scope .no li::before{background:transparent;border:1.5px solid var(--faint)}
+.scope li b{color:var(--ink);font-weight:500}
+.scope h3{font:500 14px var(--sans);margin:0 0 8px;color:var(--ink)}
+footer{font:12px/1.65 var(--mono);color:var(--dim);margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+footer p{margin:0 0 10px}
+#fail .card{border-color:var(--faint)}
+#fail pre{font:12px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;word-break:break-word;margin:8px 0 0}
+@media (min-width:700px){main{padding-top:44px}.nums{grid-template-columns:repeat(3,1fr)}.btns{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-state="idle">
+<main>
+  <div class="top"><span><b>bookerbob</b> <i>/</i> prove</span><span><a href="board.html">the board</a></span></div>
+
+  <h1 id="title">prove it on <em>your own</em> device</h1>
+  <p class="lede" id="lede">an agent picked a hotel for a buyer. this page makes a <b>Jolt zkVM proof</b>, here in your browser, that the pick followed the buyer's rules. then it checks the proof, and lets you try to cheat.</p>
+
+  <section class="card claim">
+    <h2>the claim</h2>
+    <div class="pick">
+      <div class="who"><span id="who">...</span><small id="hotel">hotel-lisbon round on the board</small></div>
+      <div><div class="amt"><span id="amt">...</span><small>dUSDC</small></div><div class="was">public price <s id="was">...</s></div></div>
+    </div>
+    <ol class="rules">
+      <li>the pick is one of the offers</li>
+      <li>its price is what the contract's price code gives <span>for the bits the buyer revealed</span></li>
+      <li>it fits the budget <span id="budget"></span></li>
+      <li>no offer is cheaper</li>
+    </ol>
+    <details>
+      <summary><span id="sum">the public inputs</span></summary>
+      <div class="bits" id="bits"></div>
+      <div class="offers" id="offers"></div>
+      <p class="fine">all of this is <a href="prove/public.json">prove/public.json</a>. prices are dUSDC base units there (6 decimals); dUSDC is a testnet demo token with no value.</p>
+    </details>
+  </section>
+
+  <button class="go" id="go">prove on this device<small id="gosub">one thread, your cpu, nothing uploaded</small></button>
+  <p class="alt" id="expect" style="font:12px/1.5 var(--mono)"></p>
+  <p class="alt">weak device? <a href="#check" id="tocheck">check a proof made earlier</a></p>
+
+  <section class="card" id="run">
+    <div class="clock"><div class="t"><span id="clock">0.0</span><small>s</small></div><div class="what" id="what">starting</div></div>
+    <ol class="stages">
+      <li id="s-download"><i class="dot"></i><span class="name">download</span><span class="val" id="v-download"></span>
+        <div class="more"><div class="bar"><i id="dlbar"></i></div></div></li>
+      <li id="s-start"><i class="dot"></i><span class="name">start the prover</span><span class="val" id="v-start"></span></li>
+      <li id="s-trace"><i class="dot"></i><span class="name">trace <span style="color:var(--dim)">run the rules as a RISC-V program</span></span><span class="val" id="v-trace"></span></li>
+      <li id="s-prove"><i class="dot"></i><span class="name">prove</span><span class="val" id="v-prove"></span>
+        <div class="more"><div class="segs" id="segs"></div><div class="seglab"><span>commit</span><span>sumchecks</span><span>open</span></div><div id="segnote" style="margin-top:6px"></div></div></li>
+      <li id="s-verify"><i class="dot"></i><span class="name">verify</span><span class="val" id="v-verify"></span></li>
+    </ol>
+  </section>
+
+  <section id="fail">
+    <div class="card"><h2>it stopped</h2><div id="failwhat"></div><pre id="failwhy"></pre>
+      <div class="btns"><button class="btn" id="failcheck">check a proof made earlier instead<code>#check</code></button></div></div>
+  </section>
+
+  <section id="done">
+    <div class="card ok">
+      <span class="tag" id="tag">verified</span>
+      <p class="say" id="say"></p>
+      <p class="sub" id="saysub"></p>
+      <div class="nums" id="nums"></div>
+      <p class="fine" id="fine"></p>
+    </div>
+  </section>
+
+  <section class="card" id="tamper">
+    <h2>now try to cheat</h2>
+    <p>keep the same proof and change one number in the claim. the verifier runs again, here.</p>
+    <div class="btns">
+      <button class="btn" data-t="price">change the price by one unit<code>+0.000001</code></button>
+      <button class="btn" data-t="budget">change the budget by one unit<code>-0.000001</code></button>
+    </div>
+    <div class="verdict" id="verdict"><div class="big">refused</div><div class="diff" id="diff"></div><div class="why" id="why"></div></div>
+  </section>
+
+  <section class="card scope">
+    <h2>what this proves, what it does not</h2>
+    <div>
+      <h3>it proves</h3>
+      <ul>
+        <li><b>the decision rule over the public offers.</b> a program that reprices every offer with the contract's price function and checks the four rules above ran to the end on exactly these inputs, and returned this pick and price.</li>
+        <li><b>succinctly.</b> the verifier does not rerun the program. it checks <span id="pb">a small proof</span> against <span id="cy">the trace</span>.</li>
+      </ul>
+    </div>
+    <div class="no">
+      <h3>it does not prove</h3>
+      <ul>
+        <li><b>that the offers are honest.</b> the offers, the budget and the revealed bits are inputs. a false input gives a true proof about false inputs.</li>
+        <li><b>anything on chain.</b> this proof is verified here, in your browser, and not by the NEAR contract. it is not the on-chain standing proof: that is a different program, on a different Jolt pin, with its hash registered on chain.</li>
+        <li id="zkline"><b>secrecy.</b> this build is not zero-knowledge.</li>
+        <li><b>post-quantum security.</b> the pinned Jolt commits with Dory over the BN254 curve (transcript: Keccak). that is classical security only.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>the zkVM is <a href="https://github.com/a16z/jolt">Jolt</a>, by a16z crypto and contributors. this page runs their prover and verifier, unmodified apart from the two known wasm32 fixes, compiled to WebAssembly at commit <a id="pin" href="https://github.com/a16z/jolt/commit/b4eb62480d76ed8c1f0b16bf7cab6e12f6cda873">b4eb62480d76</a>.</p>
+    <p>applied the known wasm32 fixes: a usize multiply that wraps on 32-bit (<a href="https://github.com/a16z/jolt/issues/1913">a16z/jolt#1913</a>) and a smaller tracer reserve (<a href="https://github.com/0xAndoroid/jolt-wasm-prover/tree/main/patches">0xAndoroid/jolt-wasm-prover, patches 0001 and 0009</a>). neither is ours.</p>
+    <p>this browser prover is a separate set of crates with its own Jolt pin; the four BookerBob guests whose program hash is registered on chain stay on a16z/jolt 997c1543efd4 and are not touched by it.</p>
+    <p>threads: this page registers one service worker, coi-prove-sw.js, scoped to this page and its files, so the browser allows wasm threads on a host that sends no isolation headers (the coi-serviceworker pattern, our own code). it reloads the page once on a first visit. it stores nothing and sends nothing; without it the page proves on one thread.</p>
+    <p>source, build and measured numbers: zk/browser/README.md. exact file sizes: <a href="prove/sizes.json">prove/sizes.json</a>.</p>
+  </footer>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const usd = (units, places = 2) => {
+  const n = BigInt(units);
+  const whole = n / 1000000n, frac = (n % 1000000n).toString().padStart(6, "0");
+  return places === 6 ? `${whole}.${frac}` : (Number(n) / 1e6).toFixed(2);
+};
+const mb = (b) => (b / 1048576).toFixed(b < 10485760 ? 2 : 1);
+const STAGES = ["0", "1", "2", "3", "4", "5", "6a", "6b", "7", "8"];
+const phone = matchMedia("(pointer:coarse)").matches && Math.min(screen.width, screen.height) < 820;
+const device = phone ? "your phone" : "this device";
+
+// Threads need cross-origin isolation, and a plain static host sends no headers for it. A small
+// service worker of ours (coi-prove-sw.js, scoped to this page and prove/) adds them; the page
+// reloads once, guarded by a session flag so it can never loop. Any failure leaves one thread.
+const isolation = await (async () => {
+  const KEY = "coi-prove-reloaded";
+  try {
+    if (crossOriginIsolated) return sessionStorage.removeItem(KEY), "on";
+    if (!isSecureContext || !("serviceWorker" in navigator)) return "this browser or origin has no service workers";
+    if (!(navigator.hardwareConcurrency > 1)) return "this device reports one core";
+    if (sessionStorage.getItem(KEY)) return "the page reloaded once and is still not cross-origin isolated";
+    await navigator.serviceWorker.register("coi-prove-sw.js", { scope: "prove" });
+    await navigator.serviceWorker.ready;
+    sessionStorage.setItem(KEY, "1");
+    location.reload();
+    return new Promise(() => {});
+  } catch (e) {
+    return `the isolation service worker did not start (${e?.message ?? e})`;
+  }
+})();
+const MAX_THREADS = 8;
+
+const [publicText, sizes] = await Promise.all([
+  fetch("prove/public.json", { cache: "no-cache" }).then((r) => r.text()),
+  fetch("prove/sizes.json", { cache: "no-cache" }).then((r) => r.json()),
+]);
+const pub = JSON.parse(publicText);
+
+// The claim card, from the same public.json the prover and the verifier read.
+const won = pub.offers.find((o) => o.merchant === pub.choice);
+$("who").textContent = pub.choice;
+$("amt").textContent = usd(pub.price);
+$("was").textContent = usd(won.base_price);
+$("budget").textContent = `of ${usd(pub.budget)} dUSDC`;
+$("sum").textContent = `the public inputs: ${pub.offers.length} offers, ${pub.revealed.length} revealed bits`;
+$("bits").replaceChildren(...[...pub.revealed, `cohort k=${pub.cohort_k}`].map((b) => Object.assign(document.createElement("span"), { textContent: b })));
+$("offers").replaceChildren(...pub.offers.map((o) => {
+  const d = document.createElement("div");
+  d.className = "offer" + (o === won ? " won" : "");
+  const lines = o.rules.map((r) => `-${r.bps / 100}% ${r.predicate}`);
+  if (o.cohort) lines.push(`-${o.cohort.bps / 100}% group k>=${o.cohort.k_min} ${o.cohort.predicate}`);
+  d.innerHTML = `<span class="id"></span><span></span><span class="base"></span><span class="sched"></span>`;
+  d.children[0].textContent = o.merchant.split(".")[0];
+  d.children[2].textContent = `${usd(o.base_price)} public`;
+  d.children[3].textContent = `${lines.join(", ")} (cap ${o.cap_bps / 100}%)`;
+  return d;
+}));
+const threadsWanted = isolation === "on" && sizes.download.prove_threads ? Math.max(1, Math.min(navigator.hardwareConcurrency || 1, MAX_THREADS)) : 1;
+$("gosub").textContent = threadsWanted > 1
+  ? `${mb(sizes.download.prove_threads)} MB download, ${threadsWanted} threads, nothing uploaded`
+  : `${mb(sizes.download.prove)} MB download, one thread, nothing uploaded`;
+fetch("prove/measured.json").then((r) => r.json()).then((m) => {
+  const t = threadsWanted > 1 && m.threads ? m.threads : m.single;
+  $("expect").textContent = `for scale: ${t.prove_s.toFixed(1)} s in ${m.browser} on ${m.machine}, ${t.threads === 1 ? "one thread" : t.threads + " threads"}. no phone has been timed on this page yet; yours will be the measurement.`;
+}).catch(() => {});
+$("pb").textContent = `a ${(sizes.native.proof_bytes / 1024).toFixed(0)} KB proof`;
+$("cy").textContent = `a ${sizes.cycles.toLocaleString("en-US")}-cycle run`;
+$("zkline").innerHTML = sizes.zk
+  ? "<b>more than it says.</b> this build is zero-knowledge (Jolt's zk feature, BlindFold), but every input here is public, so there is nothing for it to hide."
+  : "<b>secrecy.</b> this build is not zero-knowledge: Jolt's zk feature is off, because every input here is already public. the proof is succinct, not hiding.";
+$("segs").replaceChildren(...STAGES.map(() => document.createElement("i")));
+
+let worker, run = null, proof = null, kind = "prove", clockOn = false, t0 = 0;
+const state = (s) => (document.body.dataset.state = s);
+const stage = (id, cls) => { const el = $(`s-${id}`); el.classList.remove("on", "done"); if (cls) el.classList.add(cls); };
+const tick = () => { if (!clockOn) return; $("clock").textContent = ((performance.now() - t0) / 1000).toFixed(1); requestAnimationFrame(tick); };
+const what = (s) => ($("what").textContent = s);
+
+function fail(why, step) {
+  clockOn = false;
+  $("failwhat").textContent = step === "prove" ? "the prover stopped on this device. nothing was faked: here is what it said." : `it stopped at: ${step}.`;
+  $("failwhy").textContent = why;
+  $("failcheck").parentElement.style.display = kind === "check" ? "none" : "";
+  state("error");
+}
+
+function begin(mode, threads = threadsWanted) {
+  kind = mode;
+  run = { events: [], seg: -1, threads, fellBack: threads < threadsWanted };
+  proof = null;
+  for (const id of ["download", "start", "trace", "prove", "verify"]) { stage(id, ""); $(`v-${id}`).textContent = ""; }
+  for (const id of ["start", "trace", "prove"]) $(`s-${id}`).classList.toggle("skip", mode === "check");
+  for (const i of $("segs").children) i.className = "";
+  $("dlbar").style.width = "0";
+  if (mode === "check") {
+    $("title").innerHTML = "check a proof <em>made earlier</em>";
+    $("lede").innerHTML = `this proof was made natively, ahead of time, by the same guest program. ${device} downloads it and the Jolt verifier, and checks it here. <a href="#" id="toprove">or make the proof yourself</a>.`;
+  }
+  state("loading");
+  t0 = performance.now(); clockOn = true; tick();
+  stage("download", "on"); what("downloading");
+  worker?.terminate();
+  worker = new Worker("prove/worker.js", { type: "module" });
+  worker.onerror = (e) => fail(e.message || "the worker failed to load", "start");
+  worker.onmessage = ({ data }) => on(data);
+  worker.postMessage({ load: mode, threads });
+}
+
+// Stage progress from inside the wasm prover, as each Jolt stage opens.
+new BroadcastChannel("bookerbob-prove").onmessage = ({ data }) => {
+  if (!run) return;
+  run.events.push(data);
+  if (data.kind === "trace") { stage("trace", "on"); what("tracing"); }
+  if (data.kind === "cycles") { run.cycles = data.n; stage("trace", "done"); $("v-trace").textContent = `${data.n.toLocaleString("en-US")} cycles`; }
+  if (data.kind === "padded") { run.padded = data.n; stage("prove", "on"); what("proving"); }
+  if (data.kind === "stage") {
+    const i = STAGES.indexOf(data.text);
+    if (i < 0) return;
+    run.seg = i;
+    [...$("segs").children].forEach((el, k) => (el.className = k < i ? "done" : k === i ? "on" : ""));
+    $("v-prove").textContent = `stage ${i + 1} of ${STAGES.length}`;
+    const name = i === 0 ? "commit to the trace (Dory)" : i === 9 ? "open the commitments (Dory)" : "sumcheck";
+    $("segnote").textContent = `jolt stage ${data.text}: ${name}. the first and the last stage are most of the time.`;
+    what(`proving, stage ${i + 1} of ${STAGES.length}`);
+  }
+  if (data.kind === "panic") run.panic = data.text;
+};
+
+function on(m) {
+  // The threaded build could not start here: say nothing false, run the single-thread build.
+  if (m.error && kind === "prove" && run.threads > 1 && m.step !== "prove") return (run.threadError = m.error), begin("prove", 1), (run.threadError = m.error);
+  if (m.error) return fail(run?.panic ? `${m.error}\n${run.panic}` : m.error, m.step);
+  if (m.bytes) {
+    $("dlbar").style.width = `${Math.min(100, (m.bytes.seen / m.bytes.total) * 100)}%`;
+    $("v-download").textContent = `${mb(m.bytes.seen)} of ${mb(m.bytes.total)} MB`;
+    if (m.downloadMs) { stage("download", "done"); stage(kind === "check" ? "verify" : "start", "on"); what(kind === "check" ? "verifying" : "starting the prover"); }
+  }
+  if (m.ready) {
+    run.ready = m.ready;
+    $("v-download").textContent = `${mb(m.ready.downloadBytes)} MB in ${(m.ready.downloadMs / 1000).toFixed(1)} s`;
+    if (kind === "check") {
+      proof = m.ready.sample;
+      stage("verify", "on");
+      worker.postMessage({ verify: publicText, proof });
+    } else {
+      stage("start", "done"); $("v-start").textContent = `${Math.round(m.ready.startMs)} ms`;
+      state("proving"); stage("trace", "on"); what("tracing");
+      worker.postMessage({ prove: publicText });
+    }
+  }
+  if (m.proved) {
+    run.proved = m.proved; proof = m.proved.proof;
+    [...$("segs").children].forEach((el) => (el.className = "done"));
+    stage("prove", "done"); $("v-prove").textContent = `${(m.proved.proveMs / 1000).toFixed(2)} s`;
+    const at = (k, t) => run.events.find((e) => e.kind === k && (t === undefined || e.text === t))?.at;
+    if (at("stage", "0") && at("stage", "1") && at("stage", "8"))
+      $("segnote").textContent = `commit ${((at("stage", "1") - at("stage", "0")) / 1000).toFixed(1)} s, sumchecks ${((at("stage", "8") - at("stage", "1")) / 1000).toFixed(1)} s, open ${((m.proved.t1 - at("stage", "8")) / 1000).toFixed(1)} s`;
+    stage("verify", "on"); what("verifying");
+    worker.postMessage({ verify: publicText, proof });
+  }
+  if (m.verified) {
+    if (run.tamper) return verdict(m.verified);
+    run.verified = m.verified;
+    if (!m.verified.valid) return fail(`the verifier refused the proof this page just made: ${m.verified.error}`, "verify");
+    stage("verify", "done"); $("v-verify").textContent = `${m.verified.ms.toFixed(0)} ms`;
+    clockOn = false; what("done");
+    finish();
+  }
+}
+
+async function finish() {
+  const cell = (big, unit, label) => `<div><b>${big}<small>${unit}</small></b><span>${label}</span></div>`;
+  const v = run.verified, bytes = proof.length;
+  let cells, fine;
+  if (kind === "prove") {
+    const p = run.proved, ev = (k) => run.events.find((e) => e.kind === k);
+    const traceMs = ev("cycles") && ev("trace") ? ev("cycles").at - ev("trace").at : null;
+    $("tag").textContent = "proved and verified";
+    $("say").textContent = `${device} just proved the agent followed your rules, without sending your data anywhere.`;
+    $("saysub").textContent = `${pub.choice.split(".")[0]} at ${usd(pub.price)} dUSDC, inside the ${usd(pub.budget)} budget, cheapest of ${pub.offers.length}. measured on this device, just now:`;
+    cells = [
+      cell((p.proveMs / 1000).toFixed(2), "s", traceMs === null ? "prove, with the trace" : `prove (trace ${traceMs.toFixed(0)} ms of it)`),
+      cell(v.ms.toFixed(0), "ms", "verify"),
+      cell(bytes.toLocaleString("en-US"), "bytes", "proof"),
+      cell(run.ready.threads, run.ready.threads === 1 ? "thread" : "threads", "used"),
+      cell(run.cycles.toLocaleString("en-US"), "cycles", `padded to 2^${Math.log2(run.padded)}`),
+      cell((p.memoryBytes / 1048576).toFixed(0), "MB", "wasm memory, peak"),
+    ];
+    fine = (run.ready.threads > 1
+      ? `${run.ready.threads} threads of the ${navigator.hardwareConcurrency} this device reports (cap ${MAX_THREADS}): a service worker of this page (coi-prove-sw.js) turned on cross-origin isolation for it. `
+      : `one thread: ${run.threadError ? `the threaded build did not start (${run.threadError})` : isolation === "on" ? "the threaded build is not shipped" : isolation}, so the single-thread build ran. `) + `downloaded ${mb(run.ready.downloadBytes)} MB in ${(run.ready.downloadMs / 1000).toFixed(1)} s. `;
+  } else {
+    $("tag").textContent = "verified";
+    $("say").textContent = `${device} just checked the proof that the agent followed the rules.`;
+    $("saysub").textContent = `${pub.choice.split(".")[0]} at ${usd(pub.price)} dUSDC, inside the ${usd(pub.budget)} budget, cheapest of ${pub.offers.length}. the proof was made natively (${sizes.native.prove_s.toFixed(2)} s on ${sizes.native.machine}); the check ran here:`;
+    cells = [
+      cell(v.ms.toFixed(0), "ms", "verify, on this device"),
+      cell(bytes.toLocaleString("en-US"), "bytes", "proof"),
+      cell(sizes.cycles.toLocaleString("en-US"), "cycles", "proved natively"),
+      cell(mb(run.ready.downloadBytes), "MB", "downloaded"),
+    ];
+    fine = "";
+  }
+  $("nums").innerHTML = cells.join("");
+  try {
+    const h = [...new Uint8Array(await crypto.subtle.digest("SHA-256", proof))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    fine += `proof sha-256 ${h.slice(0, 16)}... `;
+    if (kind === "prove" && h === sizes.native.proof_sha256) fine += "byte for byte the proof the native prover makes (prove/sample-proof.bin): this build is deterministic. ";
+    window.__result_sha = h;
+  } catch {}
+  $("fine").textContent = fine;
+  const save = Object.assign(document.createElement("button"), { textContent: "save proof.bin" });
+  save.onclick = () => Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([proof])), download: "proof.bin" }).click();
+  $("fine").append(save);
+  window.__result = { kind, valid: v.valid, verifyMs: v.ms, proofBytes: bytes, proveMs: run.proved?.proveMs ?? null, cycles: run.cycles ?? null, padded: run.padded ?? null,
+    threads: run.ready.threads, memoryBytes: run.proved?.memoryBytes ?? null, downloadBytes: run.ready.downloadBytes, downloadMs: run.ready.downloadMs, startMs: run.ready.startMs, events: run.events };
+  state("verified");
+  $("done").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// Same proof, one number changed in the public inputs, verified again.
+function tamper(which) {
+  if (!proof || run.tamper) return;
+  const changed = JSON.parse(publicText);
+  const before = changed[which];
+  changed[which] = (BigInt(before) + (which === "price" ? 1n : -1n)).toString();
+  run.tamper = { which, before, after: changed[which] };
+  state("rechecking");
+  for (const b of document.querySelectorAll("#tamper .btn")) b.disabled = true;
+  worker.postMessage({ verify: JSON.stringify(changed), proof });
+}
+
+function verdict(v) {
+  const t = run.tamper;
+  run.tamper = null;
+  for (const b of document.querySelectorAll("#tamper .btn")) b.disabled = false;
+  window.__tamper = { which: t.which, valid: v.valid, ms: v.ms, error: v.error };
+  if (v.valid) return fail(`the verifier ACCEPTED a changed ${t.which}. that must never happen; please report it.`, "tamper");
+  $("diff").innerHTML = `${t.which} <s>${usd(t.before, 6)}</s> -> <b>${usd(t.after, 6)}</b> dUSDC`;
+  $("why").textContent = `the same proof does not fit the changed claim. verifier, ${v.ms.toFixed(0)} ms: ${v.error}` +
+    (t.which === "budget" ? " (the pick would still fit that budget: the proof is refused because it is bound to every public input, not because the claim became false.)" : "");
+  state("refused");
+  $("verdict").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+$("go").onclick = () => begin("prove");
+$("failcheck").onclick = () => { location.hash = "check"; };
+for (const b of document.querySelectorAll("#tamper .btn")) b.onclick = () => tamper(b.dataset.t);
+document.addEventListener("click", (e) => { if (e.target.id === "toprove") { e.preventDefault(); history.replaceState(null, "", location.pathname); location.reload(); } });
+const route = () => { if (location.hash === "#check") begin("check"); else if (location.hash === "#run") begin("prove"); };
+addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>

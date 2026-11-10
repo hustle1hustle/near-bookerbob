@@ -1,0 +1,4 @@
+# fetched and built by build.sh
+/vendor/
+/target/
+/.tools/

@@ -1,0 +1,49 @@
+[package]
+name = "bookerbob-prove-wasm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "The decide prover in a browser: traces the guest and proves it with Jolt, compiled to wasm32."
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+threads = ["dep:wasm-bindgen-rayon"]
+zk = ["jolt-sdk/zk"]
+
+[dependencies]
+jolt-sdk = { path = "../vendor/jolt/jolt-sdk", features = ["host"] }
+jolt-host = { path = "../vendor/jolt/crates/jolt-host" }
+jolt-prover = { path = "../vendor/jolt/crates/jolt-prover" }
+jolt-witness = { path = "../vendor/jolt/crates/jolt-witness" }
+decide-public = { path = "../public" }
+bincode = { version = "2", features = ["serde"] }
+getrandom = { version = "0.2", features = ["js"] }
+wasm-bindgen = "=0.2.114"
+wasm-bindgen-rayon = { version = "1.3", optional = true }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["registry", "std"] }
+console_error_panic_hook = "0.1"
+
+[workspace]
+
+[patch.crates-io]
+ark-bn254 = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ff = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ec = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-serialize = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+
+[patch."https://github.com/a16z/jolt"]
+jolt-field = { path = "../vendor/jolt/crates/jolt-field" }
+jolt-poly = { path = "../vendor/jolt/crates/jolt-poly" }
+jolt-inlines-blake2 = { path = "../vendor/jolt/jolt-inlines/blake2" }
+jolt-inlines-ntt = { path = "../vendor/jolt/jolt-inlines/ntt" }
+jolt-inlines-keccak256 = { path = "../vendor/jolt/jolt-inlines/keccak256" }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+debug = false

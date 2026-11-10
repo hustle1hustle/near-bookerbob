@@ -1,0 +1,165 @@
+{
+  "note": "the slice of fixtures/live/testnet-manifest.json that agents/swarm.html replays; written by scripts/built-counts.mjs. Every tx is on NEAR testnet; dUSDC is a testnet demo token; the facts behind verdicts are synthetic.",
+  "bazaar": "bookerbob.testnet",
+  "category": "hotel-lisbon",
+  "ask": "3 nights Lisbon under 450",
+  "rounds": {
+    "hoodie": {
+      "round": "b30-hoodie",
+      "commits": 22,
+      "revealed": 22
+    },
+    "hotel-lisbon": {
+      "round": "b30-hotel-lisbon",
+      "commits": 8,
+      "revealed": 8
+    }
+  },
+  "round": {
+    "round": "b30-hotel-lisbon",
+    "open_tx": "53wdaaycr4ijaVNNbs7tLfhXp7MC8Bfq7XgmbgVQju1F",
+    "commits": 8,
+    "revealed": 8,
+    "winner": "h05.bookerbob.testnet",
+    "price": "408000000",
+    "bids": {
+      "h01.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "DpSxfbED2E2UASHw7r4XYXdXN8c6qckkpjx68NUKgkJj",
+        "reveal_tx": "2UnJ17WePWiqeyyXQXSMbL8dem7sMvhJaTYfZXY9dMLD"
+      },
+      "h02.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "69AM2CXVQ5x6F2wMp5B8tXNX1UnWY75STFJUorZusyv1",
+        "reveal_tx": "CVhxowuLJwZuRFSSVXUoW6fMMWdT5UvT4yCLxbocortv"
+      },
+      "h03.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "14KhLxoG9ktT6corMapyES286Me5iib2HgwXq13KxE9k",
+        "reveal_tx": "CYsmAAapHECKdmi9C2ZVcwhvxgz6PmMh5R9WmZ7qubnu"
+      },
+      "h04.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "9975z4d9cVg93xKDjk82um6rKqBfqYgvCmaB3CLsMKZf",
+        "reveal_tx": "E8PtXPqZRAtzJro5xNhkHpm1TE9xGRacexV2qP3jvoBw"
+      },
+      "h05.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "5zLfBMhA53A1P4cyAaZQm5e7GzfUSSBfEnc2FbjZvJya",
+        "reveal_tx": "ABK99otqhF3xV58xf92i2x4oq7NSwQjvz4M7QMZkDs7t"
+      },
+      "h06.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "HzLgmkZtUUcXsuetSKe6aSqrnH1mDKMgHGXTp5BQ3agX",
+        "reveal_tx": "AKoKDKjLpxwh27nmMVytEiTCW47Bt7PEkzGkT7iMye3K"
+      },
+      "h07.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "6AwdxDTgfTfV838unBBj5pYrGy91dYRdpPLjWVAYuZ18",
+        "reveal_tx": "AsqgESRL93WJHnUEtNDSeXSzJBXbsHveGevc16o2zecv"
+      },
+      "h08.bookerbob.testnet": {
+        "round": "b30-hotel-lisbon",
+        "commit_tx": "3gtmA7vKshdpwVJATHbnPeRCpso9vYhzE97L2ETv1HLj",
+        "reveal_tx": "5RxMyiyfycKgrYFH7qhgrqGVAfacBfymbyW71EMr8VDd"
+      }
+    }
+  },
+  "anchors": {
+    "h01.bookerbob.testnet": {
+      "max_base": "1593000000",
+      "tx": "3maEampDXYbN4mLXXqZaauqL9mAJP3RK3WzjDJYp81fq"
+    },
+    "h02.bookerbob.testnet": {
+      "max_base": "1008000000",
+      "tx": "GmHdRh3WnmJMJp2t1fzyg3Y8WaYm4zfot1KsY9vX2nXf"
+    },
+    "h03.bookerbob.testnet": {
+      "max_base": "1119000000",
+      "tx": "4a423YeekUojmZC1wFSmu9jXjNqmwSVQqvCrdQbKDCnW"
+    },
+    "h04.bookerbob.testnet": {
+      "max_base": "1452000000",
+      "tx": "FuGVFfeNB6KGh4RmWNBA9M286afBcnm6QGda5ayZznFS"
+    },
+    "h05.bookerbob.testnet": {
+      "max_base": "510000000",
+      "tx": "DiyFdZ1ELnTEwqMpbATVVoNLsnoTz4cuqAhZaELW9rja"
+    },
+    "h06.bookerbob.testnet": {
+      "max_base": "1305000000",
+      "tx": "EL2nbP5PP9nX7dQiPQfK6gEZAoJczz4gQ1fLgpSQTxDb"
+    },
+    "h07.bookerbob.testnet": {
+      "max_base": "831000000",
+      "tx": "EvGwAajXJpa29vuSkhcHPzrm6xVqgmDK8hLVvgdwrR51"
+    },
+    "h08.bookerbob.testnet": {
+      "max_base": "669000000",
+      "tx": "Hif1tPMwJ2BA2SfYfqSXkYAa5hBcqdiMhb8T7xsupk1k"
+    }
+  },
+  "cheat": {
+    "merchant": "h05.bookerbob.testnet",
+    "inflated_base": "600000000",
+    "anchor": "510000000",
+    "tx": "6M3Bi7RY6thU4yfbUUQShHz9M9drHSNwrMY683rjB16u",
+    "refused": true,
+    "schedule_unchanged": true,
+    "approved_after": true
+  },
+  "buyer": {
+    "tester": "t-b1de37.bookerbob-demo.testnet",
+    "nullifier": "62eb45b4d76cf237d069c5d4dda961407a4d50c67e08ea62c3bd14bd96ba3c3d",
+    "price": "408000000",
+    "txs": {
+      "verdict": "5HobP1QB3wWAQd9ikch9wg9RziaT7fVS2PMmqvwC8YEd",
+      "receipt": "AMJp8k1SYZxxvV7v9iAoPzrLejUS3DdMSRuHPHFBsues",
+      "settle": "9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6",
+      "replay": "HfYjbdKA8GhGFpmZ7ivBPPHuqpuk3P9tEhySD8Z3f6xn"
+    }
+  },
+  "group": {
+    "dao": "lisbon-g1.sputnikv2.testnet",
+    "offer": {
+      "merchant": "h05.bookerbob.testnet",
+      "bps": 1000,
+      "price": "367200000"
+    },
+    "dropout": "t-41f2aa.bookerbob-demo.testnet",
+    "members": [
+      {
+        "tester": "t-44d549.bookerbob-demo.testnet",
+        "intent": "6QbgoN7eRKgfbzGdD4XkVkFEsD3a4YG2oGz5RJLVPRfT"
+      },
+      {
+        "tester": "t-7ea3ae.bookerbob-demo.testnet",
+        "intent": "7NvpjsQcjnRhcFShSTxtQuKKw4f24YbzWxXGJxhiGoXj"
+      },
+      {
+        "tester": "t-f29860.bookerbob-demo.testnet",
+        "intent": "ES3sK3hWEY9mi9Gkd659amEEmGAUfpLFD4nD17ns1dH6"
+      },
+      {
+        "tester": "t-963c60.bookerbob-demo.testnet",
+        "intent": "GH7khyrFVpvzy8GeFcrg2sGwGSv8QhLKK7k3WNVELWnf"
+      },
+      {
+        "tester": "t-93140c.bookerbob-demo.testnet",
+        "intent": "EUiZTZtMzREEnwEA8Po2Zz99tnZnhvXX8mPXMdfoZ8nA"
+      },
+      {
+        "tester": "t-41f2aa.bookerbob-demo.testnet",
+        "intent": "4L3VeGw9aQRrKkXZALmsXhSUUJr1yoAhRB3nmkTRJD7X"
+      }
+    ],
+    "txs": {
+      "offer": "4A5MP8McZ5FruRKYA5JpvAcfy83jGNoADAJ71jF6hBLo",
+      "dao": "CVRRvZfP9Db5YV2baECiPiFxrGmTYa7n87SZzXsvW1bn",
+      "direct_release_refused": "43LSL9paPGWFyuTFadRptfWXo93VAXzDB4BhnqGJTrUi",
+      "refund": "9Km9TEEkuPLYwfw2eZhxKJmaMgDJnGstqZQ1ZBc776eU",
+      "release": "5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A"
+    }
+  },
+  "fee_bps": 100
+}

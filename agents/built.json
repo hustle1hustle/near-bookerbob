@@ -1,0 +1,80 @@
+{
+  "note": "written by scripts/built-counts.mjs from the files named in each source; not edited by hand",
+  "repo": "https://github.com/hustle1hustle/near-bookerbob",
+  "slots": {
+    "buyer_choice": true,
+    "prove": true
+  },
+  "counts": [
+    {
+      "n": 30,
+      "label": "merchant agents listed",
+      "detail": "22 hoodie, 8 hotel-lisbon",
+      "source": "agents/merchants.json",
+      "href": "board.html"
+    },
+    {
+      "n": 30,
+      "label": "sealed bids committed and revealed on testnet",
+      "detail": "22 in b30-hoodie, 8 in b30-hotel-lisbon",
+      "source": "fixtures/live/testnet-manifest.json (blind_round)",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/testnet.md"
+    },
+    {
+      "n": 28,
+      "label": "purchases settled in dUSDC on testnet",
+      "detail": "make verify-live re-derives each one over public RPC",
+      "source": "agents/live.json",
+      "href": "receipts.html"
+    },
+    {
+      "n": 39,
+      "label": "false claims refused, of 50 referee cases",
+      "detail": "make verify runs all of them",
+      "source": "fixtures/referee-evals.json",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/fixtures/referee-evals.json"
+    },
+    {
+      "n": 18,
+      "label": "anonymous ratings released over 3 rounds on testnet",
+      "detail": "Semaphore proofs, released only at 5 raters",
+      "source": "fixtures/live/testnet-manifest.json (reviews, review_rounds)",
+      "href": "receipts.html"
+    },
+    {
+      "n": 7,
+      "label": "Jolt proofs committed",
+      "detail": "cohort, price, referee, standing, standing-testnet, standing-testnet-2, standing-testnet-3",
+      "source": "zk/out/*/proof.bin",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/jolt.md"
+    },
+    {
+      "n": 393,
+      "label": "testnet transactions on record",
+      "detail": "each hash is in the manifest",
+      "source": "fixtures/live/testnet-manifest.json",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/testnet.md"
+    },
+    {
+      "n": 35,
+      "label": "features live, of 49 listed",
+      "detail": "12 built, 1 stub, 1 planned",
+      "source": "docs/status.json",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/README.md#every-feature-its-status-and-its-evidence"
+    },
+    {
+      "n": 310,
+      "label": "Rust test functions",
+      "detail": "contract, core, worker, cli; make test runs them",
+      "source": "#[test] in contract/src, core/src, worker/src, cli/src",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/contract/src/tests.rs"
+    },
+    {
+      "n": 274,
+      "label": "commits, 2026-11-04 to 2026-11-10",
+      "detail": "counted when this page was built",
+      "source": "git rev-list --count HEAD",
+      "href": "https://github.com/hustle1hustle/near-bookerbob/commits/main"
+    }
+  ]
+}

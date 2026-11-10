@@ -79,12 +79,16 @@ export function signDelegate(d, key) {
 }
 
 export function rpcClient(url) {
+  // A tx older than a few days has left the regular testnet node: it waits 10 s and answers
+  // 408. So a tx lookup on testnet starts at the archival host and alternates with `url`.
+  const archival = /test/.test(url) && !/archival/.test(url) ? "https://archival-rpc.testnet.fastnear.com" : null;
   const rpc = async (method, params) => {
     for (let i = 0; i < 6; i++) {
-      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "bookerbob", method, params }) });
+      const target = method === "tx" && archival && i % 2 === 0 ? archival : url;
+      const r = await fetch(target, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "bookerbob", method, params }) });
       if (r.status === 429 || r.status >= 500) { await new Promise((s) => setTimeout(s, 1500 * (i + 1))); continue; }
       const j = await r.json();
-      if (j.error && /TIMEOUT|Too Many/i.test(JSON.stringify(j.error)) && i < 5) { await new Promise((s) => setTimeout(s, 1500 * (i + 1))); continue; }
+      if (j.error && (/TIMEOUT|Too Many/i.test(JSON.stringify(j.error)) || (method === "tx" && archival && /UNKNOWN_TRANSACTION/.test(JSON.stringify(j.error)))) && i < 5) { await new Promise((s) => setTimeout(s, 1500 * (i + 1))); continue; }
       return j;
     }
     throw new Error(`${method}: RPC kept failing`);

@@ -3,10 +3,24 @@
 // each reading bookerbob.testnet over public RPC and falling back to its committed snapshot,
 // plus a landing page. Static files only. Pages itself is turned on with the public flip
 // (.github/workflows/pages.yml is manual and does nothing until Pages is enabled).
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-const FILES = ["board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "eval-v5.json", "live.json", "out/live-run.json"];
+// The swarm page (swarm.html) reads swarm.json and built.json, both written by
+// scripts/built-counts.mjs. Its two optional slots ship only when their files exist, and
+// built.json must agree with what is on disk, or the page would hide a slot or fetch a 404.
+const OPTIONAL = { buyer_choice: "out/buyer-choice.json", prove: "prove.html" };
+const slots = JSON.parse(readFileSync("agents/built.json", "utf8")).slots;
+for (const [slot, f] of Object.entries(OPTIONAL)) {
+  if (existsSync(join("agents", f)) !== slots[slot]) throw new Error(`agents/built.json is stale about ${f}: run node scripts/built-counts.mjs`);
+}
+const FILES = ["swarm.html", "swarm.json", "built.json", ...Object.values(OPTIONAL).filter((f) => existsSync(join("agents", f))), "board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "eval-v5.json", "live.json", "out/live-run.json"];
+// The prove page (a Jolt proof made in the visitor's browser) ships its built files as they
+// are committed under agents/prove/ (zk/browser/build.sh makes them; the build needs Rust).
+const walk = (d) => readdirSync(join("agents", d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]));
+// coi-prove-sw.js: the page's own service worker (scope prove only) adds the cross-origin
+// isolation headers a static host cannot send, so the threaded prover can run.
+if (existsSync("agents/prove.html")) FILES.push(...walk("prove"), "coi-prove-sw.js");
 mkdirSync("site/out", { recursive: true });
 for (const f of FILES) {
   mkdirSync(dirname(join("site", f)), { recursive: true });
@@ -40,6 +54,7 @@ writeFileSync(
 <main>
   <h1>bookerbob</h1>
   <div class="sub">merchants compete for you. none of them learns who you are, until a delivery needs a name. built at NEAR HACKATHON.</div>
+  <a class="card" href="swarm.html"><b>send my agent</b><br>one hotel purchase in about a minute: sealed bids, a refused cheat, a group price, a testnet receipt</a>
   <a class="card" href="board.html"><b>the board</b><br>merchant agents bid blind; code computes every price; which merchants are on chain now</a>
   <a class="card" href="receipts.html"><b>receipts</b><br>every testnet purchase, its nullifier status read from the chain, and the sealed reviews</a>
   <a class="card" href="eval.html"><b>REP Eval</b><br>certified scores of three NEAR AI models on a private test set</a>

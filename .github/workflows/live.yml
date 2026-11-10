@@ -1,0 +1,24 @@
+# Daily recheck of the live testnet claims: `make verify-live` re-derives every claim in
+# fixtures/live/testnet-manifest.json over public RPC. It needs no keys and writes nothing.
+# A red run here means a live claim no longer holds or public RPC was down; the log says which.
+# Old txs are read from a public archival RPC that rate-limits, so a run can take many minutes.
+name: live
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: make verify-live

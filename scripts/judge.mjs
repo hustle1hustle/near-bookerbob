@@ -39,7 +39,8 @@ if (!online) {
 // Public testnet RPC can drop a request under load: one retry, and the failures are printed.
 // Too slow is not wrong: a run cut off by the limit with no FAIL is a SKIP, and only a check that
 // failed is a failure. A timed-out run is not retried, the second would hit the same limit.
-const LIVE_MS = Number(process.env.JUDGE_LIVE_MS ?? 240_000);
+// 150 old txs come from a public archive at about 30 a minute: verify-live took 308 s on 2026-11-10.
+const LIVE_MS = Number(process.env.JUDGE_LIVE_MS ?? 480_000);
 const verifyLive = () => spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: LIVE_MS });
 const cut = (r) => r.error?.code === "ETIMEDOUT" && !/^FAIL /m.test(r.stdout);
 let live = online ? verifyLive() : { status: 0, stdout: "" };
@@ -131,6 +132,14 @@ for (const [g, input] of [["standing", "standing-input.json"], ["standing-testne
   const last = (zv.stdout || zv.stderr || "").trim().split("\n").pop();
   if (zv.status === 3) console.log(last);
   else line(zv.status === 0, "Jolt proofs verified with the committed prebuilt verifier (sha256-checked)", last.replace(/^(PASS|FAIL)\s+/, ""));
+}
+
+// 2c. The browser proof (agents/prove.html): the wasm verifier the page ships, run here in Node
+// on the committed proof of the agent's pick. Every changed claim must be refused.
+{
+  const bv = spawnSync("node", ["zk/browser/check.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  const n = (bv.stdout.match(/^PASS /gm) ?? []).length, refused = (bv.stdout.match(/^PASS  refused/gm) ?? []).length;
+  line(bv.status === 0, "Jolt proof of the agent's pick (the one a browser makes at prove.html) verifies in the page's wasm verifier", `${refused} changed claims refused, ${n} checks; zk/browser/README.md`);
 }
 
 // 3. JS suites

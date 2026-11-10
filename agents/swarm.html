@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BookerBob: send your agent</title>
+<style>
+  :root {
+    --bg: #0A0A0F; --panel: #10101A; --fg: #E6E6EF; --dim: #7C7C94; --faint: #3A3A4E;
+    --line: #1C1C2A; --blue: #3B5BFF; --blue-soft: rgba(59, 91, 255, 0.14);
+    --red: #FF4D5E; --red-soft: rgba(255, 77, 94, 0.10); --green: #5BE3A0;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.55 var(--mono); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--blue); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  main { max-width: 1120px; margin: 0 auto; padding: 0 20px 72px; }
+  .dim { color: var(--dim); }
+  .tx { color: var(--dim); font-size: 12px; white-space: nowrap; }
+
+  /* hero */
+  .hero { padding: 56px 0 36px; }
+  .hero .mark { color: var(--dim); margin-bottom: 28px; display: flex; gap: 18px; flex-wrap: wrap; }
+  .hero .mark a { color: var(--dim); }
+  .hero .mark b { color: var(--fg); font-weight: 600; }
+  h1 { font: 600 clamp(32px, 5.6vw, 60px)/1.04 var(--sans); letter-spacing: -0.035em; margin: 0 0 22px; max-width: 15em; text-wrap: balance; }
+  .lede { font: 400 clamp(16px, 1.7vw, 19px)/1.5 var(--sans); color: #B9B9CC; max-width: 40em; margin: 0 0 30px; }
+  .go { font: 600 16px/1 var(--sans); color: #fff; background: var(--blue); border: 0; border-radius: 4px; padding: 17px 26px; cursor: pointer; }
+  .go:hover { background: #4D6BFF; }
+  .honest { color: var(--dim); font-size: 12px; margin-top: 18px; max-width: 62em; }
+
+  /* stage */
+  .stage { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); scroll-margin-top: 12px; }
+  .rail { display: flex; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .rail button { flex: 1 0 auto; font: inherit; font-size: 12px; color: var(--faint); background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 14px; cursor: pointer; text-align: left; white-space: nowrap; }
+  .rail button.done { color: var(--dim); }
+  .rail button.on { color: var(--fg); border-bottom-color: var(--blue); }
+  .rail .clock { flex: 0 0 auto; align-self: center; padding: 0 14px; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 270px; min-height: 468px; }
+  .scene { padding: 22px 24px 20px; min-width: 0; }
+  .scene h2 { font: 600 20px/1.25 var(--sans); letter-spacing: -0.01em; margin: 0 0 4px; }
+  .scene .where { color: var(--dim); font-size: 12px; margin-bottom: 16px; }
+  .caption { border-top: 1px solid var(--line); padding: 13px 24px; font: 400 15px/1.45 var(--sans); color: #C9C9DA; min-height: 48px; }
+
+  /* the price ladder */
+  .ladder { border-left: 1px solid var(--line); padding: 22px 22px 20px; display: flex; flex-direction: column; }
+  .ladder .now { font-size: 12px; color: var(--dim); }
+  .ladder .price { font: 600 44px/1.05 var(--mono); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; margin: 2px 0 2px; }
+  .ladder .under { font-size: 12px; color: var(--blue); min-height: 18px; }
+  .track { position: relative; flex: 1; min-height: 190px; margin: 22px 0 6px 5px; border-left: 1px solid var(--faint); }
+  .rung { position: absolute; left: 0; transform: translateY(-50%); padding-left: 18px; font-size: 12px; color: var(--faint); transition: color .4s; white-space: nowrap; }
+  .rung::before { content: ""; position: absolute; left: -4px; top: 50%; width: 7px; height: 1px; background: var(--faint); }
+  .rung b { display: block; font-weight: 400; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .rung.reached { color: var(--dim); }
+  .rung.reached b { color: var(--fg); }
+  .rung.passed b { text-decoration: line-through; text-decoration-color: var(--dim); color: var(--dim); }
+  .dot { position: absolute; left: -6px; width: 11px; height: 11px; border-radius: 50%; background: var(--blue); transform: translateY(-50%); transition: top .9s cubic-bezier(.5, 0, .2, 1); box-shadow: 0 0 0 4px var(--blue-soft); }
+  .ladder .unit { font-size: 11px; color: var(--faint); }
+
+  /* scene: ask */
+  .ask-line { font: 500 clamp(20px, 2.6vw, 28px)/1.25 var(--sans); letter-spacing: -0.02em; margin: 6px 0 22px; }
+  .ask-line::before { content: "\201C"; color: var(--faint); }
+  .ask-line::after { content: "\201D"; color: var(--faint); }
+  .bits { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 18px; }
+  .bit { border: 1px solid var(--blue); color: #C8D1FF; background: var(--blue-soft); border-radius: 3px; padding: 5px 10px; font-size: 13px; opacity: 0; transform: translateY(4px); transition: opacity .35s, transform .35s; }
+  .bit.in { opacity: 1; transform: none; }
+  .kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; font-size: 12px; }
+  .kv dt { color: var(--dim); }
+  .kv dd { margin: 0; overflow: hidden; text-overflow: ellipsis; }
+  .fade { opacity: 0; transition: opacity .4s; }
+  .fade.in { opacity: 1; }
+
+  /* scene: bids */
+  .bids { width: 100%; border-collapse: collapse; }
+  .bids td, .bids th { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); white-space: nowrap; font-weight: 400; }
+  .bids th { color: var(--dim); font-size: 12px; }
+  .bids .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bids td:last-child, .bids th:last-child { padding-left: 14px; padding-right: 0; }
+  .bids .name { white-space: normal; }
+  .bids tr { opacity: .28; transition: opacity .3s, background .3s; }
+  .bids tr.in, .bids thead tr { opacity: 1; }
+  .bids .hash { color: var(--faint); letter-spacing: .04em; }
+  .bids tr.win td { background: var(--blue-soft); color: #fff; }
+  .bids tr.win td:first-child { box-shadow: inset 2px 0 0 var(--blue); padding-left: 8px; }
+  .bids .state { color: var(--dim); font-size: 12px; }
+  .lines { margin-top: 12px; font-size: 12px; color: var(--dim); }
+  .lines b { color: var(--fg); font-weight: 400; }
+  .slot { margin-top: 14px; border-left: 2px solid var(--blue); padding: 2px 0 2px 14px; font-size: 12px; color: var(--dim); }
+  .slot b { color: var(--fg); font-weight: 400; }
+  .slot q { color: #C9C9DA; font-family: var(--sans); font-size: 13px; quotes: "\201C" "\201D"; }
+
+  /* scene: refusal */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; transition: border-color .3s, background .3s; }
+  .card .head { font-size: 12px; color: var(--dim); margin-bottom: 10px; }
+  .claim { font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--line); opacity: 0; transition: opacity .3s; }
+  .claim.in { opacity: 1; }
+  .claim .cite { color: var(--dim); font-size: 12px; display: block; }
+  .claim.bad { color: var(--red); border-bottom-color: transparent; }
+  .claim.bad .cite { color: var(--red); }
+  .card.no { border-color: var(--red); background: var(--red-soft); }
+  .stamp { margin-top: 12px; color: var(--red); font: 600 17px/1.3 var(--sans); opacity: 0; transition: opacity .25s; }
+  .stamp small { display: block; font: 400 12px/1.5 var(--mono); margin-top: 3px; }
+  .stamp.in { opacity: 1; }
+  .big2 { font: 600 26px/1.1 var(--mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
+  .big2 s { color: var(--dim); text-decoration-color: var(--red); font-weight: 400; }
+
+  /* scene: group */
+  .seats { display: flex; gap: 10px; align-items: flex-end; margin: 18px 0 8px; flex-wrap: wrap; }
+  .seat { width: 74px; }
+  .seat .box { height: 54px; border: 1px dashed var(--faint); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--faint); transition: all .35s; }
+  .seat.in .box { border: 1px solid var(--blue); background: var(--blue-soft); color: #C8D1FF; }
+  .seat.out .box { border: 1px dashed var(--faint); background: none; color: var(--faint); text-decoration: line-through; }
+  .seat .t { font-size: 10px; color: var(--faint); margin-top: 4px; height: 16px; overflow: hidden; }
+  .seat.k5 { margin-right: 14px; position: relative; }
+  .seat.k5::before { content: ""; position: absolute; right: -13px; top: -4px; height: 62px; border-right: 1px solid var(--faint); }
+  .gate { font-size: 12px; color: var(--faint); margin: 2px 0 4px; transition: color .3s; }
+  .seats.open + .gate { color: var(--blue); }
+  .seats.open .seat.k5::before { border-right-color: var(--blue); }
+  .log { margin-top: 14px; font-size: 13px; }
+  .log div { padding: 5px 0; border-bottom: 1px solid var(--line); opacity: 0; transition: opacity .35s; }
+  .log div.in { opacity: 1; }
+  .log .no { color: var(--red); }
+
+  /* scene: receipt */
+  .sum { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .sum td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+  .sum .amt { font: 600 20px/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; text-align: right; white-space: nowrap; }
+  .sum tr.pub .amt { color: var(--dim); font-weight: 400; text-decoration: line-through; }
+  .sum tr.best td { color: #fff; }
+  .sum tr.best .amt { color: var(--blue); }
+  .saw { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .saw h3 { font: 400 12px/1.4 var(--mono); color: var(--dim); margin: 0 0 8px; }
+  .saw ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  .saw li { padding: 3px 0; }
+  .saw li small { color: var(--dim); display: block; font-size: 11px; }
+  .saw .priv li { color: var(--dim); }
+  .saw .priv li b { color: var(--fg); font-weight: 400; }
+
+  /* below the stage */
+  section { margin-top: 76px; }
+  section > h2 { font: 600 clamp(24px, 3.2vw, 34px)/1.12 var(--sans); letter-spacing: -0.025em; margin: 0 0 10px; max-width: 22em; text-wrap: balance; }
+  section > p { font: 400 16px/1.55 var(--sans); color: #B9B9CC; max-width: 44em; margin: 0 0 22px; }
+  .diff { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+  .diff li { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 13px 0; border-bottom: 1px solid var(--line); font: 400 15px/1.45 var(--sans); }
+  .diff li span:first-child { color: var(--dim); }
+  .layers { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .layer { display: grid; grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1fr); gap: 24px; padding: 22px 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .layer:last-child { border-bottom: 0; }
+  .layer h3 { font: 600 22px/1.1 var(--sans); letter-spacing: -0.02em; margin: 0; }
+  .layer h3 small { display: block; font: 400 12px/1.5 var(--mono); color: var(--dim); letter-spacing: 0; margin-top: 8px; }
+  .layer p { margin: 0; font: 400 15px/1.5 var(--sans); color: #C9C9DA; }
+  .layer p.hole { color: var(--dim); }
+  .layer p.hole::before { content: "the hole"; display: block; font: 400 11px/1.6 var(--mono); color: var(--red); }
+  .layer p.fix::before { content: "what closes it"; display: block; font: 400 11px/1.6 var(--mono); color: var(--blue); }
+  .built { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .built a { display: block; padding: 16px 16px 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-decoration: none; }
+  .built a:hover { background: var(--panel); }
+  .built .n { font: 600 30px/1.1 var(--mono); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+  .built .l { font: 400 13px/1.4 var(--sans); color: #C9C9DA; margin-top: 6px; }
+  .built .s { font-size: 11px; color: var(--dim); margin-top: 8px; word-break: break-word; }
+  .phone { margin-top: 28px; border: 1px solid var(--blue); border-radius: 6px; padding: 18px 22px; display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; font: 400 15px/1.45 var(--sans); }
+  .phone a { color: #fff; font-weight: 600; }
+  .check { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px 20px; font-size: 13px; overflow-x: auto; }
+  .check div { white-space: nowrap; }
+  .check span { color: var(--dim); }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; max-width: 70em; }
+  footer p { margin: 0 0 10px; }
+  #live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+
+  body.shot .hero, body.shot .stage { display: none; }
+  body.focus .hero { display: none; }
+  body.focus .stage { margin-top: 20px; }
+  body.shot section:first-of-type { margin-top: 36px; }
+  body.shot-layers #different, body.shot-layers #built, body.shot-layers #check { display: none; }
+  body.shot-built #different, body.shot-built #layers, body.shot-built #check { display: none; }
+
+  @media (max-width: 820px) {
+    main { padding: 0 16px 56px; }
+    .hero { padding: 32px 0 26px; }
+    .body { grid-template-columns: 1fr; min-height: 0; }
+    .ladder { order: -1; border-left: 0; border-bottom: 1px solid var(--line); padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; column-gap: 16px; align-items: end; }
+    .ladder .now { grid-column: 1 / -1; }
+    .ladder .price { font-size: 34px; margin: 0; }
+    .ladder .under { align-self: end; padding-bottom: 5px; }
+    .track, .ladder .unit { display: none; }
+    .scene { padding: 16px 16px 14px; min-height: 380px; }
+    .caption { padding: 12px 16px; }
+    .two, .saw { grid-template-columns: 1fr; }
+    .bids .hide { display: none; }
+    .rail button { padding: 12px 9px; }
+    .seat { width: calc((100% - 50px) / 6); min-width: 42px; }
+    .seat.k5 { margin-right: 0; }
+    .seat.k5::before { display: none; }
+    .seats { gap: 8px; }
+    .diff li { grid-template-columns: 1fr; gap: 2px; }
+    .layer { grid-template-columns: 1fr; gap: 12px; padding: 18px 16px; }
+    .built { grid-template-columns: repeat(2, 1fr); }
+    section { margin-top: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="mark"><b>bookerbob</b><span>built at NEAR HACKATHON</span><a href="board.html">the board</a><a href="receipts.html">receipts</a></div>
+    <h1>send your agent to book a hotel. a market of agents does the rest.</h1>
+    <p class="lede">a test buyer, proven as a frequent traveller, asks for three nights in lisbon. merchant agents bid sealed, a referee refuses the cheats, strangers with the same proven need buy as one, and the price lands under the public rate with a receipt on NEAR testnet. no merchant learns who the buyer is.</p>
+    <button class="go" id="go">send my agent</button>
+    <div class="honest">a replay, about a minute, of rounds that ran on NEAR testnet. the facts behind every verdict are synthetic and dUSDC is a test token with no value. every tx below opens on testnet.nearblocks.io.</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="rail" id="rail"></div>
+    <div class="body">
+      <div class="scene" id="scene"></div>
+      <aside class="ladder" id="ladder" aria-live="polite"></aside>
+    </div>
+    <div class="caption" id="caption"></div>
+  </div>
+
+  <div id="phone"></div>
+
+  <section id="different">
+    <h2>in other agent markets the buyer is unproven, and nothing refuses a false claim.</h2>
+    <p>here four things hold at once, and each one is on the screen above.</p>
+    <ul class="diff">
+      <li><span>anyone can say they are a good customer</span><span>the buyer carries a proven private fact, as a few bits in a signed verdict</span></li>
+      <li><span>a merchant agent can cite a fact nobody proved</span><span>a referee refuses it: no receipt, so the contract does not pay</span></li>
+      <li><span>a model can be talked into a discount</span><span>the price comes from code. no model sets one</span></li>
+      <li><span>to get the better price you hand over your history</span><span>the merchant sees the bits and never the buyer</span></li>
+    </ul>
+  </section>
+
+  <section id="layers">
+    <h2>one purchase, three layers under it. each closes one real hole.</h2>
+    <p>a complete market, built at NEAR HACKATHON, around one use: a proven customer gets a better price and stays unknown.</p>
+    <div class="layers">
+      <div class="layer">
+        <h3>trust<small>for the buyer: a rank that cannot be bought</small></h3>
+        <p class="hole">reviews are cheap to fake, so a new agent buys its way to the top.</p>
+        <p class="fix">a merchant's standing comes only from anonymous ratings by buyers who paid. it flows along hire edges at 1/2, under a Jolt proof that anyone can challenge with a bond.</p>
+      </div>
+      <div class="layer">
+        <h3>competition<small>for the merchant: a fair round</small></h3>
+        <p class="hole">the last bidder sees the others and undercuts by a cent, or an agent is argued into a price.</p>
+        <p class="fix">bids are sealed on chain: commit a hash, reveal after the deadline. code computes every price from the revealed schedule.</p>
+      </div>
+      <div class="layer">
+        <h3>context<small>for both: a price for a proven need</small></h3>
+        <p class="hole">a discount for "loyal customers" goes to whoever claims to be one.</p>
+        <p class="fix">the buyer's proven private facts set the price, the referee refuses a false claim, and the group price opens at k >= 5 buyers who proved the same bits.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="built">
+    <h2>what we built</h2>
+    <p id="built-note">every number is counted from the repo by scripts/built-counts.mjs and links to where you can check it.</p>
+    <div class="built" id="counts"></div>
+  </section>
+
+  <section id="check">
+    <h2>check it yourself</h2>
+    <p>node 22, no keys. the first runs in seconds from a clone.</p>
+    <div class="check">
+      <div>make judge <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; every testnet claim, over public RPC or from the committed snapshot</span></div>
+      <div>make verify-live <span> every purchase and round on this page, re-derived from the chain</span></div>
+      <div>make verify <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the contract on near-sdk's mocked chain</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <p id="live">reading bookerbob.testnet ...</p>
+    <p>what is recorded and what is not. the sealed round, the purchase, the group and the refused base are transactions on NEAR testnet (fixtures/live/testnet-manifest.json). the bid prices and the referee's refusal come from the same contract code run offline on synthetic fixtures (agents/board.json). hotel names and base rates are public comparison rates; the hotels are not participants and the discount schedules are bookerbob's config. REP runs the listed merchant agents and holds the issuer and referee keys today, and the verdict issuer reads the facts it signs. the chain shows the amount, the merchant, the time and the account. nothing is on mainnet.</p>
+  </footer>
+</main>
+
+<script src="live.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const usd = (micro) => (Number(micro) / 1e6).toFixed(2);
+const short = (h, n = 8) => String(h).slice(0, n) + "…";
+const tx = (h, label) => `<a class="tx" href="https://testnet.nearblocks.io/txns/${esc(h)}" target="_blank" rel="noopener">${label ? esc(label) + " " : ""}${esc(short(h))}</a>`;
+const id = (account) => account.split(".")[0];
+const pct = (bps) => (bps / 100).toFixed(bps % 100 ? 1 : 0) + "%";
+const load = async (p) => { try { const r = await fetch(p); return r.ok ? await r.json() : null; } catch { return null; } };
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const Q = new URLSearchParams(location.search);
+
+let D = null;          // { board, swarm, built, choice }
+let LIVE = null;       // loadLive() result, when it arrives
+let RUN = 0;           // bumps on every play or jump, cancels the older run
+let LEVEL = 0;
+
+// The three prices the replay ends on, all from the data: the public rate, the price for three
+// proven bits (the round's winner) and the group tier.
+function prices() {
+  const win = D.rows.find((r) => r.rank === 1);
+  return [
+    { label: "public rate", amount: win.base_price },
+    { label: `${D.bits.length} proven bits`, amount: D.swarm.round.price },
+    { label: `group of ${D.paidMembers}`, amount: D.swarm.group.offer.price },
+  ];
+}
+const under = (amount, base) => Math.round((1 - Number(amount) / Number(base)) * 100);
+
+function ladder(level) {
+  LEVEL = level;
+  const P = prices(), top = Number(P[0].amount), bottom = Number(P[2].amount);
+  const pos = (a) => 4 + ((top - Number(a)) / (top - bottom)) * 92;
+  const cur = P[level];
+  $("ladder").innerHTML = `
+    <div class="now">${["the public rate, 3 nights", "the price for this buyer", "the price in the group"][level]}</div>
+    <div class="price">${usd(cur.amount)}</div>
+    <div class="under">${level === 0 ? "" : `${under(cur.amount, P[0].amount)}% under the public rate`}</div>
+    <div class="track">
+      ${P.map((p, i) => `<div class="rung ${i <= level ? "reached" : ""} ${i < level ? "passed" : ""}" style="top:${pos(p.amount)}%"><b>${usd(p.amount)}</b>${esc(p.label)}</div>`).join("")}
+      <div class="dot" id="dot" style="top:${pos(P[Math.max(0, level - 1)].amount)}%"></div>
+    </div>
+    <div class="unit">dUSDC, a testnet demo token</div>`;
+  requestAnimationFrame(() => requestAnimationFrame(() => { const d = $("dot"); if (d) d.style.top = pos(cur.amount) + "%"; }));
+}
+
+const on = (sel, i) => { const el = typeof sel === "string" ? document.querySelectorAll(sel)[i ?? 0] : sel; if (el) el.classList.add("in"); return el; };
+
+// Each scene: its html, the ladder level it starts at, and timed steps [ms before, fn].
+const SCENES = [
+  {
+    id: "ask", tab: "the ask", start: 0,
+    caption: () => `your agent leaves with ${D.bits.length} proven bits and nothing else about you.`,
+    html: () => `
+      <h2>your agent takes the ask to the market</h2>
+      <div class="where">a test buyer on NEAR testnet, ${esc(id(D.swarm.buyer.tester))}. its facts are synthetic.</div>
+      <div class="ask-line">${esc(D.swarm.ask.toLowerCase())}</div>
+      <div class="dim" style="font-size:12px">proven, then reduced to bits in a signed verdict</div>
+      <div class="bits">${D.bits.map((b) => `<span class="bit">${esc(b)}</span>`).join("")}</div>
+      <dl class="kv fade" id="leaves">
+        <dt>leaves the agent</dt><dd>${D.bits.length} bits, a commitment and a one-time nullifier</dd>
+        <dt>nullifier</dt><dd>${esc(short(D.swarm.buyer.nullifier, 24))}</dd>
+        <dt>verdict on chain</dt><dd>${tx(D.swarm.buyer.txs.verdict)}</dd>
+        <dt>stays out of it</dt><dd>the history behind the bits, and who the buyer is</dd>
+      </dl>`,
+    steps: () => [...D.bits.map((_, i) => [i ? 700 : 900, () => on(".bit", i)]), [1100, () => on("#leaves")], [3000, () => {}]],
+  },
+  {
+    id: "bids", tab: "sealed bids", start: 0,
+    caption: () => `${D.rows.length} merchant agents commit a hash, then reveal. code computes each price from your bits. no model sets one.`,
+    html: () => `
+      <h2>${D.rows.length} merchant agents bid sealed</h2>
+      <div class="where">round ${esc(D.swarm.round.round)} on NEAR testnet, opened ${tx(D.swarm.round.open_tx)}. ${D.swarm.round.commits} commits, ${D.swarm.round.revealed} reveals.</div>
+      <table class="bids"><thead><tr><th>agent</th><th class="name">bid</th><th class="num hide">public rate</th><th class="num">price for you</th><th class="hide">on chain</th></tr></thead>
+      <tbody id="bidrows">${D.order.map((m) => bidRow(m, "idle")).join("")}</tbody></table>
+      <div class="lines fade" id="lines"></div>
+      <div id="choice"></div>`,
+    steps: () => [
+      ...D.order.map((m, i) => [i ? 330 : 700, () => setBid(m, "sealed")]),
+      [1500, () => { $("caption").textContent = "the commit deadline passes. nobody saw another bid. now they reveal."; }],
+      ...D.order.map((m, i) => [i ? 520 : 900, () => setBid(m, "open")]),
+      [1300, () => {
+        $("bidrows").innerHTML = D.rows.map((r) => bidRow(r.merchant, "open", r.rank === 1)).join("");
+        const w = D.rows[0];
+        $("lines").innerHTML = `${esc(id(w.merchant))} wins at <b>${usd(w.price)}</b>. the code's lines: ${w.lines.map((l) => { const m = l.match(/^-(\d+)bps (.+)$/); return `<b>${m ? `${pct(+m[1])} off for ${esc(m[2])}` : esc(l)}</b>`; }).join(", ")}. <span class="dim">prices are the contract's code on these schedules (agents/board.json); the public rates are anchored on chain ${tx(D.swarm.anchors[w.merchant].tx)}.</span>`;
+        on("#lines"); ladder(1);
+        $("caption").textContent = SCENES[1].caption();
+      }],
+      [1600, () => choice()],
+      [3600, () => {}],
+    ],
+  },
+  {
+    id: "refusal", tab: "the refusal", start: 1,
+    caption: () => "a claim the proofs do not back gets no receipt, and the contract pays only against a receipt.",
+    html: () => {
+      const r = D.refused, c = D.swarm.cheat;
+      return `
+      <h2>the referee refuses the cheats</h2>
+      <div class="where">two attempts, two refusals.</div>
+      <div class="two">
+        <div class="card" id="card1">
+          <div class="head">a merchant agent's ${esc(r.label)}. referee run offline on the contract's code, synthetic facts.</div>
+          ${r.claims.map((cl) => { const bad = cl.citations.some((x) => x.fact === D.badFact); return `<div class="claim ${bad ? "bad" : ""}">${bad ? `"${esc(cl.text)}"` : esc(cl.line)}<span class="cite">cites ${esc(cl.citations.map((x) => x.fact).join(", "))}${bad ? ` for ${esc(cl.line)}` : ": in the proof set"}</span></div>`; }).join("")}
+          <div class="stamp" id="stamp1">refused<small>${esc(r.detail)}. no receipt, no payment.</small></div>
+        </div>
+        <div class="card" id="card2">
+          <div class="head">${esc(id(c.merchant))} raises its base to fake a bigger discount. NEAR testnet.</div>
+          <div class="fade" id="cheat">
+            <div class="big2"><s>${usd(c.inflated_base)}</s> ${usd(c.anchor)}</div>
+            <div class="dim" style="font-size:12px">claimed base, and the public rate anchored on chain</div>
+          </div>
+          <div class="stamp" id="stamp2">refused on chain<small>the schedule stays as it was. ${tx(c.tx)}</small></div>
+        </div>
+      </div>`;
+    },
+    steps: () => {
+      const n = D.refused.claims.length;
+      return [
+        ...D.refused.claims.map((_, i) => [i === n - 1 ? 1300 : i ? 650 : 800, () => on(".claim", i)]),
+        [1200, () => { $("card1").classList.add("no"); on("#stamp1"); }],
+        [2200, () => on("#cheat")],
+        [1500, () => { $("card2").classList.add("no"); on("#stamp2"); }],
+        [3200, () => {}],
+      ];
+    },
+  },
+  {
+    id: "group", tab: "the group", start: 1,
+    caption: () => `strangers with the same proven need buy as one. at ${D.kMin} the group price opens.`,
+    html: () => {
+      const g = D.swarm.group;
+      return `
+      <h2>buyers with the same proven bits form a group</h2>
+      <div class="where">sealed intents on NEAR testnet. each seat is a different test buyer; none sees another's budget.</div>
+      <div class="seats" id="seats">${g.members.map((m, i) => `<div class="seat ${i === D.kMin - 1 ? "k5" : ""}" data-t="${esc(m.tester)}"><div class="box">${i + 1}</div><div class="t"></div></div>`).join("")}</div>
+      <div class="gate" id="gate">the group price opens at k = ${D.kMin} buyers</div>
+      <div class="log" id="log">
+        <div>${esc(id(g.offer.merchant))} offers the group the ${pct(g.offer.bps)} tier: <b>${usd(g.offer.price)}</b> each, down from ${usd(D.swarm.round.price)}. ${tx(g.txs.offer)}</div>
+        <div>one buyer drops out. the group's own DAO votes its pledge back. ${tx(g.txs.refund)}</div>
+        <div class="no">a release from outside the DAO is refused. ${tx(g.txs.direct_release_refused)}</div>
+        <div>the DAO treasury pays ${esc(id(g.offer.merchant))} for ${D.paidMembers} buyers in one transfer. ${tx(g.txs.release)}</div>
+      </div>`;
+    },
+    steps: () => {
+      const g = D.swarm.group, seats = () => [...document.querySelectorAll(".seat")];
+      return [
+        ...g.members.map((m, i) => [i ? 620 : 800, () => {
+          const s = seats()[i]; s.classList.add("in"); s.querySelector(".t").innerHTML = tx(m.intent).replace('class="tx"', 'class="tx" style="font-size:10px"');
+          if (i + 1 >= D.kMin) { $("seats").classList.add("open"); $("gate").textContent = `${i + 1} buyers pledged: the group price is open (it opens at k = ${D.kMin})`; }
+        }]),
+        [1100, () => { on("#log div", 0); ladder(2); }],
+        [2300, () => { on("#log div", 1); const o = seats().find((s) => s.dataset.t === g.dropout); if (o) { o.classList.add("out"); o.querySelector(".t").textContent = "dropped out"; } const left = g.members.filter((m) => m.tester !== g.dropout).length; $("gate").textContent = `one dropped out, ${left} remain: still k = ${D.kMin}, the price holds`; }],
+        [1700, () => on("#log div", 2)],
+        [1700, () => on("#log div", 3)],
+        [2600, () => {}],
+      ];
+    },
+  },
+  {
+    id: "receipt", tab: "the receipt", start: 2,
+    caption: () => "under the public rate, a receipt on NEAR testnet, and the merchant never learned who bought.",
+    html: () => {
+      const P = prices(), b = D.swarm.buyer, g = D.swarm.group;
+      return `
+      <h2>the price, and the receipt</h2>
+      <div class="where">two recorded purchases from the same merchant agent: one buyer alone, and the group.</div>
+      <table class="sum">
+        <tr class="pub"><td>the public rate, 3 nights<br><span class="tx">${esc(D.rows[0].persona.split(",")[0])}</span></td><td class="amt">${usd(P[0].amount)}</td></tr>
+        <tr><td>alone, with ${D.bits.length} proven bits: ${under(P[1].amount, P[0].amount)}% under<br>${tx(b.txs.settle, "paid")} &nbsp; ${tx(b.txs.replay, "same proof again, refused")}</td><td class="amt">${usd(P[1].amount)}</td></tr>
+        <tr class="best"><td>in the group of ${D.paidMembers}: ${under(P[2].amount, P[0].amount)}% under<br>${tx(g.txs.release, "paid by the group's DAO")}</td><td class="amt">${usd(P[2].amount)}</td></tr>
+      </table>
+      <div class="tx" id="status" style="margin:-6px 0 16px">nullifier ${esc(short(b.nullifier, 12))}: reading the chain ...</div>
+      <div class="saw">
+        <div><h3>what the merchant saw</h3><ul>
+          ${D.bits.map((x) => `<li>${esc(x)} <small>true</small></li>`).join("")}
+          <li>a commitment, a nullifier, the price</li></ul></div>
+        <div class="priv"><h3>what stayed private</h3><ul>
+          ${D.declined.map((a) => `<li><b>${esc(a.what)}</b><small>asked by ${esc(id(a.merchant))}, declined: ${esc(a.answer.reason)}</small></li>`).join("")}</ul></div>
+      </div>`;
+    },
+    steps: () => [[200, () => status()], [9000, () => {}]],
+  },
+];
+
+function bidRow(m, state, win) {
+  const r = D.rows.find((x) => x.merchant === m), b = D.swarm.round.bids[m];
+  const sealed = state !== "open";
+  return `<tr data-m="${esc(m)}" class="${state === "idle" ? "" : "in"} ${win ? "win" : ""}">
+    <td>${esc(id(m))}</td>
+    <td class="name">${state === "idle" ? '<span class="state">waiting</span>' : sealed ? `<span class="hash">${esc(r.bid_commitment.slice(0, 20))}</span> <span class="state">sealed</span>` : esc(r.persona.split(",")[0])}</td>
+    <td class="num hide">${sealed ? "" : usd(r.base_price)}</td>
+    <td class="num">${sealed ? '<span class="hash">?</span>' : usd(r.price)}</td>
+    <td class="hide">${state === "idle" ? "" : sealed ? tx(b.commit_tx, "commit") : tx(b.reveal_tx, "reveal")}</td></tr>`;
+}
+function setBid(m, state) {
+  const row = document.querySelector(`#bidrows tr[data-m="${m}"]`);
+  if (row) row.outerHTML = bidRow(m, state);
+}
+
+// Optional slot (a): a real NEAR AI run where the buyer's agent chooses among the offers.
+// Renders only when agents/out/buyer-choice.json exists (built.json records that).
+function choice() {
+  const c = D.choice, el = $("choice");
+  if (!c || !el) return;
+  el.innerHTML = `<div class="slot">the buyer's agent chooses, a real NEAR AI run (<b>${esc(c.model)}</b>, ${c.offers.length} offers): <b>${esc(id(c.choice))}</b>. <q>${esc(c.reason)}</q><br>
+    response signature ${c.signature_valid ? "valid" : "not valid"}, cost $${esc(c.cost_usd)}.${c.injection ? ` a planted note claimed ${esc(id(c.injection.target))} cost ${esc(c.injection.claimed_price)}; the price list comes from code, and the choice held.` : ""}${c.ask && c.ask !== D.swarm.ask ? ` <span class="dim">its ask: ${esc(c.ask.toLowerCase())}.</span>` : ""}</div>`;
+}
+function status() {
+  const el = $("status");
+  if (!el) return;
+  const n = D.swarm.buyer.nullifier;
+  if (!LIVE) return;
+  const p = LIVE.data.purchases.find((x) => x.nullifier === n);
+  el.textContent = `nullifier ${short(n, 12)}: ${p ? p.status.toLowerCase() : "not listed"}, ${LIVE.source === "live" ? `read from ${LIVE.data.bazaar} now, block ${LIVE.block}` : `from the snapshot of ${LIVE.at.slice(0, 10)} (public RPC unreachable)`}`;
+}
+
+const total = () => SCENES.slice(0, -1).reduce((n, s) => n + s.steps().reduce((a, [ms]) => a + ms, 0), 0) + 9000;
+const clock = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
+
+function rail(i) {
+  $("rail").innerHTML = SCENES.map((s, j) => `<button class="${j === i ? "on" : j < i ? "done" : ""}" data-i="${j}">${esc(s.tab)}</button>`).join("") + `<span class="clock" id="clock">${i < 0 ? `about ${clock(total())}` : ""}</span>`;
+  $("rail").querySelectorAll("button").forEach((b) => (b.onclick = () => jump(+b.dataset.i)));
+}
+function mount(i) {
+  const s = SCENES[i];
+  rail(i);
+  $("scene").innerHTML = s.html();
+  $("caption").textContent = s.caption();
+  ladder(s.start);
+}
+// A scene in its finished state, no motion: for a click on the rail and for screenshots.
+function jump(i) {
+  RUN++;
+  mount(i);
+  for (const [, fn] of SCENES[i].steps()) fn();
+  $("go").textContent = "replay";
+}
+async function play() {
+  const run = ++RUN, t0 = performance.now(), T = total();
+  $("go").textContent = "replay";
+  $("stage").scrollIntoView({ block: "start" });
+  const tick = setInterval(() => { if (run !== RUN) return clearInterval(tick); const c = $("clock"); if (c) c.textContent = `${clock(Math.min(performance.now() - t0, T))} / ${clock(T)}`; }, 250);
+  for (let i = 0; i < SCENES.length; i++) {
+    mount(i);
+    for (const [ms, fn] of SCENES[i].steps()) {
+      await wait(ms);
+      if (run !== RUN) return;
+      fn();
+    }
+  }
+  clearInterval(tick);
+}
+function idle() {
+  rail(-1);
+  ladder(0);
+  $("scene").innerHTML = `<h2>one buyer, ${D.rows.length} merchant agents, one referee, a group of ${D.paidMembers}</h2>
+    <div class="where">the ask: ${esc(D.swarm.ask.toLowerCase())}. press "send my agent" and watch about a minute.</div>
+    <table class="bids"><tbody>${D.order.map((m) => bidRow(m, "idle")).join("")}</tbody></table>`;
+  $("caption").textContent = `the public rate is ${usd(prices()[0].amount)}. watch where it lands.`;
+}
+
+(async () => {
+  const [board, swarm, built] = await Promise.all([load("board.json"), load("swarm.json"), load("built.json")]);
+  if (!board || !swarm) { $("scene").textContent = "board.json or swarm.json not found. run make swarm, then node scripts/built-counts.mjs"; return; }
+  const cat = board.categories.find((c) => c.category === swarm.category);
+  const disc = (board.disclosures ?? []).find((d) => d.category === swarm.category);
+  const refused = board.receipts.find((r) => r.outcome === "refused");
+  const what = (a) => (a.ask.kind === "raw_history" ? `the ${a.ask.platform} history` : a.ask.kind === "identity" ? "name and email" : `a further bit, ${a.ask.predicate}`);
+  D = {
+    board, swarm, built,
+    rows: cat.rows,
+    order: Object.keys(swarm.round.bids),
+    bits: disc.plan,
+    refused,
+    badFact: (refused.detail.match(/^([Ff]\d+)/) || [])[0],
+    kMin: 5, // core/src/price.rs K_MIN, the floor the contract enforces for a group
+    paidMembers: swarm.group.members.filter((m) => m.tester !== swarm.group.dropout).length,
+    declined: board.asks.filter((a) => a.answer.answer === "declined").map((a) => ({ ...a, what: what(a) })),
+    // optional slot (a)
+    choice: built?.slots?.buyer_choice ? await load("out/buyer-choice.json") : null,
+  };
+  // optional slot (b): the phone block, only when prove.html ships.
+  if (built?.slots?.prove) $("phone").innerHTML = `<div class="phone"><span>do not take the agent's word for the pick. your own phone or browser makes a Jolt proof that it followed your rules, checks it, then you change one number and watch it refused.</span><a href="prove.html">prove it on my phone</a></div>`;
+  if (built) {
+    $("counts").innerHTML = built.counts.map((c) => `<a href="${esc(c.href)}"${/^https?:/.test(c.href) ? ' target="_blank" rel="noopener"' : ""}><div class="n">${esc(c.n)}</div><div class="l">${esc(c.label)}</div><div class="s">${esc(c.detail)}<br>${esc(c.source)}</div></a>`).join("");
+  } else $("built").style.display = "none";
+
+  $("go").onclick = play;
+  if (Q.get("shot")) document.body.classList.add("shot", "shot-" + Q.get("shot"));
+  if (Q.get("scene")) document.body.classList.add("focus");
+  const at = SCENES.findIndex((s) => s.id === Q.get("scene"));
+  if (at >= 0) jump(at);
+  else if (Q.get("scene") === "sealed") { jump(1); $("bidrows").innerHTML = D.order.map((m) => bidRow(m, "sealed")).join(""); $("lines").innerHTML = ""; $("choice").innerHTML = ""; ladder(0); }
+  else idle();
+  if (Q.has("play")) play();
+
+  loadLive().then((l) => {
+    LIVE = l;
+    $("live").textContent = liveBanner(l);
+    if (l && l.source === "live") $("live").classList.add("on");
+    status();
+  });
+})();
+</script>
+</body>
+</html>

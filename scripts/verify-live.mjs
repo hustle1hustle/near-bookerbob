@@ -14,6 +14,13 @@ let inflight = 0;
 const waiters = [];
 const slot = async () => { while (inflight >= 4) await new Promise((ok) => waiters.push(ok)); inflight++; };
 const release = () => { inflight--; waiters.shift()?.(); };
+// One archival host: archival-rpc.testnet.near.org answers 429 "deprecated" to most calls (2026-11-10).
+const ARCHIVES = [process.env.NEAR_ARCHIVAL_RPC || "https://archival-rpc.testnet.fastnear.com"];
+// At a 2 s gap the public archive serves all 150 lookups in about 5 minutes (308 s on 2026-11-10); tighter gaps only draw 429s.
+// With your own archival endpoint in NEAR_ARCHIVAL_RPC, set TX_GAP_MS=0.
+const TX_GAP_MS = Number(process.env.TX_GAP_MS ?? 2000);
+let txSeq = 0, txNext = 0;
+const txGap = async () => { txSeq++; const at = Math.max(Date.now(), txNext); txNext = at + TX_GAP_MS; if (at > Date.now()) await new Promise((ok) => setTimeout(ok, at - Date.now())); };
 const manifest = JSON.parse(readFileSync(new URL("../fixtures/live/testnet-manifest.json", import.meta.url)));
 
 // Snapshot mode, for judges without network:
@@ -38,27 +45,48 @@ async function rpc(method, params) {
     if (!r) throw new Error(`not in the snapshot: ${method}`);
     return r;
   }
-  const r = await rpcLive(method, params);
+  // A final tx never changes, so one lookup per hash serves every check that reads it.
+  const k = method === "tx" ? keyOf(method, params) : null;
+  if (k && txCache.has(k)) { txHits++; return txCache.get(k); }
+  const p = rpcLive(method, params);
+  if (k) txCache.set(k, p);
+  const r = await p;
   if (recording) snap.responses[keyOf(method, params)] = r;
   return r;
 }
+const txCache = new Map();
+let txHits = 0;
+process.on("exit", () => { if (process.env.VL_DEBUG) console.error(`DBG tx lookups ${txCache.size}, served from cache ${txHits}`); });
 
 async function rpcLive(method, params) {
   await slot();
   try {
     let last;
-    for (let i = 0; i < 6; i++) {
-      const url = RPCS[i % RPCS.length];
+    // An old tx has left the regular node (it waits 10 s, then answers 408), so a tx lookup
+    // goes to the archival host. That host rate-limits (429): lookups are spaced TX_GAP_MS
+    // apart, and a 429 pauses every lookup for 5 s. The regular node is asked only when the
+    // archive does not know the tx yet (a fresh one).
+    const isTx = method === "tx";
+    let fresh = false;
+    for (let i = 0; i < (isTx ? 12 : 6); i++) {
+      const url = isTx ? (fresh ? RPCS[0] : ARCHIVES[0]) : RPCS[i % RPCS.length];
+      if (isTx) await txGap();
       try {
         const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: "verify-live", method, params }), signal: AbortSignal.timeout(20000) });
         const j = await r.json().catch(() => null);
         const limited = r.status === 429 || r.status >= 500 || j?.error?.code === -429 || /Too Many|TIMEOUT|DEPRECATED/i.test(JSON.stringify(j?.error ?? ""));
-        if (limited || !j) { last = `${url} ${r.status} ${JSON.stringify(j?.error ?? "").slice(0, 80)}`; await new Promise((s) => setTimeout(s, 800 * (i + 1))); continue; }
-        if (j.error && /UNKNOWN_TRANSACTION/.test(JSON.stringify(j.error)) && i < 5) { last = JSON.stringify(j.error); continue; }
+        if (process.env.VL_DEBUG && (limited || !j || j.error)) console.error(`DBG ${method} ${url.slice(8, 20)} ${r.status} ${JSON.stringify(j?.error ?? "").slice(0, 140)} ${JSON.stringify(params).slice(0, 110)}`);
+        if (limited || !j) {
+          last = `${url} ${r.status} ${JSON.stringify(j?.error ?? "").slice(0, 80)}`;
+          if (isTx) { txNext = Math.max(txNext, Date.now() + 5000); fresh = false; } else await new Promise((s) => setTimeout(s, 800 * (i + 1)));
+          continue;
+        }
+        if (j.error && /UNKNOWN_TRANSACTION/.test(JSON.stringify(j.error)) && i < (isTx ? 11 : 5)) { last = JSON.stringify(j.error); fresh = isTx && !fresh; continue; }
         return j;
       } catch (e) {
         last = `${url} ${e.message}`;
-        await new Promise((s) => setTimeout(s, 800 * (i + 1)));
+        if (process.env.VL_DEBUG) console.error(`DBG catch ${method} ${url.slice(8, 20)} ${e.message} ${JSON.stringify(params).slice(0, 150)}`);
+        if (isTx) fresh = false; else await new Promise((s) => setTimeout(s, 800 * (i + 1)));
       }
     }
     throw new Error(`RPC failed: ${last}`);

@@ -108,6 +108,22 @@
     "evidence": []
   },
   {
+    "feature": "the buyer's agent chooses by a real NEAR AI inference among the hotel offers; code computes every price and checks the pick (a listed offer, inside the budget), so text in an offer cannot change what is paid",
+    "tracks": "swarms, agents",
+    "where": "`agents/choose.mjs`, `agents/out/buyer-choice.json`",
+    "status": "built",
+    "detail": "one recorded live run of 2 calls (z-ai/glm-5.3-flash), both response signatures verified: the model picked h05 at 408, and picked it again when another offer's text claimed a lower price and ordered the model to choose it",
+    "evidence": []
+  },
+  {
+    "feature": "a Jolt proof of the agent's pick made in the visitor's own browser: the `decide` guest reprices all 8 hotel offers with the contract's price rule (`zkcore`) and checks the pick is listed, priced by code, inside the budget and the cheapest that fits; the page verifies the proof and refuses the same proof for a claim changed by one unit",
+    "tracks": "swarms, privacy, open",
+    "where": "`agents/prove.html`, `agents/prove/`, `agents/coi-prove-sw.js`, `zk/browser/` (its own Jolt pin `b4eb62480d76`, separate from the four guests the contract anchors)",
+    "status": "built",
+    "detail": "39,159 cycles; native prove 1.53 s, verify 28 ms, proof 78,527 bytes; headless Chrome 5.7 s on 8 threads (the page's own service worker adds the isolation headers a static host cannot send) and 21 s on one thread, byte-identical proof both ways; not zero-knowledge (every input is public), verified in the page and not on chain; no phone timed yet; the two wasm32 fixes are upstream's (a16z/jolt#1913, 0xAndoroid/jolt-wasm-prover)",
+    "evidence": []
+  },
+  {
     "feature": "NEAR AI issues the verdict under E2EE v2: the facts go sealed to the attested model key, the model derives the predicates and echoes a binding of the envelope, and `make verify` checks the TDX quote (dcap-qvl, Intel root, committed PCS collateral), report_data (signing key and our nonce), the TEE signature over the exact wire bytes, the sealed answer (opened with its disclosed per-field key), predicates equal to the code's, and the binding",
     "tracks": "privacy, security",
     "where": "`scripts/near-ai-verdict.mjs`, `cli/src/near_ai.rs`, `fixtures/live/near-ai/`, `docs/near-ai.md`",
