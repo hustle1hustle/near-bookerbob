@@ -159,12 +159,13 @@ threshold, the fee, the Jolt program (`set_graph_program`) and a lower TCB floor
 visible as `anchor_queued`, executable by anyone after the delay and cancellable by the owner
 inside it. Raising the TCB floor and removing an issuer apply at once, because they only narrow
 trust and are the response to a compromised key. The delay is 5 minutes on the DAO test bazaar
-and 0 on the live bazaar today.
+and, since 2026-11-10, 5 minutes on the live bazaar too ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)). It
+covers anchors, not the code: the full-access key of `bookerbob.testnet` can still redeploy.
 
 | who holds | what it can do today |
 |---|---|
 | the full-access key on `bookerbob.testnet` (one key, `ed25519:BDvqs4A7…`, held by REP) | redeploy the contract code at any time, which bypasses every rule above, including the timelock. The contract cannot defend against its own account's full-access key. Fix: hand the account to the DAO and delete the key, so an upgrade is a DAO proposal (planned; it is irreversible, so it waits on the founder) |
-| the owner role on `bookerbob.testnet` (the same account) | register trust anchors, at once while the delay is 0 |
+| the owner role on `bookerbob.testnet` (the same account) | register trust anchors, each after the 5 minute public delay |
 | the DAO test bazaar's account | its full-access key is also REP's; the DAO holds the owner role, not the code |
 
 | layer | what it proves | what it does not |

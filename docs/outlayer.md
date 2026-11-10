@@ -170,7 +170,7 @@ nothing. With it, it runs one named step and stops. Testnet only. In order:
    `bookerbob.testnet`; the tx result is the module's JSON.
 5. `attest`: `outlayer-verify tx <pubkey tx>`; the record is also at
    `testnet-api.outlayer.ai/attestations/by-tx/<tx>`.
-6. `set-outlayer`, `referee` (send): on `bookerbob.testnet` (anchor delay 0, applies at once).
+6. `set-outlayer`, `referee` (send): on `bookerbob.testnet` (anchor delay 5 minutes since 2026-11-10: queued, then `execute_anchor`).
 7. `market`, `market-execute` (send): one DAO proposal on `bookerbob-gov.sputnikv2.testnet`
    for `market.bookerbob.testnet`, then `execute_anchor` after the 5 minute anchor delay.
 8. `request` (sends): one `request_referee` with a sealed input.

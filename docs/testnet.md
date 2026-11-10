@@ -303,7 +303,7 @@ delay ([9acjdDhG…](https://testnet.nearblocks.io/txns/9acjdDhG8mZmMzKzJoCh6us2
 ([67bo8acd…](https://testnet.nearblocks.io/txns/67bo8acd3xekTUVJwnoKmZNhz1Gd1mjJjhivscTjj8td), public `anchor_queued` event); `execute_anchor` before the delay was
 refused, "timelock: not ready yet" ([75Fpspqo…](https://testnet.nearblocks.io/txns/75FpspqoyPWw4fDzD31fFLB8oYuWx1NrDijRkRCwn7RN)); after it, anyone executed it
 ([65emi7CK…](https://testnet.nearblocks.io/txns/65emi7CKxmByEPhjhFJpEzka2hTNBDZF4mEU5dsY2mPZ)). A watcher has the whole delay to object; the owner can cancel. The live
-bazaar runs the same code with no delay set.
+bazaar ran with no delay until 2026-11-10; since then it is 5 minutes there too ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)).
 
 The cohort DAO at k >= 5 (the panel's action 9) is now live as a buying group's own treasury: see "A buying group's own treasury" below (`lisbon-g1.sputnikv2.testnet`).
 

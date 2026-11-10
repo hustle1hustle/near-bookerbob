@@ -226,7 +226,7 @@ case, reads live from testnet that the key is trusted today, and names the offli
 | a merchant after payment | takes the money and ships nothing | nothing on chain: settle pays on the receipt, delivery is not checked; a refund bond covers an overturned receipt, not a missing parcel. The orders so far are test-store orders | the merchant | (not REP) |
 | **one operator** | the market looks like many parties | the labels on the board (`REP-run`); nothing else: the relayer, treasury, issuer, referee, arbiter, evaluator and all 30 listed merchants are REP | **REP** | can bid against itself and see every funded account; competition on testnet is simulated, one outside agent aside |
 | a merchant agent | a pitch or a claim the buyer never proved | code computes the price, the referee refuses unproven claims, an open-category merchant posts a bond | the merchant | (not REP) |
-| **the owner and the full-access key** | change the rules or redeploy the code | anchor changes can wait out a public delay (0 on the live bazaar); a DAO owns a test bazaar; nothing stops a redeploy by the full-access key | **REP** (one key on `bookerbob.testnet`) | on `bookerbob.testnet`: redeploys any code, so every rule above; on `market` after the lock: only DAO-voted, publicly delayed changes |
+| **the owner and the full-access key** | change the rules or redeploy the code | anchor changes wait out a public delay: 5 minutes on the live bazaar since 2026-11-10 ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)), queued in public, executable by anyone after it, and lowering the delay waits it out too; a DAO owns a test bazaar. The delay covers trust anchors, not the code: nothing stops a redeploy by the full-access key, which would replace every rule at once | **REP** (one key on `bookerbob.testnet`) | on `bookerbob.testnet`: redeploys any code, so every rule above; on `market` after the lock: only DAO-voted, publicly delayed changes |
 | **the VOPRF evaluator** | link one person's purchases across contexts | the nullifier is a VOPRF output of a fresh input the buyer blinded; the buyer checks the proof under the bazaar's anchored `voprf_key`, so no per-buyer key | **REP** (one key, `KEYS_DIR/voprf.seed`; enclave and committee decided, not built) | cannot recompute a nullifier or tie one to the request it came from; can refuse to evaluate, evaluate twice for one person (a sybil, like the issuer key), and see who asked when (timing); purchases before the VOPRF stay linkable |
 
 ### Who sees plaintext, and how many share it
@@ -280,6 +280,14 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   pot to a merchant with no receipt for it. Found by our own audit on 2026-11-06, fixed in the
   code both bazaars run since the 2026-11-10 redeploy (`contract/DEPLOYED.json`). The fixes are
   covered by contract tests; neither attack was replayed on chain before or after.
+- **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
+  full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
+  price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
+  so a swap of a trust key is queued in public; a code swap is not. Giving the account to a DAO
+  and deleting the key closes it and cannot be undone, so it is not done inside the hackathon.
+- **A merchant can stay silent after it sees the other reveals, at no cost.** `reveal_bid` has
+  no bond or forfeit: the commitment stops a merchant from changing its bid, not from
+  withholding it (also Dan's point). Not fixed in the deployed contract.
 - **A round does not check the verdict's context against its category.** `round_best_quote`
   prices any unspent verdict against a round's revealed schedules, so a verdict issued in the
   hoodie context is quoted in the hotel round too. Payment is bound to a round only under a
