@@ -213,6 +213,7 @@ footer p{margin:0 0 10px}
     <p>the zkVM is <a href="https://github.com/a16z/jolt">Jolt</a>, by a16z crypto and contributors. this page runs their prover and verifier, unmodified apart from the two known wasm32 fixes, compiled to WebAssembly at commit <a id="pin" href="https://github.com/a16z/jolt/commit/b4eb62480d76ed8c1f0b16bf7cab6e12f6cda873">b4eb62480d76</a>.</p>
     <p>applied the known wasm32 fixes: a usize multiply that wraps on 32-bit (<a href="https://github.com/a16z/jolt/issues/1913">a16z/jolt#1913</a>) and a smaller tracer reserve (<a href="https://github.com/0xAndoroid/jolt-wasm-prover/tree/main/patches">0xAndoroid/jolt-wasm-prover, patches 0001 and 0009</a>). neither is ours.</p>
     <p>this browser prover is a separate set of crates with its own Jolt pin; the four BookerBob guests whose program hash is registered on chain stay on a16z/jolt 997c1543efd4 and are not touched by it.</p>
+    <p>threads: this page registers one service worker, coi-prove-sw.js, scoped to this page and its files, so the browser allows wasm threads on a host that sends no isolation headers (the coi-serviceworker pattern, our own code). it reloads the page once on a first visit. it stores nothing and sends nothing; without it the page proves on one thread.</p>
     <p>source, build and measured numbers: zk/browser/README.md. exact file sizes: <a href="prove/sizes.json">prove/sizes.json</a>.</p>
   </footer>
 </main>
@@ -228,6 +229,27 @@ const mb = (b) => (b / 1048576).toFixed(b < 10485760 ? 2 : 1);
 const STAGES = ["0", "1", "2", "3", "4", "5", "6a", "6b", "7", "8"];
 const phone = matchMedia("(pointer:coarse)").matches && Math.min(screen.width, screen.height) < 820;
 const device = phone ? "your phone" : "this device";
+
+// Threads need cross-origin isolation, and a plain static host sends no headers for it. A small
+// service worker of ours (coi-prove-sw.js, scoped to this page and prove/) adds them; the page
+// reloads once, guarded by a session flag so it can never loop. Any failure leaves one thread.
+const isolation = await (async () => {
+  const KEY = "coi-prove-reloaded";
+  try {
+    if (crossOriginIsolated) return sessionStorage.removeItem(KEY), "on";
+    if (!isSecureContext || !("serviceWorker" in navigator)) return "this browser or origin has no service workers";
+    if (!(navigator.hardwareConcurrency > 1)) return "this device reports one core";
+    if (sessionStorage.getItem(KEY)) return "the page reloaded once and is still not cross-origin isolated";
+    await navigator.serviceWorker.register("coi-prove-sw.js", { scope: "prove" });
+    await navigator.serviceWorker.ready;
+    sessionStorage.setItem(KEY, "1");
+    location.reload();
+    return new Promise(() => {});
+  } catch (e) {
+    return `the isolation service worker did not start (${e?.message ?? e})`;
+  }
+})();
+const MAX_THREADS = 8;
 
 const [publicText, sizes] = await Promise.all([
   fetch("prove/public.json", { cache: "no-cache" }).then((r) => r.text()),
@@ -254,9 +276,13 @@ $("offers").replaceChildren(...pub.offers.map((o) => {
   d.children[3].textContent = `${lines.join(", ")} (cap ${o.cap_bps / 100}%)`;
   return d;
 }));
-$("gosub").textContent = `${mb(sizes.download.prove)} MB download, one thread, nothing uploaded`;
+const threadsWanted = isolation === "on" && sizes.download.prove_threads ? Math.max(1, Math.min(navigator.hardwareConcurrency || 1, MAX_THREADS)) : 1;
+$("gosub").textContent = threadsWanted > 1
+  ? `${mb(sizes.download.prove_threads)} MB download, ${threadsWanted} threads, nothing uploaded`
+  : `${mb(sizes.download.prove)} MB download, one thread, nothing uploaded`;
 fetch("prove/measured.json").then((r) => r.json()).then((m) => {
-  $("expect").textContent = `for scale: ${m.prove_s.toFixed(1)} s in ${m.browser} on ${m.machine}, one thread. no phone has been timed on this page yet; yours will be the measurement.`;
+  const t = threadsWanted > 1 && m.threads ? m.threads : m.single;
+  $("expect").textContent = `for scale: ${t.prove_s.toFixed(1)} s in ${m.browser} on ${m.machine}, ${t.threads === 1 ? "one thread" : t.threads + " threads"}. no phone has been timed on this page yet; yours will be the measurement.`;
 }).catch(() => {});
 $("pb").textContent = `a ${(sizes.native.proof_bytes / 1024).toFixed(0)} KB proof`;
 $("cy").textContent = `a ${sizes.cycles.toLocaleString("en-US")}-cycle run`;
@@ -279,9 +305,9 @@ function fail(why, step) {
   state("error");
 }
 
-function begin(mode) {
+function begin(mode, threads = threadsWanted) {
   kind = mode;
-  run = { events: [], seg: -1 };
+  run = { events: [], seg: -1, threads, fellBack: threads < threadsWanted };
   proof = null;
   for (const id of ["download", "start", "trace", "prove", "verify"]) { stage(id, ""); $(`v-${id}`).textContent = ""; }
   for (const id of ["start", "trace", "prove"]) $(`s-${id}`).classList.toggle("skip", mode === "check");
@@ -298,7 +324,7 @@ function begin(mode) {
   worker = new Worker("prove/worker.js", { type: "module" });
   worker.onerror = (e) => fail(e.message || "the worker failed to load", "start");
   worker.onmessage = ({ data }) => on(data);
-  worker.postMessage({ load: mode, threads: 1 });
+  worker.postMessage({ load: mode, threads });
 }
 
 // Stage progress from inside the wasm prover, as each Jolt stage opens.
@@ -322,6 +348,8 @@ new BroadcastChannel("bookerbob-prove").onmessage = ({ data }) => {
 };
 
 function on(m) {
+  // The threaded build could not start here: say nothing false, run the single-thread build.
+  if (m.error && kind === "prove" && run.threads > 1 && m.step !== "prove") return (run.threadError = m.error), begin("prove", 1), (run.threadError = m.error);
   if (m.error) return fail(run?.panic ? `${m.error}\n${run.panic}` : m.error, m.step);
   if (m.bytes) {
     $("dlbar").style.width = `${Math.min(100, (m.bytes.seen / m.bytes.total) * 100)}%`;
@@ -379,7 +407,9 @@ async function finish() {
       cell(run.cycles.toLocaleString("en-US"), "cycles", `padded to 2^${Math.log2(run.padded)}`),
       cell((p.memoryBytes / 1048576).toFixed(0), "MB", "wasm memory, peak"),
     ];
-    fine = `one thread: a plain static host sends no cross-origin isolation headers, so the single-thread build ran. downloaded ${mb(run.ready.downloadBytes)} MB in ${(run.ready.downloadMs / 1000).toFixed(1)} s. `;
+    fine = (run.ready.threads > 1
+      ? `${run.ready.threads} threads of the ${navigator.hardwareConcurrency} this device reports (cap ${MAX_THREADS}): a service worker of this page (coi-prove-sw.js) turned on cross-origin isolation for it. `
+      : `one thread: ${run.threadError ? `the threaded build did not start (${run.threadError})` : isolation === "on" ? "the threaded build is not shipped" : isolation}, so the single-thread build ran. `) + `downloaded ${mb(run.ready.downloadBytes)} MB in ${(run.ready.downloadMs / 1000).toFixed(1)} s. `;
   } else {
     $("tag").textContent = "verified";
     $("say").textContent = `${device} just checked the proof that the agent followed the rules.`;
@@ -397,6 +427,7 @@ async function finish() {
     const h = [...new Uint8Array(await crypto.subtle.digest("SHA-256", proof))].map((b) => b.toString(16).padStart(2, "0")).join("");
     fine += `proof sha-256 ${h.slice(0, 16)}... `;
     if (kind === "prove" && h === sizes.native.proof_sha256) fine += "byte for byte the proof the native prover makes (prove/sample-proof.bin): this build is deterministic. ";
+    window.__result_sha = h;
   } catch {}
   $("fine").textContent = fine;
   const save = Object.assign(document.createElement("button"), { textContent: "save proof.bin" });

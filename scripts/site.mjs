@@ -18,7 +18,9 @@ const FILES = ["swarm.html", "swarm.json", "built.json", ...Object.values(OPTION
 // The prove page (a Jolt proof made in the visitor's browser) ships its built files as they
 // are committed under agents/prove/ (zk/browser/build.sh makes them; the build needs Rust).
 const walk = (d) => readdirSync(join("agents", d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]));
-if (existsSync("agents/prove.html")) FILES.push(...walk("prove"));
+// coi-prove-sw.js: the page's own service worker (scope prove only) adds the cross-origin
+// isolation headers a static host cannot send, so the threaded prover can run.
+if (existsSync("agents/prove.html")) FILES.push(...walk("prove"), "coi-prove-sw.js");
 mkdirSync("site/out", { recursive: true });
 for (const f of FILES) {
   mkdirSync(dirname(join("site", f)), { recursive: true });

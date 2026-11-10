@@ -1,11 +1,21 @@
 {
-  "note": "one thread, headless, from python3 -m http.server. three runs: 20.60 s, 21.02 s, 20.97 s. written by hand from zk/browser/README.md, not by build.sh. no phone has been timed on this page.",
+  "note": "headless, from python3 -m http.server. single: four runs, 20.60 to 21.02 s. threads: five runs, 5.65 to 5.78 s, 8 threads of 11 cores, isolation from agents/coi-prove-sw.js. written by hand from zk/browser/README.md, not by build.sh. no phone has been timed on this page.",
   "machine": "an Apple M3 Pro laptop",
   "browser": "headless Chrome 157",
-  "threads": 1,
-  "prove_s": 21.0,
-  "verify_ms": 365,
-  "proof_bytes": 78527,
-  "cycles": 39159,
-  "wasm_memory_bytes": 56950784
+  "single": {
+    "threads": 1,
+    "prove_s": 21.0,
+    "verify_ms": 365,
+    "proof_bytes": 78527,
+    "cycles": 39159,
+    "wasm_memory_bytes": 56950784
+  },
+  "threads": {
+    "threads": 8,
+    "prove_s": 5.7,
+    "verify_ms": 360,
+    "proof_bytes": 78527,
+    "cycles": 39159,
+    "wasm_memory_bytes_max": 74907648
+  }
 }

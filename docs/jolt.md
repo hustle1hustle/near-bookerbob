@@ -98,8 +98,11 @@ registers.
 `agents/prove.html` proves one more guest, `decide`, in the visitor's own browser: it reprices
 the 8 hotel offers with the same `zkcore` price rule and checks the agent's pick (listed, priced
 by code, inside the budget, the cheapest that fits). 39,159 cycles, padded to 2^16; native
-prove 1.53 s, verify 28 ms, proof 78,527 bytes (Apple M3 Pro, 11 threads); headless Chrome on
-one thread about 21 s, and the browser's proof is byte for byte the native one. The page then
+prove 1.53 s, verify 28 ms, proof 78,527 bytes (Apple M3 Pro, 11 threads); headless Chrome
+5.7 s on 8 threads and about 21 s on one, and the browser's proof is byte for byte the native
+one. A static host sends no cross-origin isolation headers, so the page registers its own
+small service worker (`agents/coi-prove-sw.js`, scope `prove` only) that adds them; without it
+the page falls back to one thread and says so. The page then
 verifies the same proof against a claim changed by one unit and shows it refused.
 
 It is a separate crate set (`zk/browser/`) on a newer Jolt, rev `b4eb62480d76`, because that

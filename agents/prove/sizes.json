@@ -15,23 +15,29 @@
     "single/bookerbob_prove_wasm.js": 10976,
     "single/bookerbob_prove_wasm_bg.wasm.gz": 3431241,
     "single/snippets/bookerbob-prove-wasm-8d669238bb3c104d/inline0.js": 161,
+    "threads/bookerbob_prove_wasm.js": 15529,
+    "threads/bookerbob_prove_wasm_bg.wasm.gz": 3644587,
+    "threads/snippets/bookerbob-prove-wasm-8d669238bb3c104d/inline0.js": 161,
+    "threads/snippets/wasm-bindgen-rayon-38edf6e439f6d70d/src/workerHelpers.js": 4570,
     "verifier.bin": 197427,
     "verifier.wasm.gz": 1606526,
     "worker.js": 5411
   },
   "unzipped": {
     "verifier.wasm": 4228097,
-    "single/bookerbob_prove_wasm_bg.wasm": 11319009
+    "single/bookerbob_prove_wasm_bg.wasm": 11319009,
+    "threads/bookerbob_prove_wasm_bg.wasm": 17645337
   },
   "download": {
     "prove": 5554435,
+    "prove_threads": 5767781,
     "check": 1882480
   },
   "native": {
     "machine": "Apple M3 Pro",
     "threads": 11,
-    "prove_s": 1.5309325,
-    "verify_ms": 27.952375,
+    "prove_s": 1.3931652909999999,
+    "verify_ms": 27.086375,
     "proof_bytes": 78527,
     "proof_sha256": "3ffc20c1f1888c4196f6d68f61b1585c5ab20ed1eed5dbc014cc25f61db1104f",
     "refused": [

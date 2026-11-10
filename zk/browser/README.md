@@ -115,15 +115,17 @@ cycles, padded to 2^16.
 |---|---|---|---|---|---|
 | native (`decide-host build`) | 11 | 1.53 s | 28 to 29 ms | 78,527 bytes | preprocessing 0.85 s |
 | headless Chrome 157, `prove.html`, from `python3 -m http.server` | 1 | 20.60 s, 21.02 s, 20.97 s, 20.97 s | 357 to 368 ms | 78,527 bytes | wasm memory 54.3 MB (56,950,784 bytes), prover start 0.7 s |
+| headless Chrome 157, `prove.html`, threads on (see Threads) | 8 | 5.65 s, 5.68 s, 5.74 s, 5.78 s, 5.77 s | 356 to 363 ms | 78,527 bytes | wasm memory 69 to 75 MB, prover start 0.7 s |
 | headless Chrome 157, `prove.html#check` | 1 | none | 362 to 366 ms | 78,527 bytes | 1.80 MB download |
 | node 22, `check.mjs` | 1 | none | 351 ms | 78,527 bytes | |
 
 Inside the browser prove (one run): trace 18 ms, Jolt stage 0 (Dory commit) 12.4 s, stages 1 to 7
-(sumchecks) 1.5 s, stage 8 (Dory opening) 7.1 s. The two Dory stages are 93% of the time, which
-is where threads would pay.
+(sumchecks) 1.5 s, stage 8 (Dory opening) 7.1 s. The two Dory stages are 93% of the time. With
+8 threads (one run): stage 0 2.4 s, stages 1 to 7 0.8 s, stage 8 about 2.5 s.
 
 The browser proof is byte for byte the native one (sha-256 `3ffc20c1f1888c41...`, in
-`sizes.json`): without `zk` the prover uses no randomness.
+`sizes.json`), on one thread and on 8 threads, in every run above: without `zk` the prover uses
+no randomness.
 
 Refusals: the native verifier refused 6 changed statements, the wasm verifier 9 changed
 statements and one flipped proof bit (`check.mjs`), and the page refused price + 1 and
@@ -139,25 +141,52 @@ Sizes, exact, from `agents/prove/sizes.json`:
 | file | bytes |
 |---|---|
 | `single/bookerbob_prove_wasm_bg.wasm.gz` | 3,431,241 (11,319,009 unzipped) |
+| `threads/bookerbob_prove_wasm_bg.wasm.gz` | 3,644,587 (17,645,337 unzipped) |
 | `verifier.wasm.gz` | 1,606,526 (4,228,097 unzipped) |
 | `prover.bin` (prover preprocessing) | 296,233 |
 | `verifier.bin` (verifier preprocessing) | 197,427 |
 | `guest.elf` | 23,008 |
 | `sample-proof.bin` | 78,527 |
-| download, prove mode | 5,554,435 |
+| download, prove mode, one thread | 5,554,435 |
+| download, prove mode, threads | 5,767,781 |
 | download, `#check` mode | 1,882,480 |
 
 The wasm files are gzipped at build time and gunzipped in the page with `DecompressionStream`,
 because GitHub Pages and `python3 -m http.server` send them without a content-encoding. Building
 twice on this machine gave the same byte counts for both.
 
+## Threads
+
+`THREADS=1 zk/browser/build.sh` also builds the prover with wasm threads (atomics, std rebuilt
+with `-Z build-std` under `RUSTC_BOOTSTRAP=1`, wasm-bindgen-rayon 1.3; needs
+`rustup component add rust-src`) into `agents/prove/threads/`. The committed files were built
+that way.
+
+Wasm threads need `SharedArrayBuffer`, which a page only gets when it is cross-origin isolated,
+and GitHub Pages and `python3 -m http.server` send no such headers. `agents/coi-prove-sw.js` is a
+small service worker that relays the page's own files with
+`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp` and
+`Cross-Origin-Resource-Policy: same-origin`. The pattern is the known coi-serviceworker one
+([gzuidhof/coi-serviceworker](https://github.com/gzuidhof/coi-serviceworker)); the file is our
+own code and loads nothing from elsewhere.
+
+- Scope: `prove.html` registers it with scope `prove`, so the browser gives it only URLs that
+  start with `.../prove` (`prove.html` and `prove/`). The handler checks the path again. Other
+  pages (`board.html`, `swarm.html`) are never controlled by it. The file has to sit in `agents/`
+  because a service worker cannot control a page above its own folder.
+- First visit: the page registers the worker and reloads once. A session flag stops a second
+  reload, so it cannot loop.
+- Fallback: no service workers, one reported core, a failed registration, still not isolated
+  after the reload, or a threaded build that fails to start: the single-thread build runs and the
+  page says which of these it was. Tested by forcing the "reloaded once" flag in a fresh profile:
+  20.92 s on one thread, same proof.
+- Threads used: `min(navigator.hardwareConcurrency, 8)`. The page shows the number.
+
 ## Not done
 
-- Threads. `build.sh` carries the recipe behind `THREADS=1` (atomics, rebuilt std,
-  wasm-bindgen-rayon; needs `rustup component add rust-src`), but it was not built or run here, the page never asks for it, and Pages
-  needs a cross-origin-isolation service worker whose scope has to cover `prove.html` (a file in
-  `agents/`, not `agents/prove/`).
-- A real phone run, Safari and Firefox. Only headless Chrome was driven.
+- A real phone run, Safari and Firefox. Only headless Chrome was driven, for the service worker
+  and the threads too.
+- More than 8 threads, or any other count than 8, was not measured.
 - `wasm-opt`. Not installed here; the sizes are straight from rustc and wasm-bindgen.
 - Under 2^15 cycles. The guest costs about 720 cycles per schedule rule to deserialize and as
   much again to match, mostly `String` allocation in the shared price types; 32,768 would halve
@@ -176,7 +205,7 @@ The code here is this repo's own; these are the ideas it took.
 - Count downloaded bytes against a published `sizes.json` for a real progress bar.
 - A verifier with a plain C ABI and no JS glue, which rebuilds the public inputs from `public.json`.
 - Show a refusal by verifying the same proof against a statement with one number changed.
-- The threaded build recipe (atomics, `-Z build-std`, wasm-bindgen-rayon, the worker import fix), kept in `build.sh` and not run here.
+- The threaded build recipe (atomics, `-Z build-std`, wasm-bindgen-rayon, the worker import fix). The Mumbai build got its isolation headers from its own server; the service worker here is new.
 - The iPhone timing above, as that build's reference number.
 
 New in this repo: the `decide` guest over BookerBob's price rule and board data, one shared
