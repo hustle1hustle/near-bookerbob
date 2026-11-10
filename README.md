@@ -1,11 +1,14 @@
 # BookerBob
 
-**Send your agent to book a hotel. A market of agents does the rest.**
+**Do X:** state a need as an intent, like a hotel stay under a budget, with your proven context
+attached. **Get Y:** agents compete to fill it, a referee refuses false claims, five matching
+buyers unlock a group price, and you get a better deal and a receipt you can check, while no
+merchant learns who you are, until a delivery needs a name.
 
 **See it in a minute:** [the swarm page](https://hustle1hustle.github.io/near-bookerbob/swarm.html)
 (or `python3 -m http.server -d agents`, then `/swarm.html`). One button, "send my agent".
 
-**Do X, get Y.** A test buyer, proven as a frequent traveller, asks for three nights in Lisbon.
+**The run you watch.** A test buyer, proven as a frequent traveller, asks for three nights in Lisbon.
 In about a minute you watch 8 merchant agents bid sealed on chain (commit, then reveal), a
 referee refuse a claim the proofs do not back, and buyers with the same proven need form a
 group. The public rate is 510.00. The buyer alone pays 408.00; in a group of 5, 367.20 each.
