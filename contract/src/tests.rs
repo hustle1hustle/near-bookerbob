@@ -3218,6 +3218,35 @@ mod sealed_referee_input {
         let _ = c.request_referee("owner/referee".into(), input);
         assert!(near_sdk::test_utils::get_created_receipts().iter().any(|r| r.receiver_id.as_str() == "outlayer.testnet"));
     }
+
+    /// OutLayer's worker reads the three limits as plain numbers: `{}` or a null would not parse.
+    #[test]
+    fn the_request_names_every_resource_limit_as_a_number() {
+        let mut c = with_outlayer();
+        let pk = bookerbob_referee_worker::sealed::public_hex(&[5u8; 32]);
+        let s = bookerbob_referee_worker::sealed::seal(&pk, b"{\"v\":0}", [9u8; 32], [1u8; 24]).unwrap();
+        let input = serde_json::json!({ "sealed": s }).to_string();
+        let _ = c.request_referee("owner/referee".into(), input.clone());
+        let receipts = near_sdk::test_utils::get_created_receipts();
+        let args: Vec<serde_json::Value> = receipts
+            .iter()
+            .filter(|r| r.receiver_id.as_str() == "outlayer.testnet")
+            .flat_map(|r| r.actions.iter())
+            .filter_map(|a| match a {
+                near_sdk::mock::MockAction::FunctionCallWeight { method_name, args, .. } if method_name == b"request_execution" => {
+                    Some(serde_json::from_slice(args).unwrap())
+                }
+                _ => None,
+            })
+            .collect();
+        assert_eq!(args.len(), 1);
+        assert_eq!(args[0]["resource_limits"], serde_json::json!({ "max_instructions": 1_000_000_000u64, "max_memory_mb": 128, "max_execution_seconds": 60 }));
+        assert!(args[0]["resource_limits"].as_object().unwrap().values().all(|v| v.is_u64()));
+        // The rest of the call is as before.
+        assert_eq!(args[0]["source"], serde_json::json!({ "Project": { "project_id": "owner/referee", "version_key": null } }));
+        assert_eq!(args[0]["input_data"], serde_json::json!(input));
+        assert_eq!(args[0]["response_format"], serde_json::json!("Text"));
+    }
 }
 
 #[test]

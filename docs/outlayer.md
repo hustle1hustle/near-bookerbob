@@ -30,7 +30,7 @@ own quote. A receipt is stored on the verdict; a refusal emits `receipt_refused`
 stores nothing. `settle` requires a receipt for that merchant and price.
 
 `request_referee(project_id, input_data)` calls `request_execution` on the configured
-OutLayer contract (`set_outlayer`) with a `Project` source, empty `resource_limits` (see "Open" below)
+OutLayer contract (`set_outlayer`) with a `Project` source, explicit `resource_limits` (see "Open" below)
 and `response_format: "Text"`, then `on_referee_result`.
 
 ## Trust
@@ -134,15 +134,20 @@ real proof set should not go through this path.
 
 ## Open before and during the live run
 
-- **`resource_limits` through the bazaar.** `request_referee` passes `resource_limits: {}`. The
-  OutLayer contract reads that as limits with every field absent and writes them into its event
-  as nulls (`contract/src/lib.rs` `ResourceLimits`, `contract/src/execution.rs`), and the
-  worker's event parser has those three fields as plain numbers
-  (`worker/src/event_monitor.rs`, `ResourceLimits`). From the source, such a request may never
-  be picked up. The coordinator between them is closed source, so this is not settled until one
-  request is sent. If it fails, the fix is one line in the bazaar (pass `null` or explicit
-  limits) and a redeploy; until then a direct `request_execution` with explicit limits plus
-  `submit_referee_result` (anyone may relay) gives the same receipt.
+- **`resource_limits` through the bazaar.** The deployed `request_referee` passes
+  `resource_limits: {}`. The OutLayer contract reads that as limits with every field absent and
+  writes them into its event as nulls (`contract/src/lib.rs` `ResourceLimits`,
+  `contract/src/execution.rs`), and the worker's event parser has those three fields as plain
+  numbers (`worker/src/event_monitor.rs`, `ResourceLimits`). From the source, such a request may
+  never be picked up. In code, not deployed: the bazaar now passes all three as numbers,
+  `{max_instructions: 1000000000, max_memory_mb: 128, max_execution_seconds: 60}`, the values of
+  OutLayer's own `request_execution` example and of its `ResourceLimits::default()`
+  (fastnear/near-outlayer `contract/README.md` and `contract/src/lib.rs`, read at commit
+  `3ace187`), and the ones `scripts/outlayer-go.mjs` already sends; a contract test reads them
+  back from the promise arguments. The coordinator between contract and worker is closed
+  source, so this is still not settled until one request is sent. Until a redeploy, a direct
+  `request_execution` with explicit limits plus `submit_referee_result` (anyone may relay)
+  gives the same receipt.
 - **The attestation record's schema** is not in OutLayer's public OpenAPI. The check is
   `outlayer-verify tx <hash>` (`github.com/out-layer/outlayer-verify`), which reads the record,
   Intel's collateral and the chain itself.

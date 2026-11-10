@@ -199,6 +199,14 @@ pub struct MerchantQuote {
     pub quote: Quote,
 }
 
+/// Limits `request_referee` asks OutLayer for: the values of its own `request_execution`
+/// example and of `ResourceLimits::default()` (fastnear/near-outlayer `contract/README.md`,
+/// `contract/src/lib.rs`). Passed in full, because the OutLayer worker parses all three as
+/// plain numbers (`worker/src/event_monitor.rs`) and an empty object reaches it as nulls.
+pub const OUTLAYER_MAX_INSTRUCTIONS: u64 = 1_000_000_000;
+pub const OUTLAYER_MAX_MEMORY_MB: u32 = 128;
+pub const OUTLAYER_MAX_EXECUTION_SECONDS: u64 = 60;
+
 #[ext_contract(ext_outlayer)]
 #[allow(dead_code)]
 trait OutLayer {
@@ -2725,7 +2733,11 @@ impl Bazaar {
             .with_static_gas(GAS_OUTLAYER)
             .request_execution(
                 serde_json::json!({ "Project": { "project_id": project_id, "version_key": null } }),
-                serde_json::json!({}),
+                serde_json::json!({
+                    "max_instructions": OUTLAYER_MAX_INSTRUCTIONS,
+                    "max_memory_mb": OUTLAYER_MAX_MEMORY_MB,
+                    "max_execution_seconds": OUTLAYER_MAX_EXECUTION_SECONDS,
+                }),
                 input_data,
                 "Text".into(),
             )
