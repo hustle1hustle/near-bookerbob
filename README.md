@@ -39,7 +39,10 @@ states a need (a hotel for five, under a budget, with proven context) and other 
 to fulfil it. BookerBob is that market working on testnet today, and its pieces map onto the
 same shape: sealed bids are solvers competing, the referee and its receipts are settlement
 anyone can check, standing says which solvers to trust, and the group price is batching. This
-is a direction, not a claim beyond what the table below marks live.
+is a direction, not a claim beyond what the table below marks live. Where the analogy breaks
+today (no intent object for a single purchase, schedules instead of per-intent bids, a fixed
+group tier instead of a clearing price) is listed in [docs/solvers.md](docs/solvers.md), which
+also shows how an outside solver sees a round.
 
 **Check it in 3 commands** (Node 22; the first two need no keys and no build):
 
@@ -264,6 +267,12 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   pot to a merchant with no receipt for it. Found by our own audit on 2026-11-06, fixed in the
   code both bazaars run since the 2026-11-10 redeploy (`contract/DEPLOYED.json`). The fixes are
   covered by contract tests; neither attack was replayed on chain before or after.
+- **A round does not check the verdict's context against its category.** `round_best_quote`
+  prices any unspent verdict against a round's revealed schedules, so a verdict issued in the
+  hoodie context is quoted in the hotel round too. Payment is bound to a round only under a
+  mandate that names it (the Leash). And "k >= 5" is two rules: a merchant's cohort line counts
+  verdicts per predicate, a buying group's tier counts distinct World-bound persons
+  (docs/solvers.md, "Mismatches found").
 - **A sealed verdict hides predicates, the price does not.** L10 prints which bit sets each
   settled amount leaves; on m01 every amount so far leaves one. Buying groups on a fixed tier
   do not decode, which is why the k-gate routes small sets there.
