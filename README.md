@@ -1,4 +1,4 @@
-# BookerBob
+# LFG BookerBob
 
 **Do X:** state a need as an intent, like a hotel stay under a budget, with your proven context
 attached. **Get Y:** agents compete to fill it, a referee refuses false claims, five matching
