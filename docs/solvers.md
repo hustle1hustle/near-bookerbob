@@ -81,12 +81,11 @@ category (`lib.rs:2020`). Merchants bid before any buyer is known to the round.
    revealed costs the merchant since the 2026-11-10 redeploy (the paragraph after this list).
 4. Winner: `round_best_quote(round_id, nullifier) -> Option<{merchant, quote}>` (`:2192-2209`).
    Panics before `reveal_until_ms`. For each revealed merchant still approved, price the verdict
-   with that merchant's current schedule; lowest price wins; a tie keeps the earlier entry in
-   reveal order (strict `<`, `:2204`). The round stores no schedule (`Round`, `:159-166`), so
-   in category `open`, where a bonded merchant stays approved on a re-register (`:1207-1210`),
-   a merchant can reveal, read its rivals, register a lower schedule and be returned as the
-   winner. Status: open as of 2026-11-11, not fixed in the deployed contract (README, Known
-   limits). It does not check the TCB floor (`best_quote` does,
+   with that merchant's pinned bid (its current schedule when the round has no pin); lowest price wins; a tie keeps the earlier entry in
+   reveal order (strict `<`, `:2204`). Since the 2026-11-11 redeploy `reveal_bid` pins
+   the opened schedule for the round and the winner is priced from the pin (`round_bid`);
+   rounds revealed earlier have no pin and are priced from the current schedule, which in
+   category `open` a bonded merchant could change after its reveal (README, Known limits). It does not check the TCB floor (`best_quote` does,
    `:2563`) and does not check that the verdict's context matches the round's category.
 5. Receipt. `request_referee(project_id, input_data)` (`:2713`, sealed input only, forwards to
    OutLayer) or any relayer calling `submit_referee_result(result: WorkerResult)` (`:2706`).
@@ -136,8 +135,8 @@ the cohort line when k >= `k_min`, never above base (`price.rs:116-142`, shared 
 non-revealed bits and cannot raise a price above its base. In an owner-approved category it
 cannot change a schedule after committing without losing the round: a re-register drops its
 approval and `round_best_quote` skips it, unless the owner approves the new schedule. In
-`open` it can today: a bonded merchant stays approved on a re-register and the round prices
-its current schedule, so the sealed bid does not bind after the reveal (step 4 above). It can
+`open` a bonded merchant stays approved on a re-register, and since the 2026-11-11 redeploy
+the round prices the bid pinned at the reveal, not the new schedule (step 4 above). It can
 choose a different base each round, subject to the owner's price anchor.
 
 ## 4. Buying groups

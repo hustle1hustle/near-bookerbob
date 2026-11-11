@@ -1,4 +1,5 @@
-# Daily recheck of the live testnet claims: `make verify-live` re-derives every claim in
+# Recheck of the live testnet claims, twice a day (GitHub can skip a scheduled slot; the
+# second one is the insurance): `make verify-live` re-derives every claim in
 # fixtures/live/testnet-manifest.json over public RPC. It needs no keys and writes nothing.
 # A red run here means a live claim no longer holds or public RPC was down; the log says which.
 # Old txs are read from a public archival RPC that rate-limits, so a run can take many minutes.
@@ -7,6 +8,7 @@ name: live
 on:
   schedule:
     - cron: "17 6 * * *"
+    - cron: "47 15 * * *"
   workflow_dispatch:
 
 permissions:

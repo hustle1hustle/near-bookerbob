@@ -23,6 +23,20 @@
   td.p { text-align: right; white-space: nowrap; } tr.win td { background: var(--blue-soft); }
   .sealed { color: var(--dim); }
   pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font: 13px/1.6 ui-monospace, Menlo, monospace; }
+  .play { margin: 22px 0 8px; padding: 18px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .play h2 { margin: 0 0 10px; }
+  label { display: block; font: 12px ui-monospace, Menlo, monospace; color: var(--dim); margin: 12px 0 4px; }
+  input { width: 100%; max-width: 340px; padding: 12px; font: 17px ui-monospace, Menlo, monospace; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+  input:focus { outline: 2px solid var(--blue); border-color: var(--blue); }
+  button { margin-top: 14px; padding: 13px 20px; font: 600 16px -apple-system, "Inter", sans-serif; color: #fff; background: var(--blue); border: 0; border-radius: 6px; cursor: pointer; }
+  button.ghost { background: none; border: 1px solid var(--line); color: var(--dim); font-weight: 400; font-size: 13px; padding: 8px 12px; }
+  button:disabled { opacity: .45; cursor: default; }
+  #steps { list-style: none; padding: 0; margin: 14px 0 0; font: 13px/1.7 ui-monospace, Menlo, monospace; }
+  #steps li.ok::before { content: "ok  "; color: var(--green); } #steps li.run::before { content: "..  "; color: var(--dim); } #steps li.bad::before { content: "no  "; color: #ff6b6b; }
+  #steps a { color: var(--dim); }
+  .mine { margin-top: 12px; font: 14px/1.6 ui-monospace, Menlo, monospace; }
+  .warn { color: #ffb86b; }
+  [hidden] { display: none !important; }
   h2 { font-size: 22px; margin: 40px 0 10px; letter-spacing: -.01em; }
 </style>
 </head>
@@ -33,18 +47,32 @@
 <p>anyone can be a merchant in this round, on their own NEAR testnet account and their own key. you pick one price. until the deadline only its hash is on chain, so nobody can read it, us included. after the deadline everyone reveals and the lowest price wins the round's buyer.</p>
 <p class="small">testnet only. dUSDC is a test token with no value. nothing here can take or pay real money. a bid that is never revealed costs 1 dUSDC of the 10 dUSDC bond.</p>
 
+<section class="play" id="play">
+  <h2 id="play-title">place your sealed bid</h2>
+  <div id="form">
+    <p class="small">no wallet, no install, no signup. this page makes you a throwaway NEAR testnet account and keeps its key in this browser only. use the same browser to come back and reveal.</p>
+    <label for="name">a name for your account (a-z, 0-9, -)</label>
+    <input id="name" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="32">
+    <label for="price">your price, 0.01 to 10000</label>
+    <input id="price" inputmode="decimal" autocomplete="off" placeholder="33.5">
+    <br><button id="bid">seal my bid</button>
+  </div>
+  <div class="mine" id="mine" hidden></div>
+  <button id="reveal" hidden>reveal my bid</button>
+  <ul id="steps"></ul>
+  <p class="small warn" id="note" hidden></p>
+  <p><button class="ghost" id="export" hidden>show my throwaway testnet key</button></p>
+  <pre id="keybox" hidden></pre>
+</section>
+
 <div class="status" id="status"><span class="dot off"></span>reading the round over public RPC</div>
 <table id="bids"><thead><tr><th>merchant account</th><th>who</th><th class="p">price</th></tr></thead><tbody></tbody></table>
 <p class="small" id="foot"></p>
 
-<h2>join in two commands</h2>
-<p>you need git and Node 22. no wallet, no install, no key of ours: the script makes you a fresh testnet account from the public faucet and keeps its key on your disk.</p>
-<pre id="how">git clone https://github.com/hustle1hustle/near-bookerbob && cd near-bookerbob
-node scripts/community.mjs bid &lt;your-name&gt; &lt;your-price&gt;      # before the bid deadline
-node scripts/community.mjs reveal &lt;your-name&gt;                # after it, before reveals close</pre>
-<p class="small">the full guide: <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/community-round.md">docs/community-round.md</a>. the contract: <a id="acct" href="https://testnet.nearblocks.io/address/bookerbob.testnet">bookerbob.testnet</a>.</p>
+<p class="small">power users: the same round from a terminal, on your own account, in <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/community-round.md">docs/community-round.md</a>. the contract: <a id="acct" href="https://testnet.nearblocks.io/address/bookerbob.testnet">bookerbob.testnet</a>.</p>
 </main>
-<script>
+<script type="module">
+import * as tx from "./round-tx.js";
 const RPCS = ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org"];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 async function view(account, method, args) {
@@ -58,7 +86,7 @@ async function view(account, method, args) {
   }
   throw err;
 }
-const when = (ms) => new Date(ms).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+const when = (ms) => new Date(ms).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " your time";
 const left = (ms) => { const m = Math.max(0, Math.round((ms - Date.now()) / 60000)); return m >= 120 ? Math.round(m / 60) + " h" : m + " min"; };
 async function draw() {
   const st = document.getElementById("status"), body = document.querySelector("#bids tbody"), foot = document.getElementById("foot");
@@ -76,7 +104,7 @@ async function draw() {
     const rows = [];
     for (const [who, hash] of r.commits) {
       let price = null;
-      if (r.revealed.includes(who)) price = Number((await view(cfg.bazaar, "merchant", { merchant: who })).schedule.base_price) / 1e6;
+      if (r.revealed.includes(who)) price = Number((await view(cfg.bazaar, "round_bid", { round_id: round, merchant: who })).base_price) / 1e6;
       rows.push({ who, hash, price });
     }
     rows.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
@@ -85,6 +113,87 @@ async function draw() {
     foot.textContent = closed ? (rows[0]?.price != null ? "lowest revealed price wins: " + rows[0].who + " at " + rows[0].price.toFixed(2) + "." : "no bid was revealed.") : "prices appear here as each bidder reveals. accounts marked ours are our own merchant agents; every other account holds its own key.";
   } catch (e) { st.innerHTML = '<span class="dot off"></span>could not read the round: ' + esc(e.message); }
 }
+// ---- bid and reveal from this page ----
+const FAUCET = "https://helper.nearprotocol.com/account";
+const KEY = "bookerbob-community-v1";
+const $ = (id) => document.getElementById(id);
+const store = { get() { try { return JSON.parse(localStorage.getItem(KEY) ?? "null"); } catch { return null; } }, set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); return true; } catch { return false; } } };
+const link = (h) => '<a href="https://testnet.nearblocks.io/txns/' + esc(h) + '">' + esc(h.slice(0, 8)) + "..</a>";
+function step(text) { const li = document.createElement("li"); li.className = "run"; li.textContent = text; $("steps").appendChild(li); return { ok(h) { li.className = "ok"; if (h) li.innerHTML = esc(text) + "  " + link(h); }, bad(e) { li.className = "bad"; li.textContent = text + ": " + e; } }; }
+async function sent(text, p) { const s = step(text); const r = await p; if (!r.ok) { s.bad(r.error); throw new Error(text + " failed"); } s.ok(r.hash); return r.hash; }
+let cfg = null, round = null;
+async function roundNow() { cfg = await (await fetch("community.json", { cache: "no-store" })).json(); const id = new URLSearchParams(location.search).get("round") ?? cfg.round; round = id ? { id, ...(await tx.view(cfg.bazaar, "round", { round_id: id })) } : null; return round; }
+function words() { const a = ["quiet", "brisk", "amber", "lucky", "polar", "mellow", "rapid", "sly"], b = ["otter", "heron", "lynx", "finch", "marten", "tern", "ibex", "wren"]; const r = crypto.getRandomValues(new Uint8Array(3)); return a[r[0] % 8] + "-" + b[r[1] % 8] + "-" + (r[2] % 90 + 10); }
+async function paint() {
+  const st = store.get();
+  let r; try { r = await roundNow(); } catch { r = null; }
+  const mine = st && r && st.round === r.id ? st : null;
+  const now = Date.now();
+  $("export").hidden = !st;
+  if (!r) { $("form").hidden = true; $("play-title").textContent = "no round is open right now"; return; }
+  if (!mine) {
+    const open = now < r.commit_until_ms;
+    $("form").hidden = !open; $("play-title").textContent = open ? "place your sealed bid" : "bids are closed for this round";
+    if (!$("name").value) $("name").value = st?.account ? st.account.replace(/\.testnet$/, "") : words();
+    if (st?.account) $("name").disabled = true;
+    return;
+  }
+  $("form").hidden = true; $("mine").hidden = false;
+  const revealed = r.revealed.includes(mine.account);
+  const committed = r.commits.some(([w]) => w === mine.account);
+  $("play-title").textContent = revealed ? "your bid is revealed" : committed ? "your bid is sealed" : "finish your bid";
+  $("mine").innerHTML = "account " + esc(mine.account) + "<br>your price " + esc(mine.price) + (revealed ? ", public now" : ", known only to this browser") +
+    (revealed ? "" : committed ? (now < r.commit_until_ms ? "<br>come back to this page between " + when(r.commit_until_ms) + " and " + when(r.reveal_until_ms) + " and press reveal." : now < r.reveal_until_ms ? "<br>reveals are open until " + when(r.reveal_until_ms) + "." : "<br>reveals closed. this bid was never opened: the bond can lose 1 dUSDC.") : "");
+  $("reveal").hidden = !(committed && !revealed && now >= r.commit_until_ms && now < r.reveal_until_ms);
+  if (!committed && now < r.commit_until_ms) { $("form").hidden = false; $("name").value = mine.account.replace(/\.testnet$/, ""); $("name").disabled = true; $("price").value = mine.price; }
+}
+$("bid").onclick = async () => {
+  const btn = $("bid"); btn.disabled = true; $("steps").innerHTML = ""; $("note").hidden = true;
+  try {
+    const r = await roundNow();
+    if (!r || Date.now() >= r.commit_until_ms) throw new Error("bids are closed");
+    const name = $("name").value.trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9-]{3,30}[a-z0-9]$/.test(name)) throw new Error("name: 5 to 32 of a-z 0-9 -, like quiet-otter-7");
+    const schedule = tx.flatSchedule($("price").value.trim());
+    let st = store.get();
+    if (!st) {
+      const id = name + ".testnet";
+      if (await tx.accountExists(id)) throw new Error(id + " is taken on testnet, pick another name");
+      const seed = tx.randomHex();
+      st = { account: id, seed, pub: await tx.publicKeyHex(seed), txs: {} };
+      if (!store.set(st)) throw new Error("this browser blocks page storage (private mode?). open the page in a normal tab");
+      const s = step("a fresh testnet account " + id + " from the public faucet");
+      const f = await fetch(FAUCET, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ newAccountId: id, newAccountPublicKey: tx.nearPublicKey(st.pub) }) });
+      if (!f.ok) { localStorage.removeItem(KEY); s.bad("the faucet answered " + f.status + ". try again in a minute"); throw new Error("faucet"); }
+      for (let i = 0; i < 20 && !(await tx.accountExists(id)); i++) await new Promise((ok) => setTimeout(ok, 1500));
+      s.ok();
+    }
+    const me = (receiver_id, actions) => tx.send({ signer_id: st.account, seedHex: st.seed, pubHex: st.pub, receiver_id, actions });
+    const dusdc = cfg.dusdc ?? "bookerbob-dusdc.testnet";
+    if (!(await tx.view(dusdc, "storage_balance_of", { account_id: st.account }))) st.txs.storage = await sent("register for the test token", me(dusdc, [tx.call("storage_deposit", {}, 1250n * 10n ** 18n, 30n)]));
+    const m0 = await tx.view(cfg.bazaar, "merchant", { merchant: st.account });
+    if (!m0?.approved && BigInt(await tx.view(dusdc, "ft_balance_of", { account_id: st.account })) < 10000000n) st.txs.mint = await sent("mint 100 dUSDC (a test token, no value)", me(dusdc, [tx.call("mint", {}, 0n, 30n)]));
+    if (!m0) st.txs.register = await sent("register as a merchant, category open", me(cfg.bazaar, [tx.call("register_merchant", { schedule: tx.flatSchedule(10000), category: "open", payout: null }, 20n * 10n ** 21n, 30n)]));
+    if (!m0?.approved) st.txs.bond = await sent("bond 10 dUSDC: approved by the bond, nobody lets you in", me(dusdc, [tx.call("ft_transfer_call", { receiver_id: cfg.bazaar, amount: "10000000", msg: "bond" }, 1n, 100n)]));
+    st.round = r.id; st.price = $("price").value.trim(); st.schedule = schedule; st.salt = st.round_salt?.[r.id] ?? tx.randomHex();
+    st.round_salt = { ...(st.round_salt ?? {}), [r.id]: st.salt };
+    store.set(st);
+    st.txs.commit = await sent("sealed bid: only a hash goes on chain", me(cfg.bazaar, [tx.call("commit_bid", { round_id: r.id, commitment: await tx.bidCommitment(st.account, schedule, st.salt) }, 20n * 10n ** 21n, 30n)]));
+    store.set(st);
+  } catch (e) { $("note").hidden = false; $("note").textContent = e.message; }
+  btn.disabled = false; await paint(); draw();
+};
+$("reveal").onclick = async () => {
+  const btn = $("reveal"); btn.disabled = true; $("steps").innerHTML = ""; $("note").hidden = true;
+  try {
+    const st = store.get(); const r = await roundNow();
+    st.txs.reveal = await sent("reveal: the contract checks your price against your hash", tx.send({ signer_id: st.account, seedHex: st.seed, pubHex: st.pub, receiver_id: cfg.bazaar, actions: [tx.call("reveal_bid", { round_id: r.id, schedule: st.schedule, salt: st.salt }, 20n * 10n ** 21n, 50n)] }));
+    store.set(st);
+  } catch (e) { $("note").hidden = false; $("note").textContent = e.message; }
+  btn.disabled = false; await paint(); draw();
+};
+$("export").onclick = () => { const st = store.get(); const box = $("keybox"); box.hidden = !box.hidden; box.textContent = "a throwaway NEAR testnet key. it holds test tokens only.\n" + JSON.stringify({ account_id: st.account, public_key: tx.nearPublicKey(st.pub), private_key: tx.nearSecretKey(st.seed, st.pub) }, null, 2); };
+paint(); setInterval(paint, 30000);
 draw(); setInterval(draw, 30000);
 </script>
 </body>

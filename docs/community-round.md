@@ -11,39 +11,38 @@ and nothing asks for a wallet, an email or a login.
 The live round, its deadlines and every bid so far:
 `https://hustle1hustle.github.io/near-bookerbob/round.html`, or `node scripts/community.mjs board`.
 
-## Join: two commands, two visits
+## Join from a browser: one page, two visits
+
+Open `https://hustle1hustle.github.io/near-bookerbob/round.html` on a phone or a laptop.
+No wallet, no install, no signup.
+
+1. Type a price and press "seal my bid". The page makes a throwaway NEAR testnet account for
+   you through the public faucet, mints 100 dUSDC, posts the 10 dUSDC bond (the bond is the
+   approval: nobody lets you in) and sends the sealed bid. It takes about half a minute and
+   each step links to its transaction. The transaction carries a hash, not the price.
+2. Come back to the same page in the same browser between the bid deadline and the reveal
+   deadline and press "reveal my bid". The contract checks the price against your hash, so
+   nobody can change a price after seeing the others. Your price then shows on the board.
+
+The key of the throwaway account is made in your browser and stays in that page's storage.
+It never reaches us. "show my throwaway testnet key" prints it if you want to keep it. A
+private tab forgets it when closed, and then the bid cannot be opened: use a normal tab.
+
+## Join from a terminal (the same round, the same contract calls)
 
 You need git and Node 22. Nothing is installed and no key of ours is used.
 
 ```
 git clone https://github.com/hustle1hustle/near-bookerbob && cd near-bookerbob
 node scripts/community.mjs bid <your-name> <your-price>
+node scripts/community.mjs reveal <your-name>      # after the bid deadline
+node scripts/community.mjs board
 ```
 
-`<your-name>` is 5 to 32 of `a-z 0-9 -`, for example `quiet-otter-7`. `<your-price>` is a
-number, for example `33.5`. You see, each with its explorer link:
-
-1. `<your-name>.testnet` created by the public NEAR testnet faucet. Its key is made on your
-   machine and saved to `~/.bookerbob-community/<your-name>.testnet.json`. We never see it.
-2. 100 dUSDC minted to you (the test token lets any account mint).
-3. `register_merchant` in the `open` category and a 10 dUSDC bond. The bond is the approval:
-   no owner step, nobody lets you in.
-4. `commit_bid`: your sealed bid. The transaction carries a hash, not the price.
-
-Then it prints when to come back. Between the bid deadline and the reveal deadline:
-
-```
-node scripts/community.mjs reveal <your-name>
-```
-
-You see `reveal_bid` ok and your price appears on the board. A reveal that does not match
-your hash is refused by the contract, so nobody can change a price after seeing the others.
-
-After the reveal deadline, `node scripts/community.mjs board` and the page name the winner.
-
-Already have a testnet account? Put `JOIN_ACCOUNT=<you>.testnet JOIN_KEY_FILE=<near-cli
-credentials JSON or a hex seed file>` in front of both commands. It pays about 0.03 testnet
-NEAR in gas and storage.
+`<your-name>` is 5 to 32 of `a-z 0-9 -`. The key goes to
+`~/.bookerbob-community/<your-name>.testnet.json`. Already have a testnet account? Put
+`JOIN_ACCOUNT=<you>.testnet JOIN_KEY_FILE=<near-cli credentials JSON or a hex seed file>` in
+front of `bid` and `reveal`.
 
 ## What you can win and lose
 
@@ -54,8 +53,8 @@ NEAR in gas and storage.
 - Lose: nothing. You keep the bond.
 - Stay silent after bidding: anyone may call `mark_unrevealed` within 24 hours of the reveal
   deadline. It takes 1 dUSDC of your bond and bars the account from new rounds for 24 hours.
-  Keep the file in `~/.bookerbob-community/` until you have revealed: the salt in it is the
-  only way to open your bid.
+  The salt that opens your bid is in your browser's page storage (or, from a terminal, in
+  `~/.bookerbob-community/`): keep it until you have revealed.
 
 ## Who else is in the round
 
@@ -69,4 +68,5 @@ can register, bond, bid blind and win, and the contract treats the bid like any 
 
 It does not show real commerce. There is no room, the buyer is our own test buyer with
 synthetic facts, and the token has no value. One bid per account per round, and a round takes
-at most 100 bids. Known limits of the open category are in the README under "Known limits".
+at most 100 bids. A revealed bid is pinned for its round, so a price cannot be changed after
+the reveal; a revealed bidder can still leave the round. Known limits of the open category are in the README under "Known limits".

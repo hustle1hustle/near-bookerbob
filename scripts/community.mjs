@@ -104,7 +104,7 @@ async function main() {
     const rows = [];
     for (const [who, hash] of r.commits) {
       const shown = r.revealed.includes(who);
-      const price = shown ? Number((await client.view(c.bazaar, "merchant", { merchant: who })).schedule.base_price) / 1e6 : null;
+      const price = shown ? Number(((await client.view(c.bazaar, "round_bid", { round_id: c.round, merchant: who })) ?? (await client.view(c.bazaar, "merchant", { merchant: who })).schedule).base_price) / 1e6 : null;
       rows.push({ who, hash, price });
     }
     rows.sort((x, y) => (x.price ?? Infinity) - (y.price ?? Infinity));

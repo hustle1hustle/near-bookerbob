@@ -26,7 +26,7 @@
 // says so. Testnet only; dUSDC is a demo token.
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config, Demo, guard } from "./demo-tester.mjs";
 import { NOTARY_KEY, NOTARY_URL, REP_VERIFY, privacyProblems } from "./device-run.mjs";
@@ -179,11 +179,16 @@ export async function run(c, round, dry, publicLogin, opts = {}) {
   const before = leak();
   console.log(`1. make leak before: ${before.ok ? "PASS" : "FAIL"} (${before.lines.length} lines)`);
   const file = join(dir, `github-${Date.now()}.presentation`);
-  const proveArgs = [file, ...(opts.proxy ? ["--proxy"] : []), ...(publicLogin ? ["--public", publicLogin] : [])];
-  const p = JSON.parse(sh(PROVE_ME, proveArgs, publicLogin ? {} : { PROVE_ME_TOKEN_FILE: opts.tokenFile ?? tokenFile(c) }));
+  // opts.presentation: the owner of the account ran tools/prove-me on their own machine with
+  // their own token and sent only the presentation. The token never reaches this machine.
+  if (opts.presentation) copyFileSync(opts.presentation, file);
+  else {
+    const proveArgs = [file, ...(opts.proxy ? ["--proxy"] : []), ...(publicLogin ? ["--public", publicLogin] : [])];
+    JSON.parse(sh(PROVE_ME, proveArgs, publicLogin ? {} : { PROVE_ME_TOKEN_FILE: opts.tokenFile ?? tokenFile(c) }));
+  }
   const bytes = readFileSync(file);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
-  console.log(`2. notarized ${SERVER} through ${viaRep ? "the REP notary" : notaryUrl} (${opts.proxy ? "proxy" : "MPC-TLS"}): ${bytes.length} bytes, sha256 ${sha256.slice(0, 16)}..`);
+  console.log(`2. ${opts.presentation ? "a presentation made on its owner's machine, notarized" : "notarized"} ${SERVER} through ${viaRep ? "the REP notary" : notaryUrl}${opts.presentation ? "" : ` (${opts.proxy ? "proxy" : "MPC-TLS"})`}: ${bytes.length} bytes, sha256 ${sha256.slice(0, 16)}..`);
   const v = JSON.parse(execFileSync(REP_VERIFY, ["/dev/stdin", notaryKey, "--json"], { input: bytes, encoding: "utf8" }));
   if (!v.key_matches || v.server_name !== SERVER) throw new Error(`not ${SERVER} under the pinned notary key`);
   const kind = requestKind(v.sent ?? "");
@@ -225,6 +230,7 @@ export async function run(c, round, dry, publicLogin, opts = {}) {
     notary_url: notaryUrl,
     notary_key: notaryKey,
     notary_mode: opts.proxy ? "proxy" : "mpc",
+    proved_on: opts.presentation ? "the account owner's own machine, with a token that never left it; this run received the presentation only" : "this machine",
     // The REP notary is one pinned key. A TDX notary's quote is not checked by this script.
     notary_attested: false,
     revealed_fields: ["created_at", "public_repos", "followers"],

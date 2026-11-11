@@ -21,10 +21,13 @@ import { existsSync, statSync } from "node:fs";
 import { config, guard } from "./demo-tester.mjs";
 import { run } from "./prove-me.mjs";
 
-const token = process.env.TOKEN || process.argv[2];
+// PRESENTATION=<file>: the account's owner ran tools/prove-me on their own machine and sent
+// only the presentation (three revealed fields under the notary's signature). No token here.
+const presentation = process.env.PRESENTATION || null;
+const token = presentation ? null : process.env.TOKEN || process.argv[2];
 const round = process.env.ROUND || "builder-1";
-if (!token || !existsSync(token) || statSync(token).size < 10) {
-  console.error("usage: make try TOKEN=<file holding your GitHub token>   (a fine-grained token with no permissions is enough)");
+if (presentation ? !existsSync(presentation) : !token || !existsSync(token) || statSync(token).size < 10) {
+  console.error("usage: make try TOKEN=<file holding your GitHub token>   (a fine-grained token with no permissions is enough)\n       PRESENTATION=<file> make try   (a presentation the account's owner made with tools/prove-me)");
   process.exit(2);
 }
 const c = config(process.env);
@@ -35,8 +38,8 @@ if (no) {
 }
 // A real fact does not go near the model path while a committed key opens a sealed field.
 execFileSync("node", ["scripts/leak-keys.mjs"], { stdio: "inherit" });
-console.log(`make try: you are the buyer. round ${round}, ${process.env.TRY_MPC ? "MPC-TLS" : "proxy mode"}, a one-time implicit account\n`);
-run(c, round, Boolean(process.env.TRY_DRY), null, { tokenFile: token, proxy: !process.env.TRY_MPC, implicit: true, out: `try-${new Date().toISOString().replace(/[:.]/g, "-")}` }).catch((e) => {
+console.log(`make try: you are the buyer. round ${round}, ${presentation ? "the owner's own presentation" : process.env.TRY_MPC ? "MPC-TLS" : "proxy mode"}, a one-time implicit account\n`);
+run(c, round, Boolean(process.env.TRY_DRY), null, { tokenFile: token, presentation, proxy: presentation ? false : !process.env.TRY_MPC, implicit: true, out: `try-${new Date().toISOString().replace(/[:.]/g, "-")}` }).catch((e) => {
   console.error(`\nmake try: STOP ${e.message}`);
   process.exit(1);
 });

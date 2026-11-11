@@ -54,7 +54,7 @@ matters when an input is hidden or the checker is a contract, and neither is tru
 **Three layers, each closing one hole:**
 
 1. **Trust.** A merchant's standing comes only from anonymous ratings by buyers who paid, flows along hire edges at 1/2, and each update is computed under a Jolt proof that can be challenged. So a rating costs a real purchase each time; a merchant can still buy from itself and rate itself (Known limits).
-2. **Competition.** Bid rounds are sealed on chain, and code, not a model, computes every price from the merchant's current schedule. In the `open` category the sealed bid does not yet bind after the reveal (Known limits).
+2. **Competition.** Bid rounds are sealed on chain, and code, not a model, computes every price. A revealed bid is pinned for its round (since 2026-11-11; the limits are in Known limits).
 3. **Context.** The buyer's proven private facts set the price, the referee refuses a false claim, and the group price opens at k >= 5.
 
 **Check it in 3 commands** (Node 22; the first two need no keys and no build):
@@ -147,6 +147,17 @@ winning merchant is paid in USDC on NEAR.
 Built at NEAR HACKATHON (2026-11-01 to 2026-11-14). Prior work is disclosed in
 [PRIOR_WORK.md](PRIOR_WORK.md). Judging in 5 minutes: [docs/judge-guide.md](docs/judge-guide.md). Security
 self-audit: [docs/audit.md](docs/audit.md).
+
+## Who it is for, who pays, why it lasts
+
+- **User.** A person whose agent shops with a few proven facts and gets a better price while no merchant learns who they are; and a merchant who wants to give a proven customer a better price without cutting its public price. Neither exists here yet: the buyers are our test accounts and the 30 listed merchants are ours.
+- **What it saves.** In the hotel replay the public rate is 510.00, the buyer with proven bits pays 408.00, and in a group of 5 each pays 367.20. Testnet rounds, synthetic facts, a test token; nothing was booked.
+- **Who pays.** The merchant: a fee taken out of the price, 1% on testnet, capped at 2% in code, paid to a DAO treasury (`contract/src/lib.rs`, `set_fee`, `sweep_fees`). So far 0.36 dUSDC on one purchase.
+- **What it costs.** About 0.010 NEAR of gas per purchase plus 0.016 NEAR of storage, measured on testnet. At an assumed NEAR price of $2.50 a 1% fee covers a basket of $2.56, or $6.62 with storage.
+- **The honest pair, simulated.** Against a price war on one public price, merchants keep 9.3% to 24.0% more profit in our model. Against fixed prices and no competition, merchant profit falls 57.9%. No merchant has agreed to pay.
+- **Without us.** A merchant joins on its own key with a bond and no owner step, anyone can bid blind in the community round from a browser, every live claim is re-derived daily over public RPC with no keys, and the history anchor has no method to change an entry. What still needs us: an owner opens each round, every trust key is REP's, and no third party has joined yet.
+
+The sources, the after-hackathon steps and what must be true before each: [docs/who-pays.md](docs/who-pays.md).
 
 ## Why a chain, not a server
 
@@ -313,14 +324,18 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
   so a swap of a trust key is queued in public; a code swap is not. Giving the account to a DAO
   and deleting the key closes it and cannot be undone, so it is not done inside the hackathon.
-- **In the `open` category a sealed bid does not bind after the reveal. Status: open as of
-  2026-11-11, not fixed in the deployed contract.** `reveal_bid` checks the opened schedule
-  against the commitment, but a round stores no schedule: `round_best_quote` prices each
-  revealed merchant's current schedule. A bonded `open` merchant stays approved when it calls
-  `register_merchant` again, so it can reveal, read its rivals, register a lower schedule and
-  be returned as the round's winner. In owner-approved categories a re-register drops the
-  approval and the round skips that merchant, so the bid binds there unless the owner approves
-  the new schedule. The hoodie and hotel rounds are owner-approved; `open-1` is `open`. The fix is to pin the revealed schedule in the round.
+- **A revealed bid is pinned for its round since the 2026-11-11 redeploy, with three limits.**
+  Before it, a round stored no schedule and `round_best_quote` priced each revealed merchant's
+  current schedule, so a bonded `open` merchant could reveal, read its rivals, register a
+  lower schedule and be returned as the winner (found by the round 10 review). Now `reveal_bid`
+  stores the opened schedule and the round prices that (`round_bid` is the view). Run once live
+  in round `community-t2`: a bidder revealed 31.00, re-registered at 5.00, and the round still
+  holds it at 31.00 and names the 30.00 bid lowest (`fixtures/live/community/pin.json`). The
+  limits: rounds revealed before the redeploy have no pin (`open-1`, `builder-1` and the
+  hoodie and hotel rounds; the last two are owner-approved, where a re-register drops the
+  approval and the round skips the merchant). A revealed merchant can still leave a round for
+  free by re-registering into another category. And a buyer whose mandate names no round is
+  quoted from current schedules, not from a round's pins.
 - **A merchant that stays silent after it sees the other reveals now pays for it, with three
   limits.** The commitment stops a merchant from changing its bid, not from withholding it
   (Dan's point). Since the 2026-11-10 redeploy (run once live in round `silent-1`:
@@ -488,7 +503,7 @@ Testnet only; nothing is on mainnet. Every tx hash is in [docs/testnet.md](docs/
 
 - `bookerbob.testnet`: the bazaar, owned by one REP key (the "before" exhibit).
 - `market.bookerbob.testnet`: the same bazaar owned by the Sputnik DAO `bookerbob-gov` from block
-  one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key goes in the lock.
+  one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key still exists (it made the redeploys) and is deleted by the lock, which is not done.
 - `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys.
 - `gate.bookerbob.testnet`: the Verdict Gate; `bookerbob-dusdc.testnet`: the demo token.
 - Done in demo mode (dUSDC): 31 purchases (21 single settles: one with the 1% fee, two with a

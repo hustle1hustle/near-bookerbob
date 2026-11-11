@@ -608,3 +608,22 @@ After the reveal deadline another account called `mark_unrevealed`:
 - again on the silent one: refused, "already marked for this round" [97oR8pKf…](https://testnet.nearblocks.io/txns/97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw)
 
 Also on 2026-11-10: `set_anchor_delay(300000)` on `bookerbob.testnet` [4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt).
+
+## A revealed bid is pinned for its round (2026-11-11)
+
+Third redeploy of both bazaars, state kept, market first as a canary (views byte-identical
+before and after on both): `market.bookerbob.testnet`
+[4HEkVJAg…](https://testnet.nearblocks.io/txns/4HEkVJAgYvoYmmhnSC9vMuAbF4BY4KLdKyCeCs8sK5c7),
+`bookerbob.testnet`
+[7j1Wtuv5…](https://testnet.nearblocks.io/txns/7j1Wtuv5Qz8Av6ZWn73yUYiPqXVpS3Xu7C7ax6F2Zu6a).
+Code hash `84HKGEVsAV376LqqDDH7fon4czcMsgUMLZmWA7VLB5zN`, tag `bazaar-2026-11-11`.
+
+Why: in category `open` a bonded merchant could re-register a lower schedule after the
+reveals and the round priced the new one. `reveal_bid` now stores the opened schedule under
+its own storage key and the round prices that. Run once live in round `community-t2` with two
+faucet-made test accounts of ours: both bid sealed and revealed (30.00 and 31.00); the second
+then re-registered at 5.00
+([9fCaWJ4g…](https://testnet.nearblocks.io/txns/9fCaWJ4gunQ6r3JbeXKFyDyjyUrCtQgjSyacc7DiMiFX)).
+`round_bid(community-t2, bb-test-b6282.testnet)` still answers 31.00 and the lowest revealed
+price is the 30.00 bid. Record: `fixtures/live/community/pin.json`. Rounds revealed before
+this redeploy have no pin; the other limits are in the README under Known limits.

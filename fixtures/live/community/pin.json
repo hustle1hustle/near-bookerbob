@@ -1,0 +1,11 @@
+{
+  "note": "the bid pin, run once live on bookerbob.testnet (2026-11-11): two faucet-made test accounts of ours bid sealed and revealed; one then re-registered a cheaper schedule. The round still holds its revealed bid. dUSDC is a testnet demo token with no value.",
+  "round": "community-t2",
+  "open_tx": "9itwXGuZqXThRG6AZoSL8Jqxm3jT7WmaMPoiYX3dwfAg",
+  "bids": [
+    { "account": "bb-test-a6282.testnet", "commit_tx": "559X9ZwAtMz1ryJvRd9U2cZDs3xuNnmxM5cDrnbsT7St", "revealed": "30000000" },
+    { "account": "bb-test-b6282.testnet", "commit_tx": "DmtpA6TPSpjtdiXw3fykpwAwPtunRXfr1orcU1hfAejL", "reveal_tx": "DVcco8ost1aWZ6UrNQPbBioxwYjbZvaJjKmLXCqZr7b6", "revealed": "31000000", "reregister_tx": "9fCaWJ4gunQ6r3JbeXKFyDyjyUrCtQgjSyacc7DiMiFX", "schedule_after_reregister": "5000000", "round_bid_after": "31000000" }
+  ],
+  "lowest_revealed": { "account": "bb-test-a6282.testnet", "price": "30000000" },
+  "deploy_tx": { "bookerbob.testnet": "7j1Wtuv5Qz8Av6ZWn73yUYiPqXVpS3Xu7C7ax6F2Zu6a", "market.bookerbob.testnet": "4HEkVJAgYvoYmmhnSC9vMuAbF4BY4KLdKyCeCs8sK5c7" }
+}
