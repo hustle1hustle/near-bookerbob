@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { problems, render, SHIPPED } from "./status.mjs";
+import { problems, render, setSizes, SHIPPED } from "./status.mjs";
 
 const rows = [{ feature: "f", tracks: "t", where: "`settle`", status: "built", detail: "" }];
 const readme = render(rows);
@@ -46,4 +46,26 @@ test("purchase totals come from the manifest (spent_count's list), check counts 
   const p = problems(readme, rows, {}, stale, src, c);
   for (const w of ["dUSDC purchases", "On testnet", "single settles", "NEAR AI verdict checks", "replays refused"]) assert.ok(p.some((x) => x.includes(w) || x.includes("14 dUSDC")), `${w}: ${p.join("; ")}`);
   assert.deepEqual(problems(readme, rows, {}, { "README.md": `${c.purchases} dUSDC purchases, NEAR AI verdict: 17 checks` }, src, c), []);
+});
+
+test("a doc that calls a live row's method not deployed fails", () => {
+  const rs = [{ feature: "f", tracks: "t", where: "`mark_unrevealed`", status: "live", detail: "reads `bookerbob.testnet`", evidence: [] }];
+  const lib = { ...src, "contract/src/lib.rs": src["contract/src/lib.rs"] + "\npub fn mark_unrevealed(" };
+  const p = problems(render(rs), rs, {}, { "README.md": "No forfeit yet. `mark_unrevealed` (in code, not deployed) makes it cost part of the bond." }, lib, n);
+  assert.ok(p.some((x) => x.includes("`mark_unrevealed` is not deployed")), p.join("; "));
+  assert.deepEqual(problems(render(rs), rs, {}, { "README.md": "`mark_unrevealed` is live. The batch is not deployed." }, lib, n), []);
+});
+
+test("set-size lines must match agents/live.json", () => {
+  const live = { purchases: [
+    { kind: "single", merchant: "m01.bookerbob.testnet", paid: "36000000" },
+    { kind: "single", merchant: "m01.bookerbob.testnet", paid: "36000000" },
+    { kind: "hotel", merchant: "h05.bookerbob.testnet", paid: "408000000" },
+    { kind: "refunded", merchant: "h05.bookerbob.testnet", paid: "0" },
+  ] };
+  const sets = setSizes(live);
+  assert.deepEqual(sets, { amounts: "36.00 x2, 408.00 x1", merchants: "h05: 2 buyers, m01: 2" });
+  assert.deepEqual(problems(readme, rows, {}, { "README.md": "| settled amount | 36.00 x2, 408.00 x1 |" }, src, n, sets), []);
+  const p = problems(readme, rows, {}, { "README.md": "| settled amount | 36.00 x1, 408.00 x1 |\n| merchant | m01: 1 buyers, h05: 1 |" }, src, n, sets);
+  assert.equal(p.length, 2, p.join("; "));
 });

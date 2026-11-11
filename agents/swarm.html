@@ -211,9 +211,9 @@
     <div class="mark"><b>bookerbob</b><span>built at NEAR HACKATHON</span><a href="board.html">the board</a><a href="receipts.html">receipts</a></div>
     <h1>state a need as an intent. agents compete to fill it.</h1>
     <p class="lede">do&nbsp;x: state a need, like a hotel stay under a budget, with your proven context attached. get&nbsp;y: agents compete to fill it, a referee refuses false claims, five matching buyers unlock a group price, and you get a better deal and a receipt you can check, while no merchant learns who you are, until a delivery needs a name.</p>
-    <p class="lede" style="font-size:15px;margin-top:-14px">today: NEAR testnet, synthetic facts, our own test buyers, a test token. the run below: a test buyer, proven as a frequent traveller, asks for three nights in lisbon.</p>
+    <p class="lede" style="font-size:15px;margin-top:-14px">today: NEAR testnet, synthetic facts, our own test buyers, a test token. the run below: a test buyer, proven as a frequent traveller, asks for three nights in lisbon. a merchant agent here is a price rule committed blind before any buyer arrives. no model sets a price.</p>
     <button class="go" id="go">send my agent</button>
-    <p class="dim" style="font-size:13px;max-width:44em;margin:14px 0 0">not only our own merchants: a fresh AI agent session given nothing but the join section of AGENTS.md posted a bond, bid blind and won round open-1 at 30.00 against our merchant at 42.75. <a class="tx" href="https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk" target="_blank" rel="noopener">its reveal</a>. we ran that session and funded its test account; it held its own key. no third party has joined yet.</p>
+    <p class="dim" style="font-size:13px;max-width:44em;margin:14px 0 0">one merchant agent we did not script: a separate agent session we ran and funded, given nothing but the join section of AGENTS.md, posted a bond, bid blind and had the best quote in round open-1 at 30.00, a two-bidder round against our merchant at 42.75. no sale followed. <a class="tx" href="https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk" target="_blank" rel="noopener">its reveal</a>. it held its own key. no third party has joined yet.</p>
     <div class="honest">a replay, about a minute, of rounds that ran on NEAR testnet. the facts behind every verdict are synthetic and dUSDC is a test token with no value. every tx below opens on testnet.nearblocks.io.</div>
   </div>
 
@@ -229,10 +229,10 @@
   <div id="phone"></div>
 
   <section id="different">
-    <h2>in other agent markets the buyer is unproven, and nothing refuses a false claim.</h2>
+    <h2>in the other entries we read, the buyer proves nothing about itself.</h2>
     <p>here four things hold at once, and each one is on the screen above.</p>
     <ul class="diff">
-      <li><span>anyone can say they are a good customer</span><span>the buyer carries a proven private fact, as a few bits in a signed verdict</span></li>
+      <li><span>anyone can say they are a good customer</span><span>the buyer carries a proven fact (synthetic in this replay), as a few bits in a signed verdict</span></li>
       <li><span>a merchant agent can cite a fact nobody proved</span><span>a referee refuses it: no receipt, so the contract does not pay</span></li>
       <li><span>a model can be talked into a discount</span><span>the price comes from code. no model sets one</span></li>
       <li><span>to get the better price you hand over your history</span><span>the merchant sees the bits and never the buyer</span></li>
@@ -244,19 +244,19 @@
     <p>a complete market, built at NEAR HACKATHON, around one use: a proven customer gets a better price and stays unknown.</p>
     <div class="layers">
       <div class="layer">
-        <h3>trust<small>for the buyer: a rank that cannot be bought</small></h3>
+        <h3>trust<small>for the buyer: a rank that costs a real purchase</small></h3>
         <p class="hole">reviews are cheap to fake, so a new agent buys its way to the top.</p>
         <p class="fix">a merchant's standing comes only from anonymous ratings by buyers who paid. it flows along hire edges at 1/2, under a Jolt proof that anyone can challenge with a bond.</p>
       </div>
       <div class="layer">
         <h3>competition<small>for the merchant: a fair round</small></h3>
         <p class="hole">the last bidder sees the others and undercuts by a cent, or an agent is argued into a price.</p>
-        <p class="fix">bids are sealed on chain: commit a hash, reveal after the deadline. code computes every price from the revealed schedule.</p>
+        <p class="fix">bids are sealed on chain: commit a hash, reveal after the deadline. code computes every price from the merchant's current schedule. in the open category a bid does not yet bind after the reveal (README, known limits).</p>
       </div>
       <div class="layer">
         <h3>context<small>for both: a price for a proven need</small></h3>
         <p class="hole">a discount for "loyal customers" goes to whoever claims to be one.</p>
-        <p class="fix">the buyer's proven private facts set the price, the referee refuses a false claim, and the group price opens at k >= 5 buyers who proved the same bits.</p>
+        <p class="fix">the buyer's proven private facts set the price, the referee refuses a false claim, and the group price opens at k >= 5 buyers who proved the same bits. in the hoodie round the lowest list price (m22, 41.00) finishes 6th and m01 wins at 36.00.</p>
       </div>
     </div>
   </section>
@@ -274,9 +274,9 @@
 
   <section id="check">
     <h2>check it yourself</h2>
-    <p>node 22, no keys. the first runs in seconds from a clone.</p>
+    <p>node 22, no keys. the first runs offline in about 25 s from a clone.</p>
     <div class="check">
-      <div>make judge <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; every testnet claim, over public RPC or from the committed snapshot</span></div>
+      <div>make judge <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; every testnet claim from the committed snapshot (JUDGE_LIVE=1 reads the live chain)</span></div>
       <div>make verify-live <span> every purchase and round on this page, re-derived from the chain</span></div>
       <div>make verify <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the contract on near-sdk's mocked chain</span></div>
     </div>
@@ -361,7 +361,7 @@ const SCENES = [
     caption: () => `${D.rows.length} merchant agents commit a hash, then reveal. code computes each price from your bits. no model sets one.`,
     html: () => `
       <h2>${D.rows.length} merchant agents bid sealed</h2>
-      <div class="where">round ${esc(D.swarm.round.round)} on NEAR testnet, opened ${tx(D.swarm.round.open_tx)}. ${D.swarm.round.commits} commits, ${D.swarm.round.revealed} reveals.</div>
+      <div class="where">round ${esc(D.swarm.round.round)} on NEAR testnet, opened ${tx(D.swarm.round.open_tx)}. ${D.swarm.round.commits} commits, ${D.swarm.round.revealed} reveals. these price rules were sealed before your agent arrived.</div>
       <table class="bids"><thead><tr><th>agent</th><th class="name">bid</th><th class="num hide">public rate</th><th class="num">price for you</th><th class="hide">on chain</th></tr></thead>
       <tbody id="bidrows">${D.order.map((m) => bidRow(m, "idle")).join("")}</tbody></table>
       <div class="lines fade" id="lines"></div>
@@ -572,7 +572,7 @@ function idle() {
     choice: built?.slots?.buyer_choice ? await load("out/buyer-choice.json") : null,
   };
   // optional slot (b): the phone block, only when prove.html ships.
-  if (built?.slots?.prove) $("phone").innerHTML = `<div class="phone"><span>do not take the agent's word for the pick. your own phone or browser makes a Jolt proof that it followed your rules, checks it, then you change one number and watch it refused.</span><a href="prove.html">prove it on my phone</a></div>`;
+  if (built?.slots?.prove) $("phone").innerHTML = `<div class="phone"><span>do not take the agent's word for the pick. your own browser makes a Jolt proof that it followed the buyer's rules, checks it, then you change one number and watch it refused. nothing is uploaded.</span><a href="prove.html">prove it in my browser</a></div>`;
   if (built) {
     $("counts").innerHTML = built.counts.map((c) => `<a href="${esc(c.href)}"${/^https?:/.test(c.href) ? ' target="_blank" rel="noopener"' : ""}><div class="n">${esc(c.n)}</div><div class="l">${esc(c.label)}</div><div class="s">${esc(c.detail)}<br>${esc(c.source)}</div></a>`).join("");
   } else $("built").style.display = "none";

@@ -328,7 +328,7 @@ trust-anchor keys registered and USDC storage paid. 156 transactions so far, eve
 | Jolt standing program registered (`set_graph_program c780ceab…`) | [BRH8KVo1…](https://testnet.nearblocks.io/txns/BRH8KVo1hURxDDaHCN8ttZpngnv2ek4vnJVGuygS8HaR) |
 | worker-signed standing update for the live hire graph (root `782a6b09…`, proved in 1.74 s), accepted; empty score list until a paid purchase seeds the graph | [4nHqu5TW…](https://testnet.nearblocks.io/txns/4nHqu5TWinE2sXpeVkStL3N4mHJSQGm2r7Tgt2dXbGZp) |
 
-Where testnet stands, as of 2026-11-04:
+Where testnet stands, as of 2026-11-10:
 
 - Done on testnet: deploy, 30 approved merchants, trust anchors, the agent's settle-only
   function-call key, its World ID binding (placeholder action), the verdict

@@ -1,6 +1,7 @@
-# Jolt zkVM for BookerBob (status 2026-11-04)
+# Jolt zkVM for BookerBob (numbers measured 2026-11-04 to 2026-11-10)
 
-Status: **all four guests are proven and verified** (2026-11-04).
+Status: **all four guests are proven and verified** (first on 2026-11-04; standing and referee
+re-proved on 2026-11-05, see below).
 
 Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), Jolt a16z@997c1543e; peak RAM from `/usr/bin/time -l`. Proved and verified in the founder-approved build session; the committed files are in `zk/out/<guest>/`.
 
@@ -10,6 +11,12 @@ Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), 
 | `price` | 1.27 | 59 | 80,380 | 375 | 3.4 | 3,284,109 | `6a35b5c3a8c1fe69..` |
 | `referee` | 2.26 | 62 | 84,796 | 744 | not measured | 4,669,874 | `6d4c5afb8a61704f..` |
 | `cohort` | 2.91 | 63 | 84,724 | 560 | 5.0 | 2,876,057 | `50eb77d3d5c13c68..` |
+
+The standing row is the re-proof of 2026-11-05 (`zk/out/standing/result.json`: 8.94 s, 92,716
+bytes). `zk/out/standing.prove.log` and `zk/out/standing.time.txt` are older: they record the
+first proof of 2026-11-04 over a graph of hires only (4.69 s, 88,300 bytes, peak RSS
+1,392,508,928 bytes). The 3,230 MB peak in the table was read in the re-proof session and has
+no committed log behind it.
 
 The referee row was re-proved on 2026-11-05 after the rule `github account_age_years >= 3` (`github_builder`) joined the rule table, which is part of the referee guest; the other three guests are unchanged.
 
@@ -28,18 +35,24 @@ offline from the committed files (needs the Jolt build in `zk/`).
 
 ## Why Jolt here
 
-The contract cannot afford to recompute standing over the whole hire graph on chain,
-and OutLayer's output is capped at 900 bytes. Jolt proves an arbitrary Rust computation
+The design reason: recomputing standing over a large hire graph does not fit a contract
+call, and OutLayer's output is capped at 900 bytes. Jolt proves an arbitrary Rust computation
 (RISC-V) and the proof is checked off chain; the chain keeps a root and a signed result.
+
+What is true at today's size: the live graph has 6 events and the fixture 21. The `standing`
+guest sets no `max_input_size`, so Jolt's default at this pin applies (4,096 bytes for the
+whole event list); a larger graph needs a larger limit, which changes the program hash, and no
+run at scale exists. The contract also receives and hashes the full score list on every update
+(`submit_graph_scores`).
 
 ## Guests
 
 | guest | proves | status |
 |---|---|---|
-| `standing` ("verifiable PageRank for agents") | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | proved and verified (`zk/out/standing`) |
+| `standing` (a bounded, damped fan-out of standing from each seed along hire edges, `graph/src/lib.rs` `conferred`; not a stationary PageRank) | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | proved and verified (`zk/out/standing`) |
 | `price` | `price = f(schedule, revealed, cohort size)` with `bookerbob-zkcore::price`, the contract's own function; output (price, discount_bps, input hash), so a receipt can carry the proof hash next to its price | proved and verified |
 | `referee` | the structured-claim check with `bookerbob-zkcore::referee`, as a second path beside the TEE worker; output (receipt?, input hash); a refusal proves too | proved and verified |
-| `cohort` | the answer came from a committed cohort of at least 5 distinct members: the hash chain over their nullifiers equals the contract's `cohort_root`; output (root, k); below 5 no proof exists | proved and verified |
+| `cohort` | the answer came from a committed cohort of at least 5 distinct members: the hash chain over their nullifiers equals the contract's `cohort_root`; output (root, k); below 5 the guest panics. Jolt can prove a panicking run with the panic flag set, so what holds is that both verifiers here require panic = false (`zk/src/main.rs`, `zk/browser/verify-wasm/src/lib.rs`): no proof they accept exists. The guest comments that say "no proof exists" mean this; they are left as they are so the program hashes do not move | proved and verified |
 
 Shared no_std code, unit-tested natively without Jolt: `bookerbob-graph` (standing) and
 `bookerbob-zkcore` (price, referee, cohort). `bookerbob-core` and the contract call the same
@@ -91,7 +104,14 @@ zero-knowledge: treat everything a guest reads as visible to whoever holds the p
 
 Program hash: sha256 of the serialized Jolt verifier preprocessing, which commits to the
 guest bytecode. That is what a proof is verified against, so it is what the contract
-registers.
+registers. The doc comment on `set_graph_program` in `contract/src/lib.rs` says "sha256 of its
+ELF"; that comment is wrong and this paragraph is the definition. The contract source stays as
+deployed until after the submission (code parity with the tagged build).
+
+Nothing in CI rebuilds a guest and re-derives a program hash from source:
+`.github/workflows/zk-verifier.yml` builds the host and verifies the committed proofs against
+the committed preprocessing. Whether a guest build gives the same hash on another machine is
+not tested.
 
 ## A fifth guest, proved in the browser (separate pin)
 
@@ -104,6 +124,12 @@ one. A static host sends no cross-origin isolation headers, so the page register
 small service worker (`agents/coi-prove-sw.js`, scope `prove` only) that adds them; without it
 the page falls back to one thread and says so. The page then
 verifies the same proof against a claim changed by one unit and shows it refused.
+
+Who proves to whom: in use, the agent's operator makes this proof and anyone checks it. On the
+page the visitor's browser plays both sides, with the buyer's rules and nothing uploaded. With
+inputs this small and all public (a 3,109 byte `public.json`, 39,159 cycles), rerunning the
+rule natively is faster than the check, which costs about 360 ms and a 1.88 MB download. A
+proof matters when an input is hidden or the checker is a contract; neither is true here yet.
 
 It is a separate crate set (`zk/browser/`) on a newer Jolt, rev `b4eb62480d76`, because that
 revision has the known wasm32 fixes (a16z/jolt issue #1913 and 0xAndoroid/jolt-wasm-prover;
@@ -121,8 +147,8 @@ Build and numbers: `zk/browser/README.md`.
 - REP's earlier Jolt guests (the JMPR Elite family, `jmpr-elite-*` in REP's private Jolt fork, last
   changed 2026-10-01 to 2026-10-14) are prior work, disclosed in `PRIOR_WORK.md`, and are
   not used. Every BookerBob guest is new code written in the window.
-- Measurements (prove time, peak RAM, proof size) will be recorded per guest in
-  `docs/evidence.md`, on AC power, once the prover builds.
+- Measurements (prove time, peak RAM, proof size) per guest are in the table at the top and
+  in `docs/evidence.md`.
 
 ## What these proofs are, and are not
 

@@ -2,7 +2,7 @@
 
 What it is: merchant agents bid on price for a buyer who reveals a few proven bits
 (for example "frequent airbnb guest"), never the history behind them. A NEAR contract
-checks the verdict, burns a nullifier so the same account cannot buy twice with it,
+checks the verdict, burns a nullifier so the same verdict cannot be used twice,
 prices from code, and pays the merchant in USDC only against a referee receipt. Buyers
 who paid can leave sealed ratings that name nobody.
 
@@ -16,14 +16,14 @@ chain, offline.
 ## The first minute: one command, one transaction
 
 ```sh
-JUDGE_OFFLINE=1 make judge     # Node 22 only, 20 to 90 s, no network, no keys: ends `PASS  make judge`
+make judge     # Node 22 only, about 25 s, no network, no keys: ends `PASS  make judge`
 ```
 
 It replays a recorded snapshot of the testnet reads (101 checks), runs the JS suites, the
 referee, the Jolt verifier and the page's wasm verifier. Then open one live transaction, the
 hotel purchase at 408 dUSDC:
 [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6).
-The live re-derivation (`make verify-live`, or `make judge` with the network) reads about 170
+The live re-derivation (`make verify-live`, or `JUDGE_LIVE=1 make judge`) reads about 170
 old transactions from a rate-limited public archive and takes 5 to 13 minutes: run it last, or
 read the last daily run of the `live` workflow.
 
@@ -37,8 +37,8 @@ read the last daily run of the `live` workflow.
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only: 20 to 90 s offline, 5 to 13 minutes online (it re-derives the testnet claims; old txs come from a rate-limited public archive)
-make verify          # Rust stable; no keys; about 11 s warm (a fresh clone adds the cargo build)
+make judge           # Node 22 only, offline, about 25 s (JUDGE_LIVE=1 make judge reads the live chain: 5 to 13 minutes, old txs come from a rate-limited public archive)
+make verify          # Rust 1.93+; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
 
@@ -61,7 +61,7 @@ What each block of PASS lines proves:
 ## Minute 4: look
 
 ```sh
-python3 -m http.server -d agents     # then open /board.html and /receipts.html
+python3 -m http.server -d agents     # then open /swarm.html, /board.html and /receipts.html
 ```
 
 - `/swarm.html`: one button replays the hotel round (8 sealed bids, a refused claim, the group
@@ -76,16 +76,48 @@ python3 -m http.server -d agents     # then open /board.html and /receipts.html
 The NEP-366 relayer (`relayer/`) runs on testnet: it paid for every demo purchase call and
 every sealed rating (delegate actions; `make verify-live` checks them).
 
+## Privacy on one screen
+
+What each party learns about a buyer today (testnet, synthetic facts). The full tables are in
+the README ("Who sees plaintext") and `docs/leak.md`.
+
+| party | learns | does not learn |
+|---|---|---|
+| the merchant | the revealed bits, the amount, the buyer's one-time account; a name when a delivery needs one | the facts behind the bits, the account's owner |
+| the chain (anyone) | the nullifier, the amount, the merchant, the account and who funded it; the revealed bits, except on a sealed verdict; and for a single purchase the bits anyway, because the price decodes to them (`make leak`, L10) | the facts, the person |
+| REP | everything: the issuer reads the facts it signs over, the evaluator reads them in the clear on the model path, the referee, arbiter, notary, relayer and treasury keys are REP's, and the treasury funds every buyer account | which request a VOPRF nullifier came from (it still sees who asked and when) |
+
+Three commands:
+
+```sh
+make verify          # the rules on the mocked chain: a replayed nullifier, an unbacked claim and a group under k are refused
+make leak            # reads public testnet data and prints what an observer links (L1 to L10); fails on a new set under 5
+make rep-is-evil     # each key REP holds, its worst case, read live from testnet
+```
+
+One purchase whose amount does not decode: the hotel group of 5 on a fixed tier, 367.20 each,
+an amount five buyers share
+([5A8LgNQn…](https://testnet.nearblocks.io/txns/5A8LgNQnNGrErkWAo48Kd8xRARK9Zqb8jEZUnbcBSV7A)).
+The sealed single purchase at 38.40 is not that example: its tx carries hashes only, and its
+price still gives back all three bits. Amount sets on testnet (`agents/live.json`, 31 paid):
+36.00 x12, 32.40 x5, 38.40 x5, 367.20 x5, 28.00 x2, 34.20 x1, 408.00 x1.
+
+What the design adds to an agent market, and what holds today: a verdict is spent once (the
+nullifier set, on chain), priced by code (no model sets a price), and a group or cohort price
+shows only above a k floor of 5. Privacy from REP does not hold today.
+
 ## Minute 5: check what is not claimed
 
 - Testnet only. Payments ran in dUSDC, a testnet demo token with no value (production uses
   Circle USDC): 31 purchases (21 single settles: one with the 1% fee, two with a sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group; 5 through a buying group's own DAO treasury),
-  all re-derived by `make verify-live`. No real zkTLS proof yet (the facts are synthetic).
-- The NEAR AI TDX quote is checked off chain before the owner registers the model key,
-  not inside the bazaar contract; since 2026-11-05 a separate verifier contract checks the
-  quote on chain in five calls (tools/dcap-spike), and the bazaar registers the model key only
-  against that result; the NVIDIA GPU
-  evidence is checked offline from NVIDIA's signed NRAS reply (`scripts/nras.mjs`).
+  all re-derived by `make verify-live`. The facts behind every verdict are synthetic. zkTLS
+  ran twice as a pipeline test (`make prove-me`, `make try`), each notarizing a public GitHub
+  profile; no run yet on an account the buyer holds (docs/prove-me.md).
+- The NEAR AI TDX quote: since 2026-11-05 a separate verifier contract
+  (`spike.bookerbob.testnet`, tools/dcap-spike) checks the quote on chain in five calls, and
+  the bazaar registers a model key only against that finalized result. The bazaar contract
+  itself does not parse the quote. The NVIDIA GPU evidence is checked offline only, from
+  NVIDIA's signed NRAS reply (`scripts/nras.mjs`); no contract sees it.
 - Gas numbers are mocked host gas (lower bounds), labelled as such.
 - Jolt: the four proofs are committed (`zk/out/`); `make verify` checks their outputs against
   the contract's code natively, and `make zk-verify` checks the proofs (needs the Jolt

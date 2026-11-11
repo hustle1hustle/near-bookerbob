@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// `make judge`: the fast path, about a minute from a clean clone (the public RPC rate-limits), Node 22 only (no cargo,
-// no npm install, no keys). It checks what is committed and what is on testnet:
-//   1. every testnet claim, re-derived over public RPC (scripts/verify-live.mjs)
+// `make judge`: the fast path, about 25 s on a warm laptop, Node 22 only (no cargo, no npm install,
+// no keys, no network). It checks what is committed:
+//   1. every testnet claim, re-derived from the committed RPC snapshot (scripts/verify-live.mjs
+//      with SNAPSHOT_REPLAY=1). `JUDGE_LIVE=1 make judge` re-derives them over public RPC
+//      instead: 5 to 13 minutes, because old txs come from a rate-limited public archive.
 //   2. the committed Jolt proofs' outputs equal the committed inputs' expected values, and
 //      each program hash is sha256 of its committed verifier preprocessing
 //   3. the JS test suites (relayer, demo mode, UCP/Shopify handler, MCP, x402, SDK)
@@ -22,19 +24,23 @@ const line = (ok, what, detail = "") => {
 console.log("make judge: fast path (Node and the committed Jolt verifier; deep path: make verify, make zk-verify)\n");
 
 // 1. testnet
-// No network (a sandboxed judge): SKIP the live checks, replay the committed RPC snapshot,
-// and check the snapshot's sha256. With network: the live checks, one retry for flaky RPC.
-// JUDGE_OFFLINE=1 forces the snapshot path (to test it); otherwise a 6 s probe decides.
-const online = process.env.JUDGE_OFFLINE !== "1" && await fetch(process.env.NEAR_RPC || "https://test.rpc.fastnear.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "status", params: [] }), signal: AbortSignal.timeout(6000) }).then(() => true, () => false); // any HTTP answer, even a 429, means there is a network
+// Default: offline. Replay the committed RPC snapshot and check its sha256, so the first
+// command finishes in any shell. JUDGE_LIVE=1 asks for the live chain: a 6 s probe decides
+// whether there is a network, then the live checks run with one retry for flaky RPC.
+// JUDGE_OFFLINE=1 still forces the snapshot path, whatever else is set.
+const wantLive = process.env.JUDGE_LIVE === "1" && process.env.JUDGE_OFFLINE !== "1";
+const online = wantLive && await fetch(process.env.NEAR_RPC || "https://test.rpc.fastnear.com", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "status", params: [] }), signal: AbortSignal.timeout(6000) }).then(() => true, () => false); // any HTTP answer, even a 429, means there is a network
 if (!online) {
   const snapFile = `${root}fixtures/live/rpc-snapshot/snapshot.json`;
   const want = readFileSync(`${root}fixtures/live/rpc-snapshot/SHA256`, "utf8").split(" ")[0];
   const got = createHash("sha256").update(readFileSync(snapFile)).digest("hex");
-  console.log("SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)");
+  console.log(wantLive
+    ? "SKIP  testnet: JUDGE_LIVE=1 but no network here, so the live RPC checks are skipped (not failed)"
+    : "SKIP  testnet live checks: offline by default, the committed RPC snapshot is replayed instead (JUDGE_LIVE=1 make judge reads the live chain, 5 to 13 minutes)");
   line(got === want, "testnet snapshot: committed RPC responses match their sha256", `${got.slice(0, 12)}..`);
   const rep = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 60_000, env: { ...process.env, SNAPSHOT_REPLAY: "1" } });
   const taken = JSON.parse(readFileSync(snapFile, "utf8")).taken_at;
-  line(rep.status === 0, `testnet snapshot: every claim re-derived from the snapshot taken ${taken}`, `${(rep.stdout.match(/^PASS /gm) ?? []).length} checks; rerun with network for the live chain`);
+  line(rep.status === 0, `testnet snapshot: every claim re-derived from the snapshot taken ${taken}`, `${(rep.stdout.match(/^PASS /gm) ?? []).length} checks; JUDGE_LIVE=1 make judge or make verify-live for the live chain`);
 }
 // Public testnet RPC can drop a request under load: one retry, and the failures are printed.
 // Too slow is not wrong: a run cut off by the limit with no FAIL is a SKIP, and only a check that
@@ -62,7 +68,7 @@ line(mk.status === 0, "make market-eval: the published table is what the code co
 const forge = spawnSync("node", ["scripts/forge-poc.mjs", "verify"], { cwd: root, encoding: "utf8" });
 line(forge.status === 0, "the attack the evaluator closes: the model attested a typed fact (make forge-poc), the contract refuses it unsigned", "README, Known limits");
 const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
-line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
+line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, no live method called not deployed, set sizes equal to agents/live.json, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
 
 // 1b2. NVIDIA GPU evidence: the saved NRAS reply, its signatures and claims, offline.
 if (existsSync(`${root}fixtures/live/near-ai/nras.json`)) {
@@ -102,7 +108,7 @@ for (const [v, what] of [["v2", "600 tokens: the budget result"], ["v3", "2,000 
     for (const a of dep.accounts) hashes.push(await hashOf(a));
     if (hashes.some((h) => !h) && hashes.every((h) => !h || h === dep.code_hash)) console.log(`SKIP  code parity: public RPC unreachable after retries on ${rpcs.length} endpoints (DEPLOYED.json names ${dep.code_hash.slice(0, 10)}.., tag ${dep.tag})`);
     else line(hashes.every((h) => h === dep.code_hash), `code parity: ${dep.accounts.join(" and ")} run the tagged build ${dep.tag} (make wasm-parity rebuilds it)`, hashes.map((h, i) => `${dep.accounts[i].split(".")[0]} ${h?.slice(0, 10)}..`).join(", ") + `; DEPLOYED ${dep.code_hash.slice(0, 10)}..`);
-  } else console.log(`SKIP  code parity: no network (DEPLOYED.json names ${dep.code_hash.slice(0, 10)}.., tag ${dep.tag})`);
+  } else console.log(`SKIP  code parity: ${wantLive ? "no network" : "offline run, JUDGE_LIVE=1 reads the on-chain code hash"} (DEPLOYED.json names ${dep.code_hash.slice(0, 10)}.., tag ${dep.tag})`);
 }
 
 // 2. committed Jolt artifacts

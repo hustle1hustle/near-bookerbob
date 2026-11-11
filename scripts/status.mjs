@@ -3,7 +3,9 @@
 //   node scripts/status.mjs           rewrite the table between the status markers
 //   node scripts/status.mjs --check   FAIL when the README differs from docs/status.json,
 //                                     when a `live` row names evidence the testnet manifest
-//                                     lacks, or when a stale phrase is back in the docs
+//                                     lacks, when a stale phrase is back in the docs, when a
+//                                     doc calls a method of a live row "not deployed", or when
+//                                     the set-size lines differ from agents/live.json
 // Status words: live (on testnet, re-derived by make verify-live), built (tests or make verify,
 // not on testnet), stub (an interface with a test double), planned, archived.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -34,7 +36,20 @@ export const STALE = [
   "32 of 32",
   "32/32",
 ];
-const DOCS = ["README.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md"];
+const DOCS = ["README.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md", "docs/solvers.md"];
+
+// How many testnet buyers share each settled amount and each merchant, as the docs print it:
+// from agents/live.json, the same snapshot the pages read. A refunded pledge paid nothing, so
+// it is in no amount set; it still names its merchant.
+export function setSizes(live) {
+  const by = (rows, key) => { const c = new Map(); for (const r of rows) c.set(key(r), (c.get(key(r)) ?? 0) + 1); return [...c]; };
+  const amounts = by(live.purchases.filter((p) => p.kind !== "refunded"), (p) => Number(p.paid)).sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+  const merchants = by(live.purchases, (p) => p.merchant.split(".")[0]).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+  return {
+    amounts: amounts.map(([a, n]) => `${(a / 1e6).toFixed(2)} x${n}`).join(", "),
+    merchants: merchants.map(([m, n], i) => `${m}: ${n}${i ? "" : " buyers"}`).join(", "),
+  };
+}
 
 // Features with code in the tree. A doc that calls one planned or not built is drift. Each
 // entry names the file and the code that proves it shipped; if that code is gone, the entry
@@ -74,7 +89,7 @@ export function render(rs) {
 
 const at = (o, path) => path.split(".").reduce((x, k) => (x == null ? x : x[k]), o);
 
-export function problems(readme, rs, m, docs, src = {}, n = null) {
+export function problems(readme, rs, m, docs, src = {}, n = null, sets = null) {
   const out = [];
   const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
   if (a < 0 || b < 0) out.push("README has no status markers");
@@ -92,6 +107,18 @@ export function problems(readme, rs, m, docs, src = {}, n = null) {
   // A planned or stub row whose named method exists in the contract is drift too.
   const lib = src["contract/src/lib.rs"] ?? "";
   for (const r of rs) if (["planned", "stub"].includes(r.status)) for (const [, fn] of r.where.matchAll(/`([a-z_]+)`/g)) if (lib.includes(`pub fn ${fn}(`)) out.push(`"${r.feature.slice(0, 40)}": ${r.status}, but lib.rs has pub fn ${fn}`);
+  // A method named by a live row is deployed: a sentence that names it and says "not deployed"
+  // is the stale kind of line that once sat beside the live row.
+  const liveFns = new Set(rs.filter((r) => r.status === "live").flatMap((r) => [...r.where.matchAll(/`([a-z_]+)`/g)].map((x) => x[1])).filter((fn) => lib.includes(`pub fn ${fn}(`)));
+  for (const [f, text] of Object.entries(docs)) for (const s of text.split(/\n\s*\n|(?<=[.;])\s+/)) {
+    if (!/\bnot\s+deployed\b/i.test(s)) continue;
+    for (const [, fn] of s.matchAll(/`([a-z_]+)`/g)) if (liveFns.has(fn)) out.push(`${f}: says \`${fn}\` is not deployed, but a live row names it`);
+  }
+  // The set-size lines (amounts shared, buyers per merchant) must be the ones agents/live.json gives.
+  if (sets) for (const [f, text] of Object.entries(docs)) for (const l of text.split("\n")) {
+    if (/\b\d+\.\d\d x\d+, \d/.test(l) && !l.includes(sets.amounts)) out.push(`${f}: settled-amount sets differ from agents/live.json (${sets.amounts})`);
+    if (/\bm01: \d+ buyers/.test(l) && !l.includes(sets.merchants)) out.push(`${f}: buyers per merchant differ from agents/live.json (${sets.merchants})`);
+  }
   if (n) for (const [f, text] of Object.entries(docs)) {
     for (const [, x] of text.matchAll(/\b(\d+) dUSDC purchases/g)) if (Number(x) !== n.purchases) out.push(`${f}: "${x} dUSDC purchases", the manifest has ${n.purchases}`);
     for (const [, x, y] of text.matchAll(/\b(\d+) (?:dUSDC )?purchases(?: on testnet)? \((\d+) single settles/g)) if (Number(x) !== n.purchases || Number(y) !== n.single) out.push(`${f}: "${x} purchases (${y} single", the manifest has ${n.purchases} and ${n.single}`);
@@ -121,13 +148,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const src = Object.fromEntries([...new Set(SHIPPED.map((s) => s.file).concat("contract/src/lib.rs"))].filter((f) => existsSync(root + f)).map((f) => [f, readFileSync(root + f, "utf8")]));
     const liveRun = JSON.parse(readFileSync(root + "agents/out/live-run.json", "utf8"));
     const log = existsSync(root + "fixtures/live/offline-run/verify-offline.log") ? readFileSync(root + "fixtures/live/offline-run/verify-offline.log", "utf8") : "";
-    const p = problems(readme, rows, manifest, docs, src, counted(manifest, liveRun, log));
+    const live = JSON.parse(readFileSync(root + "agents/live.json", "utf8"));
+    const p = problems(readme, rows, manifest, docs, src, counted(manifest, liveRun, log), setSizes(live));
     const n = rows.reduce((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {});
     if (p.length) {
       for (const x of p) console.log(`FAIL  status: ${x}`);
       process.exit(1);
     }
-    console.log(`PASS  status: README table = docs/status.json (${Object.entries(n).map(([k, v]) => `${v} ${k}`).join(", ")}), every live row has testnet evidence, no stale phrase`);
+    console.log(`PASS  status: README table = docs/status.json (${Object.entries(n).map(([k, v]) => `${v} ${k}`).join(", ")}), every live row has testnet evidence, no stale phrase, set sizes = agents/live.json`);
   } else {
     const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
     if (a < 0) throw new Error("add the status markers around the feature table first");

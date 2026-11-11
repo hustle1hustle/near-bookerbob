@@ -96,11 +96,11 @@
     ]
   },
   {
-    "feature": "blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline); 30 merchant agents bid through it",
+    "feature": "blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline, priced from each revealed merchant's current schedule); 30 merchant agents bid through it. A merchant agent here is a price rule committed blind, not a model: no model output is read in a round",
     "tracks": "swarms",
     "where": "`contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs`",
     "status": "live",
-    "detail": "30 merchant agents bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests",
+    "detail": "30 merchant agents, all REP-run, each a static schedule from `agents/merchants.json`, bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests. In the `open` category a bonded merchant can still change its schedule after the reveal (Known limits)",
     "evidence": [
       "blind_round"
     ]
@@ -128,7 +128,7 @@
     "tracks": "swarms, agents",
     "where": "`agents/choose.mjs`, `agents/out/buyer-choice.json`",
     "status": "built",
-    "detail": "one recorded live run of 2 calls (z-ai/glm-5.3-flash), both response signatures verified: the model picked h05 at 408, and picked it again when another offer's text claimed a lower price and ordered the model to choose it",
+    "detail": "one recorded live run of 2 calls (z-ai/glm-5.3-flash), both response signatures verified: the model picked h05 at 408, and picked it again when another offer's text claimed a lower price and ordered the model to choose it. Two offers were inside the 500 budget of that run (408 and 488.37); under the README's ask of 450 only one is, so the choice is narrow",
     "evidence": []
   },
   {
@@ -196,7 +196,7 @@
     ]
   },
   {
-    "feature": "verifiable compute (Jolt zkVM), four guests: standing graph, price stack, referee, cohort k >= 5. The contract keeps the graph root and per-cohort roots; for the graph, the contract keeps a hash-chained root of the standing graph and accepts score updates only from the registered Jolt program, for the current root, signed by a worker that verified the proof off chain",
+    "feature": "verifiable compute (Jolt zkVM), four guests: standing graph, price stack, referee, cohort k >= 5. The contract keeps the graph root and per-cohort roots; for the graph, the contract keeps a hash-chained root of the standing graph and accepts a score update only when it names the registered program hash, is for the current root and is signed by a bonded worker key that verified the proof off chain. The contract verifies no proof, so it cannot itself tell which program produced the scores",
     "tracks": "swarms, security",
     "where": "`graph/`, `contract/src/lib.rs` (`submit_graph_scores`), `zk/`, `docs/jolt.md`",
     "status": "live",
@@ -253,11 +253,11 @@
     ]
   },
   {
-    "feature": "merchant SDK for outside agents (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan",
+    "feature": "merchant SDK for merchant agents that are not ours (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan",
     "tracks": "swarms, agents",
     "where": "`sdk/`, `docs/agent-market.md`",
     "status": "built",
-    "detail": "cross-checked against the Rust board; used by the outside agent that won `open-1`; not listed (Agent Market is mainnet only)",
+    "detail": "cross-checked against the Rust board; used by a separate agent session we ran and funded, which had the best quote in `open-1`; not listed (Agent Market is mainnet only)",
     "evidence": [
       "open_round"
     ]
@@ -327,17 +327,17 @@
     "tracks": "security, privacy",
     "where": "`core/src/envelope.rs` `tcb_meets`, `contract/src/lib.rs`",
     "status": "live",
-    "detail": "deployed; every testnet verdict is the synthetic `fixture` status, which passes only on a `.testnet` bazaar",
+    "detail": "deployed; the testnet verdicts signed by REP's issuer seed carry the synthetic `fixture` status, which passes only on a `.testnet` bazaar; the model-issued ones carry `UpToDate`, taken from the on-chain quote check",
     "evidence": [
       "testers"
     ]
   },
   {
-    "feature": "open market: an outside merchant is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal",
+    "feature": "open market: any merchant account is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal",
     "tracks": "swarms, agents, open",
     "where": "`contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md",
     "status": "live",
-    "detail": "a fresh agent with only AGENTS.md won round `open-1`",
+    "detail": "a separate agent session we ran and funded, given only the join section of AGENTS.md, had the best quote in round `open-1`: two bidders, both accounts funded by our treasury, no sale. No third party has joined. In `open` a bid does not yet bind after the reveal (Known limits)",
     "evidence": [
       "open_round"
     ]

@@ -23,11 +23,14 @@ propose_clearing(group, round_id, price, opens[], fills[]) -> bool
 - `opens[]`: `{nullifier, budget, salt}` per member. Each opens that member's stored commitment,
   `sha256("<budget in base units>|<salt, 64 hex>")`, the bytes `scripts/demo-tester.mjs` has
   posted since groups exist. Budgets open in this call, after the bids are revealed, so no
-  schedule can be fitted to them.
+  schedule can be fitted to an opened budget. The reverse is not prevented: `post_intent` has
+  no deadline against the round, so a member can commit its budget after the schedules are
+  public and fit it to them.
 - `fills[]`: `{nullifier, merchant}` pairs: who sits where.
 - `price`: the one price every seat pays.
 
-The contract searches nothing. It checks bounds (`contract/src/lib.rs`, `propose_clearing`):
+The contract searches nothing. It checks bounds (`propose_clearing` in `contract/src/lib.rs`
+on the branch `clearing`; the method is not in `main`):
 
 | check | refusal |
 |---|---|
@@ -50,7 +53,9 @@ A standing proposal is replaced only by one that fills more seats, or the same n
 lower price. A valid proposal that does not beat it returns `false` and changes nothing (event
 `clearing_kept`); one that stands emits `clearing_proposed`. Once opened, the same proposal can
 be sent by anyone, and the contract keeps the best. When the first seat pays, the price is
-final and no proposal replaces it.
+final and no proposal replaces it. There is no proposal window between those two rules: a
+member can propose a clearing that seats only itself, pay at once, and lock the group at that
+proposal before a fuller one arrives.
 
 Views: `clearing(group)`, `clearing_seat(nullifier) -> (merchant, price)`, `round_seats(round_id, merchant)`.
 
@@ -107,7 +112,7 @@ Budgets: 400, 400, 380, 370, 360.
 - A has five seats. r = 5, P = 340, all at A. A fill across merchants adds nothing here: the
   single winner of the round already does this.
 
-Each is a test in `contract/src/tests.rs` (`mod clearing`) with these numbers, and a case in
+Each is a test in `contract/src/tests.rs` (`mod clearing`, on the branch `clearing`) with these numbers, and a case in
 `fixtures/clearing.json`. The same enumeration, editable: `agents/clearing.html`.
 
 ## How it differs from the fixed tiers
@@ -131,6 +136,10 @@ storage key `uc|<group>`, declared seats under `us|<round>|<merchant>`.
 
 ## What it does not do
 
+- It is not strategy-proof. The score is seats first, so a fifth buyer can raise what the
+  other four pay (355 to 368 in the examples above). The one price is the dearest code price
+  among the seats taken, so the marginal merchant sets it, and a merchant that declares fewer
+  seats can lift it.
 - No search on chain. A proposal is checked, not found.
 - No surplus split: nobody is paid a difference between a budget and the price.
 - No swaps between buyers. Demand for seats meets merchants' capacity, nothing else.

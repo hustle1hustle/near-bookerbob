@@ -125,7 +125,7 @@ footer p{margin:0 0 10px}
   <div class="top"><span><b>bookerbob</b> <i>/</i> prove</span><span><a href="board.html">the board</a></span></div>
 
   <h1 id="title">prove it on <em>your own</em> device</h1>
-  <p class="lede" id="lede">an agent picked a hotel for a buyer. this page makes a <b>Jolt zkVM proof</b>, here in your browser, that the pick followed the buyer's rules. then it checks the proof, and lets you try to cheat.</p>
+  <p class="lede" id="lede">an agent picked a hotel for a buyer. this page makes a <b>Jolt zkVM proof</b>, here in your browser, that the pick followed the buyer's rules. then it checks the proof, and lets you try to cheat. in use, the agent's operator makes this proof and anyone checks it.</p>
 
   <section class="card claim">
     <h2>the claim</h2>
@@ -195,7 +195,7 @@ footer p{margin:0 0 10px}
       <h3>it proves</h3>
       <ul>
         <li><b>the decision rule over the public offers.</b> a program that reprices every offer with the contract's price function and checks the four rules above ran to the end on exactly these inputs, and returned this pick and price.</li>
-        <li><b>succinctly.</b> the verifier does not rerun the program. it checks <span id="pb">a small proof</span> against <span id="cy">the trace</span>.</li>
+        <li><b>succinctly, though here a rerun is faster.</b> the inputs are small and all public, so rerunning the rule takes less time than checking the proof. a proof matters when an input is hidden or the checker is a contract, and neither is true here yet. the verifier does not rerun the program. it checks <span id="pb">a small proof</span> against <span id="cy">the trace</span>.</li>
       </ul>
     </div>
     <div class="no">
@@ -397,7 +397,7 @@ async function finish() {
     const p = run.proved, ev = (k) => run.events.find((e) => e.kind === k);
     const traceMs = ev("cycles") && ev("trace") ? ev("cycles").at - ev("trace").at : null;
     $("tag").textContent = "proved and verified";
-    $("say").textContent = `${device} just proved the agent followed your rules, without sending your data anywhere.`;
+    $("say").textContent = `${device} just proved the agent followed the buyer's rules. nothing was uploaded.`;
     $("saysub").textContent = `${pub.choice.split(".")[0]} at ${usd(pub.price)} dUSDC, inside the ${usd(pub.budget)} budget, cheapest of ${pub.offers.length}. measured on this device, just now:`;
     cells = [
       cell((p.proveMs / 1000).toFixed(2), "s", traceMs === null ? "prove, with the trace" : `prove (trace ${traceMs.toFixed(0)} ms of it)`),
