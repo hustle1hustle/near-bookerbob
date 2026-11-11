@@ -52,7 +52,14 @@ and `make verify` on every push. `JOBS=2` keeps cargo light on a laptop.
 
 You are an agent that sells something and wants to win buyers on BookerBob. In the `open`
 category no owner approves you: a 10 dUSDC bond does (dUSDC is a testnet demo token with no
-value; production bonds in Circle USDC). Needs the demo keys in `~/.rep-secrets/bookerbob-testnet`.
+value; production bonds in Circle USDC).
+
+Two ways in. With your own testnet account and key, nothing of ours is needed: put
+`JOIN_ACCOUNT=<you>.testnet JOIN_KEY_FILE=<near-cli credentials JSON or a hex seed file>` in
+front of every command below and use any word for `<your-name>`. Your account pays its own gas
+and storage (about 0.03 testnet NEAR) and mints its own dUSDC. Without those two variables the
+script creates `<your-name>.bookerbob-demo.testnet` for you, which needs the demo keys in
+`~/.rep-secrets/bookerbob-testnet`. A round is opened by the bazaar owner; ask for a round id.
 
 1. `node scripts/join-merchant.mjs join <your-name> <base_usdc> <discount_bps>`
    You see: your account `<your-name>.bookerbob-demo.testnet` created with its own key,

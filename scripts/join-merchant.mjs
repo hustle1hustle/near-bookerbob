@@ -11,11 +11,17 @@
 //   node scripts/join-merchant.mjs winner <round_id> <nullifier>            round_best_quote
 // The open round itself is opened by the bazaar owner (open_round, category "open").
 // Keys: KEYS_DIR/merchants/<account>.seed (outside the repo). Testnet only.
+//
+// With your own testnet account (nothing of ours: no treasury key, no demo keys):
+//   JOIN_ACCOUNT=<you>.testnet JOIN_KEY_FILE=<path> node scripts/join-merchant.mjs join me [base] [bps]
+// JOIN_KEY_FILE is a near-cli credentials JSON ({"private_key":"ed25519:..."}) or a file with a
+// 32-byte hex seed. The account pays its own gas and storage (about 0.03 testnet NEAR) and
+// mints its own dUSDC. State goes to KEYS_DIR/merchants/ (default under your home directory).
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { config, guard } from "./demo-tester.mjs";
-import { keyFromSeed, near, nearPublicKey, rpcClient, send } from "../relayer/near.mjs";
+import { b58decode, keyFromSeed, near, nearPublicKey, rpcClient, send } from "../relayer/near.mjs";
 import { commitBidArgs, registerArgs, revealBidArgs, schedule } from "../sdk/merchant.mjs";
 
 const TGAS = 10n ** 12n;
@@ -28,6 +34,25 @@ export const merchantId = (c, name) => {
   if (!/^[a-z0-9-]{2,20}$/.test(name)) throw new Error("name: 2 to 20 of a-z 0-9 -");
   return `${name}.${c.treasury}`;
 };
+
+/** A key from a near-cli credentials file ({"private_key":"ed25519:<base58 of seed+public>"}) or a 32-byte hex seed. */
+export function keyFromFile(text) {
+  const t = text.trim();
+  if (/^[0-9a-f]{64}$/i.test(t)) return keyFromSeed(t);
+  const sk = (t.startsWith("{") ? JSON.parse(t).private_key ?? JSON.parse(t).secret_key : t) ?? "";
+  if (!sk.startsWith("ed25519:")) throw new Error("key file: want a near-cli credentials JSON with an ed25519 private_key, or a 32-byte hex seed");
+  const raw = Buffer.from(b58decode(sk.slice(8)));
+  if (raw.length !== 64 && raw.length !== 32) throw new Error("key file: the ed25519 key must be 32 or 64 bytes");
+  return keyFromSeed(raw.subarray(0, 32).toString("hex"));
+}
+
+/** The outside account, if the caller brought one: JOIN_ACCOUNT and JOIN_KEY_FILE. */
+export function ownAccount(env) {
+  if (!env.JOIN_ACCOUNT) return null;
+  if (!env.JOIN_ACCOUNT.endsWith(".testnet")) throw new Error(`JOIN_ACCOUNT ${env.JOIN_ACCOUNT} is not a .testnet account`);
+  if (!env.JOIN_KEY_FILE) throw new Error("JOIN_ACCOUNT needs JOIN_KEY_FILE (near-cli credentials JSON or a hex seed file)");
+  return { id: env.JOIN_ACCOUNT, key: keyFromFile(readFileSync(env.JOIN_KEY_FILE, "utf8")) };
+}
 
 /** The merchant's schedule: base price, one discount for a proven world_id_human, a cap. */
 export const openSchedule = (baseUsdc = 40, discountBps = 1000) => schedule({ basePrice: Math.round(baseUsdc * 1e6), rules: [{ predicate: "world_id_human", bps: discountBps }], capBps: discountBps });
@@ -53,15 +78,20 @@ async function main() {
     console.log(q ? `winner of ${a1}: ${q.merchant} at ${Number(q.quote.price) / 1e6}` : `no winner in ${a1}`);
     return;
   }
-  const id = merchantId(c, a1);
+  const own = ownAccount(process.env);
+  const id = own ? own.id : merchantId(c, a1);
   const seedPath = join(dir, `${id}.seed`);
   const statePath = join(dir, `${id}.json`);
   const st = existsSync(statePath) ? JSON.parse(readFileSync(statePath, "utf8")) : { merchant: id, txs: {} };
   const save = () => writeFileSync(statePath, JSON.stringify(st, null, 2) + "\n", { mode: 0o600 });
   if (cmd === "join") {
-    const treasury = keyFromSeed(readFileSync(join(c.keysDir, "treasury.seed"), "utf8"));
     let key;
-    if (!(await client.account(id))) {
+    if (own) {
+      if (!(await client.account(id))) throw new Error(`${id} does not exist on testnet: create it first (any testnet wallet or faucet)`);
+      key = own.key;
+      console.log(`   own account ${id}, own key ${nearPublicKey(key.pub)}: nothing here is signed by a BookerBob key`);
+    } else if (!(await client.account(id))) {
+      const treasury = keyFromSeed(readFileSync(join(c.keysDir, "treasury.seed"), "utf8"));
       const seed = randomBytes(32).toString("hex");
       writeFileSync(seedPath, seed + "\n", { mode: 0o600 });
       key = keyFromSeed(seed);
@@ -86,7 +116,7 @@ async function main() {
     console.log(`\n${id}: ${after.approved ? "approved by its bond, no owner step" : "NOT approved"}; schedule base ${Number(st.schedule.base_price) / 1e6}, ${st.schedule.rules.map((r) => `${r.bps / 100}% off for ${r.predicate}`).join(", ")}`);
     if (!after.approved) process.exit(1);
   } else if (cmd === "bid" || cmd === "reveal") {
-    const key = keyFromSeed(readFileSync(seedPath, "utf8"));
+    const key = own ? own.key : keyFromSeed(readFileSync(seedPath, "utf8"));
     const me = (actions) => send(client, { signer_id: id, key, receiver_id: c.bazaar, actions });
     const round = a2;
     if (cmd === "bid") {
