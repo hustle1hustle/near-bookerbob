@@ -77,13 +77,16 @@ category (`lib.rs:2020`). Merchants bid before any buyer is known to the round.
    base not above the merchant's price anchor if one is set (`:2069`, `:680`). In category
    `open` only: a merchant is refused if its payout account equals an already revealed one, or a
    `hire` edge links the two either way (`:2071-2079`). The reveal overwrites the merchant's
-   stored schedule (`:2086`), so it also becomes its quote outside the round. On the deployed
-   contract there is no forfeit for a commit never revealed and the bond is not touched; in
-   code there is (next paragraph).
+   stored schedule (`:2086`), so it also becomes its quote outside the round. A commit never
+   revealed costs the merchant since the 2026-11-10 redeploy (the paragraph after this list).
 4. Winner: `round_best_quote(round_id, nullifier) -> Option<{merchant, quote}>` (`:2192-2209`).
    Panics before `reveal_until_ms`. For each revealed merchant still approved, price the verdict
    with that merchant's current schedule; lowest price wins; a tie keeps the earlier entry in
-   reveal order (strict `<`, `:2204`). It does not check the TCB floor (`best_quote` does,
+   reveal order (strict `<`, `:2204`). The round stores no schedule (`Round`, `:159-166`), so
+   in category `open`, where a bonded merchant stays approved on a re-register (`:1207-1210`),
+   a merchant can reveal, read its rivals, register a lower schedule and be returned as the
+   winner. Status: open as of 2026-11-11, not fixed in the deployed contract (README, Known
+   limits). It does not check the TCB floor (`best_quote` does,
    `:2563`) and does not check that the verdict's context matches the round's category.
 5. Receipt. `request_referee(project_id, input_data)` (`:2713`, sealed input only, forwards to
    OutLayer) or any relayer calling `submit_referee_result(result: WorkerResult)` (`:2706`).
@@ -102,7 +105,8 @@ category (`lib.rs:2020`). Merchants bid before any buyer is known to the round.
    The round does not bind the payment: only a mandate with `round` set makes `settle` require
    the round winner (`:3158-3164`; README Known limits).
 
-A commit never revealed (in code, not deployed; finding: Dan). The commitment stops a merchant
+A commit never revealed (live on both bazaars since the 2026-11-10 redeploy, run once in
+round `silent-1`, docs/testnet.md; finding: Dan). The commitment stops a merchant
 from changing its bid, not from withholding it after it saw the others. `mark_unrevealed(round_id,
 merchant)` (`:2099`) is open to anyone once `now >= reveal_until_ms`, for 24 hours
 (`UNREVEALED_MARK_WINDOW_MS` `:175`), once per merchant and round, only for a merchant in
@@ -120,16 +124,21 @@ to one already revealed is not marked (`:2110-2113`), because its reveal would h
 refused (`:2071-2079`) and the other side can make that link alone. So an operator with two
 linked accounts still chooses freely between two bids, and a merchant that hires a rival and
 reveals first still shuts that rival out of the round. That needs a rule on who made the link
-and when, not a forfeit.
+and when, not a forfeit. The forfeit is also flat, 1 token whatever the sale, and the
+one-operator rule sees only declared links: two accounts with no shared payout and no hire
+edge keep the choice to withhold the lower bid for 1 token.
 
 What a merchant chooses: a `Schedule` = `base_price`, one discount `bps` per known predicate
 (seven, `docs/envelope.md`), `cap_bps`, and optionally one cohort rule with `k_min >= 5`
 (`price.rs:58-102`). What code does: price = base minus capped sum of the matching rules, plus
 the cohort line when k >= `k_min`, never above base (`price.rs:116-142`, shared guest
 `bookerbob-zkcore`). A merchant cannot choose a price per buyer, cannot see the buyer's
-non-revealed bits, cannot raise a price above its base, and cannot change a schedule after
-committing without losing the round. It can choose a different base each round, subject to the
-owner's price anchor.
+non-revealed bits and cannot raise a price above its base. In an owner-approved category it
+cannot change a schedule after committing without losing the round: a re-register drops its
+approval and `round_best_quote` skips it, unless the owner approves the new schedule. In
+`open` it can today: a bonded merchant stays approved on a re-register and the round prices
+its current schedule, so the sealed bid does not bind after the reveal (step 4 above). It can
+choose a different base each round, subject to the owner's price anchor.
 
 ## 4. Buying groups
 
@@ -168,11 +177,11 @@ into the deployed contract; it matters only when the cheap merchant runs out of 
 |---|---|---|
 | intent | verdict (bits, cap, expiry, nullifier) + off-chain ask | no signed order with sell/buy amounts; the chain never holds the ask or a limit price |
 | solver | a merchant agent with a registered schedule | it sells its own goods; it does not route liquidity or fill other parties |
-| solver competition (sealed bids) | commit/reveal of a schedule per round (`:2034`, `:2054`) | bids a pricing function, not a price per intent; round precedes any buyer; a commit never revealed is free on the deployed contract, in code it costs bond and a bar (section 3) |
+| solver competition (sealed bids) | commit/reveal of a schedule per round (`:2034`, `:2054`) | bids a pricing function, not a price per intent; round precedes any buyer; a commit never revealed costs 1 token of bond and a 24 hour bar since 2026-11-10 (section 3); in `open` the schedule can still change after the reveal |
 | batch | a round = one category, two deadlines | not a set of orders; one buyer is priced at a time, after the fact |
 | uniform clearing price | group tier: one discount for all members of a group (`:1727`) | a fixed 10%/20% off one merchant's receipt, not a market-clearing price |
 | settlement | `settle`: escrow debit, nullifier burn, `ft_transfer`, rollback | one buyer, one merchant, one token, one call; no multi-party atomic batch; round not enforced without a mandate |
-| solver bonding and slashing | open category: 10 dUSDC bond approves a merchant (`:1210`, `OPEN_BOND` `:280`) | bond refunds disputed buyers up to its size (`:2904`); in code, not deployed: `mark_unrevealed` (`:2099`) takes 1 token of it per skipped reveal, held by the contract and paid to no one, and bars the merchant from `commit_bid` for 24 hours; a merchant with no bond only gets the bar; nothing is slashed for losing |
+| solver bonding and slashing | open category: 10 dUSDC bond approves a merchant (`:1210`, `OPEN_BOND` `:280`) | bond refunds disputed buyers up to its size (`:2904`); live since 2026-11-10: `mark_unrevealed` (`:2099`) takes 1 token of it per skipped reveal, held by the contract and paid to no one, and bars the merchant from `commit_bid` for 24 hours; a merchant with no bond only gets the bar; nothing is slashed for losing |
 | surplus | buyer pays the code-computed price; no surplus split | no limit price, so no surplus measure |
 | who can be a solver | open category: anyone who bonds; other categories: owner approves (`:1219`) | revealing is also gated by the same-operator rule only in `open` (`:2071`) |
 | cross-chain | none; NEAR only, dUSDC on testnet | no solver bridge or foreign-chain settlement in the contract |
@@ -185,7 +194,9 @@ into the deployed contract; it matters only when the cheap merchant runs out of 
 - Multi-merchant fills, a bundle of merchants in one fill: not built (`offer` is one merchant).
 - A clearing price across bids or buyers: not built.
 - Per-intent bids (a price for this verdict) instead of a schedule: not built.
-- A forfeit for committing and not revealing: not built.
+- A forfeit sized to the sale for committing and not revealing: not built. A flat forfeit of
+  1 token and a 24 hour bar are live (section 3).
+- A revealed schedule pinned in the round, so that a bid binds in `open`: not built.
 - Group settlement in USDC (only the dUSDC `_demo` paths exist): not built.
 - An anchor recording round roots: planned, not built.
 
@@ -201,8 +212,11 @@ The rule is to build on the existing bazaar, never beside it: no new contract, n
 
 ## 7. Try it (testnet, no money)
 
-From `AGENTS.md` ("Join the market as a merchant agent"). Needs the demo keys in
-`~/.rep-secrets/bookerbob-testnet`; the owner opens rounds, you cannot.
+From `AGENTS.md` ("Join the market as a merchant agent"). With your own testnet account and
+key (`JOIN_ACCOUNT`, `JOIN_KEY_FILE`, see AGENTS.md) nothing of ours is needed; without them
+the script needs the demo keys in `~/.rep-secrets/bookerbob-testnet`. The own-account path has
+unit tests only so far (`scripts/join-merchant.test.mjs`); no live run of it is recorded in
+docs/testnet.md. The owner opens rounds, you cannot.
 
 ```
 node scripts/join-merchant.mjs join <your-name> <base_usdc> <discount_bps>

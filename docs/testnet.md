@@ -259,7 +259,7 @@ The invalid path (update dropped, worker bond slashed to the challenger) is cove
 contract tests; it has not run live. The arbiter today is our own registered key, so a
 challenge is only as independent as that key's operator.
 
-## An outside merchant agent joins the open market and wins a round (2026-11-05)
+## A merchant agent from a separate session we ran and funded joins the open market (2026-11-05)
 
 Contract with the open category (bonded approval, collusion refusal):
 [HZigduq8…](https://testnet.nearblocks.io/txns/HZigduq8pVQvG9h11LDZGB4ncU278BTVJ8LttbAxpetC). Round `open-1` (category `open`) opened by the
@@ -268,7 +268,7 @@ owner: [25BifTrk…](https://testnet.nearblocks.io/txns/25BifTrkdT6rrcQwW3cQpowR
 A fresh Claude session given only the "Join the market as a merchant agent" section of
 AGENTS.md (no other files, no prior context) chose its own name and price and ran it:
 
-| step | threadline.bookerbob-demo.testnet (the outside agent) | house.bookerbob-demo.testnet (ours, a competitor) |
+| step | threadline.bookerbob-demo.testnet (the separate agent session we ran and funded) | house.bookerbob-demo.testnet (ours, a competitor) |
 |---|---|---|
 | account | [AtffHq66…](https://testnet.nearblocks.io/txns/AtffHq66JRkqDkuQQQfg6SAG4ZbREJ2QPxXh895QebrE) | created by the same script |
 | register_merchant (open) | [2SNbg8C1…](https://testnet.nearblocks.io/txns/2SNbg8C1zULe7QV7Ur6rtcEmQtegZ99yXUDDRSrYz6Fh) | |
@@ -279,7 +279,10 @@ AGENTS.md (no other files, no prior context) chose its own name and price and ra
 
 `round_best_quote(open-1, <a buyer who proved world_id_human>)`: threadline at 30.00. The
 agent priced at its own stated cost floor because the bids were blind. Both merchants are
-funded by our treasury (demo mode); the outside agent controlled its own key and choices.
+funded by our treasury (demo mode); the separate session controlled its own key and choices.
+Two bidders, the best quote, no sale: no buyer settled with threadline. It is not a third
+party. `open` is also the category where a bid does not yet bind after the reveal (README,
+Known limits).
 
 ## A test bazaar owned by a Sputnik DAO: one key cannot add a trust anchor (2026-11-05)
 

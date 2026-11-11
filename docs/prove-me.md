@@ -6,12 +6,17 @@ account, so the fact is the judge's, not ours.
 
 ## What it proves
 
-- **The request:** `GET https://api.github.com/user` with your own token. The authenticated
-  `/user` is used, not a public profile page: a public page proves a fact about an account,
-  not that the prover holds it.
+- **The request:** `GET https://api.github.com/user` with your own token. The design uses the
+  authenticated `/user`, not a public profile page: a public page proves a fact about an
+  account, not that the prover holds it. The two live runs so far were pipeline tests on a
+  public profile (below); no run on an account its owner holds has happened yet.
 - **What is revealed:** exactly three fields of the reply, `created_at`, `public_repos` and
-  `followers`. The login, name, email, ids and every header stay hidden. The request (the
-  token in it) is never revealed; `tools/prove-me` refuses to write a presentation if it is.
+  `followers`. The login, name, email, ids and every header stay out of the presentation. The
+  request (the token in it) is never revealed; `tools/prove-me` refuses to write a presentation
+  if it is. Out of the presentation is not the same as unlinkable: all three fields are public
+  for any GitHub account, and `created_at` to the second picks out one account for whoever
+  holds the presentation or reads the revealed fields. What the authenticated path adds is
+  ownership of the account, not secrecy of these fields.
 - **The rule:** `github account_age_years >= 3` gives `github_builder`. The age is counted
   from `created_at` to the notary's timestamp. Repos and followers are revealed facts in the
   proof set, not ruled on.
