@@ -16,8 +16,9 @@ Facts and pointers, nothing else.
   - `make verify-live`, or `JUDGE_LIVE=1 make judge`: the same testnet claims over public RPC,
     5 to 13 minutes (old txs come from a rate-limited public archive).
 - The status of every feature (live, built, stub, planned) with its evidence: `README.md`,
-  "Every feature, its status and its evidence". It is generated from `docs/status.json`;
-  `node scripts/status.mjs --check` fails when the two differ.
+  "Every feature, its status and its evidence" (the short table) and `docs/status.md` (every
+  row in full). Both are generated from `docs/status.json`; `node scripts/status.mjs --check`
+  fails when either differs.
 - What does not hold yet: `README.md`, "Known limits". Who holds each trust key (REP holds all
   of them today): `README.md`, "Who can lie, what catches it, who holds the key".
 - What is synthetic: the facts behind every verdict, the buyers (our own test accounts), the

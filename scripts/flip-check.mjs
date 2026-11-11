@@ -35,7 +35,9 @@ async function pre() {
   // Conflict markers left by a merge read as broken code to a screening model.
   const marked = files.filter((f) => existsSync(f) && !/\.(png|jpg|gif|wasm|xz|bin|ico|pdf)$/i.test(f) && /^(<{7}|>{7})( |$)/m.test(readFileSync(f, "latin1")));
   line(marked.length === 0, "no merge conflict markers in tracked files", marked.slice(0, 5).join(", "));
-  line(!files.some((f) => /^(RESUME|CLAUDE)\.md$/.test(f)), "session files (RESUME.md, CLAUDE.md) are not tracked");
+  // CLAUDE.md is tracked on purpose since 2026-11-11, as a pointer to AGENTS.md and nothing else.
+  const pointer = !files.includes("CLAUDE.md") || (readFileSync("CLAUDE.md", "utf8").includes("@AGENTS.md") && readFileSync("CLAUDE.md", "utf8").length < 400);
+  line(!files.includes("RESUME.md") && pointer, "no session file is tracked: RESUME.md is not, and CLAUDE.md only points to AGENTS.md");
   line(existsSync("LICENSE"), "LICENSE present");
   const readme = readFileSync("README.md", "utf8");
   const links = [...readme.matchAll(/\]\((?!https?:|#|mailto:)([^)\s#]+)/g)].map((x) => x[1]);

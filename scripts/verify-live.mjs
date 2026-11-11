@@ -312,11 +312,32 @@ if (m.eval) {
     return [sigs && hashOk && score === e.score_bucket && c.ok, `${run.answers.length} TEE signatures valid, answers hash matches the certificate, eval_score on chain ${score}`];
   });
 }
-await attempt("every spent nullifier is in the manifest: spent_count on chain equals the listed purchases (paid, plus the one refunded group pledge)", async () => {
+if (m.unrevealed) {
+  const u = m.unrevealed;
+  await attempt(`a sealed bid never revealed cost the merchant in round ${u.round}: marked once, 1 token of its bond forfeited, a second mark refused`, async () => {
+    const [marked, again, quiet, loud, forfeited] = await Promise.all([tx(u.txs.marked, m.bazaar), tx(u.txs.second_mark_refused, m.bazaar), view(m.bazaar, "unrevealed_defaults", { merchant: u.quiet }), view(m.bazaar, "unrevealed_defaults", { merchant: u.loud }), view(m.bazaar, "forfeited_bonds", { token: "demo" })]);
+    const ok = marked.ok && marked.methods.includes("mark_unrevealed") && !again.ok && /already marked/.test(again.error) && quiet >= u.views.defaults && loud === u.views.loud_defaults && BigInt(forfeited) >= BigInt(u.views.forfeited_demo_after);
+    return [ok, `${u.quiet.split(".")[0]}: ${quiet} default on chain, ${Number(forfeited) / 1e6} dUSDC of bonds forfeited in all; ${u.loud.split(".")[0]}, which revealed: ${loud}; the second mark: "already marked for this round"`];
+  });
+}
+{
+  const pin = JSON.parse(readFileSync(new URL("../fixtures/live/community/pin.json", import.meta.url)));
+  const b = pin.bids.find((x) => x.reregister_tx);
+  await attempt(`a revealed bid is pinned for its round: in ${pin.round} a merchant revealed, then re-registered a cheaper schedule, and the round still holds the revealed one`, async () => {
+    const [held, now, reveal, rereg] = await Promise.all([view(m.bazaar, "round_bid", { round_id: pin.round, merchant: b.account }), view(m.bazaar, "merchant", { merchant: b.account }), tx(b.reveal_tx, b.account), tx(b.reregister_tx, b.account)]);
+    const ok = held?.base_price === b.revealed && reveal.ok && reveal.methods.includes("reveal_bid") && rereg.ok && rereg.methods.includes("register_merchant") && BigInt(now.schedule.base_price) !== BigInt(held.base_price);
+    return [ok, `round_bid holds ${Number(held?.base_price) / 1e6}, revealed ${Number(b.revealed) / 1e6}; the merchant's schedule today is ${Number(now.schedule.base_price) / 1e6} (two test accounts of ours)`];
+  });
+}
+await attempt("every spent nullifier is listed: spent_count on chain equals the manifest's purchases (paid, plus the one refunded group pledge) plus the swarm runs' purchases (fixtures/live/swarm/, re-checked one by one by make swarm-verify)", async () => {
   const { purchases } = await import("./live-snapshot.mjs");
   const rows = purchases(m);
+  const dir = new URL("../fixtures/live/swarm/", import.meta.url);
+  const runs = readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => JSON.parse(readFileSync(new URL(f, dir)))).filter((r) => r.bazaar === m.bazaar);
+  const swarm = new Set(runs.flatMap((r) => r.purchases.map((p) => p.nullifier)));
+  const twice = rows.filter((r) => swarm.has(r.nullifier)).length;
   const n = await view(m.bazaar, "spent_count", {});
-  return [n === rows.length, `spent_count ${n}, listed ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded)`];
+  return [n === rows.length + swarm.size && twice === 0, `spent_count ${n}; the manifest lists ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded), ${runs.length} swarm runs list ${swarm.size}`];
 });
 for (const t of m.testers.filter((x) => x.voprf)) {
   await attempt(`a VOPRF nullifier on testnet: ${t.tester.split(".")[0]} bought with ${t.nullifier.slice(0, 12)}.., the record's key is the bazaar's voprf_key (the proof itself: make verify)`, async () => {

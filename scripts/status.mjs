@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The README feature table is generated from docs/status.json, so a status cannot drift:
-//   node scripts/status.mjs           rewrite the table between the status markers
+//   node scripts/status.mjs           rewrite the short table between the README's status
+//                                     markers and the full one in docs/status.md
 //   node scripts/status.mjs --check   FAIL when the README differs from docs/status.json,
 //                                     when a `live` row names evidence the testnet manifest
 //                                     lacks, when a stale phrase is back in the docs, when a
@@ -36,7 +37,7 @@ export const STALE = [
   "32 of 32",
   "32/32",
 ];
-const DOCS = ["README.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md", "docs/solvers.md"];
+const DOCS = ["README.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md", "docs/solvers.md", "docs/status.md"];
 
 // How many testnet buyers share each settled amount and each merchant, as the docs print it:
 // from agents/live.json, the same snapshot the pages read. A refunded pledge paid nothing, so
@@ -82,10 +83,38 @@ export function counted(m, liveRun, verifyLog = "") {
   };
 }
 
-export function render(rs) {
-  const head = "| feature | track ids | where | status |\n|---|---|---|---|";
-  return [BEGIN, head, ...rs.map((r) => `| ${r.feature} | ${r.tracks} | ${r.where} | **${r.status}**${r.detail ? `: ${r.detail}` : ""} |`), END].join("\n");
+// The README table is the short one: a name of at most SHORT_MAX characters, the status word and
+// one evidence link. Everything else a row says is in docs/status.md (renderFull), row by row.
+export const SHORT_MAX = 160;
+const FULL_BEGIN = "<!-- status-full:begin (generated from docs/status.json by scripts/status.mjs; edit that file) -->";
+const FULL_END = "<!-- status-full:end -->";
+const name = (r) => r.short ?? r.feature;
+// The first path a row names that is a file or folder in the tree.
+export function evidenceLink(r, exists = (f) => existsSync(root + f)) {
+  for (const [, f] of r.where.matchAll(/`([^`\s]+)`/g)) if (/[./]/.test(f) && exists(f)) return `[\`${f}\`](${f})`;
+  return r.where.split(",")[0].trim();
 }
+export function render(rs, exists) {
+  const head = "| # | feature | track ids | status | evidence |\n|---|---|---|---|---|";
+  return [BEGIN, head, ...rs.map((r, i) => `| [${i + 1}](docs/status.md#r${i + 1}) | ${name(r)} | ${r.tracks} | **${r.status}** | ${evidenceLink(r, exists)} |`), END].join("\n");
+}
+export function renderFull(rs) {
+  const head = "| # | feature | track ids | where | status |\n|---|---|---|---|---|";
+  return [FULL_BEGIN, head, ...rs.map((r, i) => `| <a id="r${i + 1}"></a>${i + 1} | ${r.feature} | ${r.tracks} | ${r.where} | **${r.status}**${r.detail ? `: ${r.detail}` : ""} |`), FULL_END].join("\n");
+}
+const FULL_INTRO = `# Every feature, in full
+
+The README has the short table: a name, the status and one evidence link per row. This file
+has the same rows with everything each one says: every file, what ran, what did not, and the
+numbers. Both are generated from \`docs/status.json\` by \`scripts/status.mjs\`, and
+\`make judge\` fails when either differs from it.
+
+**live** means it ran on NEAR testnet and is listed in the testnet manifest that \`make
+verify-live\` reads. **built** means it is in code with tests; where a built row also ran on
+testnet outside that manifest, the row says so.
+
+`;
+export const fullDoc = (rs) => FULL_INTRO + renderFull(rs) + "\n";
 
 const at = (o, path) => path.split(".").reduce((x, k) => (x == null ? x : x[k]), o);
 
@@ -94,6 +123,8 @@ export function problems(readme, rs, m, docs, src = {}, n = null, sets = null) {
   const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
   if (a < 0 || b < 0) out.push("README has no status markers");
   else if (readme.slice(a, b + END.length) !== render(rs)) out.push("README feature table differs from docs/status.json (run node scripts/status.mjs)");
+  if ("docs/status.md" in docs && docs["docs/status.md"] !== fullDoc(rs)) out.push("docs/status.md differs from docs/status.json (run node scripts/status.mjs)");
+  for (const r of rs) if (name(r).length > SHORT_MAX) out.push(`"${r.feature.slice(0, 40)}": the README name is ${name(r).length} characters, over ${SHORT_MAX}; give the row a "short"`);
   for (const r of rs) {
     if (!WORDS.includes(r.status)) out.push(`"${r.feature.slice(0, 40)}": unknown status ${r.status}`);
     if (r.status === "live" && !(r.evidence ?? []).every((e) => at(m, e) != null)) out.push(`"${r.feature.slice(0, 40)}": live, but the manifest lacks ${(r.evidence ?? []).filter((e) => at(m, e) == null).join(", ") || "evidence"}`);
@@ -160,6 +191,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
     if (a < 0) throw new Error("add the status markers around the feature table first");
     writeFileSync(root + "README.md", readme.slice(0, a) + render(rows) + readme.slice(b + END.length));
-    console.log(`wrote the README feature table: ${rows.length} rows`);
+    writeFileSync(root + "docs/status.md", fullDoc(rows));
+    console.log(`wrote the README feature table and docs/status.md: ${rows.length} rows`);
   }
 }

@@ -73,7 +73,7 @@ sequenceDiagram
 Status: `built` means in this repo and covered by `make verify` or tests; `stub` means the
 interface exists with a test double; `planned` means not built yet.
 
-The feature table is in the README ("Every feature, its status and its evidence"); it is generated from `docs/status.json`.
+The feature table is in the README ("Every feature, its status and its evidence"); the full rows are in `docs/status.md`; both are generated from `docs/status.json`.
 
 ## Repository layout
 

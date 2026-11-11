@@ -19,7 +19,7 @@ chain, offline.
 make judge     # Node 22 only, about 25 s, no network, no keys: ends `PASS  make judge`
 ```
 
-It replays a recorded snapshot of the testnet reads (101 checks), runs the JS suites, the
+It replays a recorded snapshot of the testnet reads (103 checks), runs the JS suites, the
 referee, the Jolt verifier and the page's wasm verifier. Then open one live transaction, the
 hotel purchase at 408 dUSDC:
 [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6).
@@ -30,7 +30,8 @@ read the last daily run of the `live` workflow.
 ## Minute 1: open
 
 - `README.md`, "Every feature, its status and its evidence": every row says live, built, stub or planned.
-  It is generated from `docs/status.json`, and `make judge` fails if a row drifts.
+  It is the short table; each row's number opens the full row in `docs/status.md`. Both are
+  generated from `docs/status.json`, and `make judge` fails if a row drifts.
 - `docs/evidence.md`: measured numbers (time, eval pass rate, storage and gas per method,
   who pays).
 
@@ -66,8 +67,7 @@ python3 -m http.server -d agents     # then open /swarm.html, /board.html and /r
 
 - `/swarm.html`: one button replays the hotel round (8 sealed bids, a refused claim, the group
   of 5), every step linked to its testnet tx. `/prove.html`: your browser makes and checks a
-  Jolt proof of the agent's pick, then refuses a changed claim. `/clearing.html`: the one-price
-  batch, numbers editable (an illustration; the method is not deployed).
+  Jolt proof of the agent's pick, then refuses a changed claim.
 - `/board.html`: 30 bids, the buyer column shows only k and the bits revealed, merchant
   asks answered by rule, the red refused receipt, and the sealed reviews panel.
 - `/receipts.html`: every verdict and purchase from the contract's own NEP-297 events, and
