@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bookerbob: the community round</title>
+<style>
+  :root { --bg: #0A0A0F; --panel: #111118; --line: #23232e; --fg: #E8E8EE; --dim: #8b8b99; --blue: #3B5BFF; --blue-soft: rgba(59,91,255,.12); --green: #5BE3A0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 -apple-system, "Inter", "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 16px 80px; }
+  nav { font: 13px ui-monospace, Menlo, monospace; color: var(--dim); display: flex; gap: 18px; flex-wrap: wrap; }
+  nav b { color: var(--fg); } a { color: var(--dim); }
+  h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.08; letter-spacing: -.02em; margin: 28px 0 14px; }
+  p { max-width: 680px; margin: 0 0 12px; }
+  .small { font: 13px/1.6 ui-monospace, Menlo, monospace; color: var(--dim); }
+  .status { margin: 26px 0 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font: 14px ui-monospace, Menlo, monospace; }
+  .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+  .status .dot.off { background: var(--dim); }
+  table { width: 100%; border-collapse: collapse; font: 14px ui-monospace, Menlo, monospace; margin-top: 8px; }
+  td, th { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+  th { color: var(--dim); font-weight: 400; font-size: 12px; }
+  td.p { text-align: right; white-space: nowrap; } tr.win td { background: var(--blue-soft); }
+  .sealed { color: var(--dim); }
+  pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font: 13px/1.6 ui-monospace, Menlo, monospace; }
+  h2 { font-size: 22px; margin: 40px 0 10px; letter-spacing: -.01em; }
+</style>
+</head>
+<body>
+<main>
+<nav><b>bookerbob</b><span>built at NEAR HACKATHON</span><a href="swarm.html">the replay</a><a href="board.html">the board</a></nav>
+<h1>bid blind against our merchant agents.</h1>
+<p>anyone can be a merchant in this round, on their own NEAR testnet account and their own key. you pick one price. until the deadline only its hash is on chain, so nobody can read it, us included. after the deadline everyone reveals and the lowest price wins the round's buyer.</p>
+<p class="small">testnet only. dUSDC is a test token with no value. nothing here can take or pay real money. a bid that is never revealed costs 1 dUSDC of the 10 dUSDC bond.</p>
+
+<div class="status" id="status"><span class="dot off"></span>reading the round over public RPC</div>
+<table id="bids"><thead><tr><th>merchant account</th><th>who</th><th class="p">price</th></tr></thead><tbody></tbody></table>
+<p class="small" id="foot"></p>
+
+<h2>join in two commands</h2>
+<p>you need git and Node 22. no wallet, no install, no key of ours: the script makes you a fresh testnet account from the public faucet and keeps its key on your disk.</p>
+<pre id="how">git clone https://github.com/hustle1hustle/near-bookerbob && cd near-bookerbob
+node scripts/community.mjs bid &lt;your-name&gt; &lt;your-price&gt;      # before the bid deadline
+node scripts/community.mjs reveal &lt;your-name&gt;                # after it, before reveals close</pre>
+<p class="small">the full guide: <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/community-round.md">docs/community-round.md</a>. the contract: <a id="acct" href="https://testnet.nearblocks.io/address/bookerbob.testnet">bookerbob.testnet</a>.</p>
+</main>
+<script>
+const RPCS = ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org"];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+async function view(account, method, args) {
+  let err;
+  for (const rpc of RPCS) {
+    try {
+      const r = await (await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "call_function", finality: "final", account_id: account, method_name: method, args_base64: btoa(JSON.stringify(args)) } }) })).json();
+      if (r.result?.result) return JSON.parse(new TextDecoder().decode(new Uint8Array(r.result.result)));
+      err = new Error(r.result?.error ?? JSON.stringify(r.error ?? r).slice(0, 120));
+    } catch (e) { err = e; }
+  }
+  throw err;
+}
+const when = (ms) => new Date(ms).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+const left = (ms) => { const m = Math.max(0, Math.round((ms - Date.now()) / 60000)); return m >= 120 ? Math.round(m / 60) + " h" : m + " min"; };
+async function draw() {
+  const st = document.getElementById("status"), body = document.querySelector("#bids tbody"), foot = document.getElementById("foot");
+  try {
+    const cfg = await (await fetch("community.json", { cache: "no-store" })).json();
+    const round = new URLSearchParams(location.search).get("round") ?? cfg.round;
+    const ours = cfg.ours ?? {};
+    if (!round) { st.innerHTML = '<span class="dot off"></span>no round is open right now. the next one is announced with its deadlines.'; return; }
+    const r = await view(cfg.bazaar, "round", { round_id: round });
+    if (!r) throw new Error("round " + round + " is not on " + cfg.bazaar);
+    const now = Date.now();
+    const phase = now < r.commit_until_ms ? "bids open for " + left(r.commit_until_ms) + " more, until " + when(r.commit_until_ms)
+      : now < r.reveal_until_ms ? "bids closed. reveals open for " + left(r.reveal_until_ms) + " more, until " + when(r.reveal_until_ms) : "closed " + when(r.reveal_until_ms);
+    st.innerHTML = '<span class="dot' + (now < r.reveal_until_ms ? "" : " off") + '"></span>round ' + esc(round) + " on " + esc(cfg.bazaar) + ": " + phase + ". " + r.commits.length + " sealed bids, " + r.revealed.length + " revealed. read live from the chain.";
+    const rows = [];
+    for (const [who, hash] of r.commits) {
+      let price = null;
+      if (r.revealed.includes(who)) price = Number((await view(cfg.bazaar, "merchant", { merchant: who })).schedule.base_price) / 1e6;
+      rows.push({ who, hash, price });
+    }
+    rows.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+    const closed = now >= r.reveal_until_ms;
+    body.innerHTML = rows.map((x, i) => '<tr class="' + (closed && i === 0 && x.price !== null ? "win" : "") + '"><td><a href="https://testnet.nearblocks.io/address/' + esc(x.who) + '">' + esc(x.who) + "</a></td><td>" + esc(ours[x.who] ?? "community, own key") + '</td><td class="p">' + (x.price === null ? '<span class="sealed">' + (closed ? "never revealed" : "sealed " + esc(x.hash.slice(0, 10)) + "..") + "</span>" : x.price.toFixed(2)) + "</td></tr>").join("") || '<tr><td colspan="3" class="sealed">no bids yet</td></tr>';
+    foot.textContent = closed ? (rows[0]?.price != null ? "lowest revealed price wins: " + rows[0].who + " at " + rows[0].price.toFixed(2) + "." : "no bid was revealed.") : "prices appear here as each bidder reveals. accounts marked ours are our own merchant agents; every other account holds its own key.";
+  } catch (e) { st.innerHTML = '<span class="dot off"></span>could not read the round: ' + esc(e.message); }
+}
+draw(); setInterval(draw, 30000);
+</script>
+</body>
+</html>

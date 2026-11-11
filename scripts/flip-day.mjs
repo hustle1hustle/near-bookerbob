@@ -18,7 +18,7 @@ import { existsSync, readFileSync } from "node:fs";
 const REPO = "hustle1hustle/bookerbob-near";
 const REPO_URL = `https://github.com/${REPO}`;
 const PAGES = `https://hustle1hustle.github.io/near-bookerbob`;
-const PAGE_FILES = ["", "swarm.html", "prove.html", "clearing.html", "board.html", "receipts.html", "prove/sizes.json", "coi-prove-sw.js"];
+const PAGE_FILES = ["", "swarm.html", "prove.html", "clearing.html", "round.html", "board.html", "receipts.html", "prove/sizes.json", "coi-prove-sw.js"];
 const TRACKS = ["swarms", "privacy", "open", "agents", "security", "social"];
 const DESC = `${process.env.HOME}/Documents/rep code/claude/near-hackathon/SUBMISSION-DESC-DRAFT-2026-11-10.txt`;
 const sh = (cmd, args, opts = {}) => spawnSync(cmd, args, { encoding: "utf8", ...opts });
