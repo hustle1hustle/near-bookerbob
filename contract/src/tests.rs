@@ -4453,6 +4453,61 @@ mod bid_pin {
         assert!(c.round_bid("o1".into(), acc("m01.bazaar.testnet")).is_none(), "no reveal, no pin");
         assert!(c.round_bid("o2".into(), acc(A)).is_none());
         assert!(c.round_bid("o1|a".into(), acc("testnet")).is_none());
+        // The key splits at its last `|` only because no account id can hold one.
+        assert!("a|b.testnet".parse::<AccountId>().is_err());
+        assert_ne!(bid_pin_key("o1|a", &acc("b.testnet")), bid_pin_key("o1", &acc("a.b.testnet")));
+    }
+
+    /// Round o2 opens inside o1's reveal window; A bids cheap() there, so its public schedule moves.
+    fn a_bids_cheap_in_o2(c: &mut Bazaar) {
+        at("owner.testnet", COMMIT_UNTIL + 3);
+        c.open_round("o2".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL + 10, COMMIT_UNTIL + 20);
+        at(A, COMMIT_UNTIL + 4);
+        c.commit_bid("o2".into(), sealed(A, &cheap(), 3));
+        at(A, COMMIT_UNTIL + 10);
+        c.reveal_bid("o2".into(), cheap(), hex::encode([3u8; 32]));
+    }
+
+    #[test]
+    fn a_bid_in_a_later_round_leaves_the_earlier_round_at_its_own_bid() {
+        let mut c = open_round_revealed();
+        a_bids_cheap_in_o2(&mut c);
+        assert_eq!(c.merchant(acc(A)).unwrap().schedule, cheap(), "the later reveal is the public schedule");
+        assert_eq!(c.round_bid("o1".into(), acc(A)), Some(schedule()));
+        assert_eq!(c.round_bid("o2".into(), acc(A)), Some(cheap()));
+        assert_eq!(winner(&c, "o1"), (acc(B), B_BID), "o1 is not re-priced by a bid made in o2");
+        assert_eq!(winner(&c, "o2"), (acc(A), CHEAP));
+    }
+
+    #[test]
+    fn an_agent_leashed_to_the_earlier_round_pays_that_rounds_bid_after_a_later_round() {
+        // What an off-chain referee must do after this rule: price from `round_bid`, not `merchant`.
+        let mut c = leashed_round(schedule());
+        a_bids_cheap_in_o2(&mut c);
+        let pinned = c.round_bid("o1".into(), acc(A)).unwrap();
+        let refused = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let live = c.merchant(acc(A)).unwrap().schedule;
+            c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, live))
+        }));
+        assert!(refused.is_err(), "a receipt priced from the current schedule is not this round's price");
+        set(AGENT);
+        assert!(c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, pinned)));
+        at(AGENT, REVEAL_UNTIL);
+        let _ = c.settle(hex::encode(N1), acc(A), "o".into(), U128(A_BID));
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(A_BID));
+    }
+
+    #[test]
+    fn without_a_round_mandate_a_receipt_is_priced_from_the_current_schedule_as_before() {
+        // The buyers of `make try` and `make demo-tester` hold no mandate: nothing changes for them.
+        let mut c = open_round_revealed();
+        reregister(&mut c, A, cheap(), OPEN_CATEGORY);
+        set(AGENT);
+        let refused = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, schedule()))));
+        assert!(refused.is_err(), "the pin prices nothing for an agent no round mandate binds");
+        set(AGENT);
+        assert!(c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, cheap())));
+        assert_eq!(c.verdict(hex::encode(N1)).unwrap().receipt.unwrap().price, U128(CHEAP));
     }
 
     #[test]

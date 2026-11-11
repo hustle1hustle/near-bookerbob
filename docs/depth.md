@@ -133,7 +133,7 @@ functions only); on testnet every tx's real gas is on nearblocks (docs/testnet.m
 | `approve_merchant` | owner | 0 | 0.00000 | 0.310 |
 | `open_round` | owner | 87 | 0.00087 | 0.378 |
 | `commit_bid` | merchant | 93 | 0.00093 | 0.811 |
-| `reveal_bid` | merchant | 25 | 0.00025 | 0.868 |
+| `reveal_bid` | merchant | 204 | 0.00204 | 1.004 |
 | `storage_deposit (escrow entry)` | agent | 84 | 0.00084 | 0.314 |
 | `ft_on_transfer (USDC in)` | USDC contract | 0 | 0.00000 | 0.310 |
 | `submit_verdict (ed25519, first in context)` | agent | 1174 | 0.01174 | 2.033 |
