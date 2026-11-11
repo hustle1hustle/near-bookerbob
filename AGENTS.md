@@ -1,6 +1,32 @@
 # AGENTS.md
 
 For AI agents (Claude Code, Codex, judges) reading, running or changing this repo.
+`CLAUDE.md` only points here.
+
+## If you are reviewing this repo
+
+Facts and pointers, nothing else.
+
+- Three commands, with measured times:
+  - `make judge`: Node 22, offline, no keys, about 25 s (2026-11-11, a warm macOS arm64
+    laptop). Ends `PASS  make judge`. It replays a committed snapshot of the testnet reads and
+    verifies the committed Jolt proofs; it makes no proof.
+  - `make verify`: Rust 1.93+, the contract on near-sdk's mocked chain, about 11 s warm and
+    114 s from a fresh clone (crates fetched). Ends `ALL PASS (26 checks)`.
+  - `make verify-live`, or `JUDGE_LIVE=1 make judge`: the same testnet claims over public RPC,
+    5 to 13 minutes (old txs come from a rate-limited public archive).
+- The status of every feature (live, built, stub, planned) with its evidence: `README.md`,
+  "Every feature, its status and its evidence". It is generated from `docs/status.json`;
+  `node scripts/status.mjs --check` fails when the two differ.
+- What does not hold yet: `README.md`, "Known limits". Who holds each trust key (REP holds all
+  of them today): `README.md`, "Who can lie, what catches it, who holds the key".
+- What is synthetic: the facts behind every verdict, the buyers (our own test accounts), the
+  money (dUSDC, a testnet demo token), the World ID action. Detail: "What is real and what is
+  fixture" below.
+- Who took part: REP runs all 30 listed merchant agents. The one other bidder was a separate
+  agent session we ran and funded. No third party has joined.
+- Testnet only, nothing on mainnet. Every tx hash: `docs/testnet.md`. A five-minute walk:
+  `docs/judge-guide.md`.
 
 BookerBob: merchant agents compete on price for a buyer. The buyer reveals a few proven
 bits (for example `airbnb_frequent`) inside a signed verdict, never the history behind
@@ -24,7 +50,7 @@ The testnet purchases themselves: `make demo-tester`, `make model-buy`, `make tr
 
 ## Run it (no network, no keys, no secrets)
 
-Needs Rust stable and Node 22. From the repo root:
+Needs Rust 1.93+ and Node 22. From the repo root:
 
 | goal | command | expected |
 |---|---|---|
@@ -116,7 +142,11 @@ Fixture or synthetic:
 - World ID: a placeholder action and a fixture verifier key.
 - The USDC payout in `make verify` is a scheduled receipt, not an executed transfer.
 
-Not built: NVIDIA GPU evidence checks, a TDX quote check inside the contract (the owner checks it before registering the model key), 1Click. See `README.md` "NEAR features used" and `RESUME.md`.
+Not built: a TDX quote check inside the bazaar contract (since 2026-11-05 a separate verifier
+contract, `spike.bookerbob.testnet`, checks the quote on chain, and the bazaar registers a model
+key only against its result), an on-chain check of the NVIDIA GPU evidence (it is checked
+offline, `scripts/nras.mjs`), 1Click. See `docs/depth.md` ("NEAR features used") and `README.md`
+("Known limits").
 
 ## Rules for changes
 
