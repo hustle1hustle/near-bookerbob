@@ -1,0 +1,253 @@
+{
+  "note": "A swarm on NEAR testnet: the registered merchant agents bid sealed in fresh rounds; each buyer agent is a fresh account whose verdict a NEAR AI model issued under E2EE v2 (submit_near_ai_verdict), and it bought from its round's winner for that verdict (round_best_quote), paid in dUSDC, a testnet demo token with no value. Every proof set is synthetic. `node scripts/swarm-run.mjs verify <tag>` re-reads this from public RPC.",
+  "tag": "pilot1",
+  "network": "testnet",
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "relayer": "bookerbob-demo.testnet",
+  "explorer": "https://testnet.nearblocks.io/txns/",
+  "started_at": "2026-11-11T09:46:57.415Z",
+  "updated_at": "2026-11-11T10:01:36.204Z",
+  "complete": true,
+  "stopped": null,
+  "plan": {
+    "rounds": 1,
+    "buyers": 6,
+    "commit_min": 5,
+    "reveal_min": 5
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "pilot1-r1-hoodie",
+          "open_tx": "4L7DV9yuMWwTYYQCG5JKgkbUHLGbdU1onTuuNZDwTXeV",
+          "commits": 22,
+          "reveals": 22,
+          "commit_until_ms": 1794390718183,
+          "reveal_until_ms": 1794391018183
+        },
+        {
+          "category": "hotel-lisbon",
+          "round_id": "pilot1-r1-hotel-lisbon",
+          "open_tx": "U3Pbn2qwwbduDPSSFa6HiGkdrjCuuL2ec9b4Tc7SSKS",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794390718183,
+          "reveal_until_ms": 1794391018183
+        }
+      ],
+      "replay": {
+        "nullifier": "34c680919f32d9c9b44eaef22447a3387893e034d5f6ba68906e12bc14ef4397",
+        "tx": "BZvL96JKGrkQSNxEJDEyxhQ41C9F7C9Z9yeRT1tMZucx",
+        "refused": "nullifier spent"
+      }
+    }
+  ],
+  "purchases": [
+    {
+      "round": 1,
+      "round_id": "pilot1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "efc69fde95a20ee7e4aa1bd2a4d19ca2bcb498939388a517c54e6fdf2cff6565",
+      "nullifier": "34c680919f32d9c9b44eaef22447a3387893e034d5f6ba68906e12bc14ef4397",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e7942269b39c4610ac10a3f5144e808a",
+      "seconds": 129,
+      "txs": {
+        "account": "2opjbyPqqwQ3erjxhXEgTdXUzqVVnAkDiXG8cqFJ3MmV",
+        "escrow_entry": "2cpw4BHjtMP3WSjQ6qn72TzQvfKg27EPWDtZtrPzdpj3",
+        "dusdc_storage": "EcvnbZ24JnWWHmTLsxnXfDfTxjR82sYuhvtZvzk38BuG",
+        "mint": "7oroqwQos4r24RwjyK8eUHQ2J5rGGWk4XX7M2Jo4y7hZ",
+        "world": "Fm3Bq4uLmsvgkKZYMMxmtNUCRZyUqjjj1giwkon7vbAQ",
+        "verdict": "6YbfGhB4oERn3ahwafRAgkaoEEEDMxuTVpo3ay1kmJAX",
+        "receipt": "38TbXjLKGaasu8LJv5MBhueAJSg5qQGLTzbd3LyK1ZEy",
+        "escrow": "DY3Tg59Rf3EEv1GmPSVnS6nVGB3i2b85wPppQBjyEXQd",
+        "settle": "6zE1AwumzgjMXNfpWrBRdW34oHkJoW9SES2prjpiexPy",
+        "replay": "BZvL96JKGrkQSNxEJDEyxhQ41C9F7C9Z9yeRT1tMZucx",
+        "sweep": "3c2qcqD8V5sL5XdEdZMux7dtZSnjELbpa41EKxW53ceD"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "pilot1-r1-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "0ac2d17a0a5ebf583873479dfea50720a87859c2398ed6d5854c9278def237b3",
+      "nullifier": "0634b3c1a7fc81627ce0a96f2a26e364e6cb8107c85dabb089b1d6a7327f7664",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e10a5a8d850b4d2082cbfa877b2a7a5a",
+      "seconds": 126,
+      "txs": {
+        "account": "EBMB8EnaT1zEV5H3sEDNWnwMkGf4J2gvKYTdeWLHTNet",
+        "escrow_entry": "GT8H2fmcns1D5WFRaXyuDDB59zBKjbyk6iSDQeRHo7be",
+        "dusdc_storage": "5i9rfcqo9Svikt2YBKue36WGWC4s76vVYfENSBhxmMZW",
+        "mint": "9pk2ddvZjB5ZQj6LPwH32VcjgNiDjpXVdQW5oYZNymd4",
+        "world": "EQNbEPS2nBzJBDKAyPcBzoq8zHUyTAKhRa7JeWosQYab",
+        "verdict": "BKxASuHkNB3EUZ3VVpSQ4AvZLa38N2RgPus9P6rFDceR",
+        "receipt": "C1JBfqQowFsRQxT1LXmfaEpfHzC9yj2GnbbHeG1CjMj6",
+        "escrow": "A76QxP6yMCdHTvGVByv1R4Nzf9WDvdjYSPLeDHC1aHo1",
+        "settle": "EPv7p7TAaigeXaXeTA3YqMFbKhPtRGSifXBTvMsFioA4",
+        "sweep": "G624mGNeskoBcoUp7di21CD1mY3NerScUtfoonqvnrDB"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "pilot1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "aab17186c3697b08627e53fdfa5ab979fe0a8c0d2e0047096e56a4012fbfc1f3",
+      "nullifier": "1618626d8c052bc73b3266bdc514b452ad7c64e636452c21f211aec561751066",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "1b167d461685445ea30da13a7fcdfbdb",
+      "seconds": 135,
+      "txs": {
+        "account": "81yXnCGtBBYMwTk5RaRvM7cBTJkeBhSF2awzNqX4EpXA",
+        "escrow_entry": "A6L5cdkxq9X1gc8EcgvNjrTUykMDNuGK4syzPirGduq3",
+        "dusdc_storage": "DSBG1jQgnp4gvnJXoznwjswhs6C2cQnSLf4nc3rj5net",
+        "mint": "94A5VP2qjwbtBg7uiWyEGVvfr2cgiW1rS2bsj4B3Wek6",
+        "world": "6Uey2ZTYEfpy6cAzYy7jsT1nNVQgAAPs2P13To5z72P2",
+        "verdict": "YaRMawmnKUEB2r4R26we4nHejq4NafyjymGJs7pMoe4",
+        "receipt": "CXqZY3799FzVB4RDxbxowusYRJRFufXJwekWLefz5wfi",
+        "escrow": "CPRWwRx3xgVnBcm5q1mB8uJKjhWkUbapsMrXk5dmfndB",
+        "settle": "3fydnvw7Qiew4pAZpNjzNPa8SfLJcxPdZ53u1qubCcSg",
+        "sweep": "6ihjKQy8VKJKjjHJpkBTwEEqoXjyJxTVpGgRaBL6RkRN"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "pilot1-r1-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "38a7448f010085b8df0f3b2243169e995ae582976dcd0114e44e6c609d5ccd6c",
+      "nullifier": "2bf5665d910973c7115ec068bf564872ca0f89830d4f239983b5dfa11b334b44",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "9256ab08663949ff9f8f9b23fe63dddd",
+      "seconds": 115,
+      "txs": {
+        "account": "4zkygGxV6axggcg6vMDGtGLRSnHk39NU33QgYE8MVZXR",
+        "escrow_entry": "DHdHKyKw6Fv7C7KAeWwU6QtHkp4iuzc8jacrgD4NP4CU",
+        "dusdc_storage": "A7a9M15WsBbkLs1d5ghZD9Abom4AfHAvbsHxad3z5zuk",
+        "mint": "D2EpG3vkkY2ts8agsGYigqhMced2ZGiKvSThj4APMZrK",
+        "world": "Fkey62EmDcWSAky82YnrL3ciEHE5pt2gmQbK2AuwPfbF",
+        "verdict": "8PJ8aa3r3UYbAdf3gdUTwd72GNck9cawxWjVEqTFpcnJ",
+        "receipt": "B1XPQ7LAgwVZsqxkgjh5KdFdTnUVQwfQgSvHaV7TEEB7",
+        "escrow": "Ff5D28NSTUfbL6PEHWVKfPEqg5MPwY7rqDMD2DzgCyc1",
+        "settle": "H9jXY2PcBM4LQgRHiQJJqXmcR2nDN25xQPQYaRPqph5T",
+        "sweep": "ER6ho4msaUi9xZpy7EHfCDWiq2kDgtuP4gPwbrsd6VUm"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "pilot1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "e87c733a1c5b0b8dbb474f987bfee2c4fb4f36a9294941915107ca6bae60c1a4",
+      "nullifier": "a62ef889d3959746136b5b3bed3e8cd76660addddfa84d3975504ab0a04d8f6e",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "b0b7c76d6f734ce7b3e737c12ce13774",
+      "seconds": 134,
+      "txs": {
+        "account": "HMivSLPxBpxD1HZvuzCFNNsT2apbqJeHJmSZsYNsrcCC",
+        "escrow_entry": "5XpBTEPCw5Wsfs2CpPwGpCMv7LSu8fJjn5HndiyWpkH",
+        "dusdc_storage": "D5ufoBPx1o9tNUrF3KvLX5XQEmZ5sAms1cZXDV9wyQTD",
+        "mint": "2g1ncpsPb6FfTk3xak5Wa8ZYsqNsc9dFNJznMBrGdBoU",
+        "world": "DprggnznEZo45aSo8Z4KzxDbXGEigcJYbrxz7vus3dBq",
+        "verdict": "C8eutNd6HEKzutqJf3cSdPRnhDstHNevKFk4bMymog3p",
+        "receipt": "GL5WL88YqtabxLfP47DEzMF5812URa4Ue9hBbzC8hBw7",
+        "escrow": "H44aeJoY9iehhGijKhMUJaUAMe2hgfHdKkhwBMvQJd8Y",
+        "settle": "55rvhsu37CNusajzMkQT36s4fChHWpf9CRXKhsn3f7Kv",
+        "sweep": "2oBHKEh8KWGRoLQYQkAGz72QmNXzabKoWGbiippAXLTK"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "pilot1-r1-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "c9ea4a829a67424018a25deb0e812c85ea84510a173f9d3188fdb8f4c81d9dc7",
+      "nullifier": "b47e1649f47129bc32890c403ead6204fe30d26e90bdeacb6d7e71d89418e8bf",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "7fc9b6681c944851b7beb192d91424cc",
+      "seconds": 134,
+      "txs": {
+        "account": "6RRRS7GrdjFtUEfEZhVk135uYP9hZzuxSYXBL86pk385",
+        "escrow_entry": "HQQoDoBSGoYhjVab5TFoARd17E17RYxtWL53VMTyU8Hz",
+        "dusdc_storage": "GDA6vSEKxSaStagPEzgaT7XPUt21TzDUm8d9faEdDaCW",
+        "mint": "5HB46qnaEavhjoNaNZ4mjmqWdyB8QLkZiUnTpSpowg4",
+        "world": "BEzKqzMH13mv9Hd91D4bamZttTh7waXz5ktQFtUSFuJ1",
+        "verdict": "F36T1zkHmT3t386b3iD3XNHHU8XMPmrthUeUEAfLoDZL",
+        "receipt": "7CDwzt3C9eWuucbnM4hkMaAojcEn6XA8YA2wtZXonXuB",
+        "escrow": "9s55FqT8ML9FBfJ935kFnWUZbVmy92H75KP7wJZWS9D9",
+        "settle": "9wHTkSL6RtzCFK6VuVNk7wUJcChstZJNn2zrn5HvArAa",
+        "sweep": "6M8skXh8afuiANwXLBNduHS5fhdGg41zbnKKjsypHWoE"
+      }
+    }
+  ],
+  "failures": [],
+  "totals": {
+    "merchant_agents": 30,
+    "buyer_agents": 6,
+    "rounds": 1,
+    "sealed_bids": 30,
+    "reveals": 30,
+    "model_verdicts": 6,
+    "purchases_settled": 6,
+    "dusdc_volume": "1332.00",
+    "refused_replays": 1,
+    "failures": 0,
+    "near_ai_calls": 6,
+    "near_ai_cost_usd": 0.000884,
+    "near_ai_cost_basis": "token usage in each answer at the model's listed price",
+    "treasury_near_spent": 0.2793,
+    "faucet_near": 0,
+    "wall_time_s": 878
+  }
+}

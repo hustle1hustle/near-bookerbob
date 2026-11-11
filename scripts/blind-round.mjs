@@ -32,7 +32,7 @@ const roundOf = (category) => `${tag}-${category}`;
 
 function call(signer, method, args, deposit = "0 NEAR", gas = "30.0 Tgas") {
   for (let i = 0; i < 4; i++) {
-    const r = spawnSync("near", ["contract", "call-function", "as-transaction", c.bazaar, method, "json-args", JSON.stringify(args), "prepaid-gas", gas, "attached-deposit", deposit, "sign-as", signer, "network-config", "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
+    const r = spawnSync("near", ["contract", "call-function", "as-transaction", c.bazaar, method, "json-args", JSON.stringify(args), "prepaid-gas", gas, "attached-deposit", deposit, "sign-as", signer, "network-config", process.env.NEAR_CLI_NETWORK ?? "testnet", "sign-with-keychain", "send"], { encoding: "utf8" });
     const out = `${r.stdout}${r.stderr}`;
     const hash = out.match(/Transaction ID: ([1-9A-HJ-NP-Za-km-z]{43,44})/)?.[1];
     if (r.status === 0 && hash) return { ok: true, hash };

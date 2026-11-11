@@ -1,0 +1,3632 @@
+{
+  "note": "A swarm on NEAR testnet: the registered merchant agents bid sealed in fresh rounds; each buyer agent is a fresh account whose verdict a NEAR AI model issued under E2EE v2 (submit_near_ai_verdict), and it bought from its round's winner for that verdict (round_best_quote), paid in dUSDC, a testnet demo token with no value. Every proof set is synthetic. `node scripts/swarm-run.mjs verify <tag>` re-reads this from public RPC.",
+  "tag": "s1",
+  "network": "testnet",
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "relayer": "bookerbob-demo.testnet",
+  "explorer": "https://testnet.nearblocks.io/txns/",
+  "started_at": "2026-11-11T10:02:46.790Z",
+  "updated_at": "2026-11-11T11:47:05.358Z",
+  "complete": true,
+  "dusdc_registrations": [
+    {
+      "merchant": "m02.bookerbob.testnet",
+      "tx": "E7irUE6kB4Dfepw8b5wLM5aJam7E3u3vtyULfsxq171B"
+    },
+    {
+      "merchant": "m03.bookerbob.testnet",
+      "tx": "2b85SZhRx32f1f56gaj7RrC2P7cdNJ9httBAVZBB7c7p"
+    },
+    {
+      "merchant": "m04.bookerbob.testnet",
+      "tx": "ALs9JsXZFgGAkS89xmSpo3d8bwhors1Y2pjwaSMiUNNq"
+    },
+    {
+      "merchant": "m05.bookerbob.testnet",
+      "tx": "A7eWjd89RekhZhtUXLnEFdmkWYhpW7xQRmU8RdaSL3sd"
+    },
+    {
+      "merchant": "m06.bookerbob.testnet",
+      "tx": "CXHFoZN6dt9PLvRJUA3rJK3dwhXoC8mawJ7yPWtKnPZo"
+    },
+    {
+      "merchant": "m07.bookerbob.testnet",
+      "tx": "8ZVzUHDYHTqhEGxVv3413Qc2cHwH96CcKgMbUpGk9hcz"
+    },
+    {
+      "merchant": "m08.bookerbob.testnet",
+      "tx": "22wumJQFah2AaSQmG9Z256vngypzK9yByznPgAzXFYUs"
+    },
+    {
+      "merchant": "m09.bookerbob.testnet",
+      "tx": "9iwJDntQY2VEWfjywsDMhWDhhvjnxw8UBtFUUH1j3FRJ"
+    },
+    {
+      "merchant": "m10.bookerbob.testnet",
+      "tx": "5WpxFDETBGkRaEAzycyuC19wqxX5CnrUzZiApnNsK5hC"
+    },
+    {
+      "merchant": "m11.bookerbob.testnet",
+      "tx": "CNn73z1MkUSBMvbdhEYrbzpSuNQcbT7fwXgiZoyHVgAp"
+    },
+    {
+      "merchant": "m12.bookerbob.testnet",
+      "tx": "CnJQcgnEY7A4e6KRv6dV1gAxyV578o5v5ffShiuRSVEH"
+    },
+    {
+      "merchant": "m13.bookerbob.testnet",
+      "tx": "4UK74pA549dGkMCM4RabWFuUi4Rvc1rU4acMCY8WxMWg"
+    },
+    {
+      "merchant": "m14.bookerbob.testnet",
+      "tx": "6YN6LzP4mnkFsu2Vm4XVGokmFZa4rp1d173fdg6fpLXa"
+    },
+    {
+      "merchant": "m15.bookerbob.testnet",
+      "tx": "DK7TMgUyoPLxDTsdRgtLHBComhEDEV4xKFjBsxY8Jap6"
+    },
+    {
+      "merchant": "m16.bookerbob.testnet",
+      "tx": "B9h5PvD5NBvdbz1hb2HqnFFig4UCZmmK9gBrqSavDSBj"
+    },
+    {
+      "merchant": "m17.bookerbob.testnet",
+      "tx": "4M5jMQBcy2FNBRfd2empq9LX3g5XUyPrA16Vstx6XcUj"
+    },
+    {
+      "merchant": "m18.bookerbob.testnet",
+      "tx": "HNv4oZn6Myw3Tp5g7QgN2Syq6xfAfuq1E43z9jox7qKT"
+    },
+    {
+      "merchant": "m19.bookerbob.testnet",
+      "tx": "AkcXqUhTskCStw4BkuZoXGRjX8ZgXDm5uRJzuWVDQAt5"
+    },
+    {
+      "merchant": "m20.bookerbob.testnet",
+      "tx": "5mmeCo73aQB3226t56ZxFr9DwUa2Yh5Y6bZBQXNXYp6G"
+    },
+    {
+      "merchant": "m21.bookerbob.testnet",
+      "tx": "Bwo3M9oyDrsxtYf1QJQNhb4sSNMZU8xJt8FCyQDSHkjm"
+    },
+    {
+      "merchant": "m22.bookerbob.testnet",
+      "tx": "4w3vzjcDo6jyKmTMqJGDmCPnDqnQBbS6BvEWJH8pDkiC"
+    },
+    {
+      "merchant": "h01.bookerbob.testnet",
+      "tx": "Dn4sYG7QqdC6gkaWMLXmA5r6GHotKMYDH14rqUR5Zv7E"
+    },
+    {
+      "merchant": "h02.bookerbob.testnet",
+      "tx": "Fsu8uy8Dxb7eXRx2CkYuJzcdiEQDMmyDTVXZV8GmKkCc"
+    },
+    {
+      "merchant": "h03.bookerbob.testnet",
+      "tx": "JB3oBjLgpQuFbWH4nTZQxMhVSntEVyHmX4PSXDdYgf4o"
+    },
+    {
+      "merchant": "h04.bookerbob.testnet",
+      "tx": "8TLUSWhacSCLteBz58XL4K5kQ2MZKVQx4NpRp7MofE9a"
+    },
+    {
+      "merchant": "h06.bookerbob.testnet",
+      "tx": "FYFyhvgQ57c8vSuKQRA9rVR53BnYM8XCad1F95L4CJYU"
+    },
+    {
+      "merchant": "h07.bookerbob.testnet",
+      "tx": "BURrX2h73jALqrja7pjiNhbX36pfiroKJzCU7R6WsnLE"
+    },
+    {
+      "merchant": "h08.bookerbob.testnet",
+      "tx": "7cg2vF3aoSKzY49nAxkCzwyA5NExwYsw3R2RDdajuM4w"
+    }
+  ],
+  "stopped": null,
+  "plan": {
+    "rounds": 6,
+    "buyers": 96,
+    "commit_min": 5,
+    "reveal_min": 5
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s1-r1-hoodie",
+          "open_tx": "B9cpn8dLwTJQsUw25KxCqX5FJG6yy5hK1M4LvgyY3eeV",
+          "commits": 22,
+          "reveals": 22,
+          "commit_until_ms": 1794391667634,
+          "reveal_until_ms": 1794391967634
+        }
+      ],
+      "replay": {
+        "nullifier": "d18c13b44d366f7032ed682cd404aaf021ba8878ed3c6f95b122c7867b776294",
+        "tx": "CvFezNWoSb6oBFMNFbL2LuwRwBBmpHJny4qFCY7amJva",
+        "refused": "nullifier spent"
+      }
+    },
+    {
+      "n": 2,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s1-r2-hoodie",
+          "open_tx": "5qFsFzz1DDW676ZbkuqRVMebS8Qe4ii3gfVvVBXjuNBy",
+          "commits": 21,
+          "reveals": 21,
+          "commit_until_ms": 1794392276334,
+          "reveal_until_ms": 1794392576334
+        },
+        {
+          "category": "hotel-lisbon",
+          "round_id": "s1-r2-hotel-lisbon",
+          "open_tx": "27LoR77iRC6QuUvBkWezKoTY2NBKMMzM5CVoPzhKfAuC",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794392276334,
+          "reveal_until_ms": 1794392576334
+        }
+      ],
+      "replay": {
+        "nullifier": "fb535e34c12fc321d34a0a5f6cb77d30a99c960154530696583923fccc72a4fd",
+        "tx": "6TaeRrd86rM16nNhd2X9QvYTq7QuCFwsCVg23mVwXFzU",
+        "refused": "nullifier spent"
+      }
+    },
+    {
+      "n": 3,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s1-r3-hoodie",
+          "open_tx": "2CtJVicfP5HXoB6rU259EUmsq4DTdA68p8uf7DEWxVWf",
+          "commits": 22,
+          "reveals": 22,
+          "commit_until_ms": 1794392885041,
+          "reveal_until_ms": 1794393185041
+        },
+        {
+          "category": "hotel-lisbon",
+          "round_id": "s1-r3-hotel-lisbon",
+          "open_tx": "4dNcGbcLiCwi2BTmUNR6ctRxPzSnkhUfZcxnxNmiHnK8",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794392885041,
+          "reveal_until_ms": 1794393185041
+        }
+      ],
+      "replay": {
+        "nullifier": "dd7eece8b347c132d256a303b3f5ac60b5537af18801629499eb635746579c04",
+        "tx": "2UcikzBKq15wZST195n6wk1cNnTSLjLNVGPTQirgkPka",
+        "refused": "nullifier spent"
+      }
+    },
+    {
+      "n": 4,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s1-r4-hoodie",
+          "open_tx": "rJe2HSVS6JayQ8L1hui4tLQqS8hXs2ys3tNZeSQw6ib",
+          "commits": 21,
+          "reveals": 21,
+          "commit_until_ms": 1794393493576,
+          "reveal_until_ms": 1794393793576
+        },
+        {
+          "category": "hotel-lisbon",
+          "round_id": "s1-r4-hotel-lisbon",
+          "open_tx": "346oCcuMcnEJCMjUbcZ7Q8VYq7CVioPx3tcoHue3SVMK",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794393493576,
+          "reveal_until_ms": 1794393793576
+        }
+      ],
+      "replay": {
+        "nullifier": "646d7560cd7cae8d8cd7383a12a47919b012bdaf9ccececcba95a260ac0ea646",
+        "tx": "DPcfT24HkRgkxffyZ9DUHkbufHKeKS3La7E8PofaXypU",
+        "refused": "nullifier spent"
+      }
+    },
+    {
+      "n": 5,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s1-r5-hoodie",
+          "open_tx": "9gHQUDCr6NHj4oRiLUR1LKhj9iX6URtWR3VKrWcetkDR",
+          "commits": 22,
+          "reveals": 22,
+          "commit_until_ms": 1794394102284,
+          "reveal_until_ms": 1794394402284
+        },
+        {
+          "category": "hotel-lisbon",
+          "round_id": "s1-r5-hotel-lisbon",
+          "open_tx": "5md8uremfHhjGURUmNPqhzmzXDbkQBtf2d7i237589VY",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794394102284,
+          "reveal_until_ms": 1794394402284
+        }
+      ],
+      "replay": {
+        "nullifier": "1fcafd2b61c3e22033a691f1713bd3f632e8fbfc68a761fac1129b5f5a4827f7",
+        "tx": "DSjcyyG4SnvbPU1YTkoqhTQaLxsk5A4rbBJrYS6qZcCg",
+        "refused": "nullifier spent"
+      }
+    },
+    {
+      "n": 6,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s1-r6-hoodie",
+          "open_tx": "BFPg58t3fU4FmDVUrJCerDq8GDkMMhZo3e9ZdBVhHrr",
+          "commits": 22,
+          "reveals": 22,
+          "commit_until_ms": 1794394710993,
+          "reveal_until_ms": 1794395010993
+        },
+        {
+          "category": "hotel-lisbon",
+          "round_id": "s1-r6-hotel-lisbon",
+          "open_tx": "5WF1zmtCk9LMP9ZBKWahpVSJr95yy311yaXHgH7pVafm",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794394710993,
+          "reveal_until_ms": 1794395010993
+        }
+      ],
+      "replay": {
+        "nullifier": "e54c2810e7e1b45a0671219b60f365bce9b7c3e16265343b6315553b73e92da8",
+        "tx": "2mzXppf8Ngbt3y8mLJ2eT7MNHqaukXB6uCYVYKtVeLvT",
+        "refused": "nullifier spent"
+      }
+    },
+    {
+      "n": 7,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hotel-lisbon",
+          "round_id": "s1-r7-hotel-lisbon",
+          "open_tx": "H7T3zEhR2HMydt8Fps8U8NAbd4k5kjKWqaHcQUz9jmTJ",
+          "commits": 8,
+          "reveals": 8,
+          "commit_until_ms": 1794396949720,
+          "reveal_until_ms": 1794397249720
+        }
+      ],
+      "replay": {
+        "nullifier": "67b723b0587a8ae9d4157f792c92a94248d3d6e7285590359332678f5d0f771d",
+        "tx": "3qzYVNUPuPsMaqLhW9qoSHbHLP332VkkRWimZGDQUggy",
+        "refused": "nullifier spent"
+      },
+      "note": "an extra hotel-lisbon round for the 8 buyers of round 1, whose hotel-lisbon round did not open"
+    }
+  ],
+  "purchases": [
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "306185fbdb65fdc5c0e09f93ddde2af0f1748cb032c4f50e70e69b984652793a",
+      "nullifier": "d18c13b44d366f7032ed682cd404aaf021ba8878ed3c6f95b122c7867b776294",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "47bc6a2a709d4e76b6682a801cf54e3e",
+      "seconds": 124,
+      "retried": false,
+      "txs": {
+        "account": "9i87q8xrMqmSeeZai3dxgB5BQ9U3Lqf6nR9zc73oWkPK",
+        "escrow_entry": "Awh3Gna19KuYx6v3LYuqhnovJ4rW7CpYsWpTa3v9FYDx",
+        "dusdc_storage": "6v7CnoqQnTwAnaK8AKRpQGdGBtypinQQ96xMhcqjbHrS",
+        "mint": "DbQiGX255AZ4kUj5UzMYdiqEPe3DFdLsch6Ua8ks1Qho",
+        "world": "J5sQ6TRnL7mdf7oHDSR58uS9q6rwAsFfyC1p44mKKULN",
+        "verdict": "CY5bwBMrEtBU9DRpxyCPYnkZPGU8mQ1B3kCLqkeX5ne1",
+        "receipt": "2mx9Q7zchuT28PHq18V8jFDCx1kwDqc7vZKmsJdV93fg",
+        "escrow": "B6RQPD8R4QddEu7352kzfCJZKUxcW4WrB8Y9LaMAKQuG",
+        "settle": "BpdimMThTJiWq7BnhNRbPfnAhvryXZ9dnYBpXfW3JLsu",
+        "replay": "CvFezNWoSb6oBFMNFbL2LuwRwBBmpHJny4qFCY7amJva",
+        "sweep": "AF3BpY28p7ce7NtjZg5yh7eyZHzANVyFUCHmuRRqz7NU"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "69c38c5e63114f6b4d5d486e8affc761e0743f3ebf9a664ea33c62b88c21aa6f",
+      "nullifier": "67b723b0587a8ae9d4157f792c92a94248d3d6e7285590359332678f5d0f771d",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "7dff7b98fca947a68d3f4b722b04aff8",
+      "seconds": 126,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "CxU1skyfksZuY6E3N11syGmMAGd3GTne85AqL4K6K9jP",
+        "escrow_entry": "9hWhbTc8qCMBPgn24z1yPJJyztsv9DzFGgovvccEPUBP",
+        "dusdc_storage": "Ep3Uw9syHPX63GHcsx1Cmz8FpUHTDKzN5JhHBGUX1KCw",
+        "mint": "3bcp2JHPXVfrfpuh2ytqjJWrZP1eqanJLzvCXRW7Hpp1",
+        "world": "RKCsjxE58H6Qc2XB1ZGL5qx2Bt3U8dD8YmK5LRps2YY",
+        "verdict": "9am9sobUpuhUkP2KE56huGotBHrE2g1YWhKujFUEmW9T",
+        "receipt": "AZigMmENiJjMH1vqDxgZ9awe3CjoYRZ2xWHaQ11tqfS2",
+        "escrow": "7QciVPUjP64srTPvRPFdUwXEsm4DjvBpzDizZ56DZba8",
+        "settle": "DpZTaqgobnAM8N5br1nrxLEL2Zjr84Kd9TYjBwvJsX8p",
+        "replay": "3qzYVNUPuPsMaqLhW9qoSHbHLP332VkkRWimZGDQUggy",
+        "sweep": "E1nSnCHTQDSjd1LnSyrdQtSfF4aoxPLTGLCyyZ31tFN4"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "ca6141178135f531c2839f418bcb810206911a1c9704713ad1573e1283e2344a",
+      "nullifier": "f95c8f713617dae90516a46cb507073bf971930bf9f86251e851df5643c57782",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "0f19db43777644a3b4f109f2acb7950a",
+      "seconds": 135,
+      "retried": true,
+      "txs": {
+        "account": "2FQgh8WzsSN9wwyC7DcL5X6joYRbJBM5MuFJaTqRvdTF",
+        "escrow_entry": "3QsGAXNkBKzryN7SyqMCKZgiqCt3Raqzn6dA4Ty8e9MB",
+        "dusdc_storage": "B4d6UEcYiukCN9xQzfYbTkMgL1Ez9EZuiiMUos1Qzmh4",
+        "mint": "EUFnwnwZjrwPHPv58ZBTvQhPhU2yEkz7YqWM5iKjhHkX",
+        "world": "FjS2aiUtTrqph5hfEBrPMgPnDAuvTatiQ3rwH4NRcac7",
+        "verdict": "8iaZsLqaJ6mMynBe9otTaeeNrvbrKgzhJxBPwU1Lv7Fu",
+        "receipt": "6GxHto26Pqr4j3wGWYtBdZQmtPGX7Ym2GDrvtZMTbPjx",
+        "escrow": "FpffNmdNivMbVxCbFhDQdtAvx3F7oX1abZPw1W7zv8in",
+        "settle": "A6EjvP9ANEUQ2xsdF5FXv5p1Evp2y3qAiTy2eazAZiZh",
+        "sweep": "F63Sc1f7XAfZiQcLtzZYsGKEJESKeLBpmFZ3bAEHidPS"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "306b091954f89eab71e3c27e1f08fef34d44383ff317e529e5ae5006288d55f1",
+      "nullifier": "407e3085b968f318e2011802000f84776151a7335a2e05667d456e554f91a9ef",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d615f26527cb4d4794afb7e6bcfa0500",
+      "seconds": 138,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "BVAZLsaZYYtHBoMwEYUR3ywNZ1bV5W7y6abG9E4SLKj4",
+        "escrow_entry": "FE5mxzYU8bVQWiZWXxzWpXn7yMXs2pjvcPq9WgzgXDjx",
+        "dusdc_storage": "AiYynsmeWrcMvDf9GKQb6v1pKPk4WfjMN8njN4PuHFqM",
+        "mint": "J4MWxmknZGR5YiyMpHhZeGY3P92RvYR7YVvd5NqZzVcP",
+        "world": "5LAXXRmK9sL6ryE6yYbut4wpqbHVFJ9hYKdJdcuevLME",
+        "verdict": "k5gPotMTssNqC6cZ75Pz76XL8KevCNf1L3yhcFh6bnK",
+        "receipt": "BZ5J94VeXmQ2W7ktDvXdUmqzJekvgtRZTw3AgbRkkDQn",
+        "escrow": "9SH32xugSDsWi1daHpWiLJtqVLn6FyGY8koPb2sUmd6o",
+        "settle": "3mPbzFZZ83trwdXG1XrQZnbdJizaVcc8CQa9UGvJpsFG",
+        "sweep": "8dCReKXKZEYVZBEStVPLc3MAUMbKNCArv8uWJHmBrre7"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "f71fbb6d6c9ac1c80a3bb514bd31b5de834be35c308c25f1bd412ae6093d6f7d",
+      "nullifier": "930b231565a0ee302532fadcfd07808d5e5aa3cc87a8bf89a9364a7409caef2b",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "2fa9ca07b4d7499c8fdb7d76678e2e99",
+      "seconds": 145,
+      "retried": false,
+      "txs": {
+        "account": "FtkP5GJyy3pJnnBzABbTmJAyG8AUBQY8EMKob4NcnGTY",
+        "escrow_entry": "HPZ7mt3jue2jMTg6hSG9poUPRNvZGxHUQxnGWs83wUsX",
+        "dusdc_storage": "7v1QkSjWHLF8Ysnvb9pHueCZ1P8d3FRnJa8ydD9VCoBG",
+        "mint": "2jeUBkwdyUBPXK3GYdg6C8d9SfoHsmkRxBYmPdvcdRCx",
+        "world": "HCVmmA4FBbM3N5Kh3LVfoZbuVjqmetnUhJMkvbVZVXXT",
+        "verdict": "2t7DZfh4ACYnF7c8cHrpc5pK2LTyMNEHriRzVaYsMQWq",
+        "receipt": "FQ3C4oddCwuiTnxWqk3s87Mih3h5N85BnqxViRTDa5jB",
+        "escrow": "EwMfw1J47odfDNnyZZQrfYT7AJgyMsb2xC4z2yMLKqyM",
+        "settle": "BnAByvKFb7uvcJh9ZStdGZyWRQDfBFWEJtNYBsAf4VXv",
+        "sweep": "ChCio9UmGHfyVpZWwV9EYw2bJEBN3kwkcSK6zWPjqKMs"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "6456113ffbcf3d3b90dec6728fc94f863661faf3ae7d76d3475ea7ebabf1f7f2",
+      "nullifier": "3b355139a2faa92321a6d8173e77c77b273f65f9d0f77b0b73107d0c4bb1ffb6",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "82fbdbb82e034fee897f3027a9d30f8d",
+      "seconds": 148,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "CRcc9kT6k9KzkqGi1y75ppTfGXwwsLc7F1o5sgLo4SqT",
+        "escrow_entry": "7ZBucD3GuwZQrCxkFHn8JfGFxmeDzAnUTR5uxJCyF1Tv",
+        "dusdc_storage": "CUeYrpsN2sXr26TugDLABfxeaG7K5bQn9A8XXwJrBZjZ",
+        "mint": "Hze8QM3NwryJHZPkqQjgXvwpxVpqTY7aJM4f6qZhYxsU",
+        "world": "2o6AQNmz45ZhTXLaQJPdFt1i4GJEgcyzVTPnPCkD6BTH",
+        "verdict": "BqVSAgZn3JdBZXydCrxpGYeTYRfkY5siWhuPK5dcxPHj",
+        "receipt": "J4yBDNNigEwM1sYp7AY4xoNFmkp8MdmDVKch7uVHJrWz",
+        "escrow": "fUKef7rkeURZukZTBKm8rrKaFD5XQz7ofsLYhyCHUpr",
+        "settle": "4tzPz9kNrEt5ACAAYsbAtCfuCLSGFFKC7JPMYUiBLaHB",
+        "sweep": "4mT4T2ZDu3cjQdFqBDiEjsGTv9vi5nSn5w7wsT9Wmb5C"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "c1830e634fafd82fa77e774f8f9daaf7f59579bf4e86f15f51ce08e168230e18",
+      "nullifier": "f48cf8a75c7c9d7e04a83547b422b3e3de7145bd1265dd561a1b498ea02d4fe8",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "2594cc26ab4d4342a75c0137f86322bf",
+      "seconds": 121,
+      "retried": true,
+      "txs": {
+        "account": "58pEX3ps1cE4Hnz8ejFoDeGVkWFL7xEneF9GGFhm8pJN",
+        "escrow_entry": "Cp2HwNECmJFrRkq2GiQHKMMzYAm1NLjy6ump5AoNZywh",
+        "dusdc_storage": "HGFDko3idL6e4HrN9K1dfe8Ci5tXG8ZtBWedfFyDN6TH",
+        "mint": "3KGcQ4E7LHcxndNYBPSHZXFGDN2XPrpJQWsdht4jpCxG",
+        "world": "EWJr8p9mqwELCVjaCg2rmJdurVZ3uhG2yxXtVYaoRxdc",
+        "verdict": "4ep53uf9iXWEY4FFGiLgVRBGB53bLB2aB2g6zG2Kf9TJ",
+        "receipt": "U3vuiPSscYL19RqTV7wapQFjKhwWjkgRmDx6hYR2Qvc",
+        "escrow": "HR7CG4qyBRjkqTqX2v6P7iDaWHvPS2TohYhAesi9R1o6",
+        "settle": "6XGoF5eNEuwQHspqAX6Ks461b16kAUfWsWsAZJUGNgZ7",
+        "sweep": "Fa2mGMCTSTtUPgptd6xwr9b9Eqh12vgoRSsPp52rEi6q"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "56152282ab984158b436fd9e710b8a893f3ea362fa6b073a2c678e07ce97e419",
+      "nullifier": "342d6ba874f2e187bf7d5e4bfcaacf2a71e8d96d0f018606966004768053a135",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d48c1940238546328d7f8c8cb24adeb4",
+      "seconds": 124,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "FaX5LwhGJy6Bmow5G4N5biXnJ1DWonb1NC8pWnPx9QHM",
+        "escrow_entry": "2mHSoJHV5BGg3aM6KVc8wuHeMp58SBES2qLrB3Uo1tPi",
+        "dusdc_storage": "GR8AjUsk1AdTZaYNi6T2axUkiXfBQ4uoRnBxaQorMEw6",
+        "mint": "FZbocPWZb6EF6KYEPYEEe3jARo2g6k7gtELAeQVJDjQ4",
+        "world": "4mm7f172cQNqNe6XdXxdpFFKAVurH7tfBchtyPEeQ1wt",
+        "verdict": "Ezc7DvQCMrZBJ2qbpSy3A65F83uRYcinHvVbADPZrvcC",
+        "receipt": "9NzJUwW6vybkTvwDsBqz35iX4miaaDP6baN7Nbm7Htp",
+        "escrow": "23rmRLpNvhaDbHqdAf41UfnnyZSxgWwh3VpnHodw9JuN",
+        "settle": "2ENRHqE5hAcs414H3j2bP5wAeA8BzGFCVqtnCCZGnJfi",
+        "sweep": "8yFKUwKa1XNBE9qCbQoLqa1ncbzyk7Rry3Bi6nuJrb3i"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "4992976a67be283cea01b4d2b043a5297e271607140e56cc317faadc0ef631ab",
+      "nullifier": "b4d84d4568aab79b15afe3dbd3a9619cc6c822c754be9218f726865946e9ae37",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e9db0a288c8d4c108e3d385a757463c4",
+      "seconds": 128,
+      "retried": false,
+      "txs": {
+        "account": "8cbwNAsEz9tbjhT1RZ2JpZHX3WUyBX892ZDsfjycN4SW",
+        "escrow_entry": "7oqjbBHEJFM92uGZX7YstnaUe1cDDnturBQHszbsWdZd",
+        "dusdc_storage": "F5yVKTL4RT34xhnC12U5KUqJspCCJ9vjfn5ExQDbsf8Y",
+        "mint": "BvKYxZrdK2T7i5iVVZdybJbYcwjpsE8NDEVExWTsHBQR",
+        "world": "9vEBMZMBJsaz4enqX1uMsTVmXn6WPpBnLts5EF14tAJt",
+        "verdict": "FGBYxgfznKstTYA5q8NesJdj8s95rai8vPM2X8EZmU3P",
+        "receipt": "DKkgvZh32K58h5Q3uuNR4QY6YMqH1JcvZH4yxRrJ5wXM",
+        "escrow": "C7jNd8JYwMx4Nnj6BxoMqoWLp54YWyBkueFhUmkNTKDg",
+        "settle": "6vN9SvQ1YxF64q75RYTsizWqNSseXUrUrhCLBy2X2HFf",
+        "sweep": "DS6weu4ihMU1aSs4fFumRnzDR4T3eSJQBbmr6S3ZJJiF"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "42d502b231034765c55acb9cb2e5c5709e252f596c8b6414e4f18880e5cd64e3",
+      "nullifier": "f21249ab22933ec04776072c1e36ee47b38548525180a067d32ef297dd122424",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "da1becc3224d4fa39391ce4438b2fe53",
+      "seconds": 132,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "6VshiqibmtN9eg3ksN8g8iaTjar3hugjPqynbSQtWgBd",
+        "escrow_entry": "BKkbgvKHxduCj9dY38boivvQ8RtFb6WoJsfqgEmh3ERj",
+        "dusdc_storage": "BEFs3dBXqXioo74UGkN3gwnRPiXFHPwEaPz9NjRjXkeJ",
+        "mint": "8yjC3sJpnZKAQvBhZ74GWoefWkpm8rESvHHfxh4Eot6b",
+        "world": "5SRVVoP6RpN9Ms4qUQ8SyNedjFVvq16yZAEPFYY9bASJ",
+        "verdict": "HSmkdTLE15Tmx3HxHAKvaczzodosymfr37NFRqEoRfeN",
+        "receipt": "6CsPiEFaa3SKii4YM1syFsVCSqu1yjmyGGFK4KLYvJBK",
+        "escrow": "BRKMdacfS2QR3gM7LgVxrc89xj8wxui7qLvKE6p86EiH",
+        "settle": "FDHMwVSNCYDdtwGpvbSyXEcG4UovoBi74tgYmpNsXiHH",
+        "sweep": "WnFneyLh1HAuQJXt3q5Z5gNJnKD9xd9bQFE2vohMuGJ"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "804d463773eb918d7802b8247e65537d07fb1d660baa61c7bd435a29a89961c3",
+      "nullifier": "07366b62a2aa8e42999e4d4e7dc52eae0c55ffeecfc148b647d1e8b0a133dc48",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "0747385318da4297aca52e19e4333de0",
+      "seconds": 135,
+      "retried": true,
+      "txs": {
+        "account": "5a85SL5E1yg51NPnKf9j5VWmnM6CJUubhpKv9dtyxApZ",
+        "escrow_entry": "5vNsrHio9GQK7kpzMURpvYdmB4gtxxzJZuUZfiteqcGH",
+        "dusdc_storage": "B6qXTccUCu8s6CGXM26XrRAXCUNpp4X2b3paxrWhxLX6",
+        "mint": "DYrV4TPwTx2muRUXA32gkXB3Gr55RerNht1fAbQqd9mg",
+        "world": "EPzrha2gUk3do8NeRPLbd9Q3S5ivw8QrZuKWEmLXv2Ju",
+        "verdict": "7B6dhCd6eaSgx9LJVKd9Ztfa1Nj7p2MW2QsTBwRHLU2z",
+        "receipt": "HYapxGFBfj86drs8rfS7FGh9WZ7D56vCnCHd49YodCNH",
+        "escrow": "6fEc2bEjGqo6RL9JtzcrDXM61Bm1HRnfL4TupQPNyRNb",
+        "settle": "6je8DWavaJCaz61FyvvzKmXntchQxFahFUUbFvVDMxDA",
+        "sweep": "3KkLBMkGX2Zbp798Z6KBKCBh9yMaK5Yq3aNEX2oberod"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "3d2f3b3385f97520c02b4595fe87f83a79ead9c092cf315117cf61f9901e45fa",
+      "nullifier": "6709e47e391a15e20ed8825fd933740933e9aec9b2f2f416b54961d8c65c7ee0",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "bb25f8f904c74cc5adc3f8231e89e53b",
+      "seconds": 141,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "8VGU4xQYtB2GEJq9BEMzuEACeH5BGAjFMAcCrmoL7TgY",
+        "escrow_entry": "BPnvjh7pjiLpXULCWMzDvfsGY2BDBjvoVLStVJYAqpKe",
+        "dusdc_storage": "b22Aod3HkNBhBrNrBpERrpLpVYHamtFS5gC8N4PYmLD",
+        "mint": "CQjhoNMEfbAb3H9ytmjeETCGXwX9W8R7YjVz2qQiCT9e",
+        "world": "ACrhJND7fmTjaVd5xAMqnYBctEVs8bEtQM5WPJ29rk7t",
+        "verdict": "8e825LAmpG39SM7ZT6HTzSUE7YsMPD199tMqta2njMkE",
+        "receipt": "zbdUChzXWAXVbE9txc8KkGvoX79QrEZC9JVxsqani8C",
+        "escrow": "Gfj2ZRTaQrCLui2nuqjikfdyqiBUcr6HJw69Agjjx3P",
+        "settle": "6vu5wm4kBPDEDC1VZjEwd53UBXyJwkiEM3ERB312uqe",
+        "sweep": "34KKsgJMPAALhaUWnKJ9eQLkhjYMUEtDLwm4nFKQynpc"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "30b25870a01f68bf87b92b0c39f9a391aad3d3b9829adac7abb2e1b3e43dd397",
+      "nullifier": "4d374c0e33aa55e5d4c1e7987bd01b70b5154540f5d4c4bc38a341ed30698f47",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "3ede715b15214ff6b6d1034a0b3f6b11",
+      "seconds": 103,
+      "retried": false,
+      "txs": {
+        "account": "61evFBv2hEAfwgLCMNEupjaKXH1aaE7uAuXQP26hRcK1",
+        "escrow_entry": "CoZt2P5YFgWwTXeJ6tm9Sj588ajgsZKN44PLe9v5Suai",
+        "dusdc_storage": "8XtP9PWHtDJp6qr9B3piXDFbAs877m6TpxTFPyBrtQw3",
+        "mint": "CrfeWqN5wJj8iUxTzEnK2FmKi82Mk46aaNLGvbc46YCz",
+        "world": "4zuvfjcrQvHrtumSxk93o6yiFpLfi1VEnuvYveaqp5Fy",
+        "verdict": "AsmAFVJVSvsiQbSsHoM4tFyXmYsuLD454PKgdLgTCJBw",
+        "receipt": "HQvNEqrm8roiFeSXRhZEAJyWngGXhdJsUWZo4WgtuXRA",
+        "escrow": "FE1c6cNTajZMLHSu9cMUo1dXYfB222pbUt7C3sAaD5UX",
+        "settle": "7nCK2rt7FBWxofkR3u5kYwk3k1ejDz29YuNJ9zNpVe9R",
+        "sweep": "QD7dv8CpHPDSeu28knyPRVtcBJqyoun461zi8YedDJo"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "be157500107e6920c1abe38782ea0498cafd00bdae502e85e227cf6fa5a9b719",
+      "nullifier": "f18b7d112f059af80165acdca42b3478dae8c954722b0adf49386f3511d26ac5",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "1b6ef9ac75f44bf08a5ee9ae96cb310b",
+      "seconds": 105,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "EgijgS2cnaiSGyxaZB9SGyKW8U4jFj7usyckM7LEcSpw",
+        "escrow_entry": "2aJHuczoFh4c3HRzgUiLibX3p9Fxh65t9KU9FGrR5tEg",
+        "dusdc_storage": "Hp2fu6VXQxN74Wo2G4mp5KVoeKMi46JEbcAbPiFXpEJj",
+        "mint": "wSHThUCb8wZSjwVcFhMJwax2nu6kn2gzXc8KFRkCHm8",
+        "world": "G7FymdSHX5LogzVC9LfWFdmVQHqQsRVQVE62hUC5Wvoo",
+        "verdict": "4M6f6Z4GbC4Yfhj1t9w5aAkSSxB3c1sAayXpq4qr9HkL",
+        "receipt": "ADbX8NEGbVYRkD2goicQPWfmDaNfgyvPP2de6koX6kuZ",
+        "escrow": "85Ud7yhXgUiPy7JGZCyRHXLzcdrVCxkLFkCY4XfHG1v",
+        "settle": "Cc6M1tpj2Wh5BD96ZYZpqGX1RUUzgiABbBDdpRPhEBPf",
+        "sweep": "BpCRpqa8noaX4vaoFCvQWSQbE7ukATS9gF6zMRjfp5Pj"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s1-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "a8132e0dd5d67dfc024f37a7ff387b882672c5a497ae3f0d1a5d2eedd7f3b15e",
+      "nullifier": "e4bdc4e6b8368df747afce0551ffb2b40e7d2f5dd13e6dbaf9c618e7df636d33",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "9481c04d35844fb59fde6221265510e0",
+      "seconds": 96,
+      "retried": true,
+      "txs": {
+        "account": "5UALKBw8TahJVTbzg85XxPfhM9xKGRRGbUbnyzSBLY4a",
+        "escrow_entry": "5Q1rZLnBF5QGrC3m3nC1uKqz85KQDoGJ3rgcsgRLJ6Ys",
+        "dusdc_storage": "FWrGVtsNJM9wD7o5g8WFXH8NSybt9DbddaNQK1Mj7jKJ",
+        "mint": "DjnRb8i2YAdg4zKEvuP7g4bzQ1MAcgpR1rRc1KU2i7h4",
+        "world": "29ozs79XQTAfW6bMFavV5w2LTZkRGKBGhARrpa1s738Y",
+        "verdict": "J5rX12FeWYhSXxd3dcVPUXKhQtypJntzjPDCs4vPtCZ7",
+        "receipt": "7oxW6BhevEyUrbBBqnrfFxf9aKYMJBiSovZoS234jU5w",
+        "escrow": "GydVjoqZXVq2qWNRoy4fcKo2hdZVWbq9WNJMHw7PoZvN",
+        "settle": "3zibpqSFKc7MPujarR44Y8kSmLHseQNZHmY4N5V9xoGr",
+        "sweep": "7NkJupYrtpoYPqe65s3qYA2VsA3qLk74KXzLpA6T9MSh"
+      }
+    },
+    {
+      "round": 7,
+      "round_id": "s1-r7-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "713a69a526d8a4ecdb3a9fa7c64e5b4e9d6df0124b1871a67e4688705b0c8c3b",
+      "nullifier": "1944bb66d12b061e23f0b832ac8ba29abe6af2705d0d5bbb79d9920859e5b261",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "f22fa6c04424423e906325441e1e2902",
+      "seconds": 97,
+      "retried": true,
+      "first_round": 1,
+      "txs": {
+        "account": "9WKbQMdCYNLq3CdeeEKbSb377Dz8RuRsGR1zZt37Vgh",
+        "escrow_entry": "FVZYWwdkUEftZeYmhhMukcpDkG44w3h9o9PVNX4Siern",
+        "dusdc_storage": "5fNxGMCuhPt1QE8sCxJfMBz9c1c8ceUv6oVbZXgPT35f",
+        "mint": "Hzjv1LQ5FeZavZ2ST33HKMxtpo3vhVqz3TYmNxoAMeJR",
+        "world": "rCcLe2LrTT43NHU59Do4D2Qd5S87Dj9bxJWnEoeoxVy",
+        "verdict": "3jaSmKfQhCF5wqyPngfVH1R3dUdGFJyixZb8CxT5PBk5",
+        "receipt": "5M9zV2RDudHXM3JhxYV21EgfhGCrWAw7Zf4eexe51osp",
+        "escrow": "84NEmLg4aZGKrHutUiLsRQGyuQcwfiaNsqThdkpnE6jc",
+        "settle": "Hah7TuWqA9ZwBXWcWqG39pnZqnyddqKphEeSdMY5Y3ih",
+        "sweep": "5HV5bEsBYeaRfRUu7UJhf9futYuKniB9xa7TsLRidAhj"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "7e12fd5c28bb79c07f362a4fc55daecf38b53d0e41e7ef2fb9303e52d1afc362",
+      "nullifier": "fb535e34c12fc321d34a0a5f6cb77d30a99c960154530696583923fccc72a4fd",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "8b60f0e11cab4252ab4e4b9b6220cc21",
+      "seconds": 115,
+      "retried": false,
+      "txs": {
+        "account": "J9acwUxKCtpYMmUBswambPsFXsbVUUGS7X3HcASofru2",
+        "escrow_entry": "8zQqNTCHVQu3hDqeGcBmZr6MeP9imeccCQ69HHHD4JWE",
+        "dusdc_storage": "3Nd946GyXYFpMKpCDAxVdszHZfmQd2Mdx54tCoLpPaQJ",
+        "mint": "3cGFWq7gcgFUUJ8U7xqkwCvDiv64QzJnQki2kTFz6EYB",
+        "world": "AbZoZowvx8thLP6gJ1JgvkCh6fNdzAqgm2RAY5sxJ3yg",
+        "verdict": "ByNB4i91HPcXAF7kfzJLYURG5CLn4HJMkjsxYTNxTWmE",
+        "receipt": "E9pmHqJZPhKARK7aE32YqdoWJWBKsWVtiVR2v636KKzE",
+        "escrow": "Ah89F9jL1MaGcQvfjRBNbMWMiiNaWPvWrQ9PrkUpT5Cy",
+        "settle": "75iqrDZwn4Fh7yArsvhYaJivZVbC7tdnWQa598CNCXSu",
+        "replay": "6TaeRrd86rM16nNhd2X9QvYTq7QuCFwsCVg23mVwXFzU",
+        "sweep": "2i55GiefLWuyxw9HWkCSmQdqkd7RFh92wDmPd8ADZMMP"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "02eea4e4b71cc37db9d83b6869a39072fd783f682165a69000da9ce1f8cb2dfa",
+      "nullifier": "2bf6d6b84532487cbf094f6e3b4d1287d33700b7be1a180ef06224ffe6b097dc",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "f57d2cf1ba4f40d88ffa72fba59d6014",
+      "seconds": 121,
+      "retried": false,
+      "txs": {
+        "account": "2y1s9ffqhRV6wqPe482Wzw9bxvd2D6ryEiKAnXdSJYXE",
+        "escrow_entry": "GQqGJXE7rQNAEubpviYdZEVg8XqpSjdiFkUSqhgpnB6r",
+        "dusdc_storage": "5RBDQaXJXTB9UgxMDRv5JQ1U2x3bFGTNsdVHMCHZSwY9",
+        "mint": "581bSQvrY5cRs6uEUo8RPz2Jbixk7p5hFafDkuWX5Eof",
+        "world": "AyM2FR9B3QVVV2ctxKE2M5R3AxxptRcxreCVpaMDDS1o",
+        "verdict": "4o4aPvHxroguekY5D17jmZqaaPan5mEvtLBQxy6xzRrL",
+        "receipt": "3zdndXAkqcTDKvbrb5JbiakPc8jk4Ls3n4USxnX7khAo",
+        "escrow": "5LCgEDvnyLo54dvWBZQyoWubus2yW7D8zQAMLzaqTWHf",
+        "settle": "5v2YahnyVEGUcM6BwM9W3s1ALRoCNivoa3QaDmDBTJrQ",
+        "sweep": "9FJEEsC4M3mWUkoMzoXTGkjsmP1te16JBw5PfJE9L15o"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "d1e0e1fe08389e06f883ebb53f7b340bcacf0c57dfae309bb128a72d517eddf8",
+      "nullifier": "a6ca30e6a15f895979513bb2933a0c39990ab03db72c408ef7e71578edb1deb8",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "3b072a3d564243c8b2489a1db0999d3f",
+      "seconds": 139,
+      "retried": false,
+      "txs": {
+        "account": "F9JtTe8927ERN7vBcHvBD6ySMGEiThoQWyANbv3YPdBs",
+        "escrow_entry": "2Hk3vjjEHcjjkxQykKqbMwsu5CVAubCyvHbiKX8LqTi5",
+        "dusdc_storage": "8foX82L63bGdTTcvBNzYdonDY6JwTHLNFK9SKfvQY7b6",
+        "mint": "7BSMhMHGyr6WfT22b7LRJeYSJ2PHyKZE92RAUKWsN69A",
+        "world": "ACoBMjJ8spnLf8fQnx6nCQc8rwzNr425q5Mx7SbfLuLn",
+        "verdict": "38KTzTsqGezJQWQaSS2h5gPiPdfq4X4NhWyTCPV7Cv7w",
+        "receipt": "HHsm6W9bLVdVrBi8HMD1rkTYdsCVSKo6d7ah9R6UiyQE",
+        "escrow": "53KM9z54QQcfGRmbp7t85W59u9eENus7EzCevVGE4Zxq",
+        "settle": "9LtSxQkBMY2sVxrSGnoeZjx4kmu9yUFDJ5nwarpyePwK",
+        "sweep": "EyRFaL5QE9v4DP2c7wf4juvW7YMvB9PGNU5kgGQXzHDa"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "1cd409a70a0d4aba77c4dbd4318a1f1e9aa3a0c7b4ddc4c411f5d8bf9156d391",
+      "nullifier": "0324401692f113f3d0d52cd14fecbcd8ee158f2322fc9e86473a6f36f49aec87",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "60880efd22bf40a499180903bc538d82",
+      "seconds": 120,
+      "retried": true,
+      "txs": {
+        "account": "W4P5BFWf2bHwB7Eiv8oeNBGzdoNrNqD5kQukXRehYZn",
+        "escrow_entry": "BxBw5HfGeXYhh5xvWizEmFRq5MtTTMuF1ZwnLiDFavLU",
+        "dusdc_storage": "C6fsoetWxXz6EHFY2UC5ycTqsJg45NS5jgWDKtTazyPR",
+        "mint": "9RKLfug38VXAPVGDgbaSjjNzaqk1rNRUtTdfsKbcZ2TM",
+        "world": "7s4BPW3z3qtSkTRqe2o7jWs5W8bninCwCjicYtrtHin8",
+        "verdict": "BZHr7YLeETcucwxrJb4F14Qev8sNzvWbByRshZRxzbGJ",
+        "receipt": "GBAcTWrxmJMedhXRebgPJX7fdweE9sWyy1erUGuaxtvP",
+        "escrow": "4VeacEEykuyioGecH7VTsnrCA4wZDneZyXWgMLtw1zdU",
+        "settle": "4cS7YmQ7J4Xv1nN33Rpx4SxsXeKe6wDBRFo23sP1FcqX",
+        "sweep": "3i3LqRgtziZqtUxYmKBRZ7jXDBQMfDcT3VCA548thuvR"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "bbd5f6b3ec65463bedafb214bafec863bbabb33b3884127ef9a22b8e538d7351",
+      "nullifier": "af515ad484a3ab7546eb8ff10b03816ba01702c4ee0faaced2cb4845bb838cb7",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "78518040140f4607b1d720aa6b3f8401",
+      "seconds": 125,
+      "retried": false,
+      "txs": {
+        "account": "GhDGS9kWRjLTe2kQtUY5gu8JzyYTzTxYr23ZP8ogQ9xD",
+        "escrow_entry": "ASWwyTKeZKKUSgrm6xztaCadSu9WmVoL7Bbv3iWEZgQT",
+        "dusdc_storage": "3ZZp4mcwuq2r6e9p7rEYzHWSRs98FYG4nd6DSvriTycP",
+        "mint": "BJ7PVfr2P4bMGzGqeyPi7qAcmz59hGSW6ZTzKPgzox9Q",
+        "world": "Ffb6Sfi87czS5sQhQahdvmqWg1Go1Zd46G8kesPTxSFp",
+        "verdict": "FbSWoPRCLWWVe4L5ybdnxmY6kAEWsYjxY2juiyPBL8AP",
+        "receipt": "GdjTkoFzaxDY59r6VU8WxV7QbUpRW3TEMd8vY2L9KoZJ",
+        "escrow": "6MnNoYfcJHGmrWJ388DGf4FHo7auWeBbrdFZGcuX5shs",
+        "settle": "GvRrg6WL1wxNj5kbtWt9dBFBLnkutcuso54eg5D8ugvA",
+        "sweep": "2efNpAEaNmDvkWj4HDeKE3HQp3Wqvn7CWUdhofoK76tF"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "f42751c68aa61e4e6e344cec19a95263d674be2c86637bbc004ae7a5ab90b020",
+      "nullifier": "adcba0afd308d848281fcf311973f05ca5adbf5e870545a50fa2ffbc72eb6262",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d73353f88560494e90a5aae1bcf32386",
+      "seconds": 131,
+      "retried": false,
+      "txs": {
+        "account": "HjSnqcN24tNvfr9595UWxLh7e9Y8rxzrnuCMYJy2drr",
+        "escrow_entry": "De5BcMEfXuE8MXNDEq9eNW4eDpCF4rcpYUYXT1FZqeKt",
+        "dusdc_storage": "B5BZWPncAuRdHsjPwRvvAPH1fPtehfM823AfAcRMWete",
+        "mint": "Bam4kNyUWNqUaRfQ714y5yRLPQVz87Z5PqPsQHeo5ypt",
+        "world": "BJ8WVw8F6ZZ6P1GFykrs8X6wHqoWixFzMMDxZY5nzHRn",
+        "verdict": "GKm8iwqHN2F4zm6USdZ4eNsAdWi1GQFnyZVeKdJKM3Uf",
+        "receipt": "5uyaCPy55zE8fFBbD5HrAWkLfyMqvb7KxwNDiz4s66Bu",
+        "escrow": "6HT9K9mNNTymcAXJNFfEvedqtVSATkBsnSjaenXjVPnh",
+        "settle": "4VgrPfhKqCGRkUv7iCTFfuRVXSsCTAGWxQbYSvtL4X6d",
+        "sweep": "7JBe1zR2996KGMDML8tJpGyfis7TuSdTsQRQeeRk86TR"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "433d08adffe680378982a3a1bd10a4f9d533038328c60cf912fb1c1636e0eba1",
+      "nullifier": "47a09214deb1a5f9063d36a4f538ec8afa07dd1be70bfc8e9f730eca8ccd9289",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "53ce35cd3c414b15ba100ae9727e4ff5",
+      "seconds": 123,
+      "retried": false,
+      "txs": {
+        "account": "98cWKAnqsRJiZgowqqX9ZjrQTNUP7jrYDtaj15swzPdJ",
+        "escrow_entry": "3iBp2vD6mybrW4zvmktkPVW5WzbRCGt2Dc3Pv7m98nqa",
+        "dusdc_storage": "6mrfZFff5uxadKeC5kpQTxNFHQ4vozqRHoWwCBUqhFMe",
+        "mint": "76DLoP3VEph1JWwjPG9Gm2P6aeME3tSGHG5TUvxgJcEA",
+        "world": "HHKQXKyqg8CkBnvbmW8MdqrmQgwZiMnurKfgU5cFWmhg",
+        "verdict": "DvxsnGVn7LTBXApGMLWUk5CWh6jRE9WKydbmXixXZoVR",
+        "receipt": "Aeww31iNJusZ4kX7V96ySMn9azeK7K3ct2CJ7ATfmaNp",
+        "escrow": "C4SbanLGXshbWwNy8sACGvzar71NW7wbYw3s1RKRNiFa",
+        "settle": "6uXhZTnDmYv6qsXqqJ6pXYC2akGs7g1gpdmjsbZo2twh",
+        "sweep": "2QkxD18EsvXDJJyx11WFz8RpUXLVs5sFuSutJ714wma8"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "f7fba61f68d3453759c9c88c7ab3b003808fbd3c30ebaca3249af50e1789a478",
+      "nullifier": "70e126f773ffa0ab77df9a86d569b555186f80f43cdb378296b7f46b14dacf23",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "b3ffd9bde5824b6fb10145886d6c710a",
+      "seconds": 132,
+      "retried": true,
+      "txs": {
+        "account": "Dw8FE2G5CvDGUG6kwqhRJnLaD96tSxTct5HHooqXUdgo",
+        "escrow_entry": "DpDtBFwHsBrv5FqDxUnZJwPjDNjaTLJz3aT3t3hy2rbw",
+        "dusdc_storage": "967uHTHTjjrbR3zVRR5p1qgQq72xMuQuAj7TmiVZd62A",
+        "mint": "E2qZgbBarQPcAX3Vqzegf2NpLMc8b1R71DnCt3QzL7Gc",
+        "world": "CxTyuXp5jYmcUtKx9Qu6trSASA8PA6uHxayDi6siRyYq",
+        "verdict": "CyVXCq6eWQdqPU7aTZc1NVvYakAobcE3qp3k1ApLvAMu",
+        "receipt": "6xi6JgxxMoeDTKxSFzcXMaqAiWDRV7SvfrubwonsUMJj",
+        "escrow": "65EmHQuiGcu6padtBEfhBcb2ezZ4m4nH1aSsrtnHJXs8",
+        "settle": "7Gc2tKs95ci4ttnZfjEQ6iewKx2tCa2xACurtT5akmMD",
+        "sweep": "6LZv57kN4dok1dQ2uKHHFqkQwe7UU627prr7GKiLtCKW"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "e0e7d57d3b88c4d302e1323d3527b8374e70fd0d980095abe9366a65e5eb524c",
+      "nullifier": "5c264c460644bb05f4891e0b50c1a4eaff2069b49fbb4c509996731d3eb79d2b",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "48701ff0ddfc4e8cb3e1bc7cf715577a",
+      "seconds": 129,
+      "retried": false,
+      "txs": {
+        "account": "FmWQEM19aij48FNgUZy2cjumkdfPmPnGyXkPYeESi24H",
+        "escrow_entry": "9dQCaZFkHDP6kfVWf6vad8eBEHhBKwc5rsUzeyiGb2zL",
+        "dusdc_storage": "8eJSnuUXmRsaY1JYtzntoki2HqvRtNi2B52zRD3Sbrq",
+        "mint": "7D49oBxEcszne5FLAdWWStamBMUkxpaeKSreXho6SPXW",
+        "world": "E4fez4J7wMNqouHy4jqZgGsr1oSB4dB36zANXPSw8emZ",
+        "verdict": "DzMGNwmAZn3DbiGLhv7VwpenLwfV46QhKiVMxeHRKtSo",
+        "receipt": "DCHHRrSwffPGqmmHSQkUbs8Wx72wWvjZSZ4gYFg37gBv",
+        "escrow": "4oGS4MeVgEwEvutb7yNztLy4p28tL8bboRhHb2HhvUPi",
+        "settle": "4WqM4jRUnKy578Y5h5qqRAQ65dxcpgNPxKaZwVQZTUwE",
+        "sweep": "JDyrLtX1rd8LAh9gvTbhmYcgjnng7QHGgEgDkdJEwKB4"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "855def27c1b3a2710eaccc091d705c03c358d78feffbc98796ac76535b97b015",
+      "nullifier": "43949b79683a6c4c8442f71fe11ee1c2ceb9c58476c67535d6e6cef4e356cf08",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "60c3a0009afe4a678ba24d9e3f0c1c75",
+      "seconds": 130,
+      "retried": false,
+      "txs": {
+        "account": "5PqnToB1mbR4DRkbYRosV1uYn5XNdTxJ99LLy1kxVYEM",
+        "escrow_entry": "4taaBcf1hD1StUj3F1T47gJubZJ24Qwstg6N8Mk1n8Fi",
+        "dusdc_storage": "DtULaPo368Agzufuxebqzt9P3TwLjRU1niKDqUSqTirR",
+        "mint": "GSHmJ2dLL5tgAQ8BmPMbVgXqStm8uMUR6GNFg42mGWPf",
+        "world": "F7nJNiWQthznGsHxqxNHExsm1U4wcyg8gb1fqd7684UU",
+        "verdict": "A7qMoyyzQD3ddjdphQ8t2HukM1bL69T84NPfvXamcqxm",
+        "receipt": "BJWxkbeuq5iWTWpN4DdH73X1yxdX86fY1g5hqSe4EjbA",
+        "escrow": "87yfB7qvAb1bXY237fej7bvFyd8qvksHkobTSNFVEo32",
+        "settle": "EqnetLsGivtSKpSXwe8NpTeaBsH3D4egXWhoFwK8i88g",
+        "sweep": "F72vVe5XmjHuP7Qv2q4kiRG7mBRF2yW5Wxd6ktqoFUrJ"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "901895ff05d52ab202bbf50ead2d40945bfc996f07e6f1b3e3f911c06fd1b68f",
+      "nullifier": "ec493b1efedef29186643bdc1d52f753b7d51cf2eb4fa5a30bb525d3e3f71b84",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "34b1be91ca9e4bdb9004be3a0e7c7270",
+      "seconds": 128,
+      "retried": false,
+      "txs": {
+        "account": "5mum8RsW2ym3BJctYpJkrsCKqgKKMdANNkn9y3EMWmYH",
+        "escrow_entry": "4urSQFWWEBGA7KNzJJ6thz1ecMXaSSuzy3amwEsQiuh2",
+        "dusdc_storage": "6yYR4stDZLoRcBzN1UzPz5KrZnFogagzvkYMR61ucPCL",
+        "mint": "HvhPdhztASauqMvLugpnwbkpZ34kqsZ9KCTZwGZTZnrE",
+        "world": "2t1D1fFKsvgC6c8UZvRMSBWv8KAPsUicP1Nxq9xYP7Jg",
+        "verdict": "BFXsT3Q9Jb4vF4dxHAnojpYLGdakSqbG6hzEopN93UXS",
+        "receipt": "8CpQ95Qojyz3bcYFaKHyjGtw671z45EZXdnyZwC8oWBr",
+        "escrow": "4Q23cuLW4EhL12cY1HcU9At7d6BkudmyGyeJ5uyovsgN",
+        "settle": "3Myw73p6hX4d76ULMkRjCgK6cvcTfTSsmMpPu6yR1FzE",
+        "sweep": "uBeC23FHPHfBqzUe9hASCj5S5mwRC15ingwzdwueEgu"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "94a2f9a7b141e953223cd2205e6161a3b967d11035067d011cada6804cf23307",
+      "nullifier": "f6f7b614495e5c3862171e3c56fe09782e49cbcc55886c4e721cf74b7c69c2d8",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "4eed72d344f043c89b1b14a303ebde6f",
+      "seconds": 136,
+      "retried": true,
+      "txs": {
+        "account": "7FtjqPcUnJATehZWWHRsfVKAdojZyTVnXquw9X8YKysj",
+        "escrow_entry": "FnmVbRNq4DpyuPiwsb2qySXxxnKyHuMQJuP9N4njmT3V",
+        "dusdc_storage": "St3gfj2jVgcYz8ynGffKp4KrCEikbPNfSiyYagYKozT",
+        "mint": "DFqrmLShL8A4phdyLnfTb5GtAvk3R3mtzaxts5tiaUxT",
+        "world": "G5DrxoRKNM8g2wdJQ9jvgpZMjHYGCJifa4wGbCJQRgg3",
+        "verdict": "4DM8reXrWYNEWataeEvtLrgD4f8NJRhdFt4oCT91F6bV",
+        "receipt": "A7tuu4wNawPidAxq1xDV45xii5RAyZ54oxdX5DzBmFf8",
+        "escrow": "3W4F1Kog3JV636L26fQN7ZWabBHzEtRaQV7idGMRK8sM",
+        "settle": "4ETV2tqhjWcQi7Wb6LTMkQAqh1qQC2bhT8MGLuTVLTCb",
+        "sweep": "4jkTRd9c1eDehQaNowzrBYrtHQHT4huyUiTtz8bjqyYX"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "8bfe46f1206cdfcbb0bbf05582f321dfca87d34d910dab6e4323258c06bb4547",
+      "nullifier": "930ae4bf8132698167f7064c58f549847d62133af93a9acf88026e0505ffb63f",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "81005a7fa75a40268b321218cccc361c",
+      "seconds": 126,
+      "retried": false,
+      "txs": {
+        "account": "Hngs5nHwd2gierEWSg6xcDkK2DHftBchrEGyiQEUykgc",
+        "escrow_entry": "J5MGWiedFevxB8XAdoTgVxYojL2YfGbaxhrUvw5TuraW",
+        "dusdc_storage": "9YPghoMRAQWc7mp2Lh45azpt9yE5mZtBrTA2mz6R6byW",
+        "mint": "7R3Q1NPpGnivvbicLZc3qP22ZpEJECYDu8PsxiYgmM59",
+        "world": "5mUFCbandJiydDvqLhR18ucbe32SrM5AeD96Cq6tKNCq",
+        "verdict": "CVPDxUKJL6t3738uy8VBLAuBzBHb8R42oUstoChp4GN5",
+        "receipt": "2Z13d4A7Vnp9G4GxpSn4aMnWwLZcUw2mzoavwNkhn9GZ",
+        "escrow": "6YvUakwtddPnNLppifpYXHtbyJXdonDJvHXQ4Y6ewD3x",
+        "settle": "2AF9UWvEUBQpNRGb9T71qz4vvQKnEeEdkLBb3hs8q88X",
+        "sweep": "GMxdoekf9HLuWxaAWoovE2GX58691xsH6G4jEQ758FGd"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "2af6a4ce84cce1c601d2879a1261b67ace91cde46e0537a5c6ff003552931aff",
+      "nullifier": "4e692fdc54e5727fb19b6a9da2bd44b7394a3af1196290debc447c1c933634e1",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "dc832ac666b74e3b8a85e0a575910925",
+      "seconds": 118,
+      "retried": false,
+      "txs": {
+        "account": "HBf8b5Cbvy8HnaAujxgh8XCdBTbhbPiyZgmqXhmbCoED",
+        "escrow_entry": "DJbSjrpC8TeM6SbRbXwrCrbZ2Rkxn44CMHG6R6RQrk31",
+        "dusdc_storage": "FcxUSWFsE9SuhroLLX9AwaCinuqaAbJGhmHcjVgASWwo",
+        "mint": "8iETBqz8ZBAAB2kJqhUdhe4PZTMe7J6mrJYf52xsFCqK",
+        "world": "58rnTJdGe9pT46buGPKNpSkC7WgJFiiPZFV6RfHpv3gv",
+        "verdict": "EnsiR1k36NgKXiFPYU7EKH4Uxxn37v9hTMFZhzprESps",
+        "receipt": "93h3KFcpZNv3ecvRYx2zZtakjAf4eZkjeh9ixYQjmUAt",
+        "escrow": "4sUf2GWWaEMQqAhfHkKpP4KDdSzyu5RwXNdKEVaXejvQ",
+        "settle": "6yhMVTT9XHbajrZwtwK2y8b8Y1pjHCFugDro6NYHoBP1",
+        "sweep": "4tS5hP6djHZptmMXgKMDKp9fdJQ67ja3qrfPCgibohEX"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "e5d793f086225b81e18314b1cd9340210c091bc3fb5b102f47bcbc7f643b5283",
+      "nullifier": "274649a1d21c86cea1132498c80e7dcd4e78f9a0a51227f08ba4eaa9b251a8fa",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "c28d9b4f4898403cacfe0c2148e14038",
+      "seconds": 117,
+      "retried": false,
+      "txs": {
+        "account": "CgQWEwiVC8Zfd6m6gAEEz4rZbcH3sGdnHL5znqmhx6GN",
+        "escrow_entry": "HJ5FSUaXWmR15CWtnQ2x6aNKotQv6txvDVmHcUKeQXRh",
+        "dusdc_storage": "AWfyoibA9863jQLaajqvrKcsnKNnhi2WdtMRoZBgRWnS",
+        "mint": "2UedxPhsrDSWs12rkqeDpnmbR8x1sHE4aTbw9LLe4hje",
+        "world": "42gmbFTum3ZbyCGfqZMTXgK2wqKSM5VMhKrKt9LntKJu",
+        "verdict": "H8XKhmLKvDPRCGyXkCBaLovTKURYhPcLLJ9dsezQT8Mr",
+        "receipt": "6azptVX9EComoTSNdx8nymLWLDouMonVY7mG4ei9x1TC",
+        "escrow": "DfAdSkEniqpi4pC8QhvYjWX1WrrQXwFV5pxvtigsWCWi",
+        "settle": "HkuwExxDgGnST92yVyW26K8tUhjgR4vCgHtrYBH74ka5",
+        "sweep": "8ZopsvoQK956roCqfBC96Vtn3hLVMsq1FAsDCRcsNJ1a"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s1-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "7f01f8edbbe6695e8f419b814ec1387f330a12e37a74c17ce50cd086f5cf2771",
+      "nullifier": "4daeef7d20d39956899d7fb64445386a449d36bbd35b16cc3c03872f01946899",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "73eea1339bd04d86b3d25da596c8baf1",
+      "seconds": 81,
+      "retried": true,
+      "txs": {
+        "account": "GXb8AudMVqgm41guEuADM3HkRDiMWwmXCEAACFnYKnTn",
+        "escrow_entry": "Cs3oFPxsHVr9VjzgHWU6uXgrSjWpre7dLLEi7eGXyVoc",
+        "dusdc_storage": "5KrfEi9e7DWvRrekW9ajbca7FCUfDKWLBXV8vhDsvZ3y",
+        "mint": "BuQJ4K5fEZ6icZwd7mFvCjjmzrBMfGreoEecaYD14EAL",
+        "world": "2LB5RtHVPsLFFufTmJE7hPYxWi2VeX43ppsntwuZzthC",
+        "verdict": "7z3LEZQjm19CodsH6poz6MHALskTUMox4o17iUMx7bNH",
+        "receipt": "DsDBiuEWr5gjg7CkmeiC3rR1qauhvtrQizZBfW8im3Ut",
+        "escrow": "GwbQKwmCdLMdJdQCHbcsCy1uaoboUmVtBui9fFCHDgcE",
+        "settle": "JoWxSx5v8ccK1wvbr2McPFRvxLMbMfhXeRXH7L2zVxB",
+        "sweep": "GT3QUbXycrLEvSx6chMv7d5WPT74t29iSWCrqyymPVV6"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "8c8b88e9ff3a6b2c309e19abf4aadb81a66af7ea3b8f194e117c62dd0177c7e1",
+      "nullifier": "dd7eece8b347c132d256a303b3f5ac60b5537af18801629499eb635746579c04",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d265a614421643d8b79f80eb9477aa44",
+      "seconds": 130,
+      "retried": false,
+      "txs": {
+        "account": "3hTWr51rNuNXYCmRLcUzt5wndiCbvgLF4FMSSYp11Sz4",
+        "escrow_entry": "6Rh92tgTaHnzo57YYDoePUYGW6o3YdfReXrrzJHPZgd9",
+        "dusdc_storage": "B1gjHWLXouM5gE4i1sohkrZn5kYtvk88zNnh649imwec",
+        "mint": "5cgtj58M6ZhSxs4kerCjJhMXKFF6eAd5FQXgsokEFVSe",
+        "world": "5fFJpcFBeLT2uRfbUWFwYmvRM5hu7ejNdLDSNpiDexLG",
+        "verdict": "ArfzTGXL4vz7LqvrC4FmJrPqUMV2UTeZLLY4ghr9uK2Z",
+        "receipt": "7GUyTXreMmvh2C9pW6yfitAgN81mmQLq7e4mYyW66ZAX",
+        "escrow": "FocqinQLEwVnQ8dBxsCzNRWzQ9YnQ1fxgXgnyew9zLqL",
+        "settle": "Bg9Bo3pcpXTokJ21V5FoVB3Eor5C4kkEKy8rfcJdgLV6",
+        "replay": "2UcikzBKq15wZST195n6wk1cNnTSLjLNVGPTQirgkPka",
+        "sweep": "2PpP6K8iSNL9gDSUt2pow8aDXDwXSqahoeWcBFhzzs6y"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "234039ba89ff0f77315876c8cd1aa13308c45206e2fd64f13805fddf44137fb0",
+      "nullifier": "c554bc72c4ba3b6986ab78bf7a441367cc4617b8d032744f9b41f12ef821e7e7",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "92240b3811b04a73a5356b341ce16772",
+      "seconds": 126,
+      "retried": false,
+      "txs": {
+        "account": "41NjbU7aU9mRwWFN366maL7XvmjkUboNpvwxtCumP77h",
+        "escrow_entry": "EMWgT8imC1379T3sXBUUxXG8k2Bbfj7g5FoD49XCfQwG",
+        "dusdc_storage": "9pAzDWFPgSnspXKnL8XoYmh3foFvQwHFgmw79Wd9bLQ1",
+        "mint": "7fjcsWScTb3aDLd9eNtRuZ6obxhLNkyLKDKALcG9dXoi",
+        "world": "9ChEuEJ7UA8xxgw1ft83Zoqy34eAUU4KuyvDCdR26RGR",
+        "verdict": "DQ3j314DN2BmhvKXqY2HCsiiRsVo4HTvHuBdrJeQD5Cz",
+        "receipt": "D1TT5pJad1hjPxQofzwZ8BDdGxMVXhwn3nfBxp4uaXxE",
+        "escrow": "AWDKZ5vqAjMQnkq27fXPAg1CykWV4eVFWNDEA3ZKJMLD",
+        "settle": "2Z4ebXuUYPjA4nUhoqCPiGgLiJJYyQ8ydWrFCPjRhdpz",
+        "sweep": "v2J3TSiubGHTZxQbuVJUijfsiMNZqLtrqA9LHQm8S52"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "4252eef1734919cf830ae2826e92b5f44974030df5061de6951d63e95fde138a",
+      "nullifier": "258d02ecb1e6b0b1ecf16f77847625daeaf3f5dbc706dd4a304cf4ce3e6d44ac",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "4e41e2deab3d4467b3e636e2cf39b1f1",
+      "seconds": 137,
+      "retried": true,
+      "txs": {
+        "account": "EP8gAitc17L8KGxPhiZ2JeT7AgmDaXhsbZ63Q8Wbx11Q",
+        "escrow_entry": "89TZry3EwtfJD7H29Ks2mSMofVbs5CL9of75to738sVR",
+        "dusdc_storage": "FmShkQbUnHGLT24EP3DwMyoZsUK5tA3PyAecvgLAdkiB",
+        "mint": "7CMH3Lxr7BYsvNrcjonPG8jKENwDDLem1go8uk52fSuL",
+        "world": "7hqNSYtXEpnc3qjLicm42N2j3BPu3X6TDLxZEv483qKk",
+        "verdict": "3W82tbKZtEt8xki97v4m4ozpxgs1zGvUQa2xQyw6EMEn",
+        "receipt": "58Y5pdwwBYVucqr4apKi7HRwVPxt2qfyBYDWS9Z9Upmb",
+        "escrow": "BSGKKqnCunFWfckRq6a8qQWw78MJ4rx1NTxrnZ5MMGSM",
+        "settle": "HHfotsDEcv5YvLWSoNmi6nzVmmaY7uL6k1w3dvt6zRoM",
+        "sweep": "4NnQhJvPwcEsW4uUuuK2oTPwCaJrCMXBBrPwYT6FQmw6"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "89e9a9d49b5c31dc4f88f452fe8e5b76fd44f23adcbef89cd0a6386e69730792",
+      "nullifier": "a9e6dcb874b6e34cad0fb2dcb5682df5d9f1a4074daf7b7534ae4c765aa67cfd",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "939e0e96298049aba07f7bdcf4e53bd8",
+      "seconds": 118,
+      "retried": false,
+      "txs": {
+        "account": "3d3RvQz3gAhZqqx8VNz2hyRaiHeLiwCpZ7v1m79k1GdU",
+        "escrow_entry": "96E2q5GxPgLyjbjpsGeNRq4MZEGoyCpU7Upgi5txHfEf",
+        "dusdc_storage": "7UiFvQWX3WZSpdD4U8Gsyz7E7SxrKEbsN3SfWgVPL1zU",
+        "mint": "3XBFLux4bz1KJHwfy6BY6DDQFTcB6CmwQ2k646pg5AkK",
+        "world": "6Uu7SuX95R1qYYCpBr1xYn7URkN3vDi1qtfKgxWf5sH",
+        "verdict": "5ujuBGgPLCgaHfsFJBvQDCjNYUHZxiM5YTHobon45DWX",
+        "receipt": "EqaV5gnf5LzPtW4aEKBQ2e9J3iWDp2VhLsMmAHRFF4hj",
+        "escrow": "5YtxUavFKwyYyjABBpEReBwJs6T7tNpfbdQWxt1Z3Fzi",
+        "settle": "8uqYz8uqYAGYrPznSwFSCN4m3kUyn9z7goBkeArcFrFv",
+        "sweep": "FnETks75mvqe6MFW1nhcAc5CGaHFTkLuTHGu7GdnDt2k"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "def62b98d7766ad58ddc80a36d43d68990872c1cc076be7223a0ec1b6766ce94",
+      "nullifier": "435046a042e502b7732d87c9c74f454dc43784eb667043bed995c3d1562303e1",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "201511e889e54601aabccaa27c45ece3",
+      "seconds": 134,
+      "retried": false,
+      "txs": {
+        "account": "GSV58qUUgxpty3V1aA7sQhZ3kRXyiA55r4cvC46nn8v3",
+        "escrow_entry": "Gnit8sUH3ndGPNufLqQYvm7Kf749HSetDk9aDpCYyTuV",
+        "dusdc_storage": "J5DM9W5GZZrrbssQt9BwNb8HZbHz8qTeRawKmFRkbYKv",
+        "mint": "5yiyTccTomyy9Tho8TSDSTeNmj9dXNGCU6jdUo88dBsM",
+        "world": "3peb6yJV76TEt3ZAzrMH8dtFb1P86NTCmspjGerRWFaS",
+        "verdict": "8FuGy9B9medfCdHYogYmckVkBHP749RTSZY8ip27PBeg",
+        "receipt": "4SqwUuMZKquR9BHFbYVhwvtmAmahZPbuQtbe6x1jEN35",
+        "escrow": "F2EEWLh3m6vXgj5XqXUa8RTpY64bBqb33k9tkdanxMCh",
+        "settle": "Cf3bmSgeC5LBQsSMjCyxZuC8w8KM4cPTsec9S9TK5hMP",
+        "sweep": "DE9LDyLhW9tvaPcUfKRQf87BDTPeucFxidzPF9B4Bovj"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "29f40fff71a91b38b2dbdefef05c954df536507fe2b79ecd81b445c3fde5c88e",
+      "nullifier": "067acaa0134de3ef9fcce61884c8ba79fd038e0f1ac0c4b61d8374e63d80bef0",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "80faee2e78a94433aa1e0f2f1fbd1b1e",
+      "seconds": 146,
+      "retried": false,
+      "txs": {
+        "account": "Bv3RY1eQz6jYpS1P8Y5NbdFyjWRqCqDRpG4HPZxTXMxB",
+        "escrow_entry": "5bMFQXJ88ziQ1a9jJSrU4mTYqLf8qhu7rodU7KfgjBhg",
+        "dusdc_storage": "9qHg1xZK1YCsdj7xaSZXR65eCFEHDuVYRYmTHX15Goz1",
+        "mint": "EXR8MpzvSGkYnAci6sqmShRRJKf5vfVS9EDuMiHQbDWq",
+        "world": "3XLfLW2corzZSZeunJLzdQW18GVoyVKZ1NTS3zJFNeP3",
+        "verdict": "9jdPWQyq3JNE7bhAmZJ9UA69VF8mztkyV6B8DF4eSL1J",
+        "receipt": "EANci63Rocfbu99DuqFvZvjm73ThJ3HnHwocn7Zhx7N3",
+        "escrow": "2H3Rh16g3rNePRvhYBehSrE6AjfAWL3HkFEh2ENJTWXc",
+        "settle": "94WaYonsSKQoUUhwuw1REmq4qSY5EqqLxRk4UqaGtYk6",
+        "sweep": "EZg9Ztc52hPKF4p32hoxX4i5WZ57YipEMTcaMYci8u8R"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "513927a26588e224f0ef5136a2ed9776d350f95bdf8497c89697c9be46142637",
+      "nullifier": "db9af2151121fd53478385f426810030c01a84d811dd684bf10430db4e78ecba",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "1cb983eb30804458a06d126c3b17e67a",
+      "seconds": 139,
+      "retried": true,
+      "txs": {
+        "account": "EuDxN9DhyCuxQnQVWbaQZyAmEmgPfSXCDqUN5GEfe9j8",
+        "escrow_entry": "9HhN9njeo3cQvCc2ZgMoiatfV4HFyaWz82f9SmmBtqWQ",
+        "dusdc_storage": "CYsxFCiUf6YABr4H3udAPreZBarLPP8GPPwEGdycn7gC",
+        "mint": "BiYhi1H7UdtfhDxgKBd42Ehg63ZHn9sC5hvruCw8X1h4",
+        "world": "3Sc7uArWrWAZRwi1HNmHXqgyMonMx7xWQpvxfndM4rt1",
+        "verdict": "FGS9qJQeCz5um9WTodsYTkMnfqzf9n3q9sZg8kNuSr3S",
+        "receipt": "5uYAvdmmzcYFE5toFxyaeuGBZLAjzVZmwn8LLAyCt1uZ",
+        "escrow": "5kuQRdj4QH8yUg3kB2NKMbTvDVUWqdg1U9n1NF5wavQi",
+        "settle": "FpStJVVpGQwSc7uu6vbk2TAQNb89LoqNPLCwcYi6EXQ1",
+        "sweep": "5tZsdZmck2drBEyoaAcNgZAMTuacDdfDGNjtxeUWw8rv"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "d769c23276af5393031d98adee33540adaf2de31bd9f41e8f02bd996c9c9c56b",
+      "nullifier": "7d0ebb9b588390b3ddb1f97262366c494d08cdf15e84226f3c651c43317eed6e",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "5d4a0010082946d2a6cedf19c250cd60",
+      "seconds": 125,
+      "retried": false,
+      "txs": {
+        "account": "E12XNjMvotnXhhLZpEyV5nteGoy1fvowpTcuwv6MGMKt",
+        "escrow_entry": "34R9imjeeKpKDvfYw8dLCpmZ5NZvaDASjsoVtZ6wqaCg",
+        "dusdc_storage": "HDNRQ5N1nxApQt8foaPsR715YHdm8gtoY4vGFjUqSSXX",
+        "mint": "7KdezWqDqKb6FQANmLarXUpfrfhWbAKha8GPryKjshdb",
+        "world": "H6pDkYXWJmpvy6AzdzDrLKuYxQ2ecS8FgAzr4mWeuJf3",
+        "verdict": "CskgRgJvBZDcck1UBkewRoAdfyeD3qFD2HWk5dNJgL5F",
+        "receipt": "F6W7KxLC9q7N2zGyHP1BL3RYKLKsExPXc83h1RAnb1FT",
+        "escrow": "2AHbj7TWZKv7powcGfCEBnMwMqSEyLXqG8EJqQcpQxyY",
+        "settle": "2PdhkNQTHZZApQ1DHktfQa54UGjQCf5YJNY4bowVUppD",
+        "sweep": "BMKeyR92XmgFEBJSoeXUfNSjjmtKY6f1RyZoXVHZjiHM"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "c343598a02650dbec678aaa1c7c45027260f21e2ccfbbee76acc38da8e7b93e6",
+      "nullifier": "65b94e4e8eb84a035ab122f8c17511bddf9ad5c3c2ee46af4f9e061ec1ff1881",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "1ecfba26d442427a9116d3e9df9176c7",
+      "seconds": 139,
+      "retried": false,
+      "txs": {
+        "account": "7AKM9kaw9Bwmqej1z1W9k3EsQBoPFPSFSCTkBc718bru",
+        "escrow_entry": "7xE6EX6dtpR1zPgs7dZvdeM7qVyKkuMhRfGEH4jkZZAU",
+        "dusdc_storage": "2wpVU96V5tdq2eG7gngWtyGLbePBRcbPGyjmY8UhcJh4",
+        "mint": "EQV67VoxZjauqKRLu8m2DFvpaWZ9Z69oECnqEtPR6pyr",
+        "world": "8CGoozs9WsWMYLruDyDr4xynJZyQikge2xi39MFSxj1T",
+        "verdict": "7abPAZuacNNv5WTvqmkrAWpZHtAThqXX5WEHTCyHAvvr",
+        "receipt": "89GtgpknNn2n1kaLCT7xmiBU8m78CdZBXvEMG2zYZnZ6",
+        "escrow": "a5ThBAVtYmwqrS4Mqrk6bADtjKduzUd5nQ3ybgPvH6J",
+        "settle": "CjXccMMya2dA47y75eVgXPQNncv15ejZymD1BS5SPubs",
+        "sweep": "DSie4bTUafY53EP7RA9gtsE4UDVXBqGEhc9HjubnsrPv"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "e40b98e672e925107ba14d8a6e2d8aefd4356e9203d010b02f8ddd1dbfa1fb76",
+      "nullifier": "45e2030f71f998692f40fb9a166a43cf402258e9deea794d0438c9cb79da4ee2",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "a7497349c92c4cc0975038f7dc164579",
+      "seconds": 134,
+      "retried": false,
+      "txs": {
+        "account": "CgoHQzkoTYHubdDqcn2FZCPRHZ19PZztFAYMpPjJgoYG",
+        "escrow_entry": "JChKzWxB4qPudZRyryfsR62R5EDVifr9ZD6n3WXLvWgY",
+        "dusdc_storage": "67FJVnT6cYm1WV8zReQgQFK7426qPCDjPnTPo5pQyk3j",
+        "mint": "7LoyMk7gUbhPaUBZVMwzRjUM5ywnCwjuYnbnQzsCPSSt",
+        "world": "8hquX9Sdwa1THbqFwoMtzc4e79EcPNs75YxTpA7SKqjf",
+        "verdict": "Dx3EJdUXXYCtDUht4mQetNSRasMjaqXCoYSD1Pbw7BSw",
+        "receipt": "7EhfoeePnck4GVWUEkKgkT3WML1x8KcakmSU724HV1rT",
+        "escrow": "hcNZe4TZeLV9VBEriqrE9J2NabyAs5w6WdKJs9D6uRN",
+        "settle": "8wnoLs3qJ1rQQqW6igScrhKeb5CZvC9neuzdJ2Hggqn5",
+        "sweep": "GRPVRA8FdmqnEE598abg81FkrYd9mesZ8saTxvq55m7"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "8f28b9042cedfd3c654d68d2c110dbb5adb7dbd8252bb9c3562628240bcb14fd",
+      "nullifier": "45c813e6e40e4933d95229dc3854966dbccdfe46ac2a045625f1e0d44e5bf47d",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "bfc978e32a4b4dc6b2558223c10333cf",
+      "seconds": 134,
+      "retried": true,
+      "txs": {
+        "account": "328WQAcxr6J5ZHqGKMrdjrRsXA3Q394EuKEiuyQYPFzG",
+        "escrow_entry": "818qmw3pAn3owZofPinR1PM1Sh2NDYbLasJh9kkajsnb",
+        "dusdc_storage": "6txiCKAvwgGooiNc2vgZNj4gYXV64XNJjBeaAZsbkceP",
+        "mint": "9DBi1XSTCkRphKXAfEcpT3k8mRgE1sPc4MRpeyFyPmmu",
+        "world": "BMTC4s6XZhre7vMkA3dDBBtbhvQjeYqeLT3f359bZkCT",
+        "verdict": "nV6ZoSXGKNpFQGeij7drdiuRb46WVUw9x14k5b2ALpB",
+        "receipt": "6cNjLM4ucYRNnWcdjs8LCoVhqeWWzKttb5fSFXQN19f2",
+        "escrow": "3wF5WHRFkXdqZ8fkZMgjJnk2cyfGCpYDfTyqnUuHg83V",
+        "settle": "AYXRWGz1qW4sMXmf7tcC36TfKYQ81fwM1F3M2nWpz9rn",
+        "sweep": "ALg1rRxvrjNY8G2Q961FY4WssVsZjdkmBVgpqMLtrQ6M"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "68d875df556a8690639ef1b5ac5e0649fc96c03651b80921f71a76d073ce42c7",
+      "nullifier": "2a9ad4f09d46505ed24acbfeb4e2abf4681617c9e41239ff51cf0cf9de475b8d",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "92a7272eae51455b91630855a3e6067b",
+      "seconds": 134,
+      "retried": false,
+      "txs": {
+        "account": "haeWYdsekCE1k9m7rqMYSasijzAZP4ZYymanJ8QPCp1",
+        "escrow_entry": "2tsuf6DkGRgYC7T1maj7AZ35PamKrw6wGnCFmXJXgUzJ",
+        "dusdc_storage": "6oL7d8s5HtjrnuAVDQwKiaNfXC5CrNXiA1ChnqGThdCs",
+        "mint": "ArvhRU5zXnVya9vcauYvsCwHobzQGTZ7cY5kJpQBeLDj",
+        "world": "GioUHnHW1dtMJCCLmCf7FooTJCgSiSEmHguxpCKPWjvb",
+        "verdict": "HkaVGLvmaXoJrX9MQpLouhHUrMjfLZVVrNu6Kdp681iP",
+        "receipt": "2eFjLB1UAzbTu4yk8TimcCucoJZxT1msjAp5wW54izbq",
+        "escrow": "CHhVQvHtJiMpFxhrgDWH4zaHFRA1PCTvuwJmkPqCSnkh",
+        "settle": "9gNXj1KFZkE4aSHkp7VdX8QLzKRoWvzuQLDMXKyXJbU1",
+        "sweep": "67GUyBdc3zSa8VBuRcb6jm7AsSaUJmxaaHmMwdXTgf6F"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "55b56354d7d5a2fb4df9934eef5c33bf2415de368bbda4089758be7adf1f4b3e",
+      "nullifier": "c42ff8c0f18a3e2358d179ed8d0b3325c1f4e765b405473e43133529bfcdca5d",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "24c5e86ff0884f61965696142d8a7dd5",
+      "seconds": 131,
+      "retried": false,
+      "txs": {
+        "account": "9sUPajbPsUvHHpmNKZ93Pq4t71cJz8cN54vJ23QV9w2T",
+        "escrow_entry": "2sZG8jzpuNm9eoLuZY4MN7jE4RFasE6TP1NzW9pyULzv",
+        "dusdc_storage": "FwpzKkxxtjTcMimXQeod4g65aFqMvQBiKtWSkJmqKHoi",
+        "mint": "2Y3HUn5wWNW5yjGCZYY7fCDyPTC5eoaWyjvCnh1h2LnC",
+        "world": "7eQs4L62ysids94XcM4CBufg51wK5RpgQDjW3cB2gVKv",
+        "verdict": "F6z1UzjEC2YRjBPbam8g3K1VRHzrUnxUa8EY36MvC8JK",
+        "receipt": "5ndNtvVzxGBMSPiFQDUXUG5GmKFLrgzRv4ZPX5BUWG1r",
+        "escrow": "GLJoY8bh5VyGNJWdPuU2k76SB8xWoKejn8djRFcTUeAG",
+        "settle": "33bVtx7rft7eCrKNmWD35PsqiKCxxFei3fhZznmM1WyY",
+        "sweep": "2WKfkWmFptqhAzdCz6nBNFBRt7kKh1tD1V66NwkFGnn6"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "a3f4d0ee5ee082a0e75e6231690d4725a8a661478dbbb40b9c28f1b88790c2ee",
+      "nullifier": "fb4a3ddde13bc225a565e92c2a8b39bf34906c3da72908d6004b24f826b75b1d",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "31e384212ad24fe4abd33d84a75121d2",
+      "seconds": 131,
+      "retried": false,
+      "txs": {
+        "account": "ECNtFw2g7QUBonBpXrMyg6PsCRe3is3QDramMX38XLLN",
+        "escrow_entry": "AoJKifxw7LzuSgmxUh6b99WpzYv32s5BGha4QrwxoZvT",
+        "dusdc_storage": "5CqTpyE27XQJ4azHKa4GnqANakUDKfCP7WC69jb8QsDS",
+        "mint": "BaixzjVXUaPa4NWTqiuStHdX4CT1Gyeow9Qn16hiqFay",
+        "world": "AaFvrE1aBAW3ftogCDMzQiu1dwnQ1r37F7ehF6GMGXmZ",
+        "verdict": "AmpwirXbvE3HTmVVVLEG2jxh4BV7hZ3bv6hWCSos7vFk",
+        "receipt": "BX8Kf386y639FngqqpqJvd4CFWcAT4MgnUPMHCkRrifP",
+        "escrow": "6sqVjCunN2qZnj1NrrCDozf2fQfz2d3KLQUh5zQZmjNZ",
+        "settle": "FtsBJudQnSPNbfrPvV5hoNLruFgz8aCsHR2ELg9zXZy9",
+        "sweep": "3axoWyhBTmEK9GbZcShyiAZBTN4E1JebiP9JJyUhDjcE"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "56500a3a3c71378d47bc450bbf4c80addb91540490990528f36d163d6133c905",
+      "nullifier": "9f69288b95ea6b7aac13ec71ae435d1bd9243cb047357dcfd309214a44a4782d",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "9e136b8d37c849c2a2ef59aac776dd55",
+      "seconds": 113,
+      "retried": true,
+      "txs": {
+        "account": "4ssFUcN9DM3T1YHmHAdwcJgBcAgSNh5mLEhBDMCvZXXD",
+        "escrow_entry": "CziMawgjhLoKyKcrWpBCatkJc3GzpMtLj12n5csDQrsc",
+        "dusdc_storage": "AqLYY3rC4R549TuUqQtAhMK2ZEnezU4kTGgnCLcH3uqG",
+        "mint": "D5A9725YpTi8P1VJw6W84TLs7pQbBieG4zXvXuDfb9xy",
+        "world": "3hzmQwgSEkQjtUpZ9r5fUpL33VWEkE5Nz7b4mF1YzoGY",
+        "verdict": "FvD2qCF4s4UeA8pvgpxei727okuHRq2c27Ww2zJ7JgTh",
+        "receipt": "7j5SaghvnSSLZskcE744VJtdREcnqKi3xzCovCnG534R",
+        "escrow": "4KDUFP1SGkMCa7z1tdpNNYaNpn1EMG1yGfWwykUyNucN",
+        "settle": "DkCRVh1upcifYtxL7zKqdNFKp1B5C8TNfWwTMd3vf18V",
+        "sweep": "H8oW7C4wsqKmXAW3yo3jnotw3uuLykwx7K3N7mjqdMdV"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s1-r3-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "995c924e1218db8e20400375b1fd3e97a6e090d10b987071fd6776f1b855f58e",
+      "nullifier": "24c7beea17d50db45fd3bf76c56c6474767957d84d2d2666deb6fc8bd84269c8",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "f24d26c838d44d5abba6638be16f76b8",
+      "seconds": 72,
+      "retried": false,
+      "txs": {
+        "account": "5Caz4dJnqf1nqWGTn6vP1pRCUxDN6qLudTpFz2Vadx5H",
+        "escrow_entry": "C7rgubFJ8gtT8RP6j7SEA56QWUa56X1tZRPcE4ncs65N",
+        "dusdc_storage": "8xdiKe5wyRHHEMZ91qnVofyDoqwC63GAFbT5UW9pa9rM",
+        "mint": "GoyvRX7v7iibVTZLVT6QS36a7JtY7PswfJrnnXRFLKoN",
+        "world": "GG964fLgudhC949oFnq16MyYVEQagWobux3pq7JfyrEP",
+        "verdict": "JEGBkBaRLtCgVYBPsjEdHHQdQonrvLkvnY34UMv5aQWN",
+        "receipt": "EpTc7sLXPJ6sfcJEymNEferBXcfpneCgKw2HM3jB7Rst",
+        "escrow": "6LS84P1jK6YXP1WrVF7sgfhWpWxhoMX9VZsXfUZUAx2Y",
+        "settle": "245tFb9aV3X9H88fcG73qifGKAbgzvyAm4WYL9fbm5Uh",
+        "sweep": "8EXfDf5Zem67aVaqptCssarCjE8frpE2aJm7rjqa3dfo"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "83126b6bd2b5f70990d65e1b4adb69cefab33896e2842b01912cd522ce4eec85",
+      "nullifier": "646d7560cd7cae8d8cd7383a12a47919b012bdaf9ccececcba95a260ac0ea646",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "ef2eb0ec41314547895c958d16b64dcf",
+      "seconds": 141,
+      "retried": false,
+      "txs": {
+        "account": "Fi9JMK4AQRoJNrvgqxZwxPA97e5CXqPGHLXbTYxYzhZV",
+        "escrow_entry": "As7RpNUtNBsnzhfYwkM8croBdjZ5QVRuo2qMDLLNCfVv",
+        "dusdc_storage": "DDSNkkVVVRp1X9AJ4FbUccFh6Q9ZeFAxgVjuSjHcP621",
+        "mint": "GGwMRRW4ApWNtyF1w4Crcje2gfxm64doz5Zm2nbzWjE7",
+        "world": "D7fMv4TFXFhnK43XUfdR32LNx7mR4MSoK3Gess9gYJ7o",
+        "verdict": "5ua8CNXcw4Tc2h9hTdENwakM4fDuPKTK5iVZ6rAiLpoD",
+        "receipt": "74Wys6gDhiWHPnwKdVKJtuMbCW7iBh5f4q87HCf5RyPi",
+        "escrow": "AtCkXGerFQoGFPdAaHyQm9iHoupw3dsYmUjEhnTb7dtH",
+        "settle": "H1ryWmJyPdULxxb83JedvfLnraaujDoF1C4FyaRo1NDd",
+        "replay": "DPcfT24HkRgkxffyZ9DUHkbufHKeKS3La7E8PofaXypU",
+        "sweep": "HGnLsD7yQffVm1H1VkbVz2WsjBf21Kubbdjht1e36BcW"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "9f0e6732b808aab857bcd580fe127f379813748384a498cdc77483ce9e18ecf6",
+      "nullifier": "6f61435ee6398b90bcf12895bc13019deb11fa1fcee8b5d4da874bf2d1b779b3",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "a9454fdffbdc4e719a70f605ed76cb4b",
+      "seconds": 137,
+      "retried": false,
+      "txs": {
+        "account": "C6NNNQ1sStYvwU4LL5PwGemD9edSUhheChkJ9foUudc8",
+        "escrow_entry": "Cf5SjTZ3FsPgjDmVmVX9aWiviL52XvFWrBVCN9dNBMzF",
+        "dusdc_storage": "5gZsFWumLyMNUt2ovthUeobZ1pogMuxT1yFxu1Gv3Ttk",
+        "mint": "FRTxtUai8ZJrLsHos2WBtBH1yRb41dweLC5qJqtL8gpS",
+        "world": "HotWseQnpyGdjpWyxSiu9K4N8ScoDmsNqnEZz4MTheDu",
+        "verdict": "7o5BrEDicRvdjevPwTtKczFNopF61WLPNczBxCFq6gST",
+        "receipt": "FedJrgYHi4UQeQ7CTf2iXjpHq582Se3Yy4vBeb1xmvrS",
+        "escrow": "Asj8q8QXCrXLr4W52pJ97b1sV2UJwpwKgtdVSr5Bvai4",
+        "settle": "F1UPBSATBJ5qfGvxJTWscUiDqbHQPDpyG63CEianbwjg",
+        "sweep": "81d4Hdjtojvo1p12vhKjwHPwdxJqGgio6gfA9AEPLspv"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "4896798e203431cd0f6cb17edf8f0fdc0b7377d9dba7f117f7a900cd9c136627",
+      "nullifier": "af0f0e4c1f77bebbb7ef0db83941c6b2a29ccbd04beac9906e464bf8950dd576",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "93b8493ea6bb49c68aa8de17f4d69557",
+      "seconds": 146,
+      "retried": false,
+      "txs": {
+        "account": "3pvaZWqyLhs2j3idmSzdVgojjKN5tmMHu8Mazb3i5tJV",
+        "escrow_entry": "98mWriWcWqgZveJ7MFHg8QfJwNy9xmXAfzmksrswphN7",
+        "dusdc_storage": "5G2chUPpJu1AYDaxBTfSiMMsmLCsRHF8sgxCSMECnYTM",
+        "mint": "DhaGEM8USUkXM47EMmGhgqa6AMfmgKP51Fqm8grMBm48",
+        "world": "6eHCuytnqC4cwtRYGkvHoU1mfpVF3dNWWMJzjakdBpf2",
+        "verdict": "Ezif3S7H7LecXWyXPTPjbXe4vJ5bURUA85KKqU9mjXAw",
+        "receipt": "4ek2VRQXZ4vLJLMDVH8kxAw42Ucs6SaCKhk1ACm1d8ka",
+        "escrow": "9pa3JihX3fvTcng7w6Tubct14Uj4uyY1PJN6mmxMN6vg",
+        "settle": "AVNP9TXJCoJcX47f1UbJ5eL9WY8HyXDfRFGmotWPp9bi",
+        "sweep": "J2bsz51zPqdiP9u8od1VxyhGR2NNB5xPFt8577T2ext5"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "d3d42f051e3052e28fcb9d1088ea73335ab887d1d616ed76c76426a9d9f70aca",
+      "nullifier": "7966b1fa0a7dece775ce4a15a1910c74a251c230b78a89d9c703e346455e6e9f",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d55285c7160444c5947634e8df2337b7",
+      "seconds": 123,
+      "retried": true,
+      "txs": {
+        "account": "8Brktts3QueYSed22NbZ2W7VnTQQAwYPL2akUP1PHwMx",
+        "escrow_entry": "GMmwEVR9Q4E38wD9m6aHUMbMofGToEkUq9bZAdH9SPPr",
+        "dusdc_storage": "DbrEkrgEmqZuv7JnDdyGNzUyAjf6T51wwFNUmZKi6TMF",
+        "mint": "F6Ys7JhxAgacs2Rgiowr2wBtWFYmtx4Bdr7MMRfeeHsH",
+        "world": "FxF7zZ96PdXk5z5Ajq5fkVWmvBVJw1tWeAY3NeL4Kqy4",
+        "verdict": "99wh5KWSREbPcUBwS7NTeFHydAgToq4qyN72NNgZiLFj",
+        "receipt": "HkqKTjSwRfMsSbSiCW9EDcP223XZny7pixVHrrU8JADh",
+        "escrow": "DQScgySshw7VieM9uDD3TPMCHiNXpTguvixFh624T9Ju",
+        "settle": "26jABYmsU8yEgF2WmYuA7rRDykF4zY6ia9sqLdsmC2Bo",
+        "sweep": "Qe2WsPoL8PNV37BU7HBqa5mK6Yg4d6GSpyotG6unyjS"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "f3dedf78c5e714eb66dde5afe0b8ce82cf116c880c5e803c6a86a952a3bb96f0",
+      "nullifier": "2d2b1ec59213268b23fabeb5ca1d50470f8c2dd9124c3afbf03aba5d4173213d",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d96d02137ec54d14a0cd0b35525f2d39",
+      "seconds": 124,
+      "retried": false,
+      "txs": {
+        "account": "EnyPBLN8povxUyPdthcQ3PS93TEo2V197AFgpQkdAeiR",
+        "escrow_entry": "Hb5FZqyVrwqkuWuSbBoo37enY8xWer7s3ED13QpqH3WN",
+        "dusdc_storage": "CaJ5vQvbkQXVhtLqEJgKPNXiz57by8egmFTGx3B8hZsD",
+        "mint": "GXuBcfYZLPapoKUtsv2LuCq9ctKEKvidNcnb8aEceK2Z",
+        "world": "97CQaYeFPxZ4936KwBDX8Agw9gyZsXnvYeW98VN2FgX",
+        "verdict": "7DkyWB75JAzn1qAykRUYHWfJTy6pJwkodN6fzNf2TgMB",
+        "receipt": "E57RvYFpJQydufXeVeX98eyUKRwnQjPKWFqQSnvAWkSc",
+        "escrow": "ENrEYJ5C5uKs7TJPbHLHPKdTtBYQ2Gwr58uEkPm1DJBv",
+        "settle": "7H15eJnB68wMQBk8obaAeiwZFcWHxtgadFvUQpn2G1Wb",
+        "sweep": "83KsnyEmufwAQACgxKLaTm1kmHUb2ywVCkU4tHRK2v27"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "0fddb0701a802e2258400281eb4ae967796b63c2fa4ae8a8827319283143721c",
+      "nullifier": "1d9adde95f948ca47a12530469201c04a471f39722d491b297ba3e9914c2c942",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "261a2e3f8b504607a18cdebfff937608",
+      "seconds": 137,
+      "retried": false,
+      "txs": {
+        "account": "AykJB4KnB3DtXyUb4fVuBKb4ugA2TXb8kd3kpzB1rhjG",
+        "escrow_entry": "CGA9UxiVNsAGtDZoSLeKgWtMQbLXisGRfNcAs3QeCyQk",
+        "dusdc_storage": "6N4Fv1iuaXDCPEaJYT6RvUj3C4tz15dB4JcoCBUcYxpe",
+        "mint": "3DbQnk7LU59gAs25TfxPhoSwUXS8oiQ9c9TaxzzGbNQf",
+        "world": "98dYwLu82WNYbATcPf7wFKrM6BrECszFTZaxJLo2qoNs",
+        "verdict": "21SoCBdBJ8dhPtTMSUJyMN29i3ZX1bd8Mvr4SJT7KHj2",
+        "receipt": "BtEwhUbjTnGorCZZrbDpc35wcNXn2gzXHsBuvL3wEsgS",
+        "escrow": "E413YSXdSrzx3L4R1i8cbcr27GAsshQAkWwXAExB178R",
+        "settle": "FwDt5wEWSMc8mpqTVojdebXjuJpMQigqP9mALMDxNqxa",
+        "sweep": "8sUc94BQP2vfL14KUhPNthJWJ4CTLjbRVjoUmQfv1epP"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "8bf33d2bb66c4e524f9963ebcadf0dfc662428a0cd3b3a4497f0730edee3f737",
+      "nullifier": "86c6bc3424a367411402553e4a199ad59f35147adb6735eea2d9ffeb00ffeec0",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "7ca665febba04c22ac67922e142c7d93",
+      "seconds": 118,
+      "retried": false,
+      "txs": {
+        "account": "7RqPmEaLqBwrcLVxkutCWbKT4H5ikLJdcsNUAsEeeBUx",
+        "escrow_entry": "HGufqq8zcb61tbAW2MSRZyL8BgT4uwEvaEWJSa6rcv47",
+        "dusdc_storage": "6XNt23brS1NDdchng8R4HQELr1mLPYMdE4m1RxRXbsy4",
+        "mint": "CxF6GjpRJPWbLvkaeNFTEnjYB2iAnhUePHtFfyowF7EC",
+        "world": "HGp6uiEFNW3QimwhLCT2jB5StTzfSf7fepHcJEapX8Bn",
+        "verdict": "7xyzfTjgCN8z7S77ZH4C318JTFjDcuj7iBa7hrfytfej",
+        "receipt": "AxEndRHpYzQCYaVDxw2CkAG2cAL3crZLgVtmU45e2BAd",
+        "escrow": "FtjoioELW45oYFxar63jEeSB2n3V9AjbaFotDZJ2RKPY",
+        "settle": "6zMk7LUDbaESxR3XuokG6oSdVukxw5eXeeRVURSenDDP",
+        "sweep": "8Ss6gvnXifataPN8N2JqPFbmAB91Am5JQgGPaXCdsFAg"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "f2ea45c8de95d44b6194d8c5bbe050b7ffaa90a135d2291272226966e7725ee3",
+      "nullifier": "9fe7a3c9cb677b99ab93d2f171d100f5fc982a980d3bc27571cca3d89c5940b3",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "59a10b5264944d7e9e8613998f606c21",
+      "seconds": 123,
+      "retried": true,
+      "txs": {
+        "account": "5Tk8mpFxbG8W13yousJ7hiGPy6Cz8eMjPMo1eT6w69yV",
+        "escrow_entry": "BKFUx7evqeHxfaPNw4iE2asLiV7PoYnPjdV1DtgFybfd",
+        "dusdc_storage": "6xsdbcStYoupXnz3zAgKBTvyhy9ACjRExPXBuLtNpexV",
+        "mint": "GTeHAkjY9vKUyFYt3KVWiUCfRMGguRsMSAskvzeuGSc4",
+        "world": "AwrigZQUBsv8RYmB1UtDYKf6Yf77iEYVRhLLhqHESvF",
+        "verdict": "Hn6Z1FRAz1YWKAQ5NvA2apVj4oiqWjGPD4MzNYuzJmcY",
+        "receipt": "D9f4CtNhWgsziX1VSGMXBiipUuMjnZ2miibMoE9YRLLp",
+        "escrow": "79iE8EhQwzdArqxo6Dfn42n4yHH5XkowXXBAnRtmUeip",
+        "settle": "AQK3y3BCmSyUBvwBMVzcnAfupcTR2K4c793z1Ugpe5so",
+        "sweep": "8CLpmQzEJzgPXXBtn7YVasQwJ3r27JNUsXXEZme68D6P"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "545f0a9659c630af5de080556a14111ae026d6e4e895051b782e2fd6966b523d",
+      "nullifier": "8908e544e07cb48551a39693e1bc7501fbc3406bd65c9e5c8a3207f915686de7",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "ab5b84b5ea3b43fa97218f468d78cb3b",
+      "seconds": 128,
+      "retried": false,
+      "txs": {
+        "account": "5fvsrU4nsFoZg7vRBdV2ED3eithDeB3WRR498KU3X28z",
+        "escrow_entry": "8nv8dZzYuBTFZBSK95zbJrFs8EtLQ7KuMnHoERX86TSR",
+        "dusdc_storage": "D6mrDggTMUyioFJ1GhQS6DNzzmzfh3kbnToN2afs739J",
+        "mint": "GNkW3jT56wKsK1Kkmmk1uT3UBK3UR4WHDpkMxfjGL6sY",
+        "world": "813DfKtHTg5rrpTLc1TsJ4dqyozE6AypaZMEHtLbZupX",
+        "verdict": "sr8wSPxTgKrM2az9GkXxEnr2D2n53hcJYt4k4YZugTy",
+        "receipt": "FodZuv1LkU2jAf2hr8bWFoox542soDy9ipE1jrSnU4L6",
+        "escrow": "FRV7z8faDPXkCFkB4XziRQDYm4xcYC3JT7L2MV5zNMJi",
+        "settle": "9nnNyDvMQHTUFzPaShDm4SS6TLGZjDAZt27S2ArMCt1",
+        "sweep": "4HiUoKw8iFTD7vEUcLLk1qnjcGtAc2srVKYb7hyLJs2G"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "50d14df64c6aa29f00232d28d01d7cbf92f3b89e61fbba46857ddd370080a2cb",
+      "nullifier": "79b693fed38707ee744aa84b53af9207aea06786b3a5bb5e9e3ce400765093c5",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "01f3adb3110241d481ea62724fd0cb99",
+      "seconds": 122,
+      "retried": false,
+      "txs": {
+        "account": "6sW7HguAxP4WUoT4mM12nV6RnFeNJmTKjG4FxzBAm9p9",
+        "escrow_entry": "9L75whUPK9n7tFZ29SNGu1FKT34MzFuDQKEKpUVsuuUB",
+        "dusdc_storage": "DwDjrZRrkc4ys6DtYX5u6MMCixxuN6ReKZ6Q5UsJRgpx",
+        "mint": "51r7KSCZCBAhXoHtM7HR1besELvTLYYuZNkeaRmLZeBc",
+        "world": "APB2E14SSWjjU2hE9ApnRcJtCPzjddtxXnBQiiVKBUAG",
+        "verdict": "Dns3wk9GAvKHdbQWxDuhYETBV8xq9aYASyVh4dYegkE8",
+        "receipt": "CdWedCFcjg3T2t1MDCZuzXRqr9KudKQ3jc7jLYJ1BybD",
+        "escrow": "HHRqdHC31qcRoLfu37GY179cXCZ6Wcqc6xhRp5FUMQ5N",
+        "settle": "BSwS7iAt3CQz53RsDNSd9V8edJTeL3nd7okkNujQ5cYV",
+        "sweep": "9iJaWLDCNzuNRf91MwxSN6vWsB6RmGVo6G6DWNpvwsN1"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "61c8723b4e0a4fd396dda4b89f5a92f4a4f97ce96208e339999476e0177c49d5",
+      "nullifier": "b31391b692ba1a788563d07d315b70d0476925ceeff1b7b3d983f96d7a00b995",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "8b05a4b1b3c74d158d82508f68496efe",
+      "seconds": 133,
+      "retried": false,
+      "txs": {
+        "account": "AZQAP3bsN5ZErecpkGoKuFFCE5EDQqReK1NGC9QbiKNj",
+        "escrow_entry": "HwwjDhQC5ihYesVgVwXg25UAx2Ly48AXBNEj6Nqy14yu",
+        "dusdc_storage": "4E5zyGtFRDjCeQv6nzGPK6Vbx6qnH51pDc4DrPxTN2gj",
+        "mint": "6qPT8BVmSkcDu8VSFtNKCTos8grKoxGEz3xCW37qPk1L",
+        "world": "864K5kGD5DgbnbX8K9Uefv6XFVrd5GG3kyKDY5FkGaVx",
+        "verdict": "FnjMMRTYuzo9me5TKEWSvXB6mZxdVdiBDNbJcnv7zYV",
+        "receipt": "FGjeUfvd6uPy4rFGkNYaN4K92Lr79RN3tu7kvhqJxHP8",
+        "escrow": "9TyAhuLqsgHzqUhdP2fHDXZt3yJV5jNvw6ySZUT1Hpmm",
+        "settle": "FsnhxjYQWja5hZvvynYkD9Brmfnuqxn7oBa3PVoH9DBi",
+        "sweep": "BYnajZzaGvNWD5kCS7osHHiN8a2sBP5ruQ22KS8wfYGn"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "334240e962edc06565e232e15d32de15cb5263f6cdf396021a630afe2f0879b0",
+      "nullifier": "714e674a35bb779280ab77793c1f1568a3ece4498710cee32c10ad97f69b6bea",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "5b6e1736d24d4f27960099edbf30a2a3",
+      "seconds": 128,
+      "retried": true,
+      "txs": {
+        "account": "7KbPvVm3K8RMgA3S96A1XapP855ngKRe5L2ci1d55Ras",
+        "escrow_entry": "ABicEbdwuqVzVBXjjTCKY6Gay1zeEwjBVDrnXFbJo5RV",
+        "dusdc_storage": "Gg5d1VnwDerhWuV15AH2cDXC5nmQCQyWZqTXMs2soJzr",
+        "mint": "3Y6JH1dHWnbHoe4ju6EGNKo8QMZLwE5jA2z9HRcCqSiL",
+        "world": "8qkdo2dyaXgSFUQRpKtY7zZPGm2MaWPStuuyP3afhqoh",
+        "verdict": "B24AutUUAWaVbEGb2fLyyNGD1j2MAYMqFqK3A1PpG3vJ",
+        "receipt": "49zGqBP4TogPRfy81UvQcHiMrqGJ8T13YSrCH77i4yAz",
+        "escrow": "EboFSbeLXLkfemaDwqH8zgHFwy2fe8hWV6v2qtGFvvFz",
+        "settle": "8KBQPVj1K7DpM6pZZ3161WnsJpfwR9AQYaLHxBNwBbV2",
+        "sweep": "AJ5X5CMG6dsbkuMqpfeoXFNcTqqQMa6iKtDJwtLq4Hox"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "ea024ac987616091f71c44fc1fdb297c6de0c7d5d6a8795debfaeeb097310470",
+      "nullifier": "429db56914c4294863da643e7afa662e8fd802560336e658fb886160a04614a4",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "0431d62168d048bdb58214f838bfda57",
+      "seconds": 131,
+      "retried": false,
+      "txs": {
+        "account": "4KYicqz7MZPrdcCtZ63NBDhFFpU37xjjVgxoXAy3bSLt",
+        "escrow_entry": "Fyb63VR88U37jFTaErj2Epyd5S1Wfg7eLKq7WYNGvaSh",
+        "dusdc_storage": "Fq1MYrpjnJnm4Mr99xjtduGM52zBs1kaN9ceXGKsQ3w8",
+        "mint": "9eX3ktcHpHvPgoWxy28jPnXLCFTANExq8TdxstLtCJKm",
+        "world": "5yX4EVZJH6w7YpSr7FLfMdgvgRQujQeobC9LMwjrGrtD",
+        "verdict": "BSG72RAmEHfZ5rmgRpq65ccKs5ZgGTVTUsyXhfLJGTwc",
+        "receipt": "9acTrebyeTZ2pFPe4d8BsBiHVGDFNUonhjXNQyrtufVa",
+        "escrow": "5NFWe7F4e5Jwb4Y1NzZBKoin6aHBmzDHiN49yuzzpnCL",
+        "settle": "8aaBqxkTkNZjzHjZ4K4aXVhm64WTMnmxKE4MwVodtb1F",
+        "sweep": "9E17GPuomwGKG9qfsHEDHv98DapWm75wTHknQ6e2DZLT"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "8b3fc4533893e77e8222ed2e717d2dbd51c70412d8a9e6bbe7c76b5de30dec40",
+      "nullifier": "dd947561cc0d5f206de8ac697a97aacfc839a06726f7e62b5089b468ca1114b2",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "de52eaf903c248b3b897b6d03dd5724d",
+      "seconds": 121,
+      "retried": false,
+      "txs": {
+        "account": "Db3jy6BNzUNafNJGq7PG7L7MLHSFChz8C8gag2e8yyXi",
+        "escrow_entry": "8awAmYcJXzwkXB5PXqZoUcfrtkHJt6ToX7r2ncBDeVYF",
+        "dusdc_storage": "DMuVM11TAwDydGRaLqfgMM32bDQ2LdMc5LdBHu5tsC1z",
+        "mint": "6WaaNo1HxktxVLMmvbctW1fVTmg5BVdUmDTsTaV5MXEY",
+        "world": "H8sRRQEQpWvfdiN5sNDSgerbjtkx3z3vRwQR6Xm1HDtZ",
+        "verdict": "AebE5vvZognNNV1udT34kg8o4J2oZSCQny657LmjrHuZ",
+        "receipt": "4F6XmknUQT94k5xzFCm2LACMLh2hD2Mcbo4pBcPuwh9x",
+        "escrow": "4tZNmoEFPBrAaGNaAmW2xrptonzXwdigJVc29nxR5LhV",
+        "settle": "7Dh78iSRLUy6DKW3ddqyTYnM6UtMRrPxWSNMnY53sPVb",
+        "sweep": "9wXcL4VpwbYDSfnSJixot3NxnHvDP4x1EMys9e3JhVCc"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "52c00ae3a25eadfc5b41310662ac8f04f6eded2bc35bfe18a86679cf2b7c79c0",
+      "nullifier": "a006598f1f0b14e557087d38cb1004370bf7991fe8d0c83c3621604a3dbb4566",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "354f49b448a2471dafb9d27976afd47a",
+      "seconds": 121,
+      "retried": false,
+      "txs": {
+        "account": "6qsZEugR7FmVSqs8YeK6yCYVfhioKCdCHtKKWf7WSkes",
+        "escrow_entry": "Ei8Vqjj53gPe6WcVxaM4yY1GipXhMYG8aAaBqifVVmbM",
+        "dusdc_storage": "Ey7j5ppdCnGU1WHaao7m1vK1zhHQNJABVwpNR8dKqNFn",
+        "mint": "6UArYaaxXrDeesYP6i4daTUNdQMoRZLY6vbYHDbmGBzp",
+        "world": "6Cei2FZRE5tx12NHsvFGJVTkHbmR1rXQUNwtHa3UG2yt",
+        "verdict": "AxsoJ9UPPhDLtChKz8yxMrP8jo5KQsFyiDqxZgzLfqQG",
+        "receipt": "5X2nxruavVdXoy4aNtQ47iEfrNwK9eae9tvTnQcCdnAJ",
+        "escrow": "a7UgfYALa6UPQumX31GtZ3eCXf7MxeYvhYxSBzfNS6w",
+        "settle": "2zYjnRBt5GGib5ESXGB9jVYrMWMBKaKyFaQYt2PY5TKa",
+        "sweep": "Bxnvm7HGEYH1ifhVbRxowsF61zSKAdwJwt3akqXYBShm"
+      }
+    },
+    {
+      "round": 4,
+      "round_id": "s1-r4-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "ab2d478c18b86cb7a76f57d551f2411d2d2e5cb309c0204742b92c68cb1c1ea8",
+      "nullifier": "0cd79b5d47bf8ecd4d0b5a99aa65f65f6acfe25613f15ea6f81a918a0052a75b",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "fe49931c09e34b9f84605a5e8185a31c",
+      "seconds": 73,
+      "retried": true,
+      "txs": {
+        "account": "85SDZZ3op8DoXdpCPc7whLfb8N1S3kqfwCcHBr8SpfYx",
+        "escrow_entry": "BwWqVnVWxmNFh94M2cbxwCb6u6XRoNmv3dsDdGTguPwd",
+        "dusdc_storage": "2AiFtB4JNvRnTbhgTzoUkJUgVW79vbvU5EGuUeinMBYV",
+        "mint": "9QrPKAjE7ipHkVk7MdZaRrxB8Keuf8wNjuHsJedouZVH",
+        "world": "Cx93MKfubqTcVnHbbMp48V8cmMRm5p8MzZyEBW3f514D",
+        "verdict": "3YbyRY7aw9xLQYkkNAPXDh1ySVkAP9R4KJgWYaifFwLJ",
+        "receipt": "5gfLcXzGVgLxgTxSjkeHnPHetHjxWYuu7k8Tj4ERugnc",
+        "escrow": "EiYb9YMwMRJodjm4JcJMwuDvxpkFva1ZjJX8k3SrnTbU",
+        "settle": "9vP7d5PRQHJPFTbtvucZU1eV8AdMhDD2ARykvQPMGYt3",
+        "sweep": "5NCimFWMLVRXuFCB24nibMCEjBVwuozSWToFxqarxvkR"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "7063b23ab3b10377489ac797e23b6d81c71f7fcff3b2a12fa21149e9706ddd58",
+      "nullifier": "1fcafd2b61c3e22033a691f1713bd3f632e8fbfc68a761fac1129b5f5a4827f7",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d5184a1d95c245d1bc73a25df63e4913",
+      "seconds": 115,
+      "retried": false,
+      "txs": {
+        "account": "GH48taBqe5PNxi8uajqc71voQQaqU3XBvPZpwKSCmrKJ",
+        "escrow_entry": "9J3CEAeHR5hfWpzzJGx7PdyWxCbeRyxY1FCDv6L3FqT8",
+        "dusdc_storage": "FnkSsiC258ing2hmuxovrnEpBes35gcKorNKYKthNTRZ",
+        "mint": "31ixdmhHT3NRBgQ1ACMNYTHzhb6goTKHJSVdmVweTDQ4",
+        "world": "7PL95wvPYFdpvpGsTygDCB22XrMxvz1TCn6AQjpuhFvQ",
+        "verdict": "5pC9rrqcno7cyRvdpBTmEQrt2XJfCubHNnNH3NewdSZz",
+        "receipt": "HJ7kU3N6aR2yS1HZ8UtNRBskhcgauKKQ5eX4TuJ7njTU",
+        "escrow": "CA6Qr8b1Mp1LNm8f79rNmzn8zzUvsZmYX9Rm1H6ZJd92",
+        "settle": "DXz5QKoETGatv1ipRcHM8GStiQ1n6RTYXZsUjohqXKSm",
+        "replay": "DSjcyyG4SnvbPU1YTkoqhTQaLxsk5A4rbBJrYS6qZcCg",
+        "sweep": "BwZhmdgaRWpYuxPbK26bBFVLNmk9bnZT6RkiFsDLACJ5"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "46781eed9933e603cbbc127fa4c21f872eb502f95ca81ecc907e528d2931eb25",
+      "nullifier": "66b5179c8d3a6fe5c5e47336198b35ba895b3bd0e184bc9b44971740762a22ba",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "b6e66b018d974cbfb9c619a0073f84ec",
+      "seconds": 126,
+      "retried": false,
+      "txs": {
+        "account": "h3J78gATJsfFEZzNAvhPCExyspyvGAkNzqe4rLdfFmb",
+        "escrow_entry": "CSyiqmqqChSHLwXgzVdDG4JyYyTsAjYXFtfexMkugStY",
+        "dusdc_storage": "79WLMGStMTvd3Mg8uUyTwDs9trg9ieDhj9SwfDp2CfCo",
+        "mint": "3Gz1SUBbuFqTuBsCVGf2y96zuRbwYK88FixpSw5JuS6o",
+        "world": "FXqpMT9MmtSHj1k6Q8Xy3aNm3vyE3K4qZYydsie8wfAS",
+        "verdict": "EYSLdfEbrUWLKuJUqihC4H3vMQP5BYEjAfw8bXwKfVDq",
+        "receipt": "GY9pcuQo1fLRHbJSDyBq3rnP3FprnxrgSAGi8JJP8P9g",
+        "escrow": "C5jgXYDMiGYdZat5pdf7qpcFhNyTjQyn83t2uuwhuTR6",
+        "settle": "5rbrAceMFHswUJVqc979JQgtAdjWafkjZGYyyWARy8fn",
+        "sweep": "ARMc3n8kNbPi2sJGAvKVN79xGnjcsGNrQHMjGEtqnmqD"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "ed1b6d2a8499cdf8b4e8e61023c055b379e68194678a2563e46a987ca5163b88",
+      "nullifier": "7916a62d8c5524ab7fdfdb0a544b6aae479020399a21ff1e962cb4d244bd8e82",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e805d47e21a047748d6fcbea44af39c4",
+      "seconds": 135,
+      "retried": true,
+      "txs": {
+        "account": "JCQVwrMT1wdceRV4pijUjSowTSsqgeG4uGzacKsFmugh",
+        "escrow_entry": "9DW2X2agvEtpirNvQSxJU5RkUXFz3rAQZqjRW7FXq3zu",
+        "dusdc_storage": "6yC6oxknRu1j5WBVXMYhaYoydeng1FBKaCEdKWPa7JPV",
+        "mint": "Dc5jmvzw5rE9HGt7bu6oY4cj65QJ2iHbKNG1vK1nzn6b",
+        "world": "3sTj23vZg2Zqn1vmeSpfAGWFmUHZUtgBwsXm9XJqZfmR",
+        "verdict": "yaTNxRvryE7BwAHCHthWRd9yrc25LZAckXKs8VLM8TW",
+        "receipt": "7hqVyQqABCqkE3yk22jMVLhzv7feVySu9KyjtduuQqc2",
+        "escrow": "AJQJpJBatW1Tz5yVNACedfs1GTVQq7wVrCkWHhXyGBL",
+        "settle": "2VqVK413VWjVy23TgyrFP3TcedPu8rkyQhx9NebbCdaU",
+        "sweep": "FvTLiEZnEXnvhyKaEsp16UNYUvRXTTKw6DUBRgMs4EsE"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "42ef296cbf48282d896ce0162c9349bfc3a504e1fa3df41f651490fb9e758181",
+      "nullifier": "ead5445ad780a15a7d110a339b89f5802eb661034e8083f94da3de8c2924cdbc",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "0c2e495351404e359730f37cb5d6a4f7",
+      "seconds": 116,
+      "retried": false,
+      "txs": {
+        "account": "FQgJqzT9sb59Pt1u8QCH1mGu2fbxR4fH5Bg4wSQbdEW2",
+        "escrow_entry": "2adZKNPbEu4b9QKQs7jJYfxmD6vW2VdwkBXzMuBwxwu3",
+        "dusdc_storage": "98ib73dVy3wxsp9uuzqR3gqhda7W8ppbNSxuei2bCztZ",
+        "mint": "8bRd55RQ3UGFgUtFFV6UPeRndHukRUov1XnYUpzdXn9y",
+        "world": "9UWPqiaFqEJuNaDhWKBfgxtxuaXnBt6TxdaYGWd26pBW",
+        "verdict": "BdAwASifcDVKvxwzjt1Uvg7xAEBFxCCbnnTriXqi3Rmj",
+        "receipt": "BG1JqdPov4uKkSyQbvrSgbLdifG8dUpNeSYHpyeMpDrh",
+        "escrow": "CfzAgeJp3Yb9Dagf9DDS2gKAFvKtTCGzBJa6jMkvgvqB",
+        "settle": "BSaSDTSsADaKAMkCGMsy9995qAkrRkEWD7fJq98WaMyD",
+        "sweep": "GBZ14hSakmVNAnwFpg9uqphrRtPhgRtbc4E1KptWAVM6"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "6cf28ef87295daecf909f4dbcee5e0057b67285db01b1d5e6152ef21f18182e1",
+      "nullifier": "7594e2b7b36fed2c87a7166096ff65a5f461171431f732ec775eec6b0642c986",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "bd5e69d772934cfc9ecae0dcda62d7c3",
+      "seconds": 119,
+      "retried": false,
+      "txs": {
+        "account": "4VxzT4vVaoFggzPcKwRMG6ggHN9deqNnHKYGKmUNR1yn",
+        "escrow_entry": "9E81DUswJDweUwjH3uvJQnpfg7dZjXQFJanniMxrEe4y",
+        "dusdc_storage": "2aGPDrBr4MC4Yr7uNYxwN2xoQQMezxgtWiXE8pSJ246Z",
+        "mint": "5frciX1xjaPmia6dj1RmqPjE28GLtm2ZPKMmbDDvgtsJ",
+        "world": "3o4hnYrzzA8r85GiJB3qpEEQSN92UCdyR668dRExkSeN",
+        "verdict": "Ho8YeZrMSRdu1PF3MvMQc98CuYGFMjodfpYhv87TuZ7R",
+        "receipt": "5PiQgu3jjrkW2Kd9vvESKmtC12kfcBsMm6fygNN9XVZv",
+        "escrow": "FNDWUorziHeayYriv3cyVYpBrdczfu5GWcCAhoTJn63R",
+        "settle": "A5DrmgDD5pxmz1GqySV7aTYFQ95vEiAYHe4i5XJCJhgU",
+        "sweep": "2UqgnievBjbSAVHcy6B8dTxebjHLQe5fcN3gTLyXyBT4"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "e3a65f3965a15bf19ee26836f2ac90b36d0d784e539fc3405b7cdc579097bbab",
+      "nullifier": "c335ab32e3b8976a688b184580811241eb0e7ead0be6cb67229fa0444c394acc",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "09b336803f79488fa902389b86c044fc",
+      "seconds": 135,
+      "retried": false,
+      "txs": {
+        "account": "3bi3MmeWeTAhViz9edVGafhcXWE4Ujx9qXcZnrkQcdwE",
+        "escrow_entry": "2xuKcLC9zLMW9cobz4J93xuGZKSirD84bao9XCW6eNLB",
+        "dusdc_storage": "HnXuBJurvme9peo28jdeTXNcznb4Uc4uAqgV5zNHy6Gp",
+        "mint": "9GsCnxgnNw6YCCbLojV3Cfpn2MgXHbSMQJRFJmB1SEr7",
+        "world": "2qMiVgHQGqyHDvaSzuA17jnktb7BHxPsxDonh1v2n4bB",
+        "verdict": "9ZUAeyrMVkLrRoyvSbzSnp4EBjc43VWqmDXBfSndn2zx",
+        "receipt": "8dZ2AjFjUE6aTxb66aEUzo8BnnpSDQyxRNgoBqxsRavj",
+        "escrow": "F1GJ3bREmeUYhLNHBkwBgtkVn1Jbe5v4BXBFkFZQu5C3",
+        "settle": "gwNuLbLBmcwEUBa8cUaAzouvbMuenBJqTxt2PCWGtMy",
+        "sweep": "7A34KCoA3yuxLkiLhqkg5VP8oWnHmbydjMy9iX3uw11S"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "cd39d391e33913486412bfa8c6d3056a3885ae0c6c0b41a5e09ee830e6e0282d",
+      "nullifier": "73527e8b1197cb663999872aa4ac7763162b06933a478409ea05e7fec9cb7873",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "cb45311c3cf04cda945bafc54d37c769",
+      "seconds": 137,
+      "retried": true,
+      "txs": {
+        "account": "GrfA2yCesbbE2pZpuNyo3HHG9gjrDkHWh6SEk1qkhcrL",
+        "escrow_entry": "CKVX9TwKGYZc3sHiR9WLqbzhvCC6pFGrYzCxWkKiaurW",
+        "dusdc_storage": "DrTKf1krnhMnJ2CoK4UVZHYT2LRjLq5W5EtLp8Fma321",
+        "mint": "EXiALkpVVNaPn8qENqDTkr9cph69vwjXYtKjiPnkrEji",
+        "world": "3SHsN2gAg6BKXiqQEE9LEhdcUu7QfXZ4UVRWqzGMhLoP",
+        "verdict": "2noSS2KuhSdSCPoCjQRnbuFiBbdLMF9KEyZHqpxhY6aR",
+        "receipt": "AX31CFk1kDWk8G5ihCaRBPiJ2j8mGXfkZfGcVx6m12TD",
+        "escrow": "BmKRsi3ReZ5qmCt66R21YMuqr2iQqUG1ze1W1LB2fFKe",
+        "settle": "DS3a8vqcgvUHXgozmp34tEtusEkGJgEuQYLY9Ko5SmsB",
+        "sweep": "ERAD5kgDK4qP91MtQEqAeDCtmeZC68m1Rw9ThHNJVTQY"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "f94ca030debc35a95ea853686e7b764ddaed4ed7a952372e0e027168396087c5",
+      "nullifier": "7b189a266c1e3a68c9fb53db90af13611a70facd78decf779fb9fb22bf040a95",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "2adec8979a1246908cae65742bf60d98",
+      "seconds": 136,
+      "retried": false,
+      "txs": {
+        "account": "uLUvikt12s6AuJHn2cwTLAzrXwyh5nJMuCRNzWKNurx",
+        "escrow_entry": "3nWCmqp1wUM9q1sYKZjq2VU6e63UXqhA2jvAZTTmsVYf",
+        "dusdc_storage": "3SvgwA2xxvJ4V4CqHyq7jxQsp7Caw7QH5fkav6D4qns9",
+        "mint": "7aiWS9gwzAJMEZ9rpKUk6BVELhn8c4nHt4C8zLkhvcc2",
+        "world": "7WwUMmqE6RxrnYjS9vgq8kB3kajRvoJN1KQhe4pXxDE5",
+        "verdict": "ASXLv7qHzmsiNjrhikTPyWWQBStS1RJBr31ZurZyYmBy",
+        "receipt": "C9gXB2DAG2LEjWe7hbGBX8mLFY4TFxPUZRBar3bYhUBP",
+        "escrow": "Mp7YCbksVbiwTLzTqRiATxcZmYRH9ALttf5ppt7YEBa",
+        "settle": "4FMDiSitFDp91Fx8xUzEwNEEtMmqtXxTajQ52yLESA8J",
+        "sweep": "A1FhxPYBy7VgEkoeRACUPtSWXLiGmdjrto5HJHDnMxh3"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "d1a91c8a2d099dbef9c204130eef921d05901f7e6f0419d469b08fb4dc775406",
+      "nullifier": "b78c82ecb37979e08e6ec0fdb0f2c2005c1fd72428186d65280975a2c62c8466",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "66b255baebdb471bb70bd6480cfda6cf",
+      "seconds": 136,
+      "retried": false,
+      "txs": {
+        "account": "WWMmXbB1X6bQTjFTbabLa8NNxeCH7iCiXKdChnaSvyh",
+        "escrow_entry": "8cUAN2eA3CnQPvFc5t5c9NN8oMU8PZvpGxSkfCuMKoKX",
+        "dusdc_storage": "DDrjUNZNoHH7qdpML6LCjvnqAcMi4R9zizzHP1K4B5jf",
+        "mint": "FonzMfHT1fzqF1YRPAdpmSPpN2mdRfQCUhMH3vhBxynT",
+        "world": "6bkH42pPbAynkKKeZPMZHgAtQLSjtaZtuKbj5QAtE7jg",
+        "verdict": "8nD66hFXkGJb4LjJw2XUVUNZK59TvWwPg2Wdi2FGmXJ5",
+        "receipt": "5Efd6BSViXWxcRzQEKVPBGcKdmuTTD43cuY7FcEpFmvx",
+        "escrow": "FjgZ24oPvCqccBA8AXcqE6wQkY52aL4Mk65L9LbZTDQ5",
+        "settle": "83Rq4vgwxfWtTDk2ZfRzCbtzfaPYMC3Whq3qiL78ccty",
+        "sweep": "H5z3W4WKLie1UAdoENcm1pos3q5VVkWUWs6b3bYrcqdS"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "daed1670d3898db65991cde8f457e6dc36fd9fc1cbb4ec9135fa1adef7d2819e",
+      "nullifier": "43047bcfee07d5e3ab0208308892458b6f9219e8713d92da783e2b4d886ee3f6",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "2dec6b8bd4424a3d9a05c80e6133a9a7",
+      "seconds": 126,
+      "retried": false,
+      "txs": {
+        "account": "AbjRW2umFqKujBWU66QhyY9v7pRvaScFF6WFW9fKmA6z",
+        "escrow_entry": "6vQWNR38fWNjsxTr35mGzEhG8XEY348jhHnAyXFquUZY",
+        "dusdc_storage": "GGHnFsW8ibSva6sQEdUXUs5sVFfvCHBPmEAkCXBwMHT1",
+        "mint": "6Cr3b5wvmAuZt72xyBDogywrykv3Pm2YzYwbN6jwgFgE",
+        "world": "BheFBnqWpDLZc3UF5NdZf5Wy6U9YYvj4rUiZPBYt555r",
+        "verdict": "Crcnq4vWgoU9VxVL6xDMg4aNWKcoCjDv9iCH5F6gyqPa",
+        "receipt": "EPMH1UqXE4bQfPTEzoV3j3kkHkBeL3Wt3CMcPtgaoD1T",
+        "escrow": "2qS4MFaT7tRdgZg8XVRczTTxNvMNVjhmG69TAzR9eC9w",
+        "settle": "CfwXYY7Zk283M8xbe7PmY4jQKjnwqJ6jBgYh8p26ymFM",
+        "sweep": "EySTcTFUbpj5UrQndXDxwNfmVZUGprJ9pDr4qSw3hxzE"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "365de76eacce17661cb1f1b05f1d7adbe72bc8d2c3059de8dfb8993f7dc7dbd0",
+      "nullifier": "91368a025bac4fa237c4ac42a69af57f4009449f25eb71d42bcdb6a5bc214ded",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "abfaa50765474a789864bea0088f75e3",
+      "seconds": 135,
+      "retried": true,
+      "txs": {
+        "account": "2fx1GtSXL32DZY1Yk4PBm6M422BAFdHTxrBRzERbFrfy",
+        "escrow_entry": "NGPke2dnh3LNiqS9NbiTfmyJdduQuWB7HjWbzUCywrp",
+        "dusdc_storage": "AeaS5v7GMw9wd3XQGsXZduqrx7dX3SBALRc5qxY1YD44",
+        "mint": "BjxDpxBTX6n79krnaD6DFvNU15B2VPrvXDNkXASKzf9y",
+        "world": "Dseq2KKgKMdALjaqmDuDqkicrtPdfQAWheUAEeQyKbHo",
+        "verdict": "BY2Mk6m2P6bcHSFJBCMAnUFjSbwGCpeFQh7UULRSM4Ev",
+        "receipt": "EciEpShzUqiVG8eGwQT8LK4yCz6QS2BjRwxXvCFWNq1R",
+        "escrow": "6dKSojUPhsRyoKKRHXRdnMQmKPJQEsixA5ZG3q9a6nay",
+        "settle": "8DBYq88VWgVHTyuGDayg959TQsx3YoU7ai9NC7f6jQPg",
+        "sweep": "7qVA8ZDjQJ8oQthoG6gdJjb6PjXhTSKKQqmpEJTwjcjT"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "b813ebf49d21537d42b0a592277beb69d8b235fdb4006eb47f79f1b3304ba3b8",
+      "nullifier": "5265ce144b197912e6d7ce52077deddb76de87795c14c73d9c1735525ddd12b3",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "db9d5c9a0ba346da8c6b53fdcc54a450",
+      "seconds": 147,
+      "retried": false,
+      "txs": {
+        "account": "6niZLPunurhwuHnYakmrucbYDFSy5uDTDEm6N5uwtVyj",
+        "escrow_entry": "79QnZot2pnRmtf46cj8aBBaHxC3RZc9MVpRVdPtcwGEh",
+        "dusdc_storage": "GGynRKC2CeETTra6u76KCVBnMB63vomYhUbnTGkh9qEF",
+        "mint": "F55sDwnkWyHab1w4G145wbfdZFuTtbJaQjowUeyFyRz8",
+        "world": "FQBPo2BBNDpAUsMVtVf8grjtTxANqpJu3m4JjmPuhaaL",
+        "verdict": "Fjc3LrK9jn786zJoZjzDnTvAGdu8K9EThcHijxRU29yw",
+        "receipt": "9TxqJHScwKGkDjrG9qm9vkgNXZn3oCx8ZYByY48c9QHb",
+        "escrow": "3vS5WqYqri1S3oGqGeZK8CsSExX2vxuix6uCyeG6BAug",
+        "settle": "2EahgeVmrLgRHrDKhg3WhYF8my4rnYWDtNXR68R1G6At",
+        "sweep": "7CE7EghRPLJkyjbATqjvcHxzxpa6VYNCYNq2SKy4PLvf"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "58f7d35f2789e6c5ff9e53bdfbb3903c5169d86fd6956739a50697d98e19fa9f",
+      "nullifier": "46bf18a17941ac5da431fc485510d183f01b0b5a1e3d0a5dd2c69d1bc368b4d3",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "a263cbcfa0e1481ebd89cf9f273a4ad8",
+      "seconds": 144,
+      "retried": false,
+      "txs": {
+        "account": "GPyRMdBUbkHFEHuVjSQyePYxCFbHmNop7fCKRYJDtFk1",
+        "escrow_entry": "AYQvgq6h8qdtZ3nbBJeESQiVUJeJb5N5d5nh7CgKqSwM",
+        "dusdc_storage": "EVycVgzaKchqhFHuB3BgZEUF9ADgQuDw4HX7W5WM6P8N",
+        "mint": "Ap343absjZ4LdGS47EgEsmMK95yT97pvL5BZuhUtXhtz",
+        "world": "6nDEXenUk3dCscrEpyUc6epkMQtGLdTVZ8uHrWPiafxu",
+        "verdict": "635wBaRDi3jM1rdfCDSKzxRBvrC7Gi7gbP56DdhgBEGP",
+        "receipt": "3jLhY5XtsvgGmKh1emsXtTe6K4RkQj74ZJe5n4fBM2nb",
+        "escrow": "3nipyM5TtGdn3cndEYRLaQHH6cE6cSq7i3HZMVus1QGv",
+        "settle": "HKWjTp76HoGknr7vc73rkHGwTbxfiV391Av8xiKbRoB4",
+        "sweep": "BVLtZDPfH8eBV3bNbdjymgFG5mkMLwPMdd7CxEMm3B6J"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "e4766fd0cd9fe465c57d806da3a8474356d1d2a75a0652f7a0cd2e8c6fb9996e",
+      "nullifier": "ca4da8dbe14ea5ebe654acdfeb8ebe2ca709e284c0491dc05861aeaa1ffedf7a",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "940b5e0e15ce41cbb53e548d2913549c",
+      "seconds": 128,
+      "retried": false,
+      "txs": {
+        "account": "DgUftWrXmxEdjgXcsk1T7oQ6RnAbkMfNv7yeGdFM8FNG",
+        "escrow_entry": "3ygKQ5Jj7UntMgSNkDpc9EjTrNka1SCUjcZJk6pi2Q22",
+        "dusdc_storage": "H9rBd9DRwVth5suFEUSQiQX1bPjxRb2AveufP3h5TGTw",
+        "mint": "8WtS4pWkDG3x1J2rLL3CVxcBuSF4t6txoS2gAGu271GL",
+        "world": "692KxgAoLpaFdbGGwz9NZvXUjYFoBFah6Z2ES66ShDX7",
+        "verdict": "7UUPekV2WYTFz9jtGPkPgBvqGpDBkyFKAW8sAhxuK4Me",
+        "receipt": "84kaWia12GtgJyj9SakUsAM3CG9bX4rP9T5XnsiL11jW",
+        "escrow": "7NygoUwceZ2559bcwQHsn2AuY47MqK1PLXiQMqr2JVPC",
+        "settle": "EiQbJN7WdDQbY3gVM7LXC2ASNZHZwDjMx8CUeM6DdbVV",
+        "sweep": "2iuiAUFvGxwEKdsE4HJKPAHu6dXsXaUyEn3KcwnaSKKA"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "c4f734ee1ac156345f335ba723e9bbeec8054824fd911cf1d13323ba4957f335",
+      "nullifier": "852f1e201a129fbdd7d790b96a7b5942e3ebdb44f3ddefeec00480337b85eef0",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "bd7fb7ab49994c68a9a21bb13f51ddae",
+      "seconds": 114,
+      "retried": true,
+      "txs": {
+        "account": "FbCp61RkScCNMqg8f2hitskHYogBye3BjBv2VJ2Dvur3",
+        "escrow_entry": "Cr3dBMa9moPpQuYghpXqvLL6metBXfbMSn2Bk31MMmdR",
+        "dusdc_storage": "C4ByfrGcFqujqmFJyhrseyjRJXpmpjGwQ1VfCFJbNHSb",
+        "mint": "AVp3rGqZX81BMfeaHKGMfmoyewUfKTjRpgfp8DRFEH6a",
+        "world": "D3XQdnXR2aMXYGZCaDksAkvWqZhkL9EUPbvioZao9Pmo",
+        "verdict": "4nb3Hkta8vCGJuTiNKLoq5GxjJ6WTihP3ZM4FjNjb9c1",
+        "receipt": "A6FX9qW4D87eWmxR9ykkpuJVUjXWNwgghFGeYLZ6QdFS",
+        "escrow": "Ejm9qS1qWMdKY2mu5wki5PFbiq5FJkPXvNxNTtQjhGa5",
+        "settle": "CLZzzjQJpBQe6kt5u57ynjtwXvErj1wvodit8BQJE5mk",
+        "sweep": "2dMTsuCEiACBsaB3GrZyVgVAXCaEnqozc6vsyLRTRV3d"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s1-r5-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "20fdb722cf3cf8396915de79fcf0b991cc65ffee71d8d3d936dda3614e5746c4",
+      "nullifier": "f75d89f0e6127a9b0cdf714d950859a869480ef5d8e32b5b115ab8135a382e07",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e9663bdc2ab74517a4c8e5e87b4c75ad",
+      "seconds": 76,
+      "retried": false,
+      "txs": {
+        "account": "HkWJC33XBofMMNAQ4pkPG65feTYY8zNVpPeyBhAJJ6J4",
+        "escrow_entry": "DV9AqwKeP7RePTJjTSorZoCQ5LXRcJgeihxVDBp9p6jd",
+        "dusdc_storage": "8WDGSExDdarS5fgaZuTkYoKJkR8AM71he8xXSj3sNpZs",
+        "mint": "DLwmovURKu8mGTZWX6gDZFcu2oAGTRZ6iA7jQjK838XU",
+        "world": "J6N3TQxEHKbpDpxWVrjwPQUmDLaaCrS1YYd4x276iWwH",
+        "verdict": "3xR2jKTfRwHahcxAGqZdPiXTQbHphy43cm3sHRu8PsHJ",
+        "receipt": "H5CJsh9SNnLTRzkJY5NcVY9RdMNe4YohMA1Q1hxuCkLZ",
+        "escrow": "EFH6GKR8SNAZTgjbWdTX6acKbMoPCVhytPe15zvBAzku",
+        "settle": "3tXc8NQ9KYCW4cMcy3E3UkKJiyS7SmcQrzbg3WFiorTX",
+        "sweep": "7YhFBox82RxNLEgLcFj1gLjNWw93Mz8FgUfdqrS3S8Wd"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "6b9ba4c4aaab6b7b9b899b9835a89bc833d1ad30129cde54ec3d4de3bc567808",
+      "nullifier": "e54c2810e7e1b45a0671219b60f365bce9b7c3e16265343b6315553b73e92da8",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "ff9e1a54db2240eb8abb4b47cf71a7b8",
+      "seconds": 126,
+      "retried": false,
+      "txs": {
+        "account": "2XRbAcwpr8aZBjtL6689X2HQsmpuXNcTgdAscCkGXrFc",
+        "escrow_entry": "fV3jteNGBpSRsup8YM7Pnq6rRR78rFnoKSLjrmB9Q2b",
+        "dusdc_storage": "HKPjWeGhMAHexSx2HGbWh3JVC1Br5Wi78sZmJAMBzXkw",
+        "mint": "2nyAagiMJvaefs9ikpvG9MATBLNnueQWcViv2Y5xbZ2G",
+        "world": "598QLp98D7aoBDRTteGVETfphGWKRiCTifBPrszAqG7E",
+        "verdict": "BUgXrvKxnLPHgtLHyKN7TZEn9jH5J5cvz4HXaqwPhS3A",
+        "receipt": "J6xRDv17gxA9zDfAcaeqKPsxto7fsHFfvMi97eHDY5Sj",
+        "escrow": "dwYrcPjBBpAakYtEYy7CUipSXMT3BcN9BUR7R9tsdTA",
+        "settle": "8qCz4w2HQgw1ttGCGS33rpMMXyDeu6BFqjaCbhTtz6XN",
+        "replay": "2mzXppf8Ngbt3y8mLJ2eT7MNHqaukXB6uCYVYKtVeLvT",
+        "sweep": "HTxjriYFoG1SYKxenWmMUakYTBCQgaY96uWn7x9pFZom"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "02b90b7ea856f0c3ef4b17d5e3330033328a564051eebe6e605f7a60737eb952",
+      "nullifier": "fdcce51fcacb396ce35f469d8a4302af2d9e2e082518d62be74befc0371b59d9",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "61775b17af0d4e1085e506ba6d5dbe08",
+      "seconds": 133,
+      "retried": false,
+      "txs": {
+        "account": "Dw4TGmLaSdv9HbXxmgssr49fwKKBA1a29ktt4rtHMQZB",
+        "escrow_entry": "6yqyV5G6ypYe4KdDSPH8g1UKV9byjRd6nStEvFAsnYq5",
+        "dusdc_storage": "Hf3NSaHc94Y4arfYKVHHZJLPZZdgMH4DLxyszB5pJTqb",
+        "mint": "3A9HDf4CTWTDyMsjfTgLC6qW43VDEgc2NTWFT1s4oWwg",
+        "world": "FCTZLR4coTb23v9pQUKMdL473nDQRHvjydHwCWgFZ4mS",
+        "verdict": "9dkm2uLCRKvnWNotssGkGRgmtL5zvDK39hCAcvSxQs5",
+        "receipt": "2a7Z52Mnjd2p56zkQU7Yx2D2Qab1xk3GXqF69NMY2BgJ",
+        "escrow": "6n5uHmdGULohfEvcgzk9VhTeyMLVXKJqTYqfTbSVWsNH",
+        "settle": "EUxkjoVTfxj9g7WjnnR6hSsDwN6nYQkq6Up3bYZNHE8H",
+        "sweep": "2prejZHgF35rxh3DxYjeAW5ckSbQQfy8x7GWrj9P7wxL"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "e95bf66646a2d7c43edcf8f905848dc55a63e4a637faa8e9e32b10bacaa14427",
+      "nullifier": "3adb9ee9c55ec71a1b647197457b418b1b437bb8e2bfe8941146154f2bc69389",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "00c9ef55359242bb9fc65ee2071ba91b",
+      "seconds": 152,
+      "retried": false,
+      "txs": {
+        "account": "6TzQeEAvHEfW4FKnNJzd2aB9SycABHVniDpHNWQqRfsJ",
+        "escrow_entry": "2G2gN2yN3ycbR6H58Hi3d8Q21M65AANJfmKopSEXg8d8",
+        "dusdc_storage": "DNqq8ekw52yy5DCzeo9Lyr3Nj3Z4QUm8T8GituMLfTtB",
+        "mint": "EiYc1PoXd7V3X9jbe41wZwuvQzN47msxHY1Y6PcXLWjS",
+        "world": "BfDmAm9aXNxotGcnzJa7qyQd5GQxJGL8F6iqQzdEkwZF",
+        "verdict": "2JFxB42kUkkXbEEnKuPEtMsygGxCFmx9JSAVHfqxX8rp",
+        "receipt": "EUaVSFP3ZpT3eYbpVXtNCKhomib2P735giuRvtXg5hye",
+        "escrow": "GMXw6Be9uTLsJRNeUr1xZXDpP4ffoK7inBY8XoBLg11i",
+        "settle": "2EoGbd39JmaHTMJfExoGo9pQrA7KwQEPrW77rXVZxzBX",
+        "sweep": "H6bf6Zhz1zQXyAexaHpSFn5SYdwfRBovxjzcvSdABumA"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "0a6ff0ee5b5fbb68af73c7d949da714af54d68fa657fc6008eb5ed6a49aa358f",
+      "nullifier": "e8934653c45bc9715cd78212c0788b5cc347c0121832e7217ed7662746b55df9",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e9a27b418a7946f288f4212ecebcdf72",
+      "seconds": 138,
+      "retried": true,
+      "txs": {
+        "account": "GAU7EYCCE9PvGEY6WKMg9nv12nJDA2sp238JnM5xHqsb",
+        "escrow_entry": "EriHQtQuHDdMKqpHYKkXfReojXNK5B4qNv1LAsberFVM",
+        "dusdc_storage": "J67iXpGDyjJsBQXoKdfpr9wS7DSu3ZpNxcVaECnJxQPg",
+        "mint": "5MbvFU5iR4ewxuhoRhb6hgRmGp1jeTG2rcokWooTHQt9",
+        "world": "m3uQtNBMDCCkMkXpC2L53K1dPbTqUXLscrFphyYNt2w",
+        "verdict": "DmBnh8V2EX5tCwXxuFnBrcdSDe6etzwFKKvAkr8Rbb36",
+        "receipt": "HxhiJUCWsABcpwrRHAYi9EnrsA2bqAS2RaqVAd5zi3my",
+        "escrow": "At8HYHE38dDXVqxixKNmCNf6Dn4CtQzSDcYjEoNNUQgV",
+        "settle": "BQS2nfnAV7RSc76KVp8HcdneMCZmyXxvD3krokSMBt8P",
+        "sweep": "Fdrf9ZH5PciH7NU7Gv3ieQnA24SA7sQCeAxZVjoV34CC"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "d3d93bc2fc785715537f8ae1aab8af5b968d1bfad6af0226a78259dcb88dfb97",
+      "nullifier": "e101c1ca6ba918ce235e0b45c0bdaa04c93d83801d9d0dff21e73fae61e69a4a",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "f609335dbe9e47afa9730eb3a5c3c701",
+      "seconds": 137,
+      "retried": false,
+      "txs": {
+        "account": "GY9FVCjJc9uShukvLFYTvVX6CbSRKFpMsDdCMGoSFxef",
+        "escrow_entry": "8nJpb8JqJk7Q8bVDbKHdZKQFJjHQminCvQLc6GL5iJoe",
+        "dusdc_storage": "BAVs3hMpw2rV9BLgecn2fMc6GcQKeRStfDtiT38csFQD",
+        "mint": "8cZp7CEM8NWo4sVtN5qrTHwjKvQWNeSzDStWiFUD9tAt",
+        "world": "DkurMDuHmW3Ff1sqhCsNubToahMsfrz5ShCkzUu8WN2L",
+        "verdict": "5sLPEfv12PWUMfTFYYhCmwu7ZazX72GtDnnoYPGA7GpK",
+        "receipt": "2UQh2pXWAK8QtHjND7sakVBAVFExc9rZ6aY1YJULja3E",
+        "escrow": "Ed1veoSYZARcaXfo76VBu2kAse6hFGUs1iHsUYBajT7Q",
+        "settle": "gF2CMJAxaq8oLxXFez2LbVx6nAc9sTR3oTGoumfwRcf",
+        "sweep": "BFrqJhbn19BwR7PZbCgpV5H9DHvvufj6Scp2AGLbuvDL"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "484ee43d6bb2cdf2f54dcdb14fa44918801a4e7d434c5b28fddbb2133d2d5969",
+      "nullifier": "205e88448d8b477a4d64b29e19bb0c5fdddd6a645072fb0e539742633950ceff",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d05b562cafad47508b80e0746a45cf79",
+      "seconds": 138,
+      "retried": false,
+      "txs": {
+        "account": "9gwCNnMwpfRxKF7nKjDb2HjRuV3vm6FLRhb71VpdgXbd",
+        "escrow_entry": "FENGFnDMMdSic5pdF5YS9K85THRqKSAYzQXzcC2Wpyzv",
+        "dusdc_storage": "Bki2BM7EScVBYhg3p8iZkxitf5uXZWNKoN2g5r4NJEQ7",
+        "mint": "DLynF7yTijVatmW6DutPWzeaBM2PPKaf2FSR9ZuGoYrt",
+        "world": "2JHiesefXDQSsYwN9YMQrZgsL1fLDfrM6JMjvgSeDLL5",
+        "verdict": "GtovQfeJryvcRXd66b19yvffi22cv6Zek5vnqv5iZ8JE",
+        "receipt": "2FvwK6ZqA6cHxxN8N4X1jeFGBDefuyJVY139VVxxCvK6",
+        "escrow": "7UthYf7K4xVL618LdZSC6nzUHWabdYVcK5zmnzkW6yLm",
+        "settle": "9uuJDEUpHCx7hHSzWEjy7t5JtGdGubeoPSp9jvG5wLt1",
+        "sweep": "4QT4uNCC55oW91wQuUWKvJ2z7yTjb3SnWEQB7pVciNJY"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "90aab8596b836b6e744c539978683ee67b8c76e3964acd825d0b4b0e0e0c7350",
+      "nullifier": "6869745e1ad2468e64aff77922e74a2dfdf3cbb304b273f3c969b388e5d82331",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "289de1f9ba594de38e59651a1f48af45",
+      "seconds": 133,
+      "retried": false,
+      "txs": {
+        "account": "3gCRERTMGnZ67QgGrnreSv4utc2diZzJXoV2R3WEwjbF",
+        "escrow_entry": "4Aocx3D9fKasmxgew4GVhKMSBLLoUraPL21HJSKDVayE",
+        "dusdc_storage": "13BGt61ymDQJdgbPtLyCrsSX5eo9UagvRQRQeGvpczyt",
+        "mint": "9LSVL6kQPeDUA7hAHBntGVoqfjqPjAwi1ivBVmGjzqdV",
+        "world": "HWXDe9JCbpDXW7H8vTYctJkUS2ceCynRUhwQrAYUCwaw",
+        "verdict": "EprCtab4k2rKuDHEDvbtgsbSUehKdet5exmTfdpeENJn",
+        "receipt": "3yUv2e7P2zvNAWfu125qSsakDnoZRZw7DejpYtnpimKX",
+        "escrow": "9PfogWWcmVDFfswgS2MQfmm3N2jXnXoyB25XcR89VyJa",
+        "settle": "8FP5pbnQuz2A17CUmXJgr14AyTshkkLExKEwrfAKkwkg",
+        "sweep": "FCKozAeVj5HW4N5YBi77spCqDPfQYd2Yfj89GMsGKrRD"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "4f76b0c45ffe3d7e5296f454caa1df90376a8423694db3c71793425e9be91c43",
+      "nullifier": "b3de392fbd988e220d7081ddd47faba473cc8b17f366b84d0e3ea3fcc1d9e5a2",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "b0d39c07a41b44438ee695825628a6ba",
+      "seconds": 132,
+      "retried": true,
+      "txs": {
+        "account": "2UHrEDPcn3KyBVee9Gsu9qhFvn2mFUPR5p691a5WP2k3",
+        "escrow_entry": "wE3Fp1gAFZixXvSDJFpvLrXeaiA7JtkG9yN7yzQCrca",
+        "dusdc_storage": "3xiy8yzPKR1doyjMSshfuM2CQ1ouZ7KcaS6LfbkjqiUn",
+        "mint": "qi3rdWRBgze7HLwjwrJ7jVQ5UUyVgsCLWjANDQg7SXR",
+        "world": "AdALAB6BvdU6mSSLwYdBjvSZXmp6Tx5vYWNVHBE1bHry",
+        "verdict": "HB3syMVVZTsuXpXnixWamjJgzHhgjPZkruHZNHLqG9mn",
+        "receipt": "8VhGnYtcSTDqgsdJewkErHzBge2wgW6qRTHJyEco37bR",
+        "escrow": "7gAcLHfzPkkRRc8ogEoDxSwUrtFr2YMG7oRBiLCSJF22",
+        "settle": "H6WZz1XGpKYbAxGD4eewNxt8twen1hpXecM6ExKBNhZt",
+        "sweep": "EQPaf4EE6dvo4h8YSuLN3iP2RpaGa7cdsiTw66C9caiN"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "f76e1e83056d79578ae694f99b2ab75928b85e285b62d4ac59d0a8718983687e",
+      "nullifier": "5842cc6ecb8bcd7e6768218f790f2743eddf176234c959bb41ae00bd6de435e2",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "c8fdcf69c92041f68200045379bc2f50",
+      "seconds": 129,
+      "retried": false,
+      "txs": {
+        "account": "3AC2GmYYbvpVpSsq5VCqsdx8cPT6McaSntbNDLqrWtP6",
+        "escrow_entry": "AdLBFtztF2YihJwJvMd8kVNQotdUHGCRsZTcUYyHRE3w",
+        "dusdc_storage": "aZ3xwPZeuozDtwTorx5GQzZhjjvNuLepiMd8b1pbRNp",
+        "mint": "A1zvKMhxFn4kb5zGSN9ydDetWJmgubEhgyvxYjAhJGts",
+        "world": "6vZbsepNWJDMcBPpmAdAh9YVDNEpAfzyF6k1jF9MvJbk",
+        "verdict": "6wY3AEChsX34WKZ4Ep5TfTMjAX9nmthc8EkzZRr1MMMv",
+        "receipt": "C2ZkEd9Tans1rUzKY7LHDuHfWrT2hDcCNR1jGyLSrWVB",
+        "escrow": "2rtuMmwTMSuvT61RmcyyjKhBQj3aiythTfybx6Y9kPUB",
+        "settle": "8Ei1ydd12iy879ha9ACVxP8HYRodvnKm84Jr9Kb9M3US",
+        "sweep": "FYhcCRPdnwxV8SwcT4SjSDcePuUHnj8uwPZbKaesvzpk"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "49e3d821ec27e8d77bc13c9a64122a461b0c1da5571474a307aa80b4fb29a2c7",
+      "nullifier": "51141279b767512df36e2d14fa7e8c2f6e34d51c8a59ddd33e89c7720a032dd0",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "0538371e7df94aa4b8764624d918cde7",
+      "seconds": 126,
+      "retried": false,
+      "txs": {
+        "account": "6cQ5RQpwBSHWZNCpnzyB1QCer1gSCThu3BBg4gF3ucog",
+        "escrow_entry": "FEeY6qXxqasjrh6vqipHQ82ZCg8ruetqjyPjAoBdkDCG",
+        "dusdc_storage": "5egR6WGp8skYEds7ZuvS3tNHcWZta8RYVADEaMXMMot4",
+        "mint": "FW227tHMhAhEG4L6VmUuDz7ghYguaWMzhE3gBhGrobaT",
+        "world": "4XJvYiv5wXK41BKhfjumE5DKGVSMdtV7PtpLZaJHtEU7",
+        "verdict": "EAzjgCsVNuYAnhEA6HkJWZx2uzTBQcn4vLRrjTzwGJqC",
+        "receipt": "3gyQXCoqYDYhQsRyZJBgRYWLHRBNhY4P6GrLsJ9yauhV",
+        "escrow": "AZ8qpLUEbTH3QTBnEPgrQ3bPEYyAQMMQotnKsAd8eK1J",
+        "settle": "2xR5NfcFVuhJ6jHX73tbqhLPhHSoo42yidVfP1YJ7As6",
+        "sweep": "DwmS16UcQooLM999ZFpqsDTPuC8tesfhW5ApgtxEP1a9"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "2c79ffc7be26d02fc21bacf49276f78aad4f974789d9c2eaacd775122ea5ea44",
+      "nullifier": "6ac9f7a010ad0e975a273236900773a1dd935e04066b69a9eecdd930096a8916",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "459000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "0319d36ff3b74014829667b2f11d917f",
+      "seconds": 127,
+      "retried": false,
+      "txs": {
+        "account": "4ok59HeLtLCSLthasrxBKhJ1k2oohoxEua4gU7iJddmz",
+        "escrow_entry": "9K4aTNDhkJ9sWvvWbgWE5f3MDikHsywNScw4rhVPRv5E",
+        "dusdc_storage": "E34vTtpbzT4XGTJHrUdkobiMMy9nFMMcRKMrLSaUxB2c",
+        "mint": "FQ7BLnJg8EBZRc24RPsz3vYCWNkL3puv9sm8MveMtCPG",
+        "world": "FDjDHM7uPu5oKxNyx5BCmBBxGrTqT4h1DDY4NjbmcvVV",
+        "verdict": "GLFpPTkTgEB9dP6FvaGYS8tWutXmuxbxS5evdzXgVfRu",
+        "receipt": "54cJU3ZTDSNYsP7e5M6ZCazw6Vd7JBHJ9mmDDFpGmtm7",
+        "escrow": "CZYy71d835SNAPusKFMY1eThyXjzsWEpv5cYY828Njet",
+        "settle": "HeuXawyHJ1Dz3zdhBtQ4isWDAJbrXKF4rdEtXSZ4wcAH",
+        "sweep": "142tKb9C7mY1QuFVWE816SgJ8TE7M7jVindUqy9ESnK3"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "688c582704a702514d1dbcd7f4ae12dc13aa2bce5d31fb1f8afe079c35e71d7e",
+      "nullifier": "b418fb717102d33dc115be63a1858ee21436b38bbb82abdf658b7ed3c599ab39",
+      "merchant": "m02.bookerbob.testnet",
+      "price": "37800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "221d0270d00f4e79b2ad3d1e428db7a1",
+      "seconds": 129,
+      "retried": true,
+      "txs": {
+        "account": "Fy8mKeP7tSRtuAP1atsH5TxBjmBn3h5ZSPEzxPasfriC",
+        "escrow_entry": "8o8EjYNwceYk8LwbXi3nhxvEQzE5UGQGF53N3MX6ECc2",
+        "dusdc_storage": "2wnVZTYrwA9TiVQaXMmeXKewSTu728XYaTnknYRs51dG",
+        "mint": "9bZ7n1cistFFCrhA92oMGuUBtRN86gJAqDzrVKKf7faW",
+        "world": "FgCynNRj7oEyeZMEaFwk7EUqc7sNbiRK7ZFE7rZEQazP",
+        "verdict": "5Rzv5nAC5MMmYZzCFtUfYj3QBBYGX514S5SCFC4Yxwcx",
+        "receipt": "7T4cUCUTYSeEdDFAJ7P6XYEqDL256BEE9u2WQ9pk2Zzp",
+        "escrow": "A7kKPQs3UacsHAE8h1YywHFjCMVfeQ73RpZVBYpFUgiC",
+        "settle": "8ePZpRzGNqnFD5iWHzv8JU47C8MGDk8UTpdWJKPKsUAf",
+        "sweep": "3kyexiUHKLd4k1gpw72rtEfdUfCwAXd1bDCg9VsjNWus"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "d1b1127fbdcb0af784881eb283e28c9197cc48716d599c98dbd99205093d66f1",
+      "nullifier": "a9463791eb5713cdcd6f9d123a61c8531cd1b68475f4833b00871c63aa8ca104",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "408000000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "a6ab79f312e54fe7aaff8038109e12fd",
+      "seconds": 128,
+      "retried": false,
+      "txs": {
+        "account": "HPs7aSmbG5s5HeBttTki3Ysi67wntMN69z9G3kBT8c5h",
+        "escrow_entry": "D8tuYLUWx91gu1cp57YJ18f935jxk9B5TaK7vwbJJxpx",
+        "dusdc_storage": "7zo8QxYoC7EvecvfYDobweMi1XXV8kEugcWYPdcAVsgf",
+        "mint": "8mXXQieSPiB6PgsPHsRYukZu8Y3AWqrcj1dQCQ3wAbKV",
+        "world": "9cpcnieMKxTpdVoc9Qmi8g1cQXzsrmv8Enwt1N6CZ1MA",
+        "verdict": "GKxHCUChrs9U5agGwNHLu3MnFZjToLt66hEd8H96Ysn6",
+        "receipt": "9fn4EBmC79rUWGktwxFEEAwBKpiVUhz3vESEc2P3D4VG",
+        "escrow": "9wnRQce1TSJivpSyV9SQsUkzEM4jUHY6zjhLmwavoJz1",
+        "settle": "EdXQGMmz3NDUTRRm3DkowWegPn8DmVhUWo3fr9vYw1cG",
+        "sweep": "mVYnzbaJ24m339yHXWH7eFDogFMXUfQU2asXkuGm683"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "builder",
+      "predicates": [
+        "claude_spender",
+        "github_builder",
+        "world_id_human"
+      ],
+      "buyer": "7f182e436bf4c2c99500ce52eed3febc59ac5c5b2efeef43f229e17a51e8d954",
+      "nullifier": "5842c569b808e62da9f2699ad2d3a05e19ea4bd433f399b1d605c0dc2ddecd14",
+      "merchant": "m01.bookerbob.testnet",
+      "price": "36960000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "61f6bd20bf404762ac5153f36a23213a",
+      "seconds": 127,
+      "retried": false,
+      "txs": {
+        "account": "GE3JmnPHfYjxLTWTUCnL51i8433wasE64Gf1DqUnBywj",
+        "escrow_entry": "6PHLNuCxDwPGPHum3k7pdibctM7VQ55SPo4fFSFEsmgu",
+        "dusdc_storage": "6JRdWjabAfcggEkQREgKkj5v4RSM6weQqfCuyTAwXenA",
+        "mint": "EgjdQ2sfAMkX52ybsCXxyUYBSxyuke48Qro8f2kCnk4n",
+        "world": "EYH3D5mq5DQrkPMGBHveE9RT4DvgcwJ4PFBNUNvijs3Y",
+        "verdict": "32tqST1YLsZCgJW4wUwChkm3hhB78wzyz34oprQf35Mm",
+        "receipt": "33NC1Jh1PEmcVSWvfmR7npmns599HiRfSukGWdmNaXu6",
+        "escrow": "CjaRmkQnrDMSwmR5riEaw81fCTP3vy4mwPGgWTW6yFB9",
+        "settle": "FohYZmgZyy3dBRemjM2htwziYWpAXuWjfqe1vCRFtvYt",
+        "sweep": "GZTWC2bKnKuf4hHuQLjNkakJgttxbKF3Lre7XSz8bZVT"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hotel-lisbon",
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "1cbed7416608b48526e0e4ced2922b41c7ddca185fc2a131d1b521172bc09a09",
+      "nullifier": "c0e235f6d727a7d320e19b82cae3f08288955dcf2980121e016b85c4c007d50d",
+      "merchant": "h05.bookerbob.testnet",
+      "price": "433500000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "fdad641ea0d94e239b37c30be6fa92f1",
+      "seconds": 122,
+      "retried": false,
+      "txs": {
+        "account": "6U1uy556yuAfjqmZQfGGVabEHoBeGTeD2u36HMY8ARqw",
+        "escrow_entry": "2BWDBJHVDsouQmsLhV1E6TSTj7HBM3RMQqjv2pfjDon3",
+        "dusdc_storage": "CTT6JWFEKqvzHCcbBbr8CY3KmftoxHGf1tXkj3nm7pLv",
+        "mint": "FfB4dfNqNSogqjxfRCwrWJYckRqqevy95iHo3JhXDsx3",
+        "world": "621gWb2oUyNpdPVeUrgVH8eBVbtj7yw1RVekcvF3ZueQ",
+        "verdict": "GYaWURtH6UL6bmcqAHAQ2C3K1dFnTyCHopcnPCm1Eu1Z",
+        "receipt": "2MatG7hSZhASUthb9hubySjihH7eQZX3uVbtgK8W85zU",
+        "escrow": "8MxRPA3d5DY6MB1Zzh2PaSrQdDJmkQ4kcUgXLYWD5nAc",
+        "settle": "FSxBU2NTX2T5FSToFFoV3a8BFWW4yng4qioFZcjMYHb3",
+        "sweep": "3p2j3ZhSZ1cgrrEi6t9WS8HtiqZE6xZLyXW8W4SHjf2W"
+      }
+    },
+    {
+      "round": 6,
+      "round_id": "s1-r6-hoodie",
+      "category": "hoodie",
+      "bit_set": "regular",
+      "predicates": [
+        "steam_veteran",
+        "uber_regular",
+        "world_id_human"
+      ],
+      "buyer": "dac466e47d385a0fcae352d80a2f55066e739343c41d85de5ed73014faafd2c9",
+      "nullifier": "353c34c30b21248e9dd70c80fc70a273947753ed13003567f0d58fd488ba2f77",
+      "merchant": "m04.bookerbob.testnet",
+      "price": "37720000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "f57df66d41594aaca0c8fee70fb18a6b",
+      "seconds": 75,
+      "retried": true,
+      "txs": {
+        "account": "HzBwrSMwcrydK3BtTRsywf2fGtprjh5K5m5Qvz2peTD6",
+        "escrow_entry": "BaxhpuKExUG8rt9qtwHU58Wv7zc9SVRnv25jpEfm2VHJ",
+        "dusdc_storage": "DaRtJ2Qu4SQ5dTU9dF9BBjJyjuudicdhjMbr1YhpotNz",
+        "mint": "Bo7w2R1zRVQyErHxKRsr6K6y6jza7jKWukCNU6aVJ3Bs",
+        "world": "6NUge6nB2J14ctmM2iJf9pes7BFym2mn5oq6ZVypfw2x",
+        "verdict": "BP9cPYr5xVifWGGhVDgDtvEATzwgAtG7L1cwxr3686Fj",
+        "receipt": "9eHp1r77RouWDPNo9naYrojALsyzjFBRkHBPnnaEJZR3",
+        "escrow": "8NmHaqnbHTdAG2AnDrRM8Vs727TCdrMbN82XUQ1eRwpF",
+        "settle": "AYEuHFZ5Gq4ZjrYHTP4SifSPYs5Ayk2RbUaJcTyEVBtr",
+        "sweep": "FmNtqKMi9fVe1bWnUNE6HBwZuE1hZDfnyNqWwWtxnnV7"
+      }
+    }
+  ],
+  "failures": [
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 1,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "ca6141178135f531c2839f418bcb810206911a1c9704713ad1573e1283e2344a",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 1,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "c1830e634fafd82fa77e774f8f9daaf7f59579bf4e86f15f51ce08e168230e18",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "builder",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 1,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "804d463773eb918d7802b8247e65537d07fb1d660baa61c7bd435a29a89961c3",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "regular",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "frequent",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 1,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "a8132e0dd5d67dfc024f37a7ff387b882672c5a497ae3f0d1a5d2eedd7f3b15e",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 7,
+      "category": "hotel-lisbon",
+      "bit_set": "traveller",
+      "buyer": null,
+      "step": null,
+      "error": "round 1 has no opened bid in hotel-lisbon",
+      "retried": true
+    },
+    {
+      "round": 2,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "1cd409a70a0d4aba77c4dbd4318a1f1e9aa3a0c7b4ddc4c411f5d8bf9156d391",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 2,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "f7fba61f68d3453759c9c88c7ab3b003808fbd3c30ebaca3249af50e1789a478",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 2,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "94a2f9a7b141e953223cd2205e6161a3b967d11035067d011cada6804cf23307",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 2,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "7f01f8edbbe6695e8f419b814ec1387f330a12e37a74c17ce50cd086f5cf2771",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 3,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "4252eef1734919cf830ae2826e92b5f44974030df5061de6951d63e95fde138a",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 3,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "513927a26588e224f0ef5136a2ed9776d350f95bdf8497c89697c9be46142637",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 3,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "8f28b9042cedfd3c654d68d2c110dbb5adb7dbd8252bb9c3562628240bcb14fd",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 3,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "56500a3a3c71378d47bc450bbf4c80addb91540490990528f36d163d6133c905",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 4,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "d3d42f051e3052e28fcb9d1088ea73335ab887d1d616ed76c76426a9d9f70aca",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 4,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "f2ea45c8de95d44b6194d8c5bbe050b7ffaa90a135d2291272226966e7725ee3",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 4,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "334240e962edc06565e232e15d32de15cb5263f6cdf396021a630afe2f0879b0",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 4,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "ab2d478c18b86cb7a76f57d551f2411d2d2e5cb309c0204742b92c68cb1c1ea8",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 5,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "ed1b6d2a8499cdf8b4e8e61023c055b379e68194678a2563e46a987ca5163b88",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 5,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "cd39d391e33913486412bfa8c6d3056a3885ae0c6c0b41a5e09ee830e6e0282d",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 5,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "365de76eacce17661cb1f1b05f1d7adbe72bc8d2c3059de8dfb8993f7dc7dbd0",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 5,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "c4f734ee1ac156345f335ba723e9bbeec8054824fd911cf1d13323ba4957f335",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 6,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "0a6ff0ee5b5fbb68af73c7d949da714af54d68fa657fc6008eb5ed6a49aa358f",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 6,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "4f76b0c45ffe3d7e5296f454caa1df90376a8423694db3c71793425e9be91c43",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 6,
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "buyer": "688c582704a702514d1dbcd7f4ae12dc13aa2bce5d31fb1f8afe079c35e71d7e",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    },
+    {
+      "round": 6,
+      "category": "hoodie",
+      "bit_set": "regular",
+      "buyer": "dac466e47d385a0fcae352d80a2f55066e739343c41d85de5ed73014faafd2c9",
+      "step": "settle_demo (relayed)",
+      "error": "settle_demo (relayed): {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: receiver not registered\"}}}}",
+      "retried": true
+    }
+  ],
+  "totals": {
+    "merchant_agents": 30,
+    "buyer_agents": 96,
+    "rounds": 7,
+    "sealed_bids": 178,
+    "reveals": 178,
+    "model_verdicts": 96,
+    "purchases_settled": 96,
+    "dusdc_volume": "22589.76",
+    "refused_replays": 7,
+    "failures": 32,
+    "failures_first_pass": 32,
+    "retried_ok": 32,
+    "failures_final": 0,
+    "near_ai_calls": 96,
+    "near_ai_cost_usd": 0.013636,
+    "near_ai_cost_basis": "token usage in each answer at the model's listed price",
+    "treasury_near_spent": 4.5405,
+    "faucet_near": 0,
+    "wall_time_s": 6038
+  }
+}

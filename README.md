@@ -148,6 +148,10 @@ Built at NEAR HACKATHON (2026-11-01 to 2026-11-14). Prior work is disclosed in
 [PRIOR_WORK.md](PRIOR_WORK.md). Judging in 5 minutes: [docs/judge-guide.md](docs/judge-guide.md). Security
 self-audit: [docs/audit.md](docs/audit.md).
 
+## The swarm run
+
+On 2026-11-11 one run on NEAR testnet: 30 merchant agents committed 178 sealed bids over 7 rounds, 96 buyer agents each got a verdict from a NEAR AI model under E2EE, and all 96 bought from their round's winner and settled, 22,589.76 dUSDC in test tokens. 7 replays of a spent verdict were refused. Every agent in it is ours, the facts are synthetic and the token has no value; 32 buyers failed on the first pass and settled on a retry, and the record says why. `make swarm-verify` re-checks it over public RPC with no keys. [docs/swarm-run.md](docs/swarm-run.md)
+
 ## Who it is for, who pays, why it lasts
 
 - **User.** A person whose agent shops with a few proven facts and gets a better price while no merchant learns who they are; and a merchant who wants to give a proven customer a better price without cutting its public price. Neither exists here yet: the buyers are our test accounts and the 30 listed merchants are ours.
