@@ -180,7 +180,7 @@ test("assertPublic refuses a secret-looking field, an unknown field, a stray 32-
   refuse((r) => (r.failures[0].error = `seed ${hex("e")} leaked`), /looks like a key/);
   refuse((r) => (r.failures[0].error = "read /Users/x/.rep-secrets/near-ai.key"), /looks like a key/);
   refuse((r) => (r.note = "Bearer abc"), /looks like a key/);
-  refuse((r) => r.purchases[0].predicates.push("sk-abcdefghijklmnopqrstuv"), /looks like a key/);
+  refuse((r) => r.purchases[0].predicates.push(["sk", "abcdefghijklmnopqrstuv"].join("-")), /looks like a key/);
   assertPublic(good());
 });
 
