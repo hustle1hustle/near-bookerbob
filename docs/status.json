@@ -98,12 +98,12 @@
     ]
   },
   {
-    "feature": "blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline, priced from each revealed merchant's current schedule); 30 merchant agents bid through it. A merchant agent here is a price rule committed blind, not a model: no model output is read in a round",
+    "feature": "blind bid rounds on chain: `open_round`, `commit_bid` (sealed hash, approved merchants only, before the commit deadline), `reveal_bid` (must open the commitment, before the reveal deadline), `round_best_quote` (only after the reveal deadline, priced from the bid each merchant revealed, pinned for the round since 2026-11-11); 30 merchant agents bid through it. A merchant agent here is a price rule committed blind, not a model: no model output is read in a round",
     "short": "blind bid rounds on chain: commit a sealed hash, reveal after the deadline, best quote after that. A merchant agent here is a price rule, not a model",
     "tracks": "swarms",
     "where": "`contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs`",
     "status": "live",
-    "detail": "30 merchant agents, all REP-run, each a static schedule from `agents/merchants.json`, bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests. In the `open` category a bonded merchant can still change its schedule after the reveal (Known limits)",
+    "detail": "30 merchant agents, all REP-run, each a static schedule from `agents/merchants.json`, bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests. On 2026-11-11 the swarm run added 7 rounds: 178 sealed bids committed and opened, 96 buyer agents bought from their round's winner (`make swarm-verify`, `docs/swarm-run.md`). A revealed bid is pinned for its round since that day's redeploy; rounds revealed before it have no pin (Known limits)",
     "evidence": [
       "blind_round"
     ]

@@ -5,10 +5,16 @@ attached. **Get Y:** agents compete to fill it, a referee refuses false claims, 
 buyers unlock a group price, and you get a better deal and a receipt you can check, while no
 merchant learns who you are, until a delivery needs a name.
 
-**What it is today:** a working market on NEAR testnet. The facts behind every verdict are
-synthetic (two pipeline tests notarized a public GitHub profile), the buyers are our own test
-accounts, the money is a test token, and every trust
-key is ours. What is real: the contract, its rules, and every transaction linked below.
+**The swarm run** (NEAR testnet, 2026-11-11): 96 buyer agents each got a verdict from a NEAR AI
+model under E2EE, 30 merchant agents committed 178 sealed bids over 7 rounds, and all 96 buyers
+bought from their round's winner and settled against a referee receipt. `make swarm-verify`
+re-checks it over public RPC with no keys ([docs/swarm-run.md](docs/swarm-run.md)).
+
+**What is ours and what is synthetic:** every agent in that run is ours, the facts behind every
+verdict are synthetic (two pipeline tests notarized a public GitHub profile), the money is a
+test token with no value, and every trust key is ours. What is real: the contract, its rules,
+the model's signed verdicts and every transaction linked below. It is a working market on NEAR
+testnet; nothing is on mainnet.
 
 **Tracks:** swarms first, privacy second. Also entered: open, agents, security, social.
 
@@ -129,7 +135,13 @@ self-audit: [docs/audit.md](docs/audit.md).
 
 ## The swarm run
 
-On 2026-11-11 one run on NEAR testnet: 30 merchant agents committed 178 sealed bids over 7 rounds, 96 buyer agents each got a verdict from a NEAR AI model under E2EE, and all 96 bought from their round's winner and settled, 22,589.76 dUSDC in test tokens. 7 replays of a spent verdict were refused. Every agent in it is ours, the facts are synthetic and the token has no value; 32 buyers failed on the first pass and settled on a retry, and the record says why. `make swarm-verify` re-checks it over public RPC with no keys. [docs/swarm-run.md](docs/swarm-run.md)
+The run on the first screen, with the rest of its record: 22,589.76 dUSDC in test tokens moved,
+and 7 replays of a spent verdict were refused. 32 buyers failed on the first pass and settled
+on a retry, and the record says why (24 at settle, because 28 of the 30 merchant accounts had
+never been registered for the test token, and 8 because one round failed to open through a
+rate-limited RPC). No outside party took part.
+`make swarm-verify` re-checks all of it over public RPC with no keys.
+[docs/swarm-run.md](docs/swarm-run.md)
 
 ## Who it is for, who pays, why it lasts
 
