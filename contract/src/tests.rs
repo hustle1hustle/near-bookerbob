@@ -4351,6 +4351,278 @@ mod leash {
     }
 }
 
+/// A revealed bid is pinned for its round: what the round pays is the bid, whatever the
+/// merchant registers afterwards.
+mod bid_pin {
+    use super::*;
+    use bookerbob_core::mandate::Mandate;
+
+    const A: &str = "a.testnet";
+    const B: &str = "b.testnet";
+    const AGENT: &str = "agent.testnet";
+    const N1: [u8; 32] = [1u8; 32];
+    /// schedule() for the fixture verdict: 189 less 20%.
+    const A_BID: u128 = 151_200_000;
+    /// mid() for the fixture verdict: 189 less 30%.
+    const B_BID: u128 = 132_300_000;
+    /// cheap() for the fixture verdict: 189 less 50%.
+    const CHEAP: u128 = 94_500_000;
+
+    fn mid() -> Schedule {
+        Schedule { base_price: 189_000_000, rules: vec![Rule { predicate: "airbnb_frequent".into(), bps: 3000 }], cap_bps: 3000, cohort: None }
+    }
+
+    fn flat() -> Schedule {
+        Schedule { base_price: 189_000_000, rules: vec![], cap_bps: 0, cohort: None }
+    }
+
+    fn join(c: &mut Bazaar, m: &str) {
+        set(m);
+        c.register_merchant(flat(), OPEN_CATEGORY.into(), None);
+        set(USDC);
+        let _ = c.ft_on_transfer(acc(m), U128(OPEN_BOND), "bond".into());
+    }
+
+    fn winner(c: &Bazaar, round: &str) -> (AccountId, u128) {
+        at(AGENT, REVEAL_UNTIL);
+        let w = c.round_best_quote(round.into(), hex::encode(N1)).unwrap();
+        (w.merchant, w.quote.price)
+    }
+
+    /// Open round o1: A bids schedule() (151.2), B bids mid() (132.3); both reveal. B wins.
+    fn open_round_revealed() -> Bazaar {
+        let mut c = setup();
+        join(&mut c, A);
+        join(&mut c, B);
+        set(AGENT);
+        c.submit_verdict(sign_ed(envelope(1, AGENT)));
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        at(A, NOW_MS);
+        c.commit_bid("o1".into(), sealed(A, &schedule(), 1));
+        at(B, NOW_MS);
+        c.commit_bid("o1".into(), sealed(B, &mid(), 2));
+        at(A, COMMIT_UNTIL);
+        c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]));
+        at(B, COMMIT_UNTIL + 1);
+        c.reveal_bid("o1".into(), mid(), hex::encode([2u8; 32]));
+        c
+    }
+
+    fn reregister(c: &mut Bazaar, m: &str, s: Schedule, category: &str) {
+        at(m, COMMIT_UNTIL + 2);
+        c.register_merchant(s, category.into(), None);
+    }
+
+    #[test]
+    fn open_reregistering_cheaper_after_the_reveal_does_not_win_the_round() {
+        let mut c = open_round_revealed();
+        // A read B's revealed bid and undercuts it on its public schedule.
+        reregister(&mut c, A, cheap(), OPEN_CATEGORY);
+        let a = c.merchant(acc(A)).unwrap();
+        assert!(a.approved && a.schedule.cap_bps == 5000, "the bond keeps the approval and the public schedule did move");
+        assert_eq!(winner(&c, "o1"), (acc(B), B_BID), "the round is priced from the revealed bids");
+        assert_eq!(c.round_bid("o1".into(), acc(A)).unwrap().cap_bps, schedule().cap_bps);
+        // Outside the round, the new public schedule quotes as before.
+        assert_eq!(c.quote(acc(A), hex::encode(N1)).price, CHEAP);
+    }
+
+    #[test]
+    fn open_reregistering_dearer_after_the_reveal_does_not_raise_the_price() {
+        let mut c = open_round_revealed();
+        reregister(&mut c, B, flat(), OPEN_CATEGORY);
+        assert_eq!(winner(&c, "o1"), (acc(B), B_BID), "the winner cannot walk its own bid up to the runner-up");
+    }
+
+    #[test]
+    fn a_round_revealed_without_a_pin_still_prices_the_current_schedule() {
+        let mut c = open_round_revealed();
+        // As a round revealed before pins existed: the same round record, no pin keys.
+        env::storage_remove(&bid_pin_key("o1", &acc(A)));
+        env::storage_remove(&bid_pin_key("o1", &acc(B)));
+        assert!(c.round_bid("o1".into(), acc(A)).is_none());
+        assert_eq!(winner(&c, "o1"), (acc(B), B_BID));
+        reregister(&mut c, A, cheap(), OPEN_CATEGORY);
+        assert_eq!(winner(&c, "o1"), (acc(A), CHEAP), "an unpinned round reads the live schedule, as before");
+    }
+
+    #[test]
+    fn a_pin_belongs_to_one_round_and_one_merchant() {
+        let c = open_round_revealed();
+        assert_eq!(c.round_bid("o1".into(), acc(B)).unwrap().cap_bps, 3000);
+        assert!(c.round_bid("o1".into(), acc("m01.bazaar.testnet")).is_none(), "no reveal, no pin");
+        assert!(c.round_bid("o2".into(), acc(A)).is_none());
+        assert!(c.round_bid("o1|a".into(), acc("testnet")).is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "already revealed")]
+    fn a_second_reveal_cannot_replace_the_pin() {
+        let mut c = open_round_revealed();
+        at(A, COMMIT_UNTIL + 3);
+        c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]));
+    }
+
+    #[test]
+    fn owner_approved_category_a_reregister_still_drops_the_merchant_from_the_round() {
+        let mut c = round_setup();
+        at("m01.bazaar.testnet", NOW_MS);
+        c.commit_bid("r1".into(), sealed("m01.bazaar.testnet", &schedule(), 1));
+        at("m02.bazaar.testnet", NOW_MS);
+        c.commit_bid("r1".into(), sealed("m02.bazaar.testnet", &cheap(), 2));
+        at("m01.bazaar.testnet", COMMIT_UNTIL);
+        c.reveal_bid("r1".into(), schedule(), hex::encode([1u8; 32]));
+        at("m02.bazaar.testnet", COMMIT_UNTIL + 1);
+        c.reveal_bid("r1".into(), cheap(), hex::encode([2u8; 32]));
+        assert_eq!(winner(&c, "r1"), (acc("m02.bazaar.testnet"), CHEAP));
+        // A changed schedule waits for the owner again: out of the round, as before.
+        reregister(&mut c, "m02.bazaar.testnet", flat(), "hoodie");
+        assert!(!c.merchant(acc("m02.bazaar.testnet")).unwrap().approved);
+        assert_eq!(winner(&c, "r1"), (acc("m01.bazaar.testnet"), A_BID));
+        // Approved again, it is back at the bid it revealed, not at the schedule it holds now.
+        approve(&mut c, "m02.bazaar.testnet");
+        assert_eq!(winner(&c, "r1"), (acc("m02.bazaar.testnet"), CHEAP));
+    }
+
+    fn receipt_for(e: &Envelope, merchant: &str, s: Schedule) -> WorkerResult {
+        let input = WorkerInput {
+            salt: None,
+            v: 0,
+            verdict_digest: hex::encode(e.digest()),
+            nullifier: e.nullifier.clone(),
+            merchant: merchant.into(),
+            schedule: s,
+            revealed: e.predicates.clone(),
+            claims: honest_claims(),
+            proofs: proofs(),
+            cohort_k: 0,
+            sealed_verdict: None,
+        };
+        serde_json::from_str(&run_referee(&input, &referee_key()).unwrap()).unwrap()
+    }
+
+    /// Open round o1 with A alone, the agent leashed to the round; A reveals schedule() and
+    /// then re-registers `after`. The verdict is on chain, no receipt yet.
+    fn leashed_round(after: Schedule) -> Bazaar {
+        let mut c = setup();
+        join(&mut c, A);
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        let owner = SigningKey::from_bytes(&[9u8; 32]);
+        let m = Mandate {
+            bazaar: "bazaar.testnet".into(),
+            agent: AGENT.into(),
+            owner_key: hex::encode(owner.verifying_key().to_bytes()),
+            max_per_purchase: A_BID,
+            max_total: A_BID,
+            expires_at_ms: REVEAL_UNTIL + 1000,
+            round: Some("o1".into()),
+            nonce: 1,
+        };
+        set(AGENT);
+        c.set_mandate(m.clone(), hex::encode(owner.sign(&m.signing_message()).to_bytes()));
+        at(A, NOW_MS);
+        c.commit_bid("o1".into(), sealed(A, &schedule(), 1));
+        at(A, COMMIT_UNTIL);
+        c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]));
+        reregister(&mut c, A, after, OPEN_CATEGORY);
+        set(AGENT);
+        c.submit_verdict(sign_ed(envelope(1, AGENT)));
+        c
+    }
+
+    #[test]
+    fn a_round_settle_pays_the_pinned_bid_after_a_cheaper_reregister() {
+        let mut c = leashed_round(cheap());
+        assert!(c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, schedule())));
+        at(AGENT, REVEAL_UNTIL);
+        let _ = c.settle(hex::encode(N1), acc(A), "o".into(), U128(A_BID));
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(A_BID));
+        assert!(get_logs().iter().any(|l| l.contains("\"event\":\"settled\"") && l.contains("\"amount\":\"151200000\"")));
+    }
+
+    #[test]
+    fn a_round_settle_pays_the_pinned_bid_after_a_dearer_reregister() {
+        let mut c = leashed_round(flat());
+        assert!(c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, schedule())));
+        at(AGENT, REVEAL_UNTIL);
+        let _ = c.settle(hex::encode(N1), acc(A), "o".into(), U128(A_BID));
+        assert_eq!(c.mandate_spent(acc(AGENT)), U128(A_BID));
+    }
+
+    #[test]
+    #[should_panic(expected = "referee price differs from quote")]
+    fn a_round_receipt_priced_from_the_later_schedule_is_refused() {
+        let mut c = leashed_round(flat());
+        let _ = c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, flat()));
+    }
+
+    #[test]
+    #[should_panic(expected = "not the winner of the mandate's round")]
+    fn a_receipt_from_before_the_mandate_at_another_price_cannot_settle_in_the_round() {
+        // No mandate yet when the receipt is written: it is priced from the live schedule.
+        let mut c = setup();
+        join(&mut c, A);
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        at(A, NOW_MS);
+        c.commit_bid("o1".into(), sealed(A, &schedule(), 1));
+        at(A, COMMIT_UNTIL);
+        c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]));
+        reregister(&mut c, A, cheap(), OPEN_CATEGORY);
+        set(AGENT);
+        c.submit_verdict(sign_ed(envelope(1, AGENT)));
+        assert!(c.submit_referee_result(receipt_for(&envelope(1, AGENT), A, cheap())));
+        let owner = SigningKey::from_bytes(&[9u8; 32]);
+        let m = Mandate {
+            bazaar: "bazaar.testnet".into(),
+            agent: AGENT.into(),
+            owner_key: hex::encode(owner.verifying_key().to_bytes()),
+            max_per_purchase: A_BID,
+            max_total: A_BID,
+            expires_at_ms: REVEAL_UNTIL + 1000,
+            round: Some("o1".into()),
+            nonce: 1,
+        };
+        set(AGENT);
+        c.set_mandate(m.clone(), hex::encode(owner.sign(&m.signing_message()).to_bytes()));
+        at(AGENT, REVEAL_UNTIL);
+        let _ = c.settle(hex::encode(N1), acc(A), "o".into(), U128(CHEAP));
+    }
+
+    #[test]
+    fn the_reveal_charges_the_merchant_for_the_pin() {
+        let mut c = setup();
+        join(&mut c, A);
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        at(A, NOW_MS);
+        c.commit_bid("o1".into(), sealed(A, &schedule(), 1));
+        c.flush_all();
+        at(A, COMMIT_UNTIL);
+        let before = env::storage_usage();
+        c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]));
+        let pin = bid_pin_key("o1", &acc(A)).len() + near_sdk::borsh::to_vec(&schedule()).unwrap().len();
+        assert!(env::storage_usage() - before >= pin as u64, "the pin's bytes are inside the delta reveal_bid charges");
+    }
+
+    #[test]
+    fn the_price_anchor_still_refuses_a_reveal_above_it() {
+        let mut c = setup();
+        join(&mut c, A);
+        set_no_deposit("owner.testnet");
+        c.open_round("o1".into(), OPEN_CATEGORY.into(), COMMIT_UNTIL, REVEAL_UNTIL);
+        at(A, NOW_MS);
+        c.commit_bid("o1".into(), sealed(A, &schedule(), 1));
+        set_no_deposit("owner.testnet");
+        c.set_price_anchor(acc(A), U128(100_000_000), "fixture".into());
+        at(A, COMMIT_UNTIL);
+        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.reveal_bid("o1".into(), schedule(), hex::encode([1u8; 32]))));
+        assert!(r.is_err());
+        assert!(c.round_bid("o1".into(), acc(A)).is_none(), "a refused reveal pins nothing");
+    }
+}
+
 // ---------- stored layout, pinned against main at b6dc27c ----------
 
 /// Both live bazaars keep their state across redeploys only while the root struct and every

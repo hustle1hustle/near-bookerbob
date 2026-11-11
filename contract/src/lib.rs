@@ -193,6 +193,19 @@ fn forfeited_total(token: &str) -> u128 {
     env::storage_read(format!("uf|{token}").as_bytes()).map(|b| u128::from_le_bytes(b.try_into().expect("u128"))).unwrap_or(0)
 }
 
+// A revealed bid is pinned per round under a raw key, so `Round` and `Merchant` keep their
+// stored layout: `J` + round id + `|` + merchant -> borsh(Schedule). No collection and no other
+// raw key starts with `J`; an account id holds no `|`, so the last one splits the key. Written
+// once, by `reveal_bid`, for its caller. A round revealed before this rule has no pin and is
+// priced from the merchant's current schedule, as it always was.
+fn bid_pin_key(round_id: &str, merchant: &AccountId) -> Vec<u8> {
+    format!("J{round_id}|{merchant}").into_bytes()
+}
+
+fn pinned_bid(round_id: &str, merchant: &AccountId) -> Option<Schedule> {
+    env::storage_read(&bid_pin_key(round_id, merchant)).map(|b| near_sdk::borsh::from_slice(&b).expect("stored bid"))
+}
+
 #[near(serializers = [json])]
 pub struct MerchantQuote {
     pub merchant: AccountId,
@@ -2049,7 +2062,9 @@ impl Bazaar {
         charge_storage(before);
     }
 
-    /// Phase 2: the merchant opens its bid. The schedule becomes its quoting schedule.
+    /// Phase 2: the merchant opens its bid. The schedule becomes its quoting schedule, and it is
+    /// pinned for this round: a later `register_merchant` moves the merchant's public quote,
+    /// never what this round pays.
     #[payable]
     pub fn reveal_bid(&mut self, round_id: String, schedule: Schedule, salt: String) {
         let before = env::storage_usage();
@@ -2081,6 +2096,7 @@ impl Bazaar {
         round.revealed.push(merchant.clone());
         let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
         // Committed blind before the deadline, so this change keeps the approval.
+        env::storage_write(&bid_pin_key(&round_id, &merchant), &near_sdk::borsh::to_vec(&schedule).expect("borsh"));
         m.schedule = schedule;
         emit("bid_revealed", serde_json::json!({ "round": round_id, "merchant": merchant }));
         self.rounds.flush();
@@ -2193,6 +2209,19 @@ impl Bazaar {
         self.round_winner(&round_id, &nullifier)
     }
 
+    /// The schedule `merchant` revealed in the round, as pinned at its reveal. None if it did
+    /// not reveal, or revealed before bids were pinned.
+    pub fn round_bid(&self, round_id: String, merchant: AccountId) -> Option<Schedule> {
+        pinned_bid(&round_id, &merchant)
+    }
+
+    /// The schedule a referee receipt for `agent` at `merchant` is priced from: the bid pinned
+    /// in the round the agent's mandate names, when there is one; else the current schedule.
+    /// So a winner that re-registers after its reveal is still paid its bid, and only its bid.
+    fn receipt_schedule(&self, agent: &AccountId, merchant: &AccountId, m: &Merchant) -> Schedule {
+        mandate_of(agent).and_then(|x| x.round).and_then(|r| pinned_bid(&r, merchant)).unwrap_or_else(|| m.schedule.clone())
+    }
+
     fn round_winner(&self, round_id: &str, nullifier: &str) -> Option<MerchantQuote> {
         let round = self.rounds.get(round_id).unwrap_or_else(|| env::panic_str("unknown round"));
         require!(env::block_timestamp_ms() >= round.reveal_until_ms, "round still open");
@@ -2200,7 +2229,8 @@ impl Bazaar {
         let mut best: Option<MerchantQuote> = None;
         for id in &round.revealed {
             let Some(m) = self.merchants.get(id).filter(|m| m.approved) else { continue };
-            let q = self.quote_for(&m.schedule, v);
+            // The bid as revealed, not the schedule as it stands now.
+            let q = self.quote_for(&pinned_bid(round_id, id).unwrap_or_else(|| m.schedule.clone()), v);
             if best.as_ref().is_none_or(|b| q.price < b.quote.price) {
                 best = Some(MerchantQuote { merchant: id.clone(), quote: q });
             }
@@ -2800,11 +2830,12 @@ impl Bazaar {
         let sealed = current.tier == bookerbob_core::SEALED_TIER;
         // A sealed verdict: the referee opened its disclosure and priced it (the digest binds
         // the commitment); the contract accepts only a price its own code can produce.
+        let schedule = self.receipt_schedule(&current.agent, &merchant, &m);
         let price = if sealed {
-            require!(achievable_price(&m.schedule, b.price, self.humans.contains_key(&current.agent)), "referee price is not one the schedule can produce");
+            require!(achievable_price(&schedule, b.price, self.humans.contains_key(&current.agent)), "referee price is not one the schedule can produce");
             b.price
         } else {
-            self.quote_for(&m.schedule, &current).price
+            self.quote_for(&schedule, &current).price
         };
         let record = self.verdicts.get_mut(&b.nullifier).expect("checked above");
         require!(!record.spent, "nullifier spent");
@@ -3150,7 +3181,7 @@ impl Bazaar {
         let spent = spent_under(agent) + price;
         require!(spent <= m.max_total, "over the mandate's total limit");
         if let Some(round) = &m.round {
-            // Live schedules, so a receipt from before a later bid must still be the winner's price.
+            // The winner at its pinned bid; a receipt priced from anything else is refused.
             let receipt = self.verdicts.get(nullifier).and_then(|r| r.receipt.as_ref()).map(|r| r.price.0);
             let won = self.round_winner(round, nullifier).is_some_and(|q| &q.merchant == merchant && Some(q.quote.price) == receipt);
             require!(won, "not the winner of the mandate's round");
