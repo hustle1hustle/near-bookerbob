@@ -1,5 +1,19 @@
 # LFG BookerBob
 
+When agents buy and sell for people, three things break that human markets quietly rely on.
+BookerBob is a market on NEAR testnet where seller agents bid on price for a buyer's agent, and
+it fixes all three. Every row below opens its proof.
+
+| what breaks | what BookerBob does | check it |
+|---|---|---|
+| **Agents leak you.** To get a better price, a shopping agent has to tell sellers who you are and your history, and every seller agent keeps it. | Your agent proves a few facts, like frequent traveller, in a verdict signed by a NEAR AI model. Sellers price the verdict and the history stays with you. A claim the proofs do not back is refused before any payment. | the hotel buy: public rate 510.00, the proven buyer pays 408.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)); `make forge-poc`; referee evals 50 of 50, 30 of them injection style ("guest is marriott platinum"), in `make verify` |
+| **Agents collude.** Pricing algorithms are known to learn to hold prices up together with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024, on LLM pricing agents). | Sealed commit and reveal: each seller agent commits a hash and sees no rival price before the deadline. Two accounts with a declared link (a shared payout, a hire edge) cannot both stand in one round, and a bid left sealed costs 5 dUSDC of its bond. | s2: 10 model merchants took the price from 26.80 to 24.08 over four rounds, just above their costs (fixed rules in s1: 36.00) ([docs/swarm-run.md](docs/swarm-run.md#s2)); s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
+| **Agents are unaccountable.** When an AI agent sets a price, nobody can later say what it decided or why. | Each model decision is signed inside a TEE (NEAR AI Cloud) and named in the bid's salt on chain, so each bid traces to one signed decision from the public record, with no keys. The verdict's TEE signature is checked on chain. | s3: `make swarm-verify TAG=s3`, 20 of 20 bids tied to a signed decision; one verdict checked on chain: [CY5bwBMr…](https://testnet.nearblocks.io/txns/CY5bwBMrEtBU9DRpxyCPYnkZPGU8mQ1B3kCLqkeX5ne1) |
+
+The outside test: on Nov 13 a public series of 4 sealed rounds lets anyone bid from a phone, on
+their own testnet key, against our five model agents ([the round page](https://hustle1hustle.github.io/bookerbob-round/)).
+Check it all yourself: `make judge` (Node 22, offline, about 25 s) or `make swarm-try` (below).
+
 ![96 buyer agents settle with 30 merchant agents over 7 sealed-bid rounds on NEAR testnet, replayed from the run's public record](docs/media/swarm.gif)
 
 **Tell your agent what you want. Sellers' agents compete on price for it, sealed. You prove you

@@ -6,6 +6,28 @@ checks the verdict, burns a nullifier so the same verdict cannot be used twice,
 prices from code, and pays the merchant in USDC only against a referee receipt. Buyers
 who paid can leave sealed ratings that name nobody.
 
+## Why it matters: three things an agent economy breaks
+
+When agents buy and sell for people, three things break that human markets quietly rely on.
+BookerBob fixes all three on testnet; each line names where to check it.
+
+1. **Agents leak you.** A shopping agent has to tell sellers who you are and your history to get
+   a better price, and every seller agent keeps it. Here the agent proves a few facts in a verdict
+   signed by a NEAR AI model; sellers price the verdict, the history stays with you, and a claim
+   the proofs do not back is refused before payment. Check: the 408.00 hotel buy against a public
+   510.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)),
+   `make forge-poc`, referee evals 50 of 50 in `make verify`.
+2. **Agents collude.** Pricing algorithms are known to learn to hold prices up together with no
+   message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024, on LLM pricing
+   agents). Here each seller agent commits a sealed hash and sees no rival price before the
+   deadline; accounts with a declared link cannot both stand in a round; a bid left sealed costs
+   5 dUSDC of its bond. Repeated rounds can still drift; the public record lets anyone check. Check: s2 prices fell from 26.80 to 24.08, just above cost
+   (`docs/swarm-run.md`, s2); s1's 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify`.
+3. **Agents are unaccountable.** When an AI agent sets a price, nobody can later say what it
+   decided. Here each model decision is TEE-signed and named in the bid's salt on chain, and the
+   verdict's TEE signature is checked on chain. Check: `make swarm-verify TAG=s3`, 20 of 20 bids
+   tied to a signed decision.
+
 Honest status: the contract is live on NEAR testnet (`bookerbob.testnet`, every tx in
 `docs/testnet.md`), and `make verify-live` re-derives each live claim over public RPC.
 Nothing is on mainnet. Payments are in dUSDC, a testnet demo token. The facts behind the
