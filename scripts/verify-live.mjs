@@ -357,29 +357,45 @@ await attempt("every listed merchant agent's registered schedule is its schedule
   return [!off.length, off.length ? `differ: ${off.join(", ")}` : `${ms.length} of ${ms.length}`];
 });
 
-// The community round, once one is opened (scripts/community.mjs open writes the file): read
-// from chain, never from our records. Who bid, who revealed, every revealed bid pinned, the
-// lowest revealed price, and which bidders are ours (agents/merchants.json) or not.
+// The community series (scripts/community.mjs open/add write the file): read from chain, never
+// from our records. Per round: who bid, who revealed, every revealed bid pinned, the lowest
+// revealed price and, once the reveal window closed, the winner's score (price minus cost, the
+// cost rule in scripts/community.mjs costOf); then the total per account across the series.
+// Ours (agents/community-agents.json) and the founder's bids are named and never counted as
+// community members.
 if (existsSync(new URL("../fixtures/live/community/round.json", import.meta.url))) {
   const cr = JSON.parse(readFileSync(new URL("../fixtures/live/community/round.json", import.meta.url)));
-  await attempt(`community round ${cr.round}: bids, reveals and the lowest price read from chain; bidders not ours named as community accounts on their own keys`, async () => {
-    const r = await view(cr.bazaar, "round", { round_id: cr.round });
-    if (!r) return [false, "the round is not on chain"];
-    const ours = new Set([...JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url))).map((x) => x.account), ...JSON.parse(readFileSync(new URL("../agents/community-agents.json", import.meta.url))).agents.map((x) => x.account)]);
-    const pins = await Promise.all(r.revealed.map((a) => view(cr.bazaar, "round_bid", { round_id: cr.round, merchant: a })));
-    const priced = r.revealed.map((a, i) => ({ a, p: pins[i] ? Number(pins[i].base_price) / 1e6 : null }));
-    // The founder bids from the page as founder-<name>.testnet: labelled, never counted as a community member.
-    const isFounder = (a) => /^founder-/.test(a) || (cr.founders ?? []).includes(a);
-    const founder = r.commits.map(([a]) => a).filter(isFounder);
-    const community = r.commits.map(([a]) => a).filter((a) => !ours.has(a) && !isFounder(a));
-    // Margins: price minus the bidder's cost (scripts/community.mjs costOf; ours from cr.costs).
-    const { costOf } = await import("./community.mjs");
-    // Score: the margin earned. The lowest revealed price wins the buyer and scores price minus
-    // cost; everyone else scores 0.
-    const margins = [];
-    const best = priced.filter((x) => x.p != null).sort((x, y) => x.p - y.p)[0];
-    return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts (${community.slice(0, 5).join(", ")}${community.length > 5 ? ", ..." : ""}), ${founder.length} founder's bid; lowest revealed ${best ? `${best.a} at ${best.p.toFixed(2)}` : "none"}${best ? `; score ${best.a.split(".")[0]} ${(best.p - costOf(cr.round, best.a, cr.costs ?? {})).toFixed(2)}, everyone else 0` : ""}`];
-  });
+  const series = cr.series?.length ? cr.series : [{ round: cr.round }];
+  const ours = new Set([...JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url))).map((x) => x.account), ...JSON.parse(readFileSync(new URL("../agents/community-agents.json", import.meta.url))).agents.map((x) => x.account)]);
+  const isFounder = (a) => /^founder-/.test(a) || (cr.founders ?? []).includes(a);
+  const { costOf } = await import("./community.mjs");
+  const totals = new Map();
+  const chainNow = Date.now();
+  for (const s of series) {
+    await attempt(`community round ${s.round}: bids, reveals, the lowest price and the winner's score read from chain; ours and the founder's named, every other account a community member on its own key`, async () => {
+      const r = await view(cr.bazaar, "round", { round_id: s.round });
+      if (!r) return [false, "the round is not on chain"];
+      const pins = await Promise.all(r.revealed.map((a) => view(cr.bazaar, "round_bid", { round_id: s.round, merchant: a })));
+      const priced = r.revealed.map((a, i) => ({ a, p: pins[i] ? Number(pins[i].base_price) / 1e6 : null }));
+      const founder = r.commits.map(([a]) => a).filter(isFounder);
+      const community = r.commits.map(([a]) => a).filter((a) => !ours.has(a) && !isFounder(a));
+      const best = priced.filter((x) => x.p != null).sort((x, y) => x.p - y.p)[0];
+      const closed = chainNow >= r.reveal_until_ms;
+      let scored = "";
+      if (closed && best) {
+        const sc = best.p - costOf(s.round, best.a, cr.costs ?? {});
+        totals.set(best.a, (totals.get(best.a) ?? 0) + sc);
+        scored = `; closed: buyer to ${best.a.split(".")[0]} at ${best.p.toFixed(2)}, score ${sc.toFixed(2)}, everyone else 0`;
+      }
+      return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts, ${r.commits.filter(([a]) => ours.has(a)).length} ours, ${founder.length} founder's bid${scored || (best ? `; lowest revealed so far ${best.a.split(".")[0]} at ${best.p.toFixed(2)}` : "")}`];
+    });
+  }
+  if (series.length > 1) {
+    await attempt("the community series total: each account's score summed over the closed rounds", async () => {
+      const list = [...totals.entries()].sort((x, y) => y[1] - x[1]);
+      return [true, list.length ? list.map(([a, t]) => `${a.split(".")[0]}${isFounder(a) ? " (founder)" : ours.has(a) ? " (ours)" : ""} ${t >= 0 ? "+" : ""}${t.toFixed(2)}`).join(", ") : "no round closed yet"];
+    });
+  }
 }
 
 if (existsSync(new URL("../fixtures/live/market/state.json", import.meta.url))) {
