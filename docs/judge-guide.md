@@ -27,6 +27,9 @@ The live re-derivation (`make verify-live`, or `JUDGE_LIVE=1 make judge`) reads 
 old transactions from a rate-limited public archive and takes 5 to 13 minutes: run it last, or
 read the last daily run of the `live` workflow.
 
+Then the swarm, yourself: `make swarm-try` (no keys; a mini swarm on the contract's own code,
+then 6 of the 96 testnet purchases read live; `NEAR_AI_KEY=<yours>` adds live model verdicts).
+
 ## Minute 1: open
 
 - `README.md`, "Every feature, its status and its evidence": every row says live, built, stub or planned.

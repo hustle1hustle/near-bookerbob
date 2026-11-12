@@ -22,6 +22,7 @@ mod near_ai;
 mod reviews;
 mod scenario;
 mod swarm;
+mod swarm_try;
 mod verify;
 mod voprf;
 mod zk_inputs;
@@ -306,6 +307,7 @@ fn main() -> ExitCode {
         Some("zk-results") if args.len() >= 3 => zk_results::run(Path::new(&args[1]), Path::new(&args[2])),
         Some("zk-inputs") if args.len() >= 2 => zk_inputs::run(Path::new(&args[1]), args.iter().any(|a| a == "--check")),
         Some("scenario") if args.len() >= 2 => scenario::run(Path::new(&args[1])),
+        Some("swarm-try") => swarm_try::run(),
         Some("reviews") if args.len() >= 2 => {
             reviews::run(Path::new(&args[1]), args.get(2).filter(|a| !a.starts_with("--")).map(Path::new), args.iter().any(|a| a == "--check"))
         }

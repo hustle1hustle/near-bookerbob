@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LFG BookerBob</title>
+<meta name="description" content="Agents bid sealed to fill your intent; you reveal a few proven bits, never who you are; every sale settles on NEAR testnet against a receipt.">
+<style>
+  :root { --bg: #0A0A0F; --panel: #10101A; --fg: #E6E6EF; --dim: #7C7C94; --line: #1C1C2A; --blue: #3B5BFF; --green: #5BE3A0; --red: #FF6B6B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  main { max-width: 820px; margin: 0 auto; padding: 20px 16px 64px; }
+  h1 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: .02em; }
+  h1 span { color: var(--dim); font-weight: 400; }
+  .one { font-size: 18px; line-height: 1.4; margin: 8px 0 12px; }
+  .one b { color: var(--blue); font-weight: 600; }
+  .mech { color: var(--dim); font-size: 12px; margin: -4px 0 12px; }
+  .mech a { color: var(--dim); }
+  .cap { color: var(--dim); font-size: 11px; margin: 0 0 4px; text-transform: lowercase; }
+  #stage { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  canvas { display: block; width: 100%; height: auto; }
+  .tick { font-size: 12px; color: var(--dim); padding: 6px 12px; border-top: 1px solid var(--line); min-height: 64px; }
+  .tick a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--dim); }
+  .tick a:hover { color: var(--blue); }
+  .tick div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .num { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+  .num b { display: block; font-size: 22px; font-weight: 600; color: var(--fg); }
+  .num span { color: var(--dim); font-size: 12px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 14px 0 6px; }
+  a.go { background: var(--blue); color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 15px; }
+  a.go:hover { filter: brightness(1.15); }
+  .cmd { color: var(--dim); font-size: 12px; }
+  .cmd code { color: var(--fg); background: var(--panel); border: 1px solid var(--line); padding: 3px 6px; border-radius: 4px; }
+  .live { color: var(--dim); font-size: 12px; margin: 12px 0 0; }
+  .live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+  .live a, .honest a, .more a { color: var(--dim); }
+  .honest { color: var(--dim); font-size: 12px; margin-top: 8px; }
+  .fold { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 20px; }
+  .more a.card { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; color: var(--fg); text-decoration: none; }
+  .more a.card:hover { border-color: var(--blue); }
+  .more a.card b { color: var(--blue); font-weight: 600; }
+  @media (max-width: 560px) { .one { font-size: 16px; } .num b { font-size: 20px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>LFG BookerBob <span>/ built at NEAR HACKATHON / NEAR testnet</span></h1>
+  <div class="one">Tell your agent what you want. Sellers' agents compete on price for it, <b>sealed</b>. You <b>prove</b> you qualify for a discount without saying who you are, and pay only against a <b>receipt</b> checked on NEAR.</div>
+  <div class="mech">sealed commit-reveal, pay-as-bid, one nullifier per verdict &middot; NEAR AI verdicts under E2EE, TEE signature checked on chain &middot; today every agent and key is ours, the facts are synthetic (REP's evaluator reads them), dUSDC is a test token: <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/swarm-run.md">what it is and what it is not</a></div>
+  <div class="cap">replay of swarm run s1 on NEAR testnet, 2026-11-11, from its public record</div>
+
+  <div id="stage">
+    <canvas id="c" width="1600" height="500" aria-label="replay of the 96-buyer testnet swarm"></canvas>
+    <div class="tick" id="tick"></div>
+  </div>
+
+  <div class="nums">
+    <div class="num"><b>96</b><span>buyer agents settled in run s1, each on a NEAR AI verdict</span></div>
+    <div class="num"><b>178</b><span>sealed bids from 30 merchant agents in run s1</span></div>
+    <div class="num"><b>7 / 7</b><span>replays of a spent verdict refused in run s1</span></div>
+  </div>
+
+  <div class="row">
+    <a class="go" href="swarm.html">watch one buyer agent shop (1 min)</a>
+    <span class="cmd">or run a mini swarm yourself on the contract code (mocked chain, no keys, Rust 1.93+ and Node 22; 15 s warm, about 2 min fresh): <code>git clone https://github.com/hustle1hustle/near-bookerbob && cd near-bookerbob && make swarm-try</code></span>
+  </div>
+  <div class="live" id="live">reading bookerbob.testnet ...</div>
+
+  <div class="fold more">
+    <a class="card" href="swarm.html"><b>watch one buyer agent shop</b><br>a replay of one hotel purchase in about a minute: sealed bids, a refused cheat, a group price, a testnet receipt</a>
+    <a class="card" href="board.html"><b>the board</b><br>merchant agents bid blind; code computes every price; which merchants are on chain now</a>
+    <a class="card" href="receipts.html"><b>receipts</b><br>every testnet purchase, its nullifier status read from the chain, and the sealed reviews</a>
+    <a class="card" href="round.html"><b>bid in a round</b><br>a testnet merchant from your browser: a faucet account, a sealed bid, a reveal</a>
+    <a class="card" href="eval.html"><b>REP Eval</b><br>certified scores of three NEAR AI models on a private test set</a>
+  </div>
+</main>
+<script src="live.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const C = { bg: "#10101A", fg: "#E6E6EF", dim: "#7C7C94", line: "#1C1C2A", blue: "#3B5BFF", green: "#5BE3A0", red: "#FF6B6B" };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const usd = (x) => (Number(x) / 1e6).toFixed(2);
+
+loadLive().then((l) => {
+  const el = $("live");
+  if (!l) { el.textContent = "public RPC unreachable"; return; }
+  const d = l.data;
+  const head = l.source === "live" ? `live now, ${d.bazaar} block ${l.block}` : `public RPC unreachable, snapshot of ${l.at.slice(0, 10)}`;
+  el.innerHTML = `${esc(head)}: ${d.spent_count} verdicts spent on this contract so far (swarm runs and demos) &middot; re-derived daily by <a href="https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml">make verify-live</a> (103 checks)`;
+  if (l.source === "live") el.classList.add("on");
+});
+
+(async () => {
+  const D = await fetch("swarm-s1.json").then((r) => r.json()).catch(() => null);
+  if (!D) return;
+  const cv = $("c"), g = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  // Layout: 30 merchant cells in two blocks (hoodie m01..m22, hotel h01..h08), buyers enter from the right.
+  const cells = {};
+  const cw = 92, ch = 62, gap = 10, x0 = 40, y0 = 186;
+  D.merchants.forEach((m, i) => {
+    const hotel = m.startsWith("h");
+    const k = hotel ? i - 22 : i;
+    const col = hotel ? 6 + (k % 2) : k % 6, row = hotel ? Math.floor(k / 2) : Math.floor(k / 6);
+    cells[m] = { x: x0 + col * (cw + gap) + (hotel ? 40 : 0), y: y0 + row * (ch + gap), state: "idle", glow: 0, wins: 0 };
+  });
+  const ROUND_MS = 2300, HOLD_MS = 3500;
+  const total = D.rounds.length * ROUND_MS + HOLD_MS;
+  const byRound = (n) => D.purchases.filter((p) => p.round === n);
+  let start = performance.now();
+  let shown = new Set();
+  const tick = $("tick");
+  const ticker = [];
+  const pushTick = (p) => {
+    ticker.unshift(`<div>${esc(p.round_id)} &middot; buyer agent settled with <b>${esc(p.merchant)}</b> at ${usd(p.price)} test dUSDC &middot; <a href="${D.explorer}${p.settle}" target="_blank" rel="noopener">settle ${p.settle.slice(0, 8)}..</a> &middot; <a href="${D.explorer}${p.verdict}" target="_blank" rel="noopener">verdict</a></div>`);
+    ticker.length = Math.min(ticker.length, 3);
+    tick.innerHTML = ticker.join("");
+  };
+  function frame(now) {
+    let t = now - start;
+    if (t > total) { start = now; t = 0; shown = new Set(); ticker.length = 0; for (const m in cells) cells[m].wins = 0; }
+    const r = Math.min(D.rounds.length - 1, Math.floor(t / ROUND_MS));
+    const inR = t < D.rounds.length * ROUND_MS ? (t % ROUND_MS) / ROUND_MS : 1;
+    const round = D.rounds[r];
+    // counters up to and including this round's progress
+    let settled = 0, bids = 0, replays = 0, vol = 0;
+    D.rounds.forEach((rr, i) => {
+      const done = i < r || (i === r && inR >= 1);
+      const ps = byRound(rr.n);
+      const k = i < r ? ps.length : i === r ? Math.floor(ps.length * Math.max(0, Math.min(1, (inR - 0.45) / 0.5))) : 0;
+      settled += k; vol += ps.slice(0, k).reduce((a, p) => a + Number(p.price), 0);
+      const nb = rr.categories.reduce((a, c) => a + c.commits.length, 0);
+      bids += i < r ? nb : i === r ? Math.round(nb * Math.min(1, inR / 0.2)) : 0;
+      replays += (i < r || (i === r && inR > 0.95)) ? 1 : 0;
+    });
+    // cell states for this round
+    const inRound = new Map();
+    for (const c of round.categories) for (const m of c.commits) inRound.set(m, c);
+    for (const m in cells) {
+      const cell = cells[m];
+      cell.state = !inRound.has(m) ? "idle" : inR < 0.2 ? "sealed" : inR < 0.4 ? (inR - 0.2) / 0.2 > (Object.keys(cells).indexOf(m) % 22) / 22 ? "open" : "sealed" : "open";
+      cell.glow = Math.max(0, cell.glow - 0.04);
+    }
+    // buyers flying in
+    const ps = byRound(round.n);
+    const flying = [];
+    ps.forEach((p, i) => {
+      const s = 0.45 + (i / ps.length) * 0.45, e = s + 0.08;
+      if (inR >= s && inR < e) flying.push({ p, f: (inR - s) / 0.08, i });
+      const key = `${round.n}|${i}`;
+      if (inR >= e && !shown.has(key)) { shown.add(key); cells[p.merchant].glow = 1; cells[p.merchant].wins++; pushTick(p); }
+    });
+
+    g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+    g.font = "600 30px ui-monospace, Menlo, monospace"; g.fillStyle = C.fg;
+    const phase = inR < 0.2 ? "merchant agents commit sealed bids" : inR < 0.4 ? "deadline passed: sealed bids revealed" : inR < 1 ? "buyer agents with NEAR AI verdicts settle with the winner" : "96 buyers settled, every replay refused";
+    g.fillText(`round ${round.n} of ${D.rounds.length}`, 40, 56);
+    g.font = "26px ui-monospace, Menlo, monospace"; g.fillStyle = C.dim;
+    g.fillText(phase, 40, 96);
+    // counters
+    g.textAlign = "right";
+    g.font = "600 30px ui-monospace, Menlo, monospace"; g.fillStyle = C.green; g.fillText(`${settled} / 96 settled`, W - 40, 56);
+    g.font = "22px ui-monospace, Menlo, monospace"; g.fillStyle = C.dim;
+    g.fillText(`${bids} sealed bids · ${replays} replays refused · ${(vol / 1e6).toFixed(0)} test dUSDC`, W - 40, 136);
+    g.textAlign = "left";
+    // labels
+    g.font = "20px ui-monospace, Menlo, monospace"; g.fillStyle = C.dim;
+    g.fillText("hoodie: 22 merchant agents", x0, y0 - 16);
+    g.fillText("hotel lisbon: 8", x0 + 6 * (cw + gap) + 40, y0 - 16);
+    // cells
+    for (const m in cells) {
+      const c = cells[m];
+      g.lineWidth = 2;
+      if (c.state === "idle") { g.strokeStyle = C.line; g.fillStyle = C.bg; }
+      else if (c.state === "sealed") { g.strokeStyle = C.blue; g.fillStyle = "rgba(59,91,255,0.18)"; }
+      else { g.strokeStyle = C.blue; g.fillStyle = "rgba(59,91,255,0.45)"; }
+      if (c.glow > 0) { g.fillStyle = `rgba(91,227,160,${0.25 + 0.6 * c.glow})`; g.strokeStyle = C.green; }
+      g.beginPath(); g.roundRect(c.x, c.y, cw, ch, 8); g.fill(); g.stroke();
+      g.fillStyle = c.state === "idle" ? C.dim : C.fg;
+      g.font = "20px ui-monospace, Menlo, monospace";
+      g.fillText(m, c.x + 10, c.y + 26);
+      g.font = "18px ui-monospace, Menlo, monospace"; g.fillStyle = C.dim;
+      g.fillText(c.state === "sealed" ? "sealed" : c.state === "open" ? "opened" : "", c.x + 10, c.y + 50);
+      if (c.wins) { g.font = "600 20px ui-monospace, Menlo, monospace"; g.fillStyle = c.glow > 0 ? C.bg : C.green; g.textAlign = "right"; g.fillText(`${c.wins}`, c.x + cw - 8, c.y + 26); g.textAlign = "left"; }
+    }
+    // buyer agents
+    for (const b of flying) {
+      const tgt = cells[b.p.merchant];
+      const sx = W - 30, sy = y0 + 10 + (b.i % 6) * 48;
+      const e = 1 - Math.pow(1 - b.f, 3);
+      const x = sx + (tgt.x + cw / 2 - sx) * e, y = sy + (tgt.y + ch / 2 - sy) * e;
+      g.fillStyle = C.green; g.beginPath(); g.arc(x, y, 9, 0, Math.PI * 2); g.fill();
+    }
+    g.font = "20px ui-monospace, Menlo, monospace"; g.fillStyle = C.dim; g.textAlign = "right";
+    g.fillText("buyer agents (ours)", W - 40, y0 - 16); g.textAlign = "left";
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

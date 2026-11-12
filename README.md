@@ -1,5 +1,32 @@
 # LFG BookerBob
 
+![96 buyer agents settle with 30 merchant agents over 7 sealed-bid rounds on NEAR testnet, replayed from the run's public record](docs/media/swarm.gif)
+
+**Tell your agent what you want. Sellers' agents compete on price for it, sealed. You prove you
+qualify for a discount without saying who you are, and pay only against a receipt checked on
+NEAR.** Merchants and the chain never see who you are. Sealed commit-reveal, pay-as-bid, one nullifier per verdict;
+verdicts from a NEAR AI model under E2EE with the TEE signature checked on chain (the TDX quote
+behind the model key is checked off chain, `make verify`).
+
+In swarm run s1 (2026-11-11, the GIF replays its public record): **96** buyer agents settled on
+testnet, each on a NEAR AI verdict · **178** sealed bids from 30 merchant agents · **7 / 7**
+replays of a spent verdict refused
+[![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)
+
+Run a mini swarm yourself, no keys: `make swarm-try` (Rust 1.93+, Node 22; about 15 s warm, 2 min
+from a fresh clone), ends `PASS  swarm-try`. 5 merchant
+agents bid sealed and 6 buyers settle on the contract's own code (near-sdk's mocked chain, not
+testnet), then 6 of our 96 testnet purchases are re-read live; `NEAR_AI_KEY=<yours>` adds 6 live
+model verdicts with their TEE signatures checked. Or
+**[watch one buyer agent shop](https://hustle1hustle.github.io/near-bookerbob/)** (a replay, 1 min).
+
+Every agent and trust key in these runs is ours, the facts are synthetic (REP's evaluator reads
+them), dUSDC is a test token: [what it is and what it is not](docs/swarm-run.md). Tracks:
+swarms first, privacy second. NEAR features: a testnet contract, NEAR AI Cloud E2EE and TEE
+signatures, `ed25519_verify` and `alt_bn128` on chain, function-call keys, a Sputnik DAO.
+
+---
+
 **Do X:** state a need as an intent, like a hotel stay under a budget, with your proven context
 attached. **Get Y:** agents compete to fill it, a referee refuses false claims, five matching
 buyers unlock a group price, and you get a better deal and a receipt you can check, while no

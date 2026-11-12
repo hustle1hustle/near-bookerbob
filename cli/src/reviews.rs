@@ -83,6 +83,12 @@ fn buy_as(
     merchant: &fixtures::MerchantFixture,
     returning: Option<&Value>,
 ) -> Result<(), String> {
+    enter(c, v, world)?;
+    pay(c, v, merchant, returning)
+}
+
+/// A buyer's agent arrives: World binding, escrow funded, verdict submitted (signature checked).
+pub(crate) fn enter(c: &mut Bazaar, v: &SignedVerdict, world: &bookerbob_core::WorldAttestation) -> Result<(), String> {
     let e = &v.envelope;
     at(&e.cnf, NOW_MS);
     call(|| c.attest_human(world.clone()))?;
@@ -93,7 +99,12 @@ fn buy_as(
     at(USDC, NOW_MS);
     let _ = c.ft_on_transfer(acc(&e.cnf), U128(ESCROW_USDC), String::new());
     at(&e.cnf, NOW_MS);
-    call(|| c.submit_verdict(v.clone()))?;
+    call(|| c.submit_verdict(v.clone()))
+}
+
+/// Referee receipt for the merchant's quote, then settle and the payout callback.
+pub(crate) fn pay(c: &mut Bazaar, v: &SignedVerdict, merchant: &fixtures::MerchantFixture, returning: Option<&Value>) -> Result<(), String> {
+    let e = &v.envelope;
     let q = c.quote(acc(&merchant.account), e.nullifier.clone());
     let claims: Vec<Claim> = fixtures::honest_claims().into_iter().filter(|cl| e.predicates.contains(&cl.line)).collect();
     let cohort_k = q.cohort.as_ref().map_or(0, |co| co.k);

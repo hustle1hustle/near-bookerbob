@@ -7,6 +7,11 @@ For AI agents (Claude Code, Codex, judges) reading, running or changing this rep
 
 Facts and pointers, nothing else.
 
+- A swarm you run yourself: `make swarm-try`, Rust 1.93+ and Node 22, no keys, about 15 s
+  with the build warm (about 2 min from a fresh clone). 5 merchant agents bid sealed and 6 buyer agents settle on the contract's
+  own code (near-sdk's mocked chain, not testnet), then 6 of the 96 testnet swarm purchases are
+  re-read live over public RPC. `NEAR_AI_KEY=<yours>` adds 6 live NEAR AI verdicts under E2EE
+  with their TEE signatures checked (about $0.006 on that key).
 - Three commands, with measured times:
   - `make judge`: Node 22, offline, no keys, about 25 s (2026-11-11, a warm macOS arm64
     laptop). Ends `PASS  make judge`. It replays a committed snapshot of the testnet reads and

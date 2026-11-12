@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -72,6 +72,11 @@ cheat:
 # You are the buyer: your GitHub token file proves the fact behind one testnet purchase (docs/prove-me.md).
 try:
 	node scripts/try.mjs $(TOKEN)
+
+# A mini swarm you run yourself, about 15 s warm, no keys (NEAR_AI_KEY=<yours> adds live model verdicts).
+swarm-try:
+	@$(CARGO) build $(CARGO_FLAGS) -q -p bookerbob-cli
+	@node scripts/swarm-try.mjs
 
 # The big swarm run (docs/swarm-run.md): re-check its public record over public RPC, no keys.
 swarm-verify:
