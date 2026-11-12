@@ -64,10 +64,29 @@ if [ -d "$SECRETS_DIR" ]; then
   # Drop public values that legitimately appear (account ids, hosts, version strings).
   grep -vE '\.(testnet|near|com|org|dev|io)$|^https?:|^[0-9]{4}-[0-9]{2}' "$tmp/values.txt" > "$tmp/v2.txt" || true
   nvals=$(wc -l < "$tmp/v2.txt" | tr -d ' ')
-  n=$(grep -F -c -f "$tmp/v2.txt" "$tmp/history.txt" || true)
+  # Every value as a substring anywhere in history, one pass: an 8-byte prefix index (BSD grep -F
+  # with thousands of patterns takes over 20 minutes here). Writes the hit line numbers.
+  node -e '
+    const fs = require("fs");
+    const vals = fs.readFileSync(process.argv[1], "utf8").split("\n").filter((v) => v.length >= 8);
+    const idx = new Map();
+    for (const v of vals) { const k = v.slice(0, 8); (idx.get(k) ?? idx.set(k, []).get(k)).push(v); }
+    const h = fs.readFileSync(process.argv[2], "utf8");
+    const lines = new Set();
+    let line = 1;
+    for (let i = 0; i + 8 <= h.length; i++) {
+      const c = h.charCodeAt(i);
+      if (c === 10) { line++; continue; }
+      const vs = idx.get(h.substr(i, 8));
+      if (vs && vs.some((v) => h.startsWith(v, i))) lines.add(line);
+    }
+    fs.writeFileSync(process.argv[3], [...lines].join("\n"));
+    console.log(lines.size);
+  ' "$tmp/v2.txt" "$tmp/history.txt" "$tmp/hitlines.txt" > "$tmp/n.txt"
+  n=$(cat "$tmp/n.txt")
   if [ "$n" != 0 ]; then
     echo "HIT   exact secret values from $SECRETS_DIR: $n history lines (values not shown)"
-    grep -F -n -f "$tmp/v2.txt" "$tmp/history.txt" | cut -d: -f1 | head -5 | while read -r l; do awk -v l="$l" 'NR<=l && /^commit /{c=$2} NR==l{print "      line " l " in commit " substr(c,1,10); exit}' "$tmp/history.txt"; done
+    head -5 "$tmp/hitlines.txt" | while read -r l; do awk -v l="$l" 'NR<=l && /^commit /{c=$2} NR==l{print "      line " l " in commit " substr(c,1,10); exit}' "$tmp/history.txt"; done
     hits=$((hits+1))
   else echo "ok    exact secret values: none of $nvals values from $SECRETS_DIR in history"; fi
 else echo "skip  exact values: no $SECRETS_DIR"; fi

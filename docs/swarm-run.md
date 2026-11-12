@@ -45,6 +45,15 @@ h05.
   rate-limited RPC and failed. They bought in a seventh, hotel-only round. The same RPC cost
   10 of the 188 possible sealed bids.
 
+## A mini run the day after (try1, 2026-11-12)
+
+One round, 6 buyer agents with NEAR AI verdicts, the same 30 merchant agents: 30 sealed bids, 29
+opened, 6 purchases settled (1,343.85 test dUSDC), 1 replay refused, $0.0009 of NEAR AI credit.
+One merchant of ours, m01, ran out of testnet NEAR for gas and its sealed bid was never opened:
+a silent bid, which anyone may now mark (`mark_unrevealed`: 1 dUSDC of its bond, no new rounds
+for 24 hours). We did not mark it ourselves. Record: `fixtures/live/swarm/try1.json`;
+`make swarm-verify TAG=try1` re-checks it.
+
 ## Run it or check it
 
 ```
