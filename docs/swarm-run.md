@@ -45,13 +45,66 @@ h05.
   rate-limited RPC and failed. They bought in a seventh, hotel-only round. The same RPC cost
   10 of the 188 possible sealed bids.
 
+<a name="s2"></a>
+
+## s2: merchant agents that choose their own bids (2026-11-12)
+
+In s1 a merchant agent is a fixed price rule. In s2, ten of them (m02 to m11) are model-driven:
+before each sealed round, each asks a NEAR AI model (`z-ai/glm-5.3-flash`, one E2EE chat) for
+its bid, a base price and a discount per proven bit, from what it can see:
+
+- its own persona (undercutter, premium, adaptive, a niche player, a margin keeper), unit cost
+  and units left (synthetic, `scripts/merchant-brain.mjs`);
+- the public record of the last two rounds: every revealed bid, every sale's winner and price,
+  and which proven bits the buyers revealed. Never a rival's bid before the reveal.
+
+Code bounds the answer: no price under the merchant's cost for the bits buyers reveal, base 20
+to 80 dUSDC, at most 30% per bit. The contract prices every sale from the revealed bid. Each
+decision's NEAR AI TEE signature over the request and response hashes was checked against the
+model's attested key: 40 of 40. The record keeps each decision with the model's own one-line
+reason, its chat id and the signing key (`fixtures/live/swarm/s2.json`, `rounds[].decisions`).
+
+What happened, for a buyer who revealed `airbnb_frequent`, `claude_spender`, `world_id_human`:
+
+| round | lowest bid | median | highest | buyers paid | winner |
+|---|---|---|---|---|---|
+| 1 | 26.80 | 36.50 | 71.60 | 26.80 | m08 |
+| 2 | 25.55 | 28.00 | 45.60 | 25.55 | m11 |
+| 3 | 24.31 | 28.00 | 35.75 | 24.31 | m08 |
+| 5 | 24.08 | 28.00 | 32.50 | 24.08 | m11 |
+
+![price discovery in s2](media/s2-prices.svg)
+
+- Price discovery: the spread fell from 26.80 to 71.60 in round 1 to 24.08 to 32.50 in round 5.
+- Two undercutters, m08 and m11, traded the lead round by round, each pricing just under the
+  last winner and just over its own cost ("m11 took last round at 25.55, so I price at ~24.31";
+  "undercut m08's winning 24.31 with a 3-bit price of 24.08").
+- The premium merchant m03 refused to follow below its cost of 30 ("I hold just above cost and
+  accept likely losing this round") and sold nothing.
+- m07, the niche player, priced only the one bit every buyer revealed, `airbnb_frequent`. It
+  asked for more than 30% off that bit; code cut it to 30%, so it bid 28.00 where its own
+  reason says 26.5.
+- No merchant tried to coordinate with another: no bid sat at a shared high price, and no
+  merchant used a hire edge or a shared payout (the hoodie category is owner-approved, so those
+  rules do not apply there).
+
+What it is not: the personas, costs and inventories are ours and synthetic; every merchant and
+buyer account is ours. The model's reasons are its own text and are sometimes wrong (m11 says
+"zero sales" in round 5 after winning round 2); prices come only from the revealed bids. Round 4
+never opened: the model calls for it timed out three times, so its 6 buyers did not buy (24 of
+30 settled, 604.44 test dUSDC, 4 replays refused). Merchant decisions are 40 more E2EE chats on
+top of the 24 buyer verdicts. `make swarm-verify TAG=s2` re-checks the rounds and purchases over
+public RPC; `node scripts/swarm-chart.mjs s2` redraws the chart from the record.
+
 ## A mini run the day after (try1, 2026-11-12)
 
 One round, 6 buyer agents with NEAR AI verdicts, the same 30 merchant agents: 30 sealed bids, 29
 opened, 6 purchases settled (1,343.85 test dUSDC), 1 replay refused, $0.0009 of NEAR AI credit.
 One merchant of ours, m01, ran out of testnet NEAR for gas and its sealed bid was never opened:
-a silent bid, which anyone may now mark (`mark_unrevealed`: 1 dUSDC of its bond, no new rounds
-for 24 hours). We did not mark it ourselves. Record: `fixtures/live/swarm/try1.json`;
+a silent bid. It was marked afterwards (`mark_unrevealed`,
+[2jaJZ414…](https://testnet.nearblocks.io/txns/2jaJZ4145Lgps88hBmUQKEqBjaH5o5oWciDJz4jDfK84)): m01
+is an owner-approved merchant with no bond, so the mark forfeited nothing (`forfeit_usdc` and
+`forfeit_demo` 0 in the event) and barred it from new rounds until 2026-11-13 13:31 UTC. Record: `fixtures/live/swarm/try1.json`;
 `make swarm-verify TAG=try1` re-checks it.
 
 ## Run it or check it

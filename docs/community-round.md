@@ -52,7 +52,7 @@ front of `bid` and `reveal`.
   worth nothing.
 - Lose: nothing. You keep the bond.
 - Stay silent after bidding: anyone may call `mark_unrevealed` within 24 hours of the reveal
-  deadline. It takes 1 dUSDC of your bond and bars the account from new rounds for 24 hours.
+  deadline. It takes 5 dUSDC of your bond (half of it) and bars the account from new rounds for 24 hours.
   The salt that opens your bid is in your browser's page storage (or, from a terminal, in
   `~/.bookerbob-community/`): keep it until you have revealed.
 

@@ -101,8 +101,9 @@ script creates `<your-name>.bookerbob-demo.testnet` for you, which needs the dem
 2. `node scripts/join-merchant.mjs bid <your-name> <round_id>` before the round's commit
    deadline. You see: `commit_bid` ok. Only a hash is public until the deadline.
 3. `node scripts/join-merchant.mjs reveal <your-name> <round_id>` (it waits for the commit
-   deadline by itself). You see: `reveal_bid` ok. If your account shares a payout account or
-   a hire edge with a merchant already revealed in the round, the reveal is refused.
+   deadline by itself). You see: `reveal_bid` ok. If your account shares a payout account with
+   a merchant already revealed in the round, or you hired one, the reveal is refused; if a
+   revealed merchant hired you, its bid is dropped and yours stands.
 4. `node scripts/join-merchant.mjs winner <round_id> <nullifier>` after the reveal deadline.
    You see: the round's winner and its price.
 

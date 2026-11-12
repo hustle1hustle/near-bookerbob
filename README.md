@@ -13,6 +13,15 @@ testnet, each on a NEAR AI verdict · **178** sealed bids from 30 merchant agent
 replays of a spent verdict refused
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)
 
+In run s2 (2026-11-12) the merchant agents choose their own bids: before each sealed round,
+each of 10 asks a NEAR AI model for its bid from its persona, its cost and the last rounds'
+public bids and sales (40 of 40 decisions TEE-signed and checked). Code keeps every bid above
+cost; the contract prices every sale. Two undercutters traded the lead down to their costs, and
+the premium merchant refused to follow; what buyers paid fell from 26.80 to 24.08:
+[every decision and its reason](docs/swarm-run.md#s2).
+
+![s2: each model merchant's sealed bid per round and what buyers paid](docs/media/s2-prices.svg)
+
 Run a mini swarm yourself, no keys: `make swarm-try` (Rust 1.93+, Node 22; about 15 s warm, 2 min
 from a fresh clone), ends `PASS  swarm-try`. 5 merchant
 agents bid sealed and 6 buyers settle on the contract's own code (near-sdk's mocked chain, not
@@ -26,6 +35,18 @@ swarms first, privacy second. NEAR features: a testnet contract, NEAR AI Cloud E
 signatures, `ed25519_verify` and `alt_bn128` on chain, function-call keys, a Sputnik DAO.
 
 ---
+
+## What this market does that a plain agent market does not
+
+| what | how it works here | where it shows |
+|---|---|---|
+| Bids priced on proven buyer context | a sealed bid is a price per proven bit; a buyer's bits come from a signed NEAR AI verdict, so a discount reaches only a buyer who proved it, and model merchants reason about what each bit is worth | s1: 96 purchases (`make swarm-verify`); s2: 40 decisions ([docs/swarm-run.md](docs/swarm-run.md#s2)) |
+| A verdict buys once | one nullifier per verdict, burned at settle | every replay of a spent verdict refused: 7 in s1, 4 in s2 |
+| Payment only against a checked receipt | the referee refuses a claim the proofs do not back; settle needs its receipt | `make forge-poc`; referee evals 50 of 50 (`make verify`) |
+| A sealed bid you cannot quietly drop | commit-reveal, the opened bid pinned for its round, a silent bid marked: 5 dUSDC of the bond and a 24 hour bar | round `silent-1` (1 dUSDC under the rule then) and try1's m01 (no bond, barred only) ([docs/testnet.md](docs/testnet.md), [docs/swarm-run.md](docs/swarm-run.md)) |
+| The model's TEE signature checked on chain, per verdict | `submit_near_ai_verdict` checks the model's ed25519 signature over the request and response hashes, under a key whose TDX quote was checked | [docs/near-ai.md](docs/near-ai.md); one verdict: [CY5bwBMr…](https://testnet.nearblocks.io/txns/CY5bwBMrEtBU9DRpxyCPYnkZPGU8mQ1B3kCLqkeX5ne1) |
+| Reviews that cannot name a rater | Semaphore proofs; a round opens only with 5 group members and 5 distinct raters | [docs/semaphore.md](docs/semaphore.md), [docs/testnet.md](docs/testnet.md) |
+| A judge runs it | `make swarm-try` with no keys; `make swarm-verify` re-reads the testnet runs over public RPC | above |
 
 **Do X:** state a need as an intent, like a hotel stay under a budget, with your proven context
 attached. **Get Y:** agents compete to fill it, a referee refuses false claims, five matching
@@ -394,16 +415,17 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   (Dan's point). Since the 2026-11-10 redeploy (run once live in round `silent-1`:
   [DEd5NAPw…](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ)), after a
   round's reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once, within 24
-  hours: the merchant forfeits 1 token of its bond (what it has, if less; it stays in the
-  contract under `forfeited_bonds`, paid to no one) and `commit_bid` refuses it for 24 hours.
-  Three limits remain. The forfeit is a flat 1 token, not sized to the sale, and the
-  one-operator rule sees only declared links (a shared payout, a hire edge): two accounts with
-  no declared link keep the choice to withhold the lower bid for 1 token. A merchant with no
-  bond (every owner-approved category today) only sits out. And in an `open` round a merchant linked to one already revealed is not marked, because
-  the one-operator rule would have refused its reveal and the other side can make that link
-  alone (a hire edge, a shared payout): so one operator with two linked bids keeps a free
-  choice between them, and revealing first after hiring a rival still shuts that rival out of
-  the round.
+  hours: the merchant forfeits 5 tokens of its bond, half the open bond, since 2026-11-12 (1
+  before; what it has, if less; it stays in the contract under `forfeited_bonds`, paid to no
+  one) and `commit_bid` refuses it for 24 hours. Limits that remain: the forfeit is flat, not
+  sized to the sale; the one-operator rule sees only declared links (a shared payout, a hire
+  edge), so two accounts with no declared link keep the choice to withhold the lower bid for 5
+  tokens; a merchant with no bond (every owner-approved category today) only sits out. Since
+  2026-11-12 a hire edge drops the hirer's bid, not the hired merchant's, so hiring a rival no
+  longer shuts it out; a shared payout still refuses the later reveal, and a rival can name
+  another merchant's payout account as its own, at the price of paying that account its sales.
+  Price ties in rounds whose commit deadline is after 2026-11-12 18:00 UTC go to the lower
+  sha256(nullifier | merchant); earlier rounds keep "first revealed wins".
 - **A round does not check the verdict's context against its category.** `round_best_quote`
   prices any unspent verdict against a round's revealed schedules, so a verdict issued in the
   hoodie context is quoted in the hotel round too. Payment is bound to a round only under a
@@ -511,7 +533,7 @@ not entered tracks.
 | [9](docs/status.md#r9) | disclosure policy: merchants ask, the buyer agent answers by rule; a budget caps the bits revealed per purchase | privacy | **built** | [`core/src/disclosure.rs`](core/src/disclosure.rs) |
 | [10](docs/status.md#r10) | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | **live** | [`core/src/price.rs`](core/src/price.rs) |
 | [11](docs/status.md#r11) | blind bid rounds on chain: commit a sealed hash, reveal after the deadline, best quote after that. A merchant agent here is a price rule, not a model | swarms | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [12](docs/status.md#r12) | a sealed bid never revealed costs the merchant: 1 token of its bond and a 24 hour bar from bidding (finding: Dan, DenisDI) | swarms, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
+| [12](docs/status.md#r12) | a sealed bid never revealed costs the merchant: 5 tokens of its bond and a 24 hour bar from bidding (finding: Dan, DenisDI) | swarms, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [13](docs/status.md#r13) | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | **built** | [`agents/why.mjs`](agents/why.mjs) |
 | [14](docs/status.md#r14) | the buyer's agent chooses among hotel offers by a real NEAR AI inference; code computes every price and checks the pick | swarms, agents | **built** | [`agents/choose.mjs`](agents/choose.mjs) |
 | [15](docs/status.md#r15) | a Jolt proof of the agent's pick made and checked in the visitor's own browser; not zero-knowledge, not checked on chain | swarms, privacy, open | **built** | [`agents/prove.html`](agents/prove.html) |

@@ -53,7 +53,11 @@ const sleep = (ms) => new Promise((ok) => setTimeout(ok, ms));
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 const yoctoToNear = (y) => Number(BigInt(y) / 10n ** 18n) / 1e6;
 
-export const CATEGORIES = ["hoodie", "hotel-lisbon"];
+export const CATEGORIES = (process.env.SWARM_CATEGORIES ?? "hoodie,hotel-lisbon").split(",");
+/** SWARM_MERCHANTS=m02,m03,...: only these merchant agents bid (with SWARM_MERCHANT_BRAIN=1, each
+ *  chooses its sealed bid every round through scripts/merchant-brain.mjs). */
+const ONLY_MERCHANTS = process.env.SWARM_MERCHANTS ? process.env.SWARM_MERCHANTS.split(",").map((x) => `${x.trim()}.bookerbob.testnet`) : null;
+const BRAIN = process.env.SWARM_MERCHANT_BRAIN === "1";
 /** A hotel stay costs more than the fixture cap of 45 dUSDC; 500 is also dUSDC's largest mint. */
 export const HOTEL_CAP = 500_000_000;
 export const MAX_SETS_GROUP = 5;
@@ -199,6 +203,7 @@ export function buildRecord(st) {
     categories: CATEGORIES.filter((c) => r.cats?.[c]).map((c) => ({ category: c, round_id: r.cats[c].round_id, open_tx: r.cats[c].open_tx ?? null, commits: r.cats[c].commits ?? 0, reveals: r.cats[c].reveals ?? 0, commit_until_ms: r.cats[c].commit_until_ms, reveal_until_ms: r.cats[c].reveal_until_ms })),
     replay: r.replay ? { nullifier: r.replay.nullifier, tx: r.replay.tx, refused: "nullifier spent" } : null,
     ...(r.note && { note: clean(r.note) }),
+    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer })) }),
   }));
   const purchases = [];
   const failures = [];
@@ -261,6 +266,7 @@ const RECORD_KEYS = new Set([
   "note", "tag", "network", "bazaar", "dusdc", "relayer", "explorer", "started_at", "updated_at", "complete", "dusdc_registrations", "first_round", "failures_first_pass", "retried_ok", "failures_final", "stopped", "plan", "rounds", "purchases", "failures", "totals",
   "buyers", "commit_min", "reveal_min", "n", "ready", "seconds", "categories", "replay", "category", "round_id", "open_tx", "commits", "reveals", "commit_until_ms", "reveal_until_ms", "nullifier", "tx", "refused",
   "round", "bit_set", "predicates", "buyer", "merchant", "price", "model", "chat_id", "txs", ...TX_KEYS, "step", "error", "retried",
+  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer",
   "merchant_agents", "buyer_agents", "sealed_bids", "model_verdicts", "purchases_settled", "dusdc_volume", "refused_replays", "near_ai_calls", "near_ai_cost_usd", "near_ai_cost_basis", "treasury_near_spent", "faucet_near", "wall_time_s",
 ]);
 
@@ -271,7 +277,7 @@ export function assertPublic(record, path = "record") {
   if (record && typeof record === "object") {
     for (const [k, v] of Object.entries(record)) {
       if (SECRET_KEY.test(k) || !RECORD_KEYS.has(k)) throw new Error(`${path}.${k}: not a field of the public record`);
-      if (typeof v === "string" && HEX64.test(v) && !["buyer", "nullifier"].includes(k)) throw new Error(`${path}.${k}: a 32-byte hex value does not belong here`);
+      if (typeof v === "string" && HEX64.test(v) && !["buyer", "nullifier", "signer"].includes(k)) throw new Error(`${path}.${k}: a 32-byte hex value does not belong here`);
       assertPublic(v, `${path}.${k}`);
     }
     return;
@@ -421,7 +427,7 @@ async function run(a) {
   mkdirSync(buyersDir, { recursive: true, mode: 0o700 });
   const statePath = join(swarmDir, `${a.tag}.json`);
   const recordPath = `fixtures/live/swarm/${a.tag}.json`;
-  const merchants = JSON.parse(readFileSync("agents/merchants.json", "utf8"));
+  const merchants = JSON.parse(readFileSync("agents/merchants.json", "utf8")).filter((m) => CATEGORIES.includes(m.category) && (!ONLY_MERCHANTS || ONLY_MERCHANTS.includes(m.account)));
   const expected = Object.fromEntries(CATEGORIES.map((cat) => [cat, merchants.filter((m) => m.category === cat).length]));
 
   let st;
@@ -542,10 +548,22 @@ async function run(a) {
     const CATS = r.only ?? CATEGORIES;
     // A round for one category: blind-round bids for the merchants its agents/merchants.json lists.
     let cwd = process.cwd();
-    if (r.only) {
+    if (r.only || ONLY_MERCHANTS || BRAIN) {
       cwd = join(swarmDir, a.tag, `round-${n}`);
       mkdirSync(join(cwd, "agents"), { recursive: true });
-      writeFileSync(join(cwd, "agents", "merchants.json"), JSON.stringify(merchants.filter((m) => r.only.includes(m.category))));
+      let bidders = merchants.filter((m) => CATS.includes(m.category));
+      if (BRAIN) {
+        // Decided once and kept: a rerun must commit and reveal the same bid.
+        if (!r.decisions) {
+          const { decideRound } = await import("./merchant-brain.mjs");
+          const seen = [...new Set((st.slots ?? []).map((x) => x.set))].map((i) => SETS[i].predicates);
+          r.decisions = await decideRound({ n, rounds: st.params.rounds, merchants: bidders, stRounds: st.rounds, purchases: buildRecord(st).purchases, bitSets: seen });
+          save();
+          for (const [m, d] of Object.entries(r.decisions)) console.log(`[r${n}] ${m.split(".")[0]} ${d.skip ? "sits out: " + d.why : `bids base ${d.schedule.base_price / 1e6}, ${d.schedule.rules.map((q) => `${q.predicate} -${q.bps / 100}%`).join(", ") || "no discounts"}, cap ${d.schedule.cap_bps / 100}%${d.tee_signed ? ", TEE-signed" : ", SIGNATURE NOT CHECKED"}: ${d.why}`}`);
+        }
+        bidders = bidders.filter((m) => r.decisions[m.account] && !r.decisions[m.account].skip).map((m) => ({ ...m, schedule: r.decisions[m.account].schedule }));
+      }
+      writeFileSync(join(cwd, "agents", "merchants.json"), JSON.stringify(bidders));
     }
     const started = Date.now();
     const pre = `[r${n}]`;
@@ -817,6 +835,9 @@ async function run(a) {
   const rounds = [...new Set([...Array.from({ length: st.params.rounds }, (_, i) => i + 1), ...Object.keys(st.rounds).map(Number)])].sort((x, y) => x - y);
   const gate = Object.fromEntries(rounds.map((n) => [n, {}]));
   for (const n of rounds) (ready[n] = new Promise((ok, fail) => Object.assign(gate[n], { ok, fail }))).catch(() => {});
+  // Model merchants decide each round from the sales before it: round n waits for round n-1's buyers.
+  const bought = {};
+  for (const n of rounds) bought[n] = new Promise((ok) => (gate[n].bought = ok));
   const roundsTrack = (async () => {
     for (const n of rounds) {
       // A stop opens no new round; a round already open is always carried to its reveals.
@@ -825,6 +846,7 @@ async function run(a) {
         continue;
       }
       try {
+        if (BRAIN && gate[n - 1]) await bought[n - 1];
         await prepareRound(n);
         gate[n].ok();
       } catch (e) {
@@ -840,6 +862,7 @@ async function run(a) {
       try {
         await ready[n];
       } catch {
+        gate[n].bought();
         continue;
       }
       const todo = st.slots.filter((s) => s.round === n && s.status !== "settled" && s.attempts.length < 2 + (s.moved_from ? 1 : 0));
@@ -847,6 +870,7 @@ async function run(a) {
       await Promise.all(Array.from({ length: Math.min(a.concurrency, todo.length) }, async () => {
         while (next < todo.length && !shared.stop) await slotRun(todo[next++]);
       }));
+      gate[n].bought();
     }
     await roundsTrack;
   } finally {

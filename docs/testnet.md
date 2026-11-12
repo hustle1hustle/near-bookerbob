@@ -644,3 +644,22 @@ Semaphore nullifiers, k_d) and `publish_reviews` holds a round with fewer than 5
 `reviews_held` and `reviews_published` log the release size. Not exercised live after the
 redeploy: covered by contract tests. The three review rounds released before it held 6
 ratings each, over the new floor.
+
+## Three bid-round fixes from the judge panel (2026-11-12, afternoon)
+
+Fifth redeploy of both bazaars, state kept, market first as a canary (views byte-identical
+before and after on both): `market.bookerbob.testnet`
+[Cg5rYDG6…](https://testnet.nearblocks.io/txns/Cg5rYDG6R7D8uV46BxuMGQZtgJDMwWf7SzrjGq9NVqWh),
+`bookerbob.testnet`
+[CFHHq6GN…](https://testnet.nearblocks.io/txns/CFHHq6GNAJ1wNVMimLUjpHGA2QhSMQQNUaVDiN88GNeX).
+Code hash `Bt2rNwTLp1wyhL5rjJfyLUigiBiLXiSMt1BD1gAqysfn`, tag `bazaar-2026-11-12b`.
+
+- A hire edge drops the hirer's bid, not the hired merchant's (`bid_dropped`). Before, a
+  merchant could hire a rival, reveal first, and have the rival's reveal refused as "linked".
+- A bid left sealed costs 5 dUSDC of the bond (half the open bond), up from 1.
+- Price ties go to the lower sha256(nullifier | merchant), not to the first reveal, in rounds
+  whose commit deadline is at or after 2026-11-12 18:00 UTC (`TIE_HASH_FROM_MS`
+  1794506400000). Earlier rounds keep "first revealed wins", so every recorded winner before
+  the cutover stays the winner.
+
+Not exercised live after the redeploy: covered by contract tests (288).

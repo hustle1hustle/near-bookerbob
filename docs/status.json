@@ -109,8 +109,8 @@
     ]
   },
   {
-    "feature": "a sealed bid never revealed costs the merchant: after the reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once; 1 token of its bond is forfeited (held by the contract, paid to no one) and `commit_bid` refuses it for 24 hours (finding: Dan, DenisDI)",
-    "short": "a sealed bid never revealed costs the merchant: 1 token of its bond and a 24 hour bar from bidding (finding: Dan, DenisDI)",
+    "feature": "a sealed bid never revealed costs the merchant: after the reveal deadline anyone calls `mark_unrevealed(round_id, merchant)` once; 5 tokens of its bond are forfeited since 2026-11-12 (1 before) (held by the contract, paid to no one) and `commit_bid` refuses it for 24 hours (finding: Dan, DenisDI)",
+    "short": "a sealed bid never revealed costs the merchant: 5 tokens of its bond and a 24 hour bar from bidding (finding: Dan, DenisDI)",
     "tracks": "swarms, security",
     "where": "`contract/src/lib.rs` (`mark_unrevealed`, `unrevealed_defaults`, `barred_until`, `is_barred`, `forfeited_bonds`)",
     "status": "live",
@@ -347,7 +347,7 @@
     ]
   },
   {
-    "feature": "open market: any merchant account is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both reveal",
+    "feature": "open market: any merchant account is approved by a 10-token bond, no owner step; in open rounds two bids under one operator (same payout or a hire edge) cannot both stand; since 2026-11-12 a hire edge drops the hirer's bid, not the hired one's, and a price tie goes to the lower sha256(nullifier | merchant)",
     "short": "open market: a 10-token bond approves any merchant account, no owner step; two bids under one operator cannot both reveal",
     "tracks": "swarms, agents, open",
     "where": "`contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md",

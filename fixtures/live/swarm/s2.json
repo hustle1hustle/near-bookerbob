@@ -1,0 +1,3034 @@
+{
+  "note": "A swarm on NEAR testnet: the registered merchant agents bid sealed in fresh rounds; each buyer agent is a fresh account whose verdict a NEAR AI model issued under E2EE v2 (submit_near_ai_verdict), and it bought from its round's winner for that verdict (round_best_quote), paid in dUSDC, a testnet demo token with no value. Every proof set is synthetic. `node scripts/swarm-run.mjs verify <tag>` re-reads this from public RPC.",
+  "tag": "s2",
+  "network": "testnet",
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "relayer": "bookerbob-demo.testnet",
+  "explorer": "https://testnet.nearblocks.io/txns/",
+  "started_at": "2026-11-12T13:35:14.495Z",
+  "updated_at": "2026-11-12T15:09:56.017Z",
+  "complete": false,
+  "dusdc_registrations": [],
+  "stopped": null,
+  "plan": {
+    "rounds": 5,
+    "buyers": 30,
+    "commit_min": 5,
+    "reveal_min": 5
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s2-r1-hoodie",
+          "open_tx": "2dXhQ93wcz6vYEPdzpHjv8xu1iqHgzqXzsPxsC7D5wHL",
+          "commits": 10,
+          "reveals": 10,
+          "commit_until_ms": 1794490879042,
+          "reveal_until_ms": 1794491179042
+        }
+      ],
+      "replay": {
+        "nullifier": "baa3fa3d7f29a92b2e569a704a2b48335038454498d2172eeb198275beb3468e",
+        "tx": "95hwjGu3qDo4G5QybzCSccfKrkjXk8hJcGM9c1vGL69K",
+        "refused": "nullifier spent"
+      },
+      "decisions": [
+        {
+          "merchant": "m03.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 30,
+          "units_left": 5,
+          "asked": {
+            "base_price": 88,
+            "cap_bps": 1200,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 400
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 400
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 250
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 250
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "80000000",
+            "cap_bps": 1200,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 400
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 250
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 250
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 400
+              }
+            ]
+          },
+          "why": "Anchor high in round 1 (~78 effective vs 30 cost) to test rival price levels while keeping strong margin.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "1c0ef67b8c784bc69fe5ec96d17ae8d6",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m04.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 25,
+          "units_left": 8,
+          "asked": {
+            "base_price": 42,
+            "cap_bps": 1050,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 350
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 350
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 350
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 350
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "42000000",
+            "cap_bps": 1050,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 350
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 350
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 350
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 350
+              }
+            ]
+          },
+          "why": "No history yet, so I open with a mid-range price (~37.6 effective) that stays well above my 25 cost while testing rival aggressiveness.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "d73745de3c144c6b894b681a3554f2e6",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m02.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 26,
+          "units_left": 8,
+          "asked": {
+            "base_price": 54,
+            "cap_bps": 4500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1500
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1500
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1500
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1500
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "54000000",
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1500
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1500
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1500
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1500
+              }
+            ]
+          },
+          "why": "Aggressive opener: 3-bit buyers pay ~29.7, comfortably above my 26 cost, to win early volume and probe rival pricing.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "329ea234cb644086a12f7e4ddcff1cfe",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m07.bookerbob.testnet",
+          "persona": "niche: rewards one bit deeply and ignores the rest",
+          "unit_cost": 26,
+          "units_left": 6,
+          "asked": {
+            "base_price": 50,
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 4000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "50000000",
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3000
+              }
+            ]
+          },
+          "why": "Niche play: both buyers hold airbnb_frequent, so a deep 40% cut on that single bit yields an effective price of 30 dUSDC for each while ignoring the rest.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "76f59d7bb8344ba8be083dd39de0d1aa",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m05.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 27,
+          "units_left": 8,
+          "asked": {
+            "base_price": 100,
+            "cap_bps": 6500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 2000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 2400
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1800
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1800
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "80000000",
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 2000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1800
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1800
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 2400
+              }
+            ]
+          },
+          "why": "No history yet, so I open with balanced discounts on the bits both buyers share to land each at ~38 dUSDC, keeping an 11 margin over my 27 cost while learning rival pricing.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "a4fb908226934226beae3a1dfd069a09",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m06.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 32,
+          "units_left": 4,
+          "asked": {
+            "base_price": 140,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 800
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 600
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 700
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 700
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "80000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 800
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 600
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 700
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 700
+              }
+            ]
+          },
+          "why": "Opening high to probe rival pricing: both buyers see ~22% off, landing near 109-110 dUSDC for a fat margin over my 32 cost, and I can concede in later rounds if I lose.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "49242156cb604c6bb84e2ba4e1df77e7",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m08.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 23,
+          "units_left": 12,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1100
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1100
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1100
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1100
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1100
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1100
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1100
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1100
+              }
+            ]
+          },
+          "why": "No history yet, so targeting an effective ~27 dUSDC (comfortably above 23 cost) to win early sales and learn rival pricing.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "97f489f4209146e7a7dd2cb16db606dc",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m10.bookerbob.testnet",
+          "persona": "margin keeper: never sells under cost plus 30%",
+          "unit_cost": 25,
+          "units_left": 10,
+          "asked": {
+            "base_price": 50,
+            "cap_bps": 2700,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 900
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 900
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 900
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 900
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "50000000",
+            "cap_bps": 2700,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 900
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 900
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 900
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 900
+              }
+            ]
+          },
+          "why": "Round-1 opener: both buyer types see ~36.5 dUSDC, a ~46% margin safely above my 32.5 floor, while I learn rival pricing before adjusting.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "07c97783730f4620a2855751f293f64c",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m09.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 28,
+          "units_left": 6,
+          "asked": {
+            "base_price": 52,
+            "cap_bps": 3800,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1300
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1200
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1200
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1200
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "52000000",
+            "cap_bps": 3800,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1300
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1200
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1200
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1200
+              }
+            ]
+          },
+          "why": "No rival history yet, so I price both buyers at ~33.5 effective, a thin-but-safe margin over cost 28 to win early volume and learn the market.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "7f445859fde54e88b2db823cc0dd96ec",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m11.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 24,
+          "units_left": 10,
+          "asked": {
+            "base_price": 34,
+            "cap_bps": 2000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 400
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 400
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 400
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 400
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "34000000",
+            "cap_bps": 2000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 400
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 400
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 400
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 400
+              }
+            ]
+          },
+          "why": "Aggressive-but-safe opener: 3 revealed bits yield ~29.9 dUSDC, well above my 24 cost, to win volume while learning rival pricing.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "e854bf94f1c4438882dd9d05ad13359c",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s2-r2-hoodie",
+          "open_tx": "GSApJafAPrz6bWuDgvyDsWdJoWTM3rNM5puPxjLG1Jpr",
+          "commits": 10,
+          "reveals": 10,
+          "commit_until_ms": 1794492726274,
+          "reveal_until_ms": 1794493026274
+        }
+      ],
+      "replay": {
+        "nullifier": "d541be2b93e67c585260287f8c45a20d55483ffded4fd99082c227f52096b5bc",
+        "tx": "D66WjS2Hej3v6X1TwHE5rLn59ExfnrFg1NsL55cnRWen",
+        "refused": "nullifier spent"
+      },
+      "decisions": [
+        {
+          "merchant": "m02.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 26,
+          "units_left": 8,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1125
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1125
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1125
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1125
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1125
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1125
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1125
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1125
+              }
+            ]
+          },
+          "why": "m08 cleared all round-1 sales at 26.8, so I edge just under at ~26.5 for 3-bit buyers while keeping margin above my 26 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "0e9b869b0736484b92a0846c4a8ab99d",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m04.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 25,
+          "units_left": 8,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3450,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1150
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1150
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1150
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1150
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3450,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1150
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1150
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1150
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1150
+              }
+            ]
+          },
+          "why": "m08 cleared all buyers at 26.8; I edge just under at ~26.2 (3 bits = 3450bps off base 40) while keeping margin over my 25 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "f39a30674dbe4a889b717fe56cbfee2f",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m03.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 30,
+          "units_left": 5,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 2100,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 700
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 700
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 700
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 700
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 2100,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 700
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 700
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 700
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 700
+              }
+            ]
+          },
+          "why": "Effective ~31.6 for any 3-bit buyer undercuts m02's 32.4 while staying above my 30 cost, letting the sub-cost bidders m08/m11 bleed and exit first.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "951dde3a82364955be045c4a5eeb7206",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m07.bookerbob.testnet",
+          "persona": "niche: rewards one bit deeply and ignores the rest",
+          "unit_cost": 26,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3375
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3000
+              }
+            ]
+          },
+          "why": "Every buyer reveals airbnb_frequent, so a deep 3375bps cut there prices at 26.5, just under m08's winning 26.8 while staying above my 26 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "d7e60301bd1843b8b0481cfa6a63df6c",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m06.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 32,
+          "units_left": 4,
+          "asked": {
+            "base_price": 60,
+            "cap_bps": 2400,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 800
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 800
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 800
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 800
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "60000000",
+            "cap_bps": 2400,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 800
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 800
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 800
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 800
+              }
+            ]
+          },
+          "why": "Rounds 1 winners priced (~27-30) below our 32 cost, so we keep a profitable ~45.6 floor and only win if those rivals exhaust stock.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "38fb2291b06d47faa79182ec45b35d26",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m05.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 27,
+          "units_left": 8,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "m08 cleared at 26.8 (below my 27 cost) but sold 6 units, so it likely has only ~2 left; I price at 28.0 to be the profitable second-lowest and capture overflow buyers with margin.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "232f860b55b14820a1f22bacbd29d5f7",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m08.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 23,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3200,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3200,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "Won all units at 26.8 with nearest rival ~29.9, so nudge price to ~28 to capture extra margin while staying under m11.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "0ccffeccc57149a2b6f2e1bd2ce0cad7",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m10.bookerbob.testnet",
+          "persona": "margin keeper: never sells under cost plus 30%",
+          "unit_cost": 25,
+          "units_left": 10,
+          "asked": {
+            "base_price": 50,
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1166
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1166
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1166
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1166
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "50000000",
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1166
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1166
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1166
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1166
+              }
+            ]
+          },
+          "why": "Effective ~32.5 (cost+30% floor) undercuts every other margin-safe rival, positioning me to win if the below-cost leaders m08/m11 exhaust stock.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "c98f8b54c9e840ae9db15a77abab6093",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m09.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 28,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 2850,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 950
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 950
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 950
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 950
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 2850,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 950
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 950
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 950
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 950
+              }
+            ]
+          },
+          "why": "Effective ~28.6 for 3-bit buyers stays just above my 28 cost and undercuts m11's 29.9 anchor in case m08's below-cost 26.8 was a one-off loss-leader or they're sold out.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "84fa21d13dc2442c849383714631e27d",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m11.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 24,
+          "units_left": 10,
+          "asked": {
+            "base_price": 35,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 900
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 900
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 900
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 900
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "35000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 900
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 900
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 900
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 900
+              }
+            ]
+          },
+          "why": "Undercut m08's winning 26.8 with an effective ~25.5 for 3-bit buyers while keeping margin above my 24 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "3f65e1ba3e7c4a2a9166f6e695df4cb2",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s2-r3-hoodie",
+          "open_tx": "FCPyd1y2qGAMNXyPSEQk7Mg3Woca7FJX91f1haGGwfNH",
+          "commits": 10,
+          "reveals": 10,
+          "commit_until_ms": 1794493959248,
+          "reveal_until_ms": 1794494259248
+        }
+      ],
+      "replay": {
+        "nullifier": "d339cf190ae169ef2adf665427e6c1c91e0f6a64f3f1ec95cae342d26e85aabc",
+        "tx": "6NgdHg4QZsWSE1qHjhydBgVC39f88LbbeNAah7q1vEzu",
+        "refused": "nullifier spent"
+      },
+      "decisions": [
+        {
+          "merchant": "m04.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 25,
+          "units_left": 8,
+          "asked": {
+            "base_price": 35,
+            "cap_bps": 2745,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 915
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 915
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 915
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 915
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "35000000",
+            "cap_bps": 2745,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 915
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 915
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 915
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 915
+              }
+            ]
+          },
+          "why": "Undercut last round's winning 25.55 (m11) with a 25.39 effective price on 3 revealed bits, keeping a thin but positive margin over my 25 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "d79bd0e83c2c41e89f5f38f1bd93c368",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m02.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 26,
+          "units_left": 8,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1160
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1160
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1160
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1160
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 4000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1160
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1160
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1160
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1160
+              }
+            ]
+          },
+          "why": "Effective ~26.08 undercuts round-2 runner-up m04 (26.2) while staying above my 26 cost, betting m11 raises off its loss-making 25.55.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "65b9217d60074b21bb7b98fda6d7a3e5",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m03.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 30,
+          "units_left": 5,
+          "asked": {
+            "base_price": 42,
+            "cap_bps": 2250,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 750
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 750
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 750
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 750
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "42000000",
+            "cap_bps": 2250,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 750
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 750
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 750
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 750
+              }
+            ]
+          },
+          "why": "Winners sold at 26.8 and 25.55, below my 30 cost, so I hold just above cost (~32.5 effective) to keep margin and accept likely losing this round.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "ac2f13e74c6349a284888e335965e093",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m06.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 32,
+          "units_left": 4,
+          "asked": {
+            "base_price": 50,
+            "cap_bps": 2850,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 950
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 950
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 950
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 950
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "50000000",
+            "cap_bps": 2850,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 950
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 950
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 950
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 950
+              }
+            ]
+          },
+          "why": "Rivals are clearing near 26, below my 32 cost, so I post a profitable ~36 effective price and accept likely losing this round rather than selling at a loss.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "4e436b025b3b4bfbb69abc3ad65abbf5",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m07.bookerbob.testnet",
+          "persona": "niche: rewards one bit deeply and ignores the rest",
+          "unit_cost": 26,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3425
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3000
+              }
+            ]
+          },
+          "why": "Every observed buyer holds airbnb_frequent, so a deep 3425bps niche discount there yields 26.3, undercutting the rival cluster near 26.5 while staying above my 26 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "cbbe862c6a9a4ba6ba2c12395f0f1558",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m05.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 27,
+          "units_left": 8,
+          "asked": {
+            "base_price": 39,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "39000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "Winning prices (~25.5) sit below my 27 cost, so instead of selling at a loss I hold just above cost at ~27.3, positioned to profit if loss-tired rivals raise or low-inventory leaders sell out and buye",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "4dc4a37c1b8c427ebf0ef21bcc167c13",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m10.bookerbob.testnet",
+          "persona": "margin keeper: never sells under cost plus 30%",
+          "unit_cost": 25,
+          "units_left": 10,
+          "asked": {
+            "base_price": 50,
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1166
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1166
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1166
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1166
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "50000000",
+            "cap_bps": 3500,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1166
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1166
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1166
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1166
+              }
+            ]
+          },
+          "why": "Rivals are clearing at ~25.5, below my 32.5 margin floor, so I hold at cost+30% (3-bit price ~32.5) and only win if low-bidders exhaust stock.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "3847d4395e6f4d668ce428502c20544e",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m08.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 23,
+          "units_left": 6,
+          "asked": {
+            "base_price": 34,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 950
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 950
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 950
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 950
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "34000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 950
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 950
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 950
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 950
+              }
+            ]
+          },
+          "why": "m11 took last round at 25.55, so I price at ~24.31 (34 base, 950bps x3) to undercut while keeping margin over my 23 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "4259b507fdd1481fa32edefde65aa0a4",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m09.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 28,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 995
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 995
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 995
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 995
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 995
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 995
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 995
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 995
+              }
+            ]
+          },
+          "why": "Rounds 1-2 cleared at 25.5-26.8, below my 28 cost, so I bid just above break-even (~28.1 effective) to win only if aggressive rivals deplete stock or raise prices.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "b0b6e2140ef4436da81ed068f368a1e8",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m11.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 24,
+          "units_left": 4,
+          "asked": {
+            "base_price": 35,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "35000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "Rivals saw my 25.55 win and will undercut it, so I drop to an effective 24.5 (35 base, 3x1000bps) to defend all four remaining units while staying above my 24 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "00af951f82ed4cf3ae4e5bb8bdfbe4c2",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "ready": false,
+      "seconds": null,
+      "categories": [],
+      "replay": null
+    },
+    {
+      "n": 5,
+      "ready": true,
+      "seconds": 609,
+      "categories": [
+        {
+          "category": "hoodie",
+          "round_id": "s2-r5-hoodie",
+          "open_tx": "3rCipKXbkFCBwU3b3VtFxRx77zEvEmPeEF5Nm8SorqQm",
+          "commits": 10,
+          "reveals": 10,
+          "commit_until_ms": 1794495612602,
+          "reveal_until_ms": 1794495912602
+        }
+      ],
+      "replay": {
+        "nullifier": "21d9f1dd67de640de87259be698c105c662581d813e7446d45d29db5072606cb",
+        "tx": "FKM3q66GpToqoUNmKksCSDbREt2rEi2RdpT6hxkjghHt",
+        "refused": "nullifier spent"
+      },
+      "decisions": [
+        {
+          "merchant": "m03.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 30,
+          "units_left": 5,
+          "asked": {
+            "base_price": 52,
+            "cap_bps": 3750,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1250
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1250
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1250
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1250
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "52000000",
+            "cap_bps": 3750,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1250
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1250
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1250
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1250
+              }
+            ]
+          },
+          "why": "Final round: I keep my effective 3-bit price near 32.5 (above my 30 cost) for margin, accepting a loss to sub-30 rivals rather than selling at a loss.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "50934acde4894594b3b7318428868e72",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m04.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 25,
+          "units_left": 8,
+          "asked": {
+            "base_price": 36,
+            "cap_bps": 2946,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 982
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 982
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 982
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 982
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "36000000",
+            "cap_bps": 2946,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 982
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 982
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 982
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 982
+              }
+            ]
+          },
+          "why": "m08 won all round-3 buyers at 24.31, so I price just above my 25 cost at ~25.4 to stay profitable while undercutting any rival who raises off loss-making bids.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "f2d1ec3cae03401cad4352b724b3e8fa",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m02.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 26,
+          "units_left": 8,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3498,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1166
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1166
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1166
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1166
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3498,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1166
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1166
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1166
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1166
+              }
+            ]
+          },
+          "why": "Last round with zero sales, so I price a 3-bit buyer at ~26.01, just above my 26 cost, to undercut any rival that raises from round-3 levels while never selling below cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "2136c15e3be44c34862788482fe24736",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m07.bookerbob.testnet",
+          "persona": "niche: rewards one bit deeply and ignores the rest",
+          "unit_cost": 26,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3450,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3450
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3450,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 3000
+              }
+            ]
+          },
+          "why": "Last round with zero sales, so I go maximally deep on airbnb_frequent (present in every buyer's set) to land at 26.2, just above my 26 cost, ignoring all other bits.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "42a1cf188e7d4a769e4e9d6f3424c818",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m06.bookerbob.testnet",
+          "persona": "premium",
+          "unit_cost": 32,
+          "units_left": 4,
+          "asked": {
+            "base_price": 46,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "46000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "Final round with zero sales, so I price a 3-bit buyer at ~32.2, just above my 32 cost, hoping rivals move up from m08's 24.31 while refusing to sell at a loss.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "8e6c06811f5b49bca19534c48e893812",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m05.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 27,
+          "units_left": 8,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3200,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1060
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1060
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1060
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1060
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3200,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1060
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1060
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1060
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1060
+              }
+            ]
+          },
+          "why": "Last round's winner m08 likely sold out its 6 units, so I target ~27.28 final price (3 bits stacked, capped) — just above my 27 cost — to win either buyer if rivals stay high.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "a95a8d68e24641fdb117392ed831f744",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m08.bookerbob.testnet",
+          "persona": "adaptive",
+          "unit_cost": 23,
+          "units_left": 6,
+          "asked": {
+            "base_price": 34,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 960
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 960
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 960
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 960
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "34000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 960
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 960
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 960
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 960
+              }
+            ]
+          },
+          "why": "Final round: my 24.31 price swept all six buyers last round, so I shave a hair to ~24.21 to defend the sweep while keeping margin over my 23 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "f0c4b434afaa4313a16de990b3f4e2af",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m10.bookerbob.testnet",
+          "persona": "margin keeper: never sells under cost plus 30%",
+          "unit_cost": 25,
+          "units_left": 10,
+          "asked": {
+            "base_price": 46,
+            "cap_bps": 2935,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "46000000",
+            "cap_bps": 2935,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "Rivals sold at ~24.3 last round, below my cost+30% floor of 32.5, so I bid exactly at my margin floor (46 base, cap 2935bps ⇒ 32.50) rather than breach policy.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "021bfa683f5d440d9d9e9d9101253966",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m09.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 28,
+          "units_left": 6,
+          "asked": {
+            "base_price": 40,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 990
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 990
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 990
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 990
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "40000000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 990
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 990
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 990
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 990
+              }
+            ]
+          },
+          "why": "Final round with zero sales, so I shade to an effective ~28.12 for 3-bit buyers—just above my 28 cost—to maximize win probability while staying profitable.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "a6bb0b119d7e434986a23f232a2fedad",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        },
+        {
+          "merchant": "m11.bookerbob.testnet",
+          "persona": "undercutter",
+          "unit_cost": 24,
+          "units_left": 10,
+          "asked": {
+            "base_price": 34.4,
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "bid": {
+            "base_price": "34400000",
+            "cap_bps": 3000,
+            "rules": [
+              {
+                "predicate": "airbnb_frequent",
+                "bps": 1000
+              },
+              {
+                "predicate": "booking_genius",
+                "bps": 1000
+              },
+              {
+                "predicate": "claude_spender",
+                "bps": 1000
+              },
+              {
+                "predicate": "world_id_human",
+                "bps": 1000
+              }
+            ]
+          },
+          "why": "Final round with zero sales, so I undercut m08's winning 24.31 with a 3-bit price of 24.08 (34.4 × 0.70), staying just above my 24 cost.",
+          "model": "z-ai/glm-5.3-flash",
+          "chat_id": "c5f2f154e08b4c34a82a707a51538a42",
+          "tee_signed": true,
+          "signer": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff"
+        }
+      ]
+    }
+  ],
+  "purchases": [
+    {
+      "round": 1,
+      "round_id": "s2-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "da81d445478f75bf9b35faf6af440853adb586858e8f995460e0885cafc8d9ff",
+      "nullifier": "baa3fa3d7f29a92b2e569a704a2b48335038454498d2172eeb198275beb3468e",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "26800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "f58849bdaf7e4f2d96a86fcc8d8a3b64",
+      "seconds": 144,
+      "retried": false,
+      "txs": {
+        "account": "9JoQ3pEVBDDUS5ZV3Sc7zFpzm21oBXGhoDbUrsKb5XWk",
+        "escrow_entry": "9j5x8Y5iF7Bnj8SK3wd7yLSZeofNU56HGPcQjyw138QU",
+        "dusdc_storage": "GAqurxRvAQY5nUjYAVnCFW9X6ZPsZCWvXEoLdCSu7pC2",
+        "mint": "64v4jGcJX4Xczd96DpgFWjSz6uHWxwHojZMoASZxNWbR",
+        "world": "GcdHg4XD48skZ727pg7wbReWpLN8CnuWhfTq9E4Vqpg2",
+        "verdict": "83VEiq8K1pKKhws7YYUwjFB2QvMFD3tU3M8zchA95nrj",
+        "receipt": "4CaergMcJmCNXjCfuYyQxTvnyVwiU1TrEqrZEeQP8Z4h",
+        "escrow": "4vJgKJhM2RBYZQxAEqGPcHbsiW9SQTLWMG2DPAZbc1P",
+        "settle": "Eh9EbiCC6rFsU3n6wszwxWWe5GQqnfGTs6gqmPphDJr4",
+        "replay": "95hwjGu3qDo4G5QybzCSccfKrkjXk8hJcGM9c1vGL69K",
+        "sweep": "HCWoq7vLYm7gsrXwLmVRNqvKX5vyKN3FjYtUFQsfFa6H"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s2-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "96832f79fa0c57572ca968b41d373fbd5ace10a8c3d557e3854ea0518d85d62a",
+      "nullifier": "0323f88efd1fb713b102f9b9781022f6e56c8950eb1e1d772a2491454bf374cc",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "26800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "58d295a731de4a24a5ba4b122eb59fbd",
+      "seconds": 140,
+      "retried": false,
+      "txs": {
+        "account": "6TygJrQbWsYwcYpq7DKosgwXXQPVYaWxTrr9VPbwoNbA",
+        "escrow_entry": "CoZGXo5zGcYjPgizKuS2mmmfZdwEJBcimwQUgZ6g6ATE",
+        "dusdc_storage": "8jtWkTLc4fLwTXmVaHGQaRWTWv61FEwdY798dGNUJhUF",
+        "mint": "FUXTGh34Rg2HHV7tNXA5Yrpn16Mh8iATqkm43KrtMN8P",
+        "world": "BK7P1i6pa56WVQtzd4DWuNmkyaa3G4fMyaMB8eqqv2x6",
+        "verdict": "6uSbbVFGZATitCxnpD11Tt94sdjZd8F55nneu2iUkZjk",
+        "receipt": "JAKbeyZmxg2ieLHK33u5cGzeSFf1cGM4eN7FxMzBSPfk",
+        "escrow": "8HmwBWcJUYjJUpY9q3iCh5Zt7CYX1NborBoTP4xcZLTP",
+        "settle": "6C2Vm83S1iLceVbzKFyFnLJ5jpwXMnFrXgLj1RvQyeyq",
+        "sweep": "3dKYeNq3aGHnTVpW5FE4RDA2LTeNYspGfQkyGygCZ33F"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s2-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "6a041f50c4e38da8b02f171c26645225cc17b5793c08598a22e23949cb983104",
+      "nullifier": "1df4a048a50e416260f1a79b22651f815fe714fd668065f995654960e983a83f",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "26800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "a1f182f86b3d4a6b9f65f615aa18429e",
+      "seconds": 150,
+      "retried": false,
+      "txs": {
+        "account": "9Wn53veZqipYsT4XgS4qBHYT258HcTYwRbBMkDBGzdz7",
+        "escrow_entry": "4VSVEDGs7UFLRxCQuqCLS3wqTXqXbfSb9iGdBgZdoHj1",
+        "dusdc_storage": "6mhyyVbym7HckjffjD6AP2v5xG1ts3urv8jhgmiuASZS",
+        "mint": "Fi9Zsf7tUfATyB2sy6RcmFVk4LqJp4Lc9S16f1tFwBF8",
+        "world": "8k7frF9my1V21usWQxdEhg1SbDgEf41kPZxaubBBqpzw",
+        "verdict": "68AADsLbBN5EWB7LWwAfAxhjQnbjsceusRrwnYoY9XY9",
+        "receipt": "9a9cg7iLmCPmSkdqWpY2mJNeheH56UkUgVPbQfevkPxQ",
+        "escrow": "8VJ812bhrWAwjzTS9evihfsUPQUdwMqAEFd6mp3xNBTw",
+        "settle": "DjfWJwyYPdsRCUwwUWyRfzH552P1hkfJiaRUZG5qWDib",
+        "sweep": "CovNbUciA4jt33xCb49Q3B7DHqG4Gny2RX9oEsW2Q5W4"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s2-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "88335022e1353ef3a14189e4dabbec034cd7902e3507879d3f7c532c222d63cb",
+      "nullifier": "e4c4c8fe90bb0dc9cd66534670d680861e6f47aa05d23a5bb97661f2ed55041c",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "26800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "4cb19eb54a2f49f48ab808d78708e0e8",
+      "seconds": 140,
+      "retried": false,
+      "txs": {
+        "account": "DtAsH9r7DybK2aRPGqULvFhFvLncAhPdSsPaF1uvqHa1",
+        "escrow_entry": "GBHVVZaKaQsyh1Fb1Rtb7uhaS1LY6NAwrrjmTyqnjQMk",
+        "dusdc_storage": "CEog92LFimPr7HVuGEqFbML5kPDqonBquNzUsLXxCemL",
+        "mint": "AW79Zh488mZGH6g4ydftFDr1apQUk9LZwhwVNB6ZNCAh",
+        "world": "HgNJkXyRHZ5k2f24ZV59aN3QXqv3VxkaDb1ngBbHiQgZ",
+        "verdict": "6omLjUVf4HfumSySnc8nAgKNxYHcRoCwREgyKeUbmKBE",
+        "receipt": "5JjXW4QA5WQXktSEwVPjroa2garBpvYsyKzaLYao7pkS",
+        "escrow": "68MajDCdujsbHEeQ83vWRceogKjbUTFRxnG8R3duQ7Sk",
+        "settle": "BmgmhB9MTtU6LS38guFzkExauq83eY2KZECgnAtkPQDH",
+        "sweep": "3v8WSBE1zrV392sRjQBKruWU3SPovcN3YAG6WaPBHgqH"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s2-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "5df103e44f775eb4135da709cf6ed11873bdf154cdb864ef567265ca88c2e0c0",
+      "nullifier": "126d6a4c149927ef585a1ca1b81b80d3ec9a103ca67aa148b4a9c073d98d875c",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "26800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "b5090472ca6042fdaf7deab83a8f0de2",
+      "seconds": 142,
+      "retried": false,
+      "txs": {
+        "account": "AiabTmiTAMaw4BwUowkZRAujNJdz8n3VDUiKkP6vLABn",
+        "escrow_entry": "DTW6Ub6kd1CX1E5xZNzV94K4A3JnktELmrPhRsxZ5ETv",
+        "dusdc_storage": "8pu5TfX2za6j3YkqBAZa2z1DrBi7BP8CxYYEVRGgUe5k",
+        "mint": "6Lj4vW9w4MgD4sNPxhKAi2RMN2td4HV7qkP4Wj2eaZN7",
+        "world": "2T954ec4Zf8FsdLzuyCFoQXDtm6ruRKJYKSZZDTbyYEo",
+        "verdict": "7S4tZGTLqibPtfEfsZPuFUY9Wh4UggXf5fbFNCyE9aWB",
+        "receipt": "D4RC1BJSv1B6rQpQZfqCBKMz7eA6sm6KpB9AbDLkcxn6",
+        "escrow": "DMjCuyZzKM3pMZCBERnBQxJvwyg2fgv84A5S2K9Z146U",
+        "settle": "ELGGkA57pc1VTsVk6UsnUCDyPnaT16HNZ6xQBDJFG6uZ",
+        "sweep": "Ax6E21rJ8EKovPCgY2Li335WGbpzCYyafvhXtrw3Stee"
+      }
+    },
+    {
+      "round": 1,
+      "round_id": "s2-r1-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "32ef7dbd755cb12648782fd53233f32d3c40d211c871597ea56462a7d2c209c8",
+      "nullifier": "25faa9f6d79dba316a68d4fb20ce631f18d8ce6f6c3fbda714127d8ae5d02344",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "26800000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "6c8bf09f000245c79993b9df07aecdd3",
+      "seconds": 142,
+      "retried": false,
+      "txs": {
+        "account": "66m8jDX66p6yHUbKT6EexPg9UKgG3T5W2w7J1mTy127X",
+        "escrow_entry": "4vJsdMmWuyob5Z95Sduw1jH8gKUZLZw3khvMW734pvFM",
+        "dusdc_storage": "CBsgMxgTx9zwJvvqr9vJXnpYBf6V31q2wNuEJKP9tnJs",
+        "mint": "ErYoVNQVdHF3QcoFMbhmVRx1mCUA127rJf5D3trWTst8",
+        "world": "3ASKU6ULELGrgeomsJZSKDNLwDhnxySDGk65KUexxKfN",
+        "verdict": "G8kvFLNZE7qRqn4njpm1DwzUzmygnVsfPNhCSccrxVgG",
+        "receipt": "2b2Eh6NjWhiSo3QCgoTSf5EAznvYwwJHkntUjNKBSasJ",
+        "escrow": "CEyHdSDe7T7wxabTbg7HYiefEPB1RKNHtQ72HSCAeopX",
+        "settle": "382gw3n9Us63PhYjbdhqWckhevgPec7nnn55Wtq3Gj3Q",
+        "sweep": "7MVBSGPCqp7xgZ5yi6zJmDbidhp8Va7wBkBUmskPrr66"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s2-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "49afe75a4c424d66e5817f16a57d7a6909967c05738fc6caed6fa9d338373143",
+      "nullifier": "d541be2b93e67c585260287f8c45a20d55483ffded4fd99082c227f52096b5bc",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "25550000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "8a17240e69a5446ab93e0b5af3280367",
+      "seconds": 135,
+      "retried": false,
+      "txs": {
+        "account": "EjcrvYTkPpAGn2NP9LEECdbM4gAaoXbQTHkhqKj1u5YT",
+        "escrow_entry": "5J7ZAdwkzTDUZnCukHbhn42U43EgWtYvS5HWFgbjVkz",
+        "dusdc_storage": "8EWU1w6pzRi5xWTEDvjxvWCuyhC9DkeWcHiaHfetNQ79",
+        "mint": "3NxGTqdmYgyZnkUAab2wm1CVgLVR8Jo16NEpMi82g77t",
+        "world": "8jqVYNgz4RDzP98RUVqjrbvvrpKApQjzHbR3Zh2EngCg",
+        "verdict": "6fy893mPV4PXcuELdFzzwFKeqp4yuwdou5hRSzNs6ZDr",
+        "receipt": "BNE9Qx6fSRSoX7maXRbuniUVtYHNk7jnCQ2ZVCudcLYR",
+        "escrow": "D3aDiogWU6YWJSp6qvtoo6Nz3rwE95tMjpSyDExUVs72",
+        "settle": "H2PxxSoCYNGJPUQksUg3sKGYWREpcaaZ9JgAjG8zphKX",
+        "replay": "D66WjS2Hej3v6X1TwHE5rLn59ExfnrFg1NsL55cnRWen",
+        "sweep": "8sAYKs51XiPWCM4As3H1y337Mv9YpN5u4NhdJiX82koF"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s2-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "5c9fd3182cfd4ea84c552019be2c00bac4a98238da184d24e31e8be81a638164",
+      "nullifier": "626b757f5f15188add6d2353dcabd7809e667d51b1f63bd4d483fc595756f0dc",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "25550000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "4007f5fb1e8d4f36939782e8d83c6af6",
+      "seconds": 130,
+      "retried": false,
+      "txs": {
+        "account": "DQvWdxyBbr6bjkpyVdnQCuMs8xcjbhrSAvsG1ZgPgvHv",
+        "escrow_entry": "D1vdDrWxyTMCY5yHRpUnYs3nAUe3sqT6DwiSfX4pAryu",
+        "dusdc_storage": "GpxFd7EfusLVZPSo266PYGkSmQKB5asTgT7iaeR8gYjn",
+        "mint": "9yU8ZcRdYdCPsYS6taovCEsDNDSfYNs8i4q7kPrzAHtM",
+        "world": "2V5TcgJK1sjSwKPZEgeiufdcMnTD78F13QrLnSQnm9GT",
+        "verdict": "8qb91vpRej9nmRaukzv2gn25akKer3QxfGNdJ1PjXeUw",
+        "receipt": "H578ZmnEYwG2LL4NcEBCMoJtBruFNSABzuWyYvbsufwT",
+        "escrow": "5UGMGJqDFwdfV5kP9uzqPgy7LHMCeiCnav7SDpqVv1YX",
+        "settle": "EvAssgfBmCLDzkCP6JJQAePTaEmkLzBDjhdvnYnQmxNt",
+        "sweep": "3ByWtdwmCoCzPeXW71qDK9dn9QAf63qCgUQzuaPXR8gJ"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s2-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "ee4da6298cefdf665854b152156637850689ef3fccae985e97c5a86acb116604",
+      "nullifier": "f4e7ab7a222ef88b623318a7a0a4521bac2084402d0220be179c850bb0de5f65",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "25550000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "d04699dc04364c8793cb6036bf163f39",
+      "seconds": 141,
+      "retried": false,
+      "txs": {
+        "account": "A4iAUibfu3Vvw8SS8ocvJhL6SMTfatwtUxAvyJ22HYkW",
+        "escrow_entry": "8cTaUjcBgPoJYpXfbctXQFfyPMaUCFsvmWHrWLdCrvNN",
+        "dusdc_storage": "6AaA11eENaXYGtbbepo5bV9VBmC8AndjVv9X1cpA22PH",
+        "mint": "9RBreLMf9VFXJBa1ePL4eqhakbhF5pvtC8Wd3xR4WZEp",
+        "world": "8QjWz1nPkyM5q9Y67otRtfWRZexrpp4gtvW4Y6ErfGzV",
+        "verdict": "G6T31uCUzNyVBxqqVpGmxpxFuQdTkSjuT8mjEYZHnxL8",
+        "receipt": "7fnGF3fmCdNDuSU4ebyMdEhPbZYDpQkuVLMnhF7LB5RS",
+        "escrow": "7zpwJavwiLgKeJAbs3NdUsDoMexQyrTNkekXDYt3WnYH",
+        "settle": "B8Bp8jTH2ZZxwhBpUEz34xBfALSxzm2yFLVhTScq7WFS",
+        "sweep": "44LqAbcta8PVUCQTUHafankJaroKBhyjHKnY8CSXKV7a"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s2-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "6d89c08ecad959e26c2021edb29de69604fd24f4f8201330a476426d724d3772",
+      "nullifier": "c36f5c8ff4d858179f76efea58de10cfc12cfad19580295280b469759a5fa135",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "25550000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "6b5cc4b7b346441280ba6a42f1017870",
+      "seconds": 137,
+      "retried": false,
+      "txs": {
+        "account": "9usFzG1wQfJXF8EJjcFqjN6JBFfkKEsFWbmRVimRTotG",
+        "escrow_entry": "BpemFfbXuaouqkWen3VjRMCArwLMzcN7FGUyGYdeJUDX",
+        "dusdc_storage": "FFshM8Ao2Kuf6USqLpFnGSgEZEektZ65qSYQjrZEQSjJ",
+        "mint": "Cconb1uZwKpaTbv4udGP9bUCZ3NvmL8oFKDkRcATicwk",
+        "world": "188yqiy9VvbnNW3tbXGyB2CKAvspT2iz6TX36P6KJjC",
+        "verdict": "DwZHous2t5nupuBahGqBW3HQUSSj6Q2G5JgAa3MmWNYJ",
+        "receipt": "7snT1hUzwfSL4kWt775yQ4CcbYiDiTjoEuB6fE7UR5XH",
+        "escrow": "2CwDigBVqyD83nhc4J2vpuDGFaeJUKSU2qJuDpqBDHdf",
+        "settle": "DQ3B3q2SBTh9scv7QP4evTqrv2ynWwb168Nuxvy3J8HQ",
+        "sweep": "BgX1MB4Am1vzn11UuVANSxKCxwgAA5Lkymgg96AcEY5a"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s2-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "65cd25d85b1b16e5e6bcb6e39f5628567d31423acd811621f6200f174fe208c3",
+      "nullifier": "4990c02887adc542c474da340f6746d5277ea2bbbd02cad024397d5c698ccb39",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "25550000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "50aa3141c5dc4963ac66d543e8251cbb",
+      "seconds": 139,
+      "retried": false,
+      "txs": {
+        "account": "Be7JZSHxBaE5V3BGjHckeL1PzDLxMHYUTRqLML6vGFdz",
+        "escrow_entry": "6Lhwxj3eh5oZqcqMXaXXwSeNesW7KECbzt9mGoedtKeW",
+        "dusdc_storage": "5Ro63X7ob1TYyTfmoKLGjp8aBszS9oWQz988ov7reh4C",
+        "mint": "Huvs7Wx7sJks2UQ2xHYtuPKtFAKmrmC2CiiYB6HJ2BZs",
+        "world": "6B2NSXAfJci87ZaWpyKF8U9DgPVuc7GsqiBdF3cRM591",
+        "verdict": "6Tf7BjwGq6jTAZ5PR9bj6t47JdQBEDNE62wdCWiRQFKB",
+        "receipt": "AyyvGShci3Xm9SSZi2E1NqMtkseEhKjVnrmXrQYEAT1Z",
+        "escrow": "5QQ2jwuzAxi2nqVL8o5CAk6QWQXtJo1jP4VthxmKeHpr",
+        "settle": "Fu7rb8LAoQwJhiT3xHjLimMvvc1tuudk4d8NboCZ5cE9",
+        "sweep": "AYWuYoCRbGs7c19tWJwRva9YGirLeNT9AZxHGM3127DJ"
+      }
+    },
+    {
+      "round": 2,
+      "round_id": "s2-r2-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "a574d5f7a53acc0c0a16af8addb82c867834f91d83e2695156700a86b1a64085",
+      "nullifier": "ace434984acac05d05bdb600ece9b2e82b608d69f465c2bedfa1e2d10dfd7b2a",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "25550000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "3bceea88a3f741b5952b56503572f1ed",
+      "seconds": 138,
+      "retried": false,
+      "txs": {
+        "account": "ELDLfdPs8L6C2ymtutAE6ynd7LrKQKoFadEoirBfbcut",
+        "escrow_entry": "BLZW3LyshVcg3ezTVBhALizkpiCR2xtnaqVApas6rwAc",
+        "dusdc_storage": "BStu3bMwstusEzvQZdhhuea7nzK8n1YfxYkygK8Sqasv",
+        "mint": "31QNS3AUYMhHSu76ixrGpiqHJrYR1rZKzKi5K4jnZiuF",
+        "world": "9W9RjV31j59KfjkhAX6P671rzfogFesgEVpATEnqkFeo",
+        "verdict": "E7KDhKcjZH1dJLspgMGaUYcP5fRwdNhXCRjMuM9oevma",
+        "receipt": "9s25L7f7b29e79c5e7m9xTVxBKFSV7XRoCdE18TSspV3",
+        "escrow": "84RpSrPxxQsyK7tKS77KSSzYxmRC6bCP1QfipStj1LPZ",
+        "settle": "8FVkqEy57p3FtAeFgxTTM9W2eLksAdbd8Y2AuWurCL67",
+        "sweep": "33CKK9J2kTvm9MfCEXcAbrv8iwNyLmLoDpdP2TB7GXx4"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s2-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "5554f6a153e4b87fd238b0afc3c45a077c5012dc0624dc6019c08776e6ef1294",
+      "nullifier": "d339cf190ae169ef2adf665427e6c1c91e0f6a64f3f1ec95cae342d26e85aabc",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "24310000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "5e1b4bb2d33d47d490e1fc90ac163573",
+      "seconds": 148,
+      "retried": false,
+      "txs": {
+        "account": "564j5jzNqGo2DKqTcEdHQs6z89jTyS9Skv2Xk65V47Xz",
+        "escrow_entry": "H6p1cJWqhHu14g818QhTMSCunCbUqLVpHxwgSDNGn6Q7",
+        "dusdc_storage": "HNVzCx2cEfvH1yZYvYG4YE1kcqsLn5J8ibim9YXN9Pd2",
+        "mint": "6AUuYz8RXMAE4okyrmfZHJdLeiWhJbbCc96FR9vmMjBo",
+        "world": "66gZvzKH72xysWzkMfY15A2iKsXUkGcXmJ2GMDz1kEzq",
+        "verdict": "GXy5qTj6Xce3J9KgrfCtGFmwR7A8nhg8PECR3wX6eNuL",
+        "receipt": "3bWXWAURh87izjWS9LceRz51uBE143vKKDFkUjJc2bvv",
+        "escrow": "538Fz9opBEUc2VLkFKosygwq89trJqsHc6RyinmqNvhn",
+        "settle": "5nERqs2CH8mBNAh2gSosoAhw6St8HjWuFjbFAbm7SzSw",
+        "replay": "6NgdHg4QZsWSE1qHjhydBgVC39f88LbbeNAah7q1vEzu",
+        "sweep": "HEekzVFsEtZxZWf6VnLvC6VHD5vCUfJrdyWUBsaFbxdE"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s2-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "8fc6410c67db05f514c992fb6165265710cc7d6f1421fe86df76c30cbd0e2ffd",
+      "nullifier": "fbca9eaa91753794930d842f48b9c78fb606799f9e72a19e87947711b3672855",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "24310000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "59a220a49f0f434f9628996a4b72fffa",
+      "seconds": 139,
+      "retried": false,
+      "txs": {
+        "account": "7h2xNMALNTP31RyH9Jk7uiavEZep4ipkHbhNaxKrHgQu",
+        "escrow_entry": "BSFYFMMhTB4GhdnNrjm47ZzUASjzu9ov8Nr95vp985G8",
+        "dusdc_storage": "EsFa5VsGEDdkFei9Lo6QmDFo83wiYrjuRYPaiDSHmUmx",
+        "mint": "HbCyyNXHP1Mu6DSE7utgVwtxEUbxieoUDwiZPT8iuQp5",
+        "world": "FQtU8LN3s9Pga3qzEULQGNwytWQLMixjsukvYnQkwKw1",
+        "verdict": "DisLQMxzcrTC98Gq2HQQFKZr7bff9bgmYzUDFdhhjwKv",
+        "receipt": "Ew7BD8CSKPd69VodWrZaCknGU3WNzqLTWXLP64w3zKQ3",
+        "escrow": "GN5Aja6BN4WS2eMt5Px2pQkKj8fWLqYDGYie54ZQV9vg",
+        "settle": "3Z7i18HHXuNVbtGCDnb34nALDpZVQDUkWvBwjSFmURq6",
+        "sweep": "79xiaswh7k1jF9Zz733ubQwx1dw7zxpviRG9xq4dnqXs"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s2-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "dd36e55287b5b98cafd732f9497ae152c4da17cac05d113dad7c69077efb17a8",
+      "nullifier": "4287bd2a71816853c34bc66e7ea074c12269666242c4ee84230f327effb7c9a8",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "24310000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "9538268ca1ff4981b5e96bc17820ca59",
+      "seconds": 144,
+      "retried": false,
+      "txs": {
+        "account": "CLu7TdrurAk4RUbUo5F7gUNp79jWGUk5VXo19YEBUMmi",
+        "escrow_entry": "FW7dHVSn9azY2hz4fnNX3orF1DTkctLKDUbq4SkRT6nK",
+        "dusdc_storage": "83z4oznUQhg9iWCEpEEP3BMQSt6eMCBAX3Wo63vsjHqT",
+        "mint": "B76VtA54BDUjbgeA1ztm3LZZLa6fj7tqoBgnHU5YmkTH",
+        "world": "9Y6U9j4Eg129Z9DzUG1mvc7yNGrtsKzctQ9YZefYFq1f",
+        "verdict": "f5AYWM5hKuPjjhosmpXjGEoxJytKU8BXpuyWNiptjiC",
+        "receipt": "ARUfhijQJKW9StX64iqQoKimfZSCZJiGBvbVLeBVMMFZ",
+        "escrow": "7H3AyhTHPFwqpm8rGEc2KXFrYns1FZ8XuQVv3LkfErc8",
+        "settle": "6KBYsKzrXn6T17SakGtYV645dHybnyMamqtbLCh3csxU",
+        "sweep": "GBXZ9uT4egWdxUULmHcxo9KiCJQP1sMTy8CtBNRXwMt"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s2-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "24cf171a197f5ee07694d35ce947aef525a3d30b2504e83ea713a1a1b44bfe2e",
+      "nullifier": "a3d7b543a25e8561793cfb1b176235c6fdd6f7a293381cec0b94a6080f498c4e",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "24310000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "af969dff372e42468bf62bd9a2c3dea4",
+      "seconds": 123,
+      "retried": false,
+      "txs": {
+        "account": "HGj8LjpG9dRM2LRy6BUf1naeuUGZpK4rUxacsA3K2TC",
+        "escrow_entry": "EeS3skGQhXgHhMMAxqjFp7iqYTT8pJSTK4dHCYfRJmsc",
+        "dusdc_storage": "J2HYzqzrN8Hi4pDoBaKS9vFdbGdwGwt467Si82d5DSvV",
+        "mint": "GbvxvBUFnqkCZwYLPcf8i2zQh41rJ6JaQ966AKEqwV1d",
+        "world": "GSGJZ1DnTWEsV8XqNdxS9NZW5idNTSUjh61Df7dXYoUP",
+        "verdict": "XZbWs8ZgF69bXUyZrRtWHPAswXnaJRU8xdPCvihCfZ6",
+        "receipt": "7mUjRPnBcWETFsvgCgEJL7ZWwUpMdexHLXG6gCZHoWeL",
+        "escrow": "5rVffwBnrrSVS1FKTERNm1roaDK4PWiTbvNmSM28V8Tb",
+        "settle": "6KtP8qToLWasRRLYcDPE4hReBn8sppwRcChdCsugAnib",
+        "sweep": "9VmKuvew9cXJoPfc68UYSAHG2LG6fg828Hcjndgb17is"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s2-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "1f7fdc82a6f9b6234d87f5879b46fd12aeaa19c0739693545346b666eeb8bb2f",
+      "nullifier": "ecd5f4994aaf474dcc2ec3aae958b819ec1f0f78b101a8656d79012b85d11e66",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "24310000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "3ce6d4ab0ea04600bbab4b3b5b809ffc",
+      "seconds": 134,
+      "retried": false,
+      "txs": {
+        "account": "GMEMpCX76k2BsDigVTi29vJJNY78JoDHKBT5aHqzVi58",
+        "escrow_entry": "D742hXphENjR8tM6tLkZbnxvAwH8AEbUEG6jz9nP4Pe2",
+        "dusdc_storage": "6nd64wNughrDmN1CA2SKmceSZJkjK74voHXfGSXZMogy",
+        "mint": "2qWDYNdFDdbNk1mtsMCrqkS6JhnzVk5JJpL5FCNYzaLz",
+        "world": "9yovs7ewo3actXwxksHTjbZF2bhmZYQP9yWe5VWq1ZWZ",
+        "verdict": "GLnUXebdupKHgPPNTuUL4fdeetQNw4PCdfgVxtf5Nqzo",
+        "receipt": "D14kBQeMHZHb3haoUUGEQaRVkq5Pr3b9QuKjMwtrp8Nm",
+        "escrow": "EK1sofoLCkSPYR1eWr5d8Cz5NfxzLmYU17Mr9RNJvrb8",
+        "settle": "ETCeCZUCjbonFikU2bzzJdZK9A3AaiiyLeL1ksnDfZyH",
+        "sweep": "CFHRVZCGzMnsDZbdQJwqNaBP3z8jHxKYZsUWVXbhUSAJ"
+      }
+    },
+    {
+      "round": 3,
+      "round_id": "s2-r3-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "69a77cadf61943180c79b4bcb0a29211fffc4084ad2e9581c604cd117e81b235",
+      "nullifier": "cc3d7dda77d861407769da97de46797f0e5a6c49cf29a8d3f50fd20affa8eb8a",
+      "merchant": "m08.bookerbob.testnet",
+      "price": "24310000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "4a5b7c6d4b6b453ca218f0d9dfa02b5d",
+      "seconds": 137,
+      "retried": false,
+      "txs": {
+        "account": "CsxRbqLosi9uPtyMs4mLzETT5rjx2FHCg3HiDiexMEbA",
+        "escrow_entry": "CimXCUQpcv96qB56Nxxqsf5GgujvHtYpGuvKcfBoywUa",
+        "dusdc_storage": "9J77RE9EGgx28hHhH4EjQfFbqFKuU6887ehZxcNngP82",
+        "mint": "FZedJrbJL4itsk8UW4NgvFds3n1yL2TEnskHNgR9iaAY",
+        "world": "Ao8Pj8Pps668bVkiHw2djG5aSS6LkWcxBnQYdGrYbfpC",
+        "verdict": "Hj7B4pKr6StfmzKCxG4qcWWynmW7WTx56rNhfTKbZFu3",
+        "receipt": "7QJqbyTtBmoWiaGG6XYktjUe3ZMbdDyDKE6Uo1shaiZ4",
+        "escrow": "4MYih9dzVPmCfFFey7iN4xD5HUdnu9TnF9Wcb79zozVi",
+        "settle": "5qm7QHWJ9taRJKPe7UFD3ZgqJVBDVR1xLaNpBne9YVrq",
+        "sweep": "e5ipJc9UJgHkBetw1yEARyq823wUt7WxVXoLFgDjXWA"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s2-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "fbdde3472f2829e87b1d43aaeb2c7775c0ac9465b15907f3e4548f5794cb228e",
+      "nullifier": "21d9f1dd67de640de87259be698c105c662581d813e7446d45d29db5072606cb",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "24080000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "8a6b9d76d20d40be8426756172533a35",
+      "seconds": 142,
+      "retried": false,
+      "txs": {
+        "account": "3SJGyBWEUfJxMA467HHBtmQmNkw3kVsXPzKAtnGg5bD6",
+        "escrow_entry": "4qMpZgy199e9kpmUExdtzzq5TgyZtfWHEiDkcpuYADyA",
+        "dusdc_storage": "5eNeeQepgepRaNLsi9NFWDYnkP7tmmRopMDzsWAAU9ci",
+        "mint": "9RAePmJ5y1ccU7gTm2cJWpJR4df84tS9BxjjkLjnDFb6",
+        "world": "w6C7f5rwJ9VrabiuUCRmcVxGCx9bbT2MvwdaZk7th94",
+        "verdict": "Fd9fDdb3QMzeRF1QpkXCusnLjBBVpQ2rUdozrFiVwoaV",
+        "receipt": "C35jWsyfFdkcbzv8caGw9gSNcq6Rvvyef6tXt1sR8WTF",
+        "escrow": "FK6rU1egD3nE2TqqErmXgK5JWWNQwbvwyK3xUWPtUXFX",
+        "settle": "F4LPyTQYQkDYUb4HysiTuDc43KYzKgnEWoimXV5QsM2Z",
+        "replay": "FKM3q66GpToqoUNmKksCSDbREt2rEi2RdpT6hxkjghHt",
+        "sweep": "D6uWdnGVqJNXRDRjdbpcHkRJ7XD6YAEpRrtM5QoSDstt"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s2-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "14ea01a0275a0442fdf534ef165a89de37ff55ecf0413fc60d98d98a4ecef5b3",
+      "nullifier": "0c7133dd811e2fa13ae3412190754011bf43fb378ee1768d173e53bc2f7c86d0",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "24080000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e6f93c330f9a4f7ab6d5fe2bd8516106",
+      "seconds": 132,
+      "retried": false,
+      "txs": {
+        "account": "Dj7trRargXiTpwsTvaAAjNKpN927iXKbJb4n2myuVxW5",
+        "escrow_entry": "65HpkjtRsgTxeC9cLmbTTajnzbptdGMsHtoYjP8yNfbQ",
+        "dusdc_storage": "C3Un6EGtPSFziCmyod1CfNjYvR47DvHtLLf3AEoRf96m",
+        "mint": "AJsRb6soHEtTX8huQnuEDomVUGQrR8QGMpHLxp6P1dA6",
+        "world": "AK3rtHtqDdaN74cCweNpheZSQc1LSqw6hvXd9RmUSyWN",
+        "verdict": "7jUK1HaFphVPYyFx8xquLYxBumUm4hm1S1bgWDGA6vKp",
+        "receipt": "7p4t5WhQFTQMeL14TC4jPSYjtLmVHZuhBQWvUiGhv7Bw",
+        "escrow": "8x9qL5J3ruuGup97Um2v3R8yf5yqbvnGWS8hqw4qFjWG",
+        "settle": "5mAfGEBz5rhZexTSofSMwXtWvXdnrtMy64GjU79gKHi6",
+        "sweep": "CSo1QomEChYxgDXdEARxSekRiFYNPwrPqYu6yBE4EiXv"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s2-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "07b6e32d3e204594fadb95a6bb613da692d8b90ea2bf404ec709b51176956e58",
+      "nullifier": "ce63c8206759e7f16974a4fa6113ddee8a5587b185f82ac057025311963b6e47",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "24080000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "96fd9fadb72047119096bb4f729c7682",
+      "seconds": 138,
+      "retried": false,
+      "txs": {
+        "account": "Hv3uqGLzrkkue5FnM2a2aSzcWnbAz2RKS1LHee4HiuKy",
+        "escrow_entry": "HG5gPFgdqUgn7cFYgikYaMrAP8nbwytmwtEGwM7WCApD",
+        "dusdc_storage": "3cERrbk2TNbzxsTeKBMQUdYYmuMZr2PZDXHrSPLTkqjP",
+        "mint": "26ghJQUGoaz6DXJPr4YfCLs5w8WzG4GbMby921yys4XK",
+        "world": "4xE5ztLkTwHcWSBADhL8XWLaQCdZy8zjhVKypPr3fZsa",
+        "verdict": "2nUBMApZA6TPjJfn6Nbp3AdNRQQQuVExyuxkJjNLmoaP",
+        "receipt": "4bWCSJKKvqwS9PgGXMfFPW5uFtgxvGtmwNf4BSzT16Q8",
+        "escrow": "AW6R7p5cS8twzrzDGwfKY258tRbj1MukBgWKQrs4UPAY",
+        "settle": "GFGE3urfrku9fPuBHn8Wcpg8pDmM3soR5n96uj63d22B",
+        "sweep": "mGhJ1HTAcekvrAda45HAxDFJokhEzqg2k52M6SdvWZD"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s2-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "242047a0c16e11b4a9e24ae8e8e929ae0eb5f6ec87c8c1465bf9cda74698a420",
+      "nullifier": "1d7c4a1e36d9c688bcd390c3534fbde221a5543441fbc7aaf81de16533172fc2",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "24080000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "59df3c4b2e3f4dde8937c40bdba75764",
+      "seconds": 127,
+      "retried": false,
+      "txs": {
+        "account": "4ZrAe2Ffdcr5TH24p2PfEkb9E8cLTHQEuroK4TyKGz5E",
+        "escrow_entry": "5XbxBepnjTmAUiNnSWK6GA9SUwnY9nn79H7xoacKfye7",
+        "dusdc_storage": "3Py18ZK1Q4jXifuh2zELiWYbpeXH6gCyYBLQUT1td5Hm",
+        "mint": "2JTQaZzsmQS89hquqXmBRy3VKdHPYRDm2Jjt3cwHEqHP",
+        "world": "CgiMqu1sXwqCZzfZjCxXTDehvWoYm9pf18LqDkwhrHaW",
+        "verdict": "JAnzins9ga58PN6ztGzhFLGDJgBCo5PZLCojZEmnEUjC",
+        "receipt": "G7tYRy4PGAKaSqZ43TfJrKuznmhqsudt4Px7a5ienTRP",
+        "escrow": "9GGwzxVb94rPoiZrrUafAZySD28TpWYPasQzAyKHvkvA",
+        "settle": "8tgs99uZn3NPhJUQM7hG3qVvZBiBQSywWrZaTo8hCRB7",
+        "sweep": "JAgZpikZGzvEfYezE1T4pAWEzvcJhGuZR7GEFfHa9LNk"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s2-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "frequent",
+      "predicates": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "buyer": "50e3aee3c7724270c79ba561a921a5c303739ba70ab30837ed3d158cb4af7cd7",
+      "nullifier": "94a37c513a4088975be92f3d7d57f897b1457c3b87fb835344bc2b7eff8142ad",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "24080000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "e22ab7125ad04cc19aaa6746b5d7d60a",
+      "seconds": 131,
+      "retried": false,
+      "txs": {
+        "account": "DKHPQqaSZFBBpsXGULYcFH9bMcf7zDYcVy7gc1kzT3qC",
+        "escrow_entry": "F5no1KtMGvtBwcGFSNbr595uRH1ToPiEQWLRq3ETxPX3",
+        "dusdc_storage": "HGab7Cv9P7hLxoMfKkQ7b4Amcz8Xts3pNKp6cCLefxF6",
+        "mint": "9uLmz7tmKGHPDQE4ZjEopKNRFsgSLWA5y9dQ7ok4U4rm",
+        "world": "64Tbb1NmbvwJQkjV99SReSV3tpU5XX5NgdrVeWLTVbK6",
+        "verdict": "H9xfMceRVCzBDDMXF5K44Peg7nswxWhgLcyALY89hRFj",
+        "receipt": "683j9bWiZyZhzqmG6Xbu9vcknLKsnLzSd5DB4KnVGc7A",
+        "escrow": "B5rvC5bcv6AzfFqkKoM7rb88sx5FzkadSp9kucU3VD2c",
+        "settle": "GMSAfH9qeuAuM3BeT8uADSSLKhbvWtJDargYfARJHRdg",
+        "sweep": "5nZmepr1XK7YVhLP8YCcjxXYevgA7ZpLwSy8P4nXpktT"
+      }
+    },
+    {
+      "round": 5,
+      "round_id": "s2-r5-hoodie",
+      "category": "hoodie",
+      "bit_set": "traveller",
+      "predicates": [
+        "airbnb_frequent",
+        "booking_genius",
+        "world_id_human"
+      ],
+      "buyer": "218e3a824f466f427935277f1daad0687ebfa89a8d72ccc643ae26df10062f0e",
+      "nullifier": "3387db8dcbaa7e3f3665ff981085e9dc10c147ac19a2f495382701d3a5376083",
+      "merchant": "m11.bookerbob.testnet",
+      "price": "24080000",
+      "model": "z-ai/glm-5.3-flash",
+      "chat_id": "c0c46e6557464149aed05c4586d20086",
+      "seconds": 132,
+      "retried": false,
+      "txs": {
+        "account": "FW4EPutxG88TFkDP2PnDbTmYY4VdhHr43t67wSkijk8e",
+        "escrow_entry": "FYnqYJ5yGRmAGhuwsBw2ttfsHorWG3ZvWNPMX4f1YSug",
+        "dusdc_storage": "67MAGR11Mwrw4BbY1Kbnxr3KCumBBuGShzwu2GihgCas",
+        "mint": "7ju1Pxqba6W7vY5yHdihq4Xhxii1mdEQZ5tiDQtNMYep",
+        "world": "2ospR5d1ffvZy8C3dBTKYnKM7xFLvqdoHoLRwXUQmVp1",
+        "verdict": "CSwzrAja6bchjgG8RC5grnAJLWD35GAxn6erxsWVbwZA",
+        "receipt": "4cgMJB2KJrrY1md3vJvU6j9H8NwUMKqhbxUcWG4eRUuH",
+        "escrow": "BwGBRoT1LkEcwrvHXFv7ivcNaDGxS2o1GsKHUVA13cZK",
+        "settle": "7gvcbLMGCPojtv3mWBDHnnyChoJJp6bdFAHVburEuTK",
+        "sweep": "8qyR6nhDjChzpNdrEnw7JQKMhVLNX7mBRoUhXuKbbtwA"
+      }
+    }
+  ],
+  "failures": [
+    {
+      "round": 2,
+      "category": null,
+      "bit_set": null,
+      "buyer": null,
+      "step": "round",
+      "error": "m03.bookerbob.testnet: no usable answer from the model",
+      "retried": true
+    },
+    {
+      "round": 3,
+      "category": null,
+      "bit_set": null,
+      "buyer": null,
+      "step": "round",
+      "error": "m02.bookerbob.testnet: no usable answer from the model",
+      "retried": true
+    },
+    {
+      "round": 4,
+      "category": null,
+      "bit_set": null,
+      "buyer": null,
+      "step": "round",
+      "error": "The operation was aborted due to timeout",
+      "retried": false
+    },
+    {
+      "round": 5,
+      "category": null,
+      "bit_set": null,
+      "buyer": null,
+      "step": "round",
+      "error": "The operation was aborted due to timeout",
+      "retried": true
+    }
+  ],
+  "totals": {
+    "merchant_agents": 10,
+    "buyer_agents": 24,
+    "rounds": 4,
+    "sealed_bids": 40,
+    "reveals": 40,
+    "model_verdicts": 24,
+    "purchases_settled": 24,
+    "dusdc_volume": "604.44",
+    "refused_replays": 4,
+    "failures": 4,
+    "failures_first_pass": 0,
+    "retried_ok": 0,
+    "failures_final": 6,
+    "near_ai_calls": 24,
+    "near_ai_cost_usd": 0.003396,
+    "near_ai_cost_basis": "token usage in each answer at the model's listed price",
+    "treasury_near_spent": 1.1173,
+    "faucet_near": 0,
+    "wall_time_s": 5372
+  }
+}

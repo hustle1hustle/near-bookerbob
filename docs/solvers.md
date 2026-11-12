@@ -75,8 +75,9 @@ category (`lib.rs:2020`). Merchants bid before any buyer is known to the round.
    Window `commit_until_ms <= now < reveal_until_ms` (`:2062-2063`). Checks: schedule valid
    (`price.rs:68-103`), a commit exists, not yet revealed, hash opens the commitment (`:2068`),
    base not above the merchant's price anchor if one is set (`:2069`, `:680`). In category
-   `open` only: a merchant is refused if its payout account equals an already revealed one, or a
-   `hire` edge links the two either way (`:2071-2079`). The reveal overwrites the merchant's
+   `open` only: a merchant is refused if its payout account equals an already revealed one or it
+   hired a revealed one; if a revealed merchant hired it, that hirer's bid is dropped instead
+   (`bid_dropped`, since 2026-11-12: anyone may hire anyone, so the hire costs only the hirer). The reveal overwrites the merchant's
    stored schedule (`:2086`), so it also becomes its quote outside the round. A commit never
    revealed costs the merchant since the 2026-11-10 redeploy (the paragraph after this list).
 4. Winner: `round_best_quote(round_id, nullifier) -> Option<{merchant, quote}>` (`:2192-2209`).
@@ -109,8 +110,8 @@ round `silent-1`, docs/testnet.md; finding: Dan). The commitment stops a merchan
 from changing its bid, not from withholding it after it saw the others. `mark_unrevealed(round_id,
 merchant)` (`:2099`) is open to anyone once `now >= reveal_until_ms`, for 24 hours
 (`UNREVEALED_MARK_WINDOW_MS` `:175`), once per merchant and round, only for a merchant in
-`commits` and not in `revealed`. It takes `UNREVEALED_FORFEIT` (`:170`, 1 token, a tenth of
-`OPEN_BOND`) from the merchant's bond, USDC first, then dUSDC, or what the bond holds if less,
+`commits` and not in `revealed`. It takes `UNREVEALED_FORFEIT` (5 tokens since 2026-11-12, half of
+`OPEN_BOND`; 1 before) from the merchant's bond, USDC first, then dUSDC, or what the bond holds if less,
 and `commit_bid` refuses the merchant until 24 hours after the marking (`UNREVEALED_BAR_MS`
 `:172`, checked at `:2040`). The forfeit moves to a counter (`forfeited_bonds(token)`) that no
 method pays out: the caller, the owner and the rival bidders gain nothing, so there is no race
