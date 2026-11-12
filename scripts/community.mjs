@@ -22,6 +22,7 @@
 // you have revealed.
 import { randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -48,6 +49,16 @@ export function roundConfig(env = process.env) {
   for (const a of [c.bazaar, c.dusdc]) if (!a.endsWith(".testnet")) throw new Error(`${a} is not a .testnet account: this is testnet only`);
   if (!/testnet|test\.rpc/.test(RPC)) throw new Error(`RPC ${RPC} is not testnet`);
   return c;
+}
+
+/** A bidder's cost in a community round, 20.00 to 30.00 dUSDC: 20 + (first two bytes of
+ *  sha256("bookerbob/cost/v1|" + round + "|" + account), big-endian, mod 1001) / 100. Our agents
+ *  use the costs in agents/community-agents.json instead. The page shows it before you bid;
+ *  the winner is still the lowest price, and the board shows price minus cost. */
+export function costOf(round, account, ourCosts = {}) {
+  if (ourCosts[account] != null) return Number(ourCosts[account]);
+  const h = createHash("sha256").update(`bookerbob/cost/v1|${round}|${account}`).digest();
+  return 20 + ((h[0] * 256 + h[1]) % 1001) / 100;
 }
 
 /** A price like "33.5" as a flat schedule: the same price for every buyer. */
@@ -92,14 +103,18 @@ async function main() {
     mkdirSync("fixtures/live/community", { recursive: true });
     writeFileSync(ROUND_FILE, JSON.stringify({ note: "the community round: anyone bids blind on their own testnet account and key (docs/community-round.md). dUSDC is a testnet demo token with no value.", round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, bids_close: when(commit_until_ms), reveals_close: when(reveal_until_ms), open_tx: tx }, null, 2) + "\n");
     // The page marks our open-category agents (agents/community-agents.json) as ours.
-    const oursAll = Object.fromEntries(JSON.parse(readFileSync("agents/community-agents.json", "utf8")).agents.map((m) => [m.account, "ours"]));
-    writeFileSync("agents/community.json", JSON.stringify({ ...JSON.parse(readFileSync(ROUND_FILE, "utf8")), ours: oursAll }, null, 2) + "\n");
+    const agAll = JSON.parse(readFileSync("agents/community-agents.json", "utf8")).agents;
+    const oursAll = Object.fromEntries(agAll.map((m) => [m.account, "ours"]));
+    const costsAll = Object.fromEntries(agAll.map((m) => [m.account, m.cost]));
+    writeFileSync("agents/community.json", JSON.stringify({ ...JSON.parse(readFileSync(ROUND_FILE, "utf8")), ours: oursAll, costs: costsAll }, null, 2) + "\n");
     // The public round page lives in its own small repo (bookerbob-round): same config, plus
     // which bidders are ours, so its table marks them.
     const mini = process.env.COMMUNITY_MINI_REPO ?? `${process.env.HOME}/dev/bookerbob-round`;
     if (existsSync(join(mini, "index.html"))) {
-      const ours = Object.fromEntries(JSON.parse(readFileSync("agents/community-agents.json", "utf8")).agents.map((m) => [m.account, "ours"]));
-      writeFileSync(join(mini, "community.json"), JSON.stringify({ round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, ours }, null, 2) + "\n");
+      const ag = JSON.parse(readFileSync("agents/community-agents.json", "utf8")).agents;
+      const ours = Object.fromEntries(ag.map((m) => [m.account, "ours"]));
+      const costs = Object.fromEntries(ag.map((m) => [m.account, m.cost]));
+      writeFileSync(join(mini, "community.json"), JSON.stringify({ round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, ours, costs, cost_rule: "20 + (first two bytes of sha256(bookerbob/cost/v1|round|account), big-endian, mod 1001) / 100; ours: costs" }, null, 2) + "\n");
       console.log(`   wrote ${join(mini, "community.json")}: commit and push it there too`);
     }
     console.log(`   ok open_round ${round} on ${c.bazaar}  ${link(tx)}\n   bids until ${when(commit_until_ms)} UTC, reveals until ${when(reveal_until_ms)} UTC\n   wrote ${ROUND_FILE} and agents/community.json (the round page reads it): commit and push both so that a fresh clone finds the round`);

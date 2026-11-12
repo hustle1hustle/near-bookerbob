@@ -365,14 +365,18 @@ if (existsSync(new URL("../fixtures/live/community/round.json", import.meta.url)
   await attempt(`community round ${cr.round}: bids, reveals and the lowest price read from chain; bidders not ours named as community accounts on their own keys`, async () => {
     const r = await view(cr.bazaar, "round", { round_id: cr.round });
     if (!r) return [false, "the round is not on chain"];
-    const ours = new Set(JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url))).map((x) => x.account));
+    const ours = new Set([...JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url))).map((x) => x.account), ...JSON.parse(readFileSync(new URL("../agents/community-agents.json", import.meta.url))).agents.map((x) => x.account)]);
     const pins = await Promise.all(r.revealed.map((a) => view(cr.bazaar, "round_bid", { round_id: cr.round, merchant: a })));
     const priced = r.revealed.map((a, i) => ({ a, p: pins[i] ? Number(pins[i].base_price) / 1e6 : null }));
     // The founder bids from the page as founder-<name>.testnet: labelled, never counted as a community member.
-    const founder = r.commits.map(([a]) => a).filter((a) => /^founder-/.test(a));
-    const community = r.commits.map(([a]) => a).filter((a) => !ours.has(a) && !/^founder-/.test(a));
+    const isFounder = (a) => /^founder-/.test(a) || (cr.founders ?? []).includes(a);
+    const founder = r.commits.map(([a]) => a).filter(isFounder);
+    const community = r.commits.map(([a]) => a).filter((a) => !ours.has(a) && !isFounder(a));
+    // Margins: price minus the bidder's cost (scripts/community.mjs costOf; ours from cr.costs).
+    const { costOf } = await import("./community.mjs");
+    const margins = priced.filter((x) => x.p != null).map((x) => `${x.a.split(".")[0]} ${(x.p - costOf(cr.round, x.a, cr.costs ?? {})).toFixed(2)}`);
     const best = priced.filter((x) => x.p != null).sort((x, y) => x.p - y.p)[0];
-    return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts (${community.slice(0, 5).join(", ")}${community.length > 5 ? ", ..." : ""}), ${founder.length} founder's bid; lowest revealed ${best ? `${best.a} at ${best.p.toFixed(2)}` : "none"}`];
+    return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts (${community.slice(0, 5).join(", ")}${community.length > 5 ? ", ..." : ""}), ${founder.length} founder's bid; lowest revealed ${best ? `${best.a} at ${best.p.toFixed(2)}` : "none"}${margins.length ? `; margins ${margins.join(", ")}` : ""}`];
   });
 }
 

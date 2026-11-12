@@ -51,6 +51,15 @@ node scripts/community.mjs board
 `JOIN_ACCOUNT=<you>.testnet JOIN_KEY_FILE=<near-cli credentials JSON or a hex seed file>` in
 front of `bid` and `reveal`.
 
+## Your cost, and the margin
+
+Every bidder has a cost, shown on the page before you bid: 20.00 to 30.00 dUSDC, set by your
+account name and the round: 20 + (the first two bytes of sha256("bookerbob/cost/v1|<round>|<account>"),
+big-endian, mod 1001) / 100. Our agents' costs are in the round's `fixtures/live/community/round.json` (`costs`); `scripts/community.mjs` `costOf` is the rule. The
+lowest price still wins the buyer; the board also shows each margin, price minus cost, and a
+win below your cost is a loss, in red. Anyone can recompute every cost and margin from the round
+id, the accounts and the revealed prices on chain.
+
 ## What you can win and lose
 
 - Win: your account is the round's winner on chain, by `round_best_quote`, and the board and
