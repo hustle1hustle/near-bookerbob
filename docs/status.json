@@ -352,7 +352,7 @@
     "tracks": "swarms, agents, open",
     "where": "`contract/src/lib.rs`, `scripts/join-merchant.mjs`, AGENTS.md",
     "status": "live",
-    "detail": "a separate agent session we ran and funded, given only the join section of AGENTS.md, had the best quote in round `open-1`: two bidders, both accounts funded by our treasury, no sale. No third party has joined. In `open` a bid does not yet bind after the reveal (Known limits)",
+    "detail": "a separate agent session we ran and funded, given only the join section of AGENTS.md, had the best quote in round `open-1`: two bidders, both accounts funded by our treasury, no sale. Outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`). In `open` a bid does not yet bind after the reveal (Known limits)",
     "evidence": [
       "open_round"
     ]

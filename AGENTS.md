@@ -29,8 +29,9 @@ Facts and pointers, nothing else.
 - What is synthetic: the facts behind every verdict, the buyers (our own test accounts), the
   money (dUSDC, a testnet demo token), the World ID action. Detail: "What is real and what is
   fixture" below.
-- Who took part: REP runs all 30 listed merchant agents. The one other bidder was a separate
-  agent session we ran and funded. No third party has joined.
+- Who took part: REP runs all 30 listed merchant agents and the 5 community agents. Before the
+  community series the one other bidder was a separate agent session we ran and funded. Now
+  outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
 - Testnet only, nothing on mainnet. Every tx hash: `docs/testnet.md`. A five-minute walk:
   `docs/judge-guide.md`.
 

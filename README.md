@@ -98,7 +98,7 @@ price, posted the bond
 quote in round `open-1` at 30.00, a two-bidder round against our own merchant at 42.75
 ([reveal](https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk)). No sale followed and no owner
 approved it. Our treasury funded both accounts; the session held its own key and made its own
-choices. It is not a third party, and no third party has joined yet (docs/testnet.md).
+choices. It is not a third party (docs/testnet.md). Outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
 
 **The run you watch.** A test buyer, proven as a frequent traveller, asks for three nights in Lisbon.
 In about a minute you watch 8 merchant agents bid sealed on chain (commit, then reveal), a
@@ -220,7 +220,7 @@ rate-limited RPC). No outside party took part.
 - **Who pays.** The merchant: a fee taken out of the price, 1% on testnet, capped at 2% in code, paid to a DAO treasury (`contract/src/lib.rs`, `set_fee`, `sweep_fees`). So far 0.36 dUSDC on one purchase.
 - **What it costs.** About 0.010 NEAR of gas per purchase plus 0.016 NEAR of storage, measured on testnet. At an assumed NEAR price of $2.50 a 1% fee covers a basket of $2.56, or $6.62 with storage.
 - **The honest pair, simulated.** Against a price war on one public price, merchants keep 9.3% to 24.0% more profit in our model. Against fixed prices and no competition, merchant profit falls 57.9%. No merchant has agreed to pay.
-- **Without us.** A merchant joins on its own key with a bond and no owner step, anyone can bid blind in the community round from a browser, every live claim is re-derived daily over public RPC with no keys, and the history anchor has no method to change an entry. What still needs us: an owner opens each round, every trust key is REP's, and no third party has joined yet.
+- **Without us.** A merchant joins on its own key with a bond and no owner step, anyone can bid blind in the community round from a browser, every live claim is re-derived daily over public RPC with no keys, and the history anchor has no method to change an entry. What still needs us: an owner opens each round, and every trust key is REP's. Outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
 
 The sources, the after-hackathon steps and what must be true before each: [docs/who-pays.md](docs/who-pays.md).
 
