@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { blindRef, deriveGithub, requestKind, withGithub, REVEAL } from "./prove-me.mjs";
+import { blindRef, deriveGithub, requestKind, withGithub, REVEAL } from "./lib/github-fact.mjs";
 
 // What rep-verify shows for a 3-field reveal: undisclosed bytes are X.
 const X = (n) => "X".repeat(n);

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { deriveSpend, privacyProblems } from "./device-run.mjs";
+import { deriveSpend, privacyProblems } from "./lib/spend-fact.mjs";
 
 const recv = '{"data":[{"total":10000,"status":"paid","created_ts":1790000000,"post_payment_credit_notes_amount":0},{"total":2000,"status":"paid","created_ts":1780000000},{"total":500,"status":"void","created_ts":1795000000}]}';
 
