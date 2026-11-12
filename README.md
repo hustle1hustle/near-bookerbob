@@ -4,9 +4,8 @@
 
 **Tell your agent what you want. Sellers' agents compete on price for it, sealed. You prove you
 qualify for a discount without saying who you are, and pay only against a receipt checked on
-NEAR.** Merchants and the chain never see who you are. Sealed commit-reveal, pay-as-bid, one nullifier per verdict;
-verdicts from a NEAR AI model under E2EE with the TEE signature checked on chain (the TDX quote
-behind the model key is checked off chain, `make verify`).
+NEAR.** Merchants and the chain never see who you are (our verdict evaluator does, today). Sealed commit-reveal, pay-as-bid, one nullifier per verdict;
+verdicts from a NEAR AI model under E2EE with the TEE signature checked on chain (the TDX quote behind the model key is checked on chain by a verifier contract, `spike.bookerbob.testnet`, before the bazaar registers the key; `make verify` re-checks a recorded one offline).
 
 **Run s2 (2026-11-12): merchant agents that choose their own bids.** Before each sealed round,
 each of 10 merchant agents asks a NEAR AI model for its bid, from its persona, its cost and the
@@ -14,15 +13,19 @@ last two rounds' public bids and sales. Code clamps every answer (base 20 to 80,
 bit, never under cost) and the contract prices every sale. m08 (adaptive) and m11 (an
 undercutter) traded the lead down to just above their costs; the other eight never won. With
 fixed price rules in s1, a buyer with the same 3 proven bits paid 36.00; here 26.80, then 25.55,
-24.31, 24.08, where a scripted rule (bid 1% under the last winner, never under cost; simulated,
-dashed on the chart) reaches 26.00. Round 4 never opened (the model calls timed out), so 24 of 30 buyers settled.
+24.31, 24.08. A scripted rule reading the same public prices (1% under the last winner, never
+under cost; simulated, dashed on the chart) gives 26.53, 25.29, 24.07: the models reached what a
+simple undercut rule reaches, from the public record and with no rule written for them; not a
+better price. Round 4 never opened (the model calls timed out), so 24 of 30 buyers settled.
 Each decision's TEE signature was checked during the run, 40 of 40. In the follow-up run s3,
-every check can be redone from the record, and each sealed bid's salt names its decision, so
-the chain ties the bid to the decision that chose it (`make swarm-verify TAG=s3`: 20 of 20). [Every decision and its reason](docs/swarm-run.md#s2).
+every signature check can be redone from the record, and each sealed bid's salt names one
+TEE-signed model exchange, so the bid on chain is tied to that exchange (`make swarm-verify
+TAG=s3`: 20 of 20). In s3 the record does not hold the exchange's content, so that the model's
+answer, clamped, equals the bid still rests on our run, not on the record. [Every decision and its reason](docs/swarm-run.md#s2).
 
 ![s2: each model merchant's sealed bid per round and what buyers paid; round 4 did not open](docs/media/s2-prices.svg)
 
-In swarm run s1 (2026-11-11, the GIF replays its public record): **96** buyer agents settled on
+In swarm run s1 (2026-11-11, the GIF replays its public record): **96** scripted buyer agents settled on
 testnet, each on a NEAR AI verdict · **178** sealed bids from 30 merchant agents · **7 / 7**
 replays of a spent verdict refused
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)

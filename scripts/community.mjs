@@ -16,7 +16,7 @@
 // - before the bid deadline only a hash of your price is public; nobody can read it, us included
 // - after the deadline you reveal; a price that does not match your hash is refused
 // - the lowest revealed price wins the round's buyer
-// - a bid that is never revealed costs 1 dUSDC of the bond and bars the account for 24 hours
+// - a bid that is never revealed costs 5 dUSDC of the bond and bars the account for 24 hours
 // dUSDC is a testnet demo token with no value. Nothing here can take or pay real money.
 // Your key and your bid's salt are in ~/.bookerbob-community/<name>.json: keep the file until
 // you have revealed.
@@ -92,6 +92,14 @@ async function main() {
     mkdirSync("fixtures/live/community", { recursive: true });
     writeFileSync(ROUND_FILE, JSON.stringify({ note: "the community round: anyone bids blind on their own testnet account and key (docs/community-round.md). dUSDC is a testnet demo token with no value.", round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, bids_close: when(commit_until_ms), reveals_close: when(reveal_until_ms), open_tx: tx }, null, 2) + "\n");
     writeFileSync("agents/community.json", readFileSync(ROUND_FILE, "utf8"));
+    // The public round page lives in its own small repo (bookerbob-round): same config, plus
+    // which bidders are ours, so its table marks them.
+    const mini = process.env.COMMUNITY_MINI_REPO ?? `${process.env.HOME}/dev/bookerbob-round`;
+    if (existsSync(join(mini, "index.html"))) {
+      const ours = Object.fromEntries(JSON.parse(readFileSync("agents/merchants.json", "utf8")).map((m) => [m.account, "ours"]));
+      writeFileSync(join(mini, "community.json"), JSON.stringify({ round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, ours }, null, 2) + "\n");
+      console.log(`   wrote ${join(mini, "community.json")}: commit and push it there too`);
+    }
     console.log(`   ok open_round ${round} on ${c.bazaar}  ${link(tx)}\n   bids until ${when(commit_until_ms)} UTC, reveals until ${when(reveal_until_ms)} UTC\n   wrote ${ROUND_FILE} and agents/community.json (the round page reads it): commit and push both so that a fresh clone finds the round`);
     return;
   }
@@ -117,8 +125,66 @@ async function main() {
     return;
   }
 
+  if (cmd === "auto-reveal") {
+    // One visit for bidders on the round page: each commit carries `sealed_reveal`, the bidder's
+    // own reveal_bid signed as a NEP-366 delegate and time-locked with drand (quicknet) to the
+    // commit deadline. After the deadline this opens each one and submits it, paying the gas
+    // from the relayer account. It cannot change a price or a salt (both signed by the bidder),
+    // and it submits nothing that is not exactly one reveal_bid on this round to this bazaar.
+    const { createRequire } = await import("node:module");
+    globalThis.require ??= createRequire(import.meta.url);
+    const tl = await import("../agents/vendor/tlock.min.js");
+    const { signableHash } = await import("../relayer/relay.mjs");
+    const { createPublicKey, verify } = await import("node:crypto");
+    const keysDir = process.env.KEYS_DIR ?? join(homedir(), ".rep-secrets", "bookerbob-testnet");
+    const relayer = { id: process.env.RELAYER_ACCOUNT ?? "bookerbob-demo.testnet", key: keyFromSeed(readFileSync(join(keysDir, "treasury.seed"), "utf8")) };
+    const r = await roundInfo();
+    const wait = r.commit_until_ms + 4000 - Date.now();
+    if (wait > 0) { console.log(`waiting ${Math.ceil(wait / 1000)} s for the commit deadline (${when(r.commit_until_ms)} UTC)`); await new Promise((ok) => setTimeout(ok, wait)); }
+    const drand = tl.mainnetClient();
+    const done = [];
+    for (let pass = 0; pass < 3; pass++) {
+      const now = await client.view(c.bazaar, "round", { round_id: c.round });
+      if (Date.now() >= now.reveal_until_ms) { console.log("the reveal window is over"); break; }
+      for (const [who] of now.commits) {
+        if (now.revealed.includes(who) || done.includes(who)) continue;
+        try {
+          const list = await (await fetch(`https://api-testnet.nearblocks.io/v3/accounts/${who}/txns?limit=25`, { signal: AbortSignal.timeout(20000) })).json();
+          const hashes = (list.data ?? []).filter((t) => t.receiver_account_id === c.bazaar && t.actions?.some((x) => x.method === "commit_bid")).map((t) => t.transaction_hash);
+          let sealed = null;
+          for (const h of hashes) {
+            const t = (await client.rpc("tx", { tx_hash: h, sender_account_id: who, wait_until: "FINAL" })).result;
+            if (!t) continue;
+            for (const act of t.transaction.actions) {
+              const f = act.FunctionCall;
+              if (f?.method_name !== "commit_bid") continue;
+              const args = JSON.parse(Buffer.from(f.args, "base64").toString());
+              if (args.round_id === c.round && args.sealed_reveal) sealed = args.sealed_reveal;
+            }
+          }
+          if (!sealed) { console.log(`   ${who}: no time-locked reveal in its commit (revealed by hand, or not from the page)`); done.push(who); continue; }
+          const signed = JSON.parse((await tl.timelockDecrypt(sealed, drand)).toString());
+          const d = signed.delegate_action;
+          const a = d.actions?.[0];
+          const pub = createPublicKey({ key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(d.public_key_hex, "hex")]), format: "der", type: "spki" });
+          const fine = d.sender_id === who && d.receiver_id === c.bazaar && d.actions.length === 1 && a.method_name === "reveal_bid" && a.args?.round_id === c.round && BigInt(a.deposit) <= 50n * MILLI && verify(null, signableHash(d), pub, Buffer.from(signed.signature_hex, "hex"));
+          if (!fine) { console.log(`   ${who}: the opened reveal is not one reveal_bid on ${c.round} signed by ${who}: not sent`); done.push(who); continue; }
+          const res = await send(client, { signer_id: relayer.id, key: relayer.key, receiver_id: who, actions: [{ type: "Delegate", delegate_action: d, signature_hex: signed.signature_hex }] });
+          console.log(`   ${res.ok ? "ok" : "FAILED"} ${who}: revealed ${(Number(a.args.schedule.base_price) / 1e6).toFixed(2)}  ${link(res.hash)}${res.ok ? "" : `  ${res.error}`}`);
+          if (res.ok) done.push(who);
+        } catch (e) {
+          console.log(`   ${who}: ${String(e.message).slice(0, 160)} (retrying)`);
+        }
+      }
+      await new Promise((ok) => setTimeout(ok, 15000));
+    }
+    const fin = await client.view(c.bazaar, "round", { round_id: c.round });
+    console.log(`round ${c.round}: ${fin.commits.length} sealed, ${fin.revealed.length} revealed`);
+    return;
+  }
+
   if (cmd !== "bid" && cmd !== "reveal") {
-    console.error("usage: community.mjs bid <name> <price> | reveal <name> | board | open <round> <bid_hours> <reveal_hours>");
+    console.error("usage: community.mjs bid <name> <price> | reveal <name> | board | open <round> <bid_hours> <reveal_hours> | auto-reveal");
     process.exit(2);
   }
 

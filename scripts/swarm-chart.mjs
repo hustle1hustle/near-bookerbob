@@ -34,14 +34,15 @@ const rounds = rec.rounds.filter((r) => r.decisions?.length).map((r) => {
     replay_refused: Boolean(r.replay),
   };
 });
-// Baseline, simulated from the record (not run on chain): from round 1's price, a scripted
-// merchant bids 1% under the last winning price each round, never under the lowest unit cost.
+// Baseline, simulated from the record (not run on chain): each round a scripted merchant bids
+// 1% under the price the previous round's buyers actually paid, never under the lowest unit
+// cost. Round 1 has no previous price, so it starts at round 1's.
 const { PERSONAS } = await import("./merchant-brain.mjs");
 const floorCost = Math.min(...Object.values(PERSONAS).map((p) => p.cost));
-let prevBase = null;
+let lastPaid = null;
 for (const r of rounds) {
-  r.baseline = prevBase == null ? r.paid_frequent : Math.max(floorCost, Math.round(prevBase * 0.99 * 100) / 100);
-  prevBase = r.baseline;
+  r.baseline = lastPaid == null ? r.paid_frequent : Math.max(floorCost, Math.round(lastPaid * 0.99 * 100) / 100);
+  lastPaid = r.paid_frequent ?? lastPaid;
 }
 const out = { note: `price discovery in swarm run ${tag}, from fixtures/live/swarm/${tag}.json; each bid priced for a buyer revealing ${BITS.join(", ")}`, tag, bits: BITS, totals: rec.totals, rounds };
 writeFileSync(`agents/swarm-${tag}.json`, JSON.stringify(out) + "\n");

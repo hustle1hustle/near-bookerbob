@@ -40,3 +40,19 @@ test("the page's sealed bid is the SDK's commitment and its schedule is the SDK'
   }
   assert.throws(() => web.flatSchedule("0"), /price/);
 });
+
+test("the page's pre-signed reveal is the NEP-366 delegate the relayer code encodes and checks", async () => {
+  const { encodeDelegateAction, signableHash } = await import("../relayer/relay.mjs");
+  const { createPublicKey, verify } = await import("node:crypto");
+  const s = web.flatSchedule(31.25);
+  const args = revealBidArgs("community-1", s, Buffer.from("ab".repeat(32), "hex"));
+  const signed = await web.signDelegate({ sender_id: "quiet-otter-7.testnet", seedHex: seed, pubHex: key.pub, receiver_id: "bookerbob.testnet", actions: [web.call("reveal_bid", args, 20n * 10n ** 21n, 50n)], nonce: 277000000001123n, max_block_height: 230000000n });
+  const d = signed.delegate_action;
+  // The relayer re-encodes from the JSON it decrypts: same bytes, and the signature checks against them.
+  const roundTrip = JSON.parse(JSON.stringify(d));
+  assert.equal(encodeDelegateAction(roundTrip).length > 0, true);
+  const pub = createPublicKey({ key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(key.pub, "hex")]), format: "der", type: "spki" });
+  assert.ok(verify(null, signableHash(roundTrip), pub, Buffer.from(signed.signature_hex, "hex")));
+  assert.equal(d.actions[0].method_name, "reveal_bid");
+  assert.deepEqual(d.actions[0].args, args);
+});

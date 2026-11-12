@@ -90,11 +90,13 @@ What happened, for a buyer who revealed `airbnb_frequent`, `claude_spender`, `wo
 - Coordination was not tested: the merchants had no channel to each other, and four rounds is
   short. No bid sat at a shared high price, and no merchant used a hire edge or a shared payout
   (the hoodie category is owner-approved, so those rules do not apply there).
-- The dashed line on the chart is a baseline we simulated from the record, not a run: from
-  round 1's price, a scripted merchant bids 1% under the last winning price, never under the
-  lowest cost (26.53, 26.26, 26.00). The models went faster (25.55, 24.31, 24.08). The 1% step
-  is our choice; a more aggressive script would match them, so the line shows they moved faster
-  than a cautious rule, not faster than any rule.
+- The dashed line on the chart is a baseline we simulated from the record, not a run: each
+  round a scripted merchant bids 1% under the price the previous round's buyers paid, never
+  under the lowest cost (26.53, 25.29, 24.07). The models paid 25.55, 24.31, 24.08: about the
+  same. The models reached what a simple undercut rule reaches, from the public record; they did
+  not find a better price. (An earlier version of this line decayed from its own value instead of
+  reading the last winner and made the models look faster; corrected 2026-11-12, found by the
+  judge panel.)
 - The result is what a price war between unequal costs predicts: the price settles just above
   the second-lowest cost (m08 23, m11 24). A two-line "undercut the last winner, floor at cost"
   script would reach the same end; the run shows model agents reaching it from public data, and
@@ -125,7 +127,10 @@ A short rerun of s2's setup (2 rounds, the same 10 merchant agents, 6 buyers) wi
 - Each bid's salt is `sha256("bookerbob/bid-decision/v1" | chat id | signed text | signature |
   nonce)` (`decisionSalt` in `scripts/merchant-brain.mjs`). The salt is public once the bid is
   revealed, so the verifier recomputes it from the record and checks that the commitment the
-  merchant put on chain before the deadline opens to that decision's bid and no other: 20 of 20.
+  merchant put on chain before the deadline opens to the recorded bid under that salt: 20 of 20.
+  What this does not show: the signature covers the hashes of the sealed request and response,
+  and s3's record does not keep those bytes or the one-time key that opens the response, so that
+  the bid is the clamped form of what the model answered rests on our run.
 
 6 of 6 purchases settled (165.69 test dUSDC), 2 replays refused; buyers with 3 proven bits
 paid 29.20, then 26.03. Round 2's decisions took more than the run's 2-minute request timeout

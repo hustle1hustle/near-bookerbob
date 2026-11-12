@@ -346,6 +346,36 @@ for (const t of m.testers.filter((x) => x.voprf)) {
     return [ok, `voprf_key ${pk?.slice(0, 12)}.., verdict spent ${v?.spent}`];
   });
 }
+// Model-merchant runs reveal model-chosen schedules, and a reveal also sets a merchant's
+// registered schedule, which prices rounds from before the bid pin. swarm-run puts the listed
+// schedules back at the end of such a run; this checks that it did.
+await attempt("every listed merchant agent's registered schedule is its schedule in agents/merchants.json (model runs restore them)", async () => {
+  const { scheduleJson } = await import("../sdk/merchant.mjs");
+  const ms = JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url)));
+  const got = await Promise.all(ms.map((x) => view(m.bazaar, "merchant", { merchant: x.account })));
+  const off = ms.filter((x, i) => !got[i] || scheduleJson(got[i].schedule) !== scheduleJson(x.schedule)).map((x) => x.account.split(".")[0]);
+  return [!off.length, off.length ? `differ: ${off.join(", ")}` : `${ms.length} of ${ms.length}`];
+});
+
+// The community round, once one is opened (scripts/community.mjs open writes the file): read
+// from chain, never from our records. Who bid, who revealed, every revealed bid pinned, the
+// lowest revealed price, and which bidders are ours (agents/merchants.json) or not.
+if (existsSync(new URL("../fixtures/live/community/round.json", import.meta.url))) {
+  const cr = JSON.parse(readFileSync(new URL("../fixtures/live/community/round.json", import.meta.url)));
+  await attempt(`community round ${cr.round}: bids, reveals and the lowest price read from chain; bidders not ours named as community accounts on their own keys`, async () => {
+    const r = await view(cr.bazaar, "round", { round_id: cr.round });
+    if (!r) return [false, "the round is not on chain"];
+    const ours = new Set(JSON.parse(readFileSync(new URL("../agents/merchants.json", import.meta.url))).map((x) => x.account));
+    const pins = await Promise.all(r.revealed.map((a) => view(cr.bazaar, "round_bid", { round_id: cr.round, merchant: a })));
+    const priced = r.revealed.map((a, i) => ({ a, p: pins[i] ? Number(pins[i].base_price) / 1e6 : null }));
+    // The founder bids from the page as founder-<name>.testnet: labelled, never counted as a community member.
+    const founder = r.commits.map(([a]) => a).filter((a) => /^founder-/.test(a));
+    const community = r.commits.map(([a]) => a).filter((a) => !ours.has(a) && !/^founder-/.test(a));
+    const best = priced.filter((x) => x.p != null).sort((x, y) => x.p - y.p)[0];
+    return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts (${community.slice(0, 5).join(", ")}${community.length > 5 ? ", ..." : ""}), ${founder.length} founder's bid; lowest revealed ${best ? `${best.a} at ${best.p.toFixed(2)}` : "none"}`];
+  });
+}
+
 if (existsSync(new URL("../fixtures/live/market/state.json", import.meta.url))) {
   const st = JSON.parse(readFileSync(new URL("../fixtures/live/market/state.json", import.meta.url)));
   const v4 = JSON.parse(readFileSync(new URL("../fixtures/live/eval/rep-eval-v4.json", import.meta.url)));

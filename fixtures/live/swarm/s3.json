@@ -7,7 +7,7 @@
   "relayer": "bookerbob-demo.testnet",
   "explorer": "https://testnet.nearblocks.io/txns/",
   "started_at": "2026-11-12T15:42:36.832Z",
-  "updated_at": "2026-11-12T16:19:15.477Z",
+  "updated_at": "2026-11-12T16:36:04.101Z",
   "complete": true,
   "dusdc_registrations": [],
   "stopped": null,
@@ -1177,6 +1177,13 @@
       ]
     }
   ],
+  "restore": {
+    "round_ids": [
+      "s3-rs-hoodie"
+    ],
+    "merchants": 10,
+    "ok": true
+  },
   "purchases": [
     {
       "round": 1,
@@ -1397,6 +1404,6 @@
     "near_ai_cost_basis": "token usage in each answer at the model's listed price",
     "treasury_near_spent": 0.2796,
     "faucet_near": 0,
-    "wall_time_s": 2151
+    "wall_time_s": 2329
   }
 }

@@ -17,7 +17,7 @@
 // key in the model's attestation report and kept in the record (chat id, signing key).
 import { createHash, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { clientKey, edVerify, openWith, sealTo } from "./lib/e2ee.mjs";
+import { clientKey, edVerify, fieldKey, openField, openWith, sealTo } from "./lib/e2ee.mjs";
 
 const AI = process.env.NEAR_AI_BASE ?? "https://cloud-api.near.ai/v1";
 export const BRAIN_MODEL = process.env.MERCHANT_MODEL ?? "z-ai/glm-5.3-flash";
@@ -47,9 +47,10 @@ const PERSONA_TEXT = {
 
 /** The salt that seals a model merchant's bid: it names the decision that chose the bid.
  *  sha256("bookerbob/bid-decision/v1" | chat_id | signed_text | signature | nonce). The salt is
- *  public once the bid is revealed, so anyone with the record recomputes it, recomputes the
- *  commitment the merchant put on chain before the deadline, and sees that this decision, and no
- *  other, chose this bid. */
+ *  public once the bid is revealed, so anyone with the record recomputes it and the commitment
+ *  the merchant put on chain before the deadline: the bid is tied to this signed exchange. That
+ *  the bid is the clamped form of the model's answer is checked only when the record also holds
+ *  the exchange's bytes and the one-time key that opens the answer (`disclose`). */
 export function decisionSalt(d) {
   return createHash("sha256").update(["bookerbob/bid-decision/v1", d.chat_id, d.signed_text, d.signature, d.binding_nonce].join("|")).digest("hex");
 }
@@ -135,6 +136,11 @@ async function decideOne({ account, me, history, n, rounds, bitSets, auth, model
       // Kept so a reader can re-check the signature: the signed text names sha256 of the request
       // and response bytes (the bytes themselves are sealed and not kept).
       signed_text: sig.text ?? null, signature: sig.signature ?? null, binding_nonce: randomBytes(16).toString("hex"),
+      // Disclosure, so a reader can re-derive the bid: the sealed request and response bytes
+      // (their sha256 are in the signed text) and the key for the answer field only (the
+      // reasoning field stays sealed). The answer opens to the JSON the model returned.
+      request_b64: reqBytes.toString("base64"), response_b64: resBytes.toString("base64"),
+      answer_key: fieldKey(body.choices[0].message.content, me2.xSecret), bit_sets: bitSets,
       usage: body.usage ?? null,
     };
   }
@@ -155,4 +161,25 @@ export async function decideRound({ n, rounds, merchants, stRounds, purchases, b
     }));
   }
   return out;
+}
+
+/** Re-derive a disclosed decision from its record: the hashes in the signed text match the
+ *  kept bytes, the answer opens with the disclosed key, and clamping it gives the bid.
+ *  Returns null when it holds, or what failed. */
+export function rederive(d) {
+  if (!d.response_b64 || !d.answer_key) return "not disclosed";
+  const req = Buffer.from(d.request_b64, "base64");
+  const res = Buffer.from(d.response_b64, "base64");
+  const [, sReq, sRes] = String(d.signed_text).split(":");
+  if (sha(req) !== sReq || sha(res) !== sRes) return "bytes do not match the signed hashes";
+  let raw;
+  try {
+    raw = JSON.parse(openField(JSON.parse(res).choices[0].message.content, Buffer.from(d.answer_key, "hex")).match(/\{[\s\S]*\}/)[0]);
+  } catch (e) {
+    return `answer does not open: ${e.message}`;
+  }
+  const s = clamp(raw, { cost: d.unit_cost }, d.bit_sets ?? []);
+  const want = { base_price: String(d.bid.base_price), cap_bps: d.bid.cap_bps, rules: d.bid.rules };
+  const got = { base_price: String(s.base_price), cap_bps: s.cap_bps, rules: s.rules };
+  return JSON.stringify(got) === JSON.stringify(want) ? null : "the clamped answer is not the bid";
 }

@@ -23,8 +23,12 @@ No wallet, no install, no signup.
    you through the public faucet, mints 100 dUSDC, posts the 10 dUSDC bond (the bond is the
    approval: nobody lets you in) and sends the sealed bid. It takes about half a minute and
    each step links to its transaction. The transaction carries a hash, not the price.
-2. Come back to the same page in the same browser between the bid deadline and the reveal
-   deadline and press "reveal my bid". The contract checks the price against your hash, so
+2. One visit is enough: the page signs your reveal (a NEP-366 delegate from your own key) and
+   time-locks it with drand (tlock, quicknet) to the bid deadline; the ciphertext rides in your
+   commit's arguments. After the deadline `node scripts/community.mjs auto-reveal` opens each
+   one and submits it, paying the gas; it cannot change a price or a salt. Or come back to the
+   same page in the same browser between the bid deadline and the reveal deadline and press
+   "reveal my bid". The contract checks the price against your hash, so
    nobody can change a price after seeing the others. Your price then shows on the board.
 
 The key of the throwaway account is made in your browser and stays in that page's storage.

@@ -203,7 +203,7 @@ export function buildRecord(st) {
     categories: CATEGORIES.filter((c) => r.cats?.[c]).map((c) => ({ category: c, round_id: r.cats[c].round_id, open_tx: r.cats[c].open_tx ?? null, commits: r.cats[c].commits ?? 0, reveals: r.cats[c].reveals ?? 0, commit_until_ms: r.cats[c].commit_until_ms, reveal_until_ms: r.cats[c].reveal_until_ms })),
     replay: r.replay ? { nullifier: r.replay.nullifier, tx: r.replay.tx, refused: "nullifier spent" } : null,
     ...(r.note && { note: clean(r.note) }),
-    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer, ...(d.signature && { signed_text: d.signed_text, signature: d.signature, binding_nonce: d.binding_nonce }) })) }),
+    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer, ...(d.signature && { signed_text: d.signed_text, signature: d.signature, binding_nonce: d.binding_nonce }), ...(d.answer_key && { request_b64: d.request_b64, response_b64: d.response_b64, answer_key: d.answer_key, bit_sets: d.bit_sets }) })) }),
   }));
   const purchases = [];
   const failures = [];
@@ -234,6 +234,7 @@ export function buildRecord(st) {
     stopped: st.stopped ? clean(st.stopped) : null,
     plan: { rounds: st.params.rounds, buyers: st.params.buyers, commit_min: st.params.commitMin, reveal_min: st.params.revealMin },
     rounds,
+    ...(st.restore && { restore: { round_ids: st.restore.round_ids, merchants: st.restore.merchants, ok: st.restore.ok } }),
     purchases,
     failures,
     totals: {
@@ -266,7 +267,7 @@ const RECORD_KEYS = new Set([
   "note", "tag", "network", "bazaar", "dusdc", "relayer", "explorer", "started_at", "updated_at", "complete", "dusdc_registrations", "first_round", "failures_first_pass", "retried_ok", "failures_final", "stopped", "plan", "rounds", "purchases", "failures", "totals",
   "buyers", "commit_min", "reveal_min", "n", "ready", "seconds", "categories", "replay", "category", "round_id", "open_tx", "commits", "reveals", "commit_until_ms", "reveal_until_ms", "nullifier", "tx", "refused",
   "round", "bit_set", "predicates", "buyer", "merchant", "price", "model", "chat_id", "txs", ...TX_KEYS, "step", "error", "retried",
-  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer", "signed_text", "signature", "binding_nonce", "bound",
+  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer", "signed_text", "signature", "binding_nonce", "bound", "restore", "round_ids", "merchants", "ok", "request_b64", "response_b64", "answer_key", "bit_sets",
   "merchant_agents", "buyer_agents", "sealed_bids", "model_verdicts", "purchases_settled", "dusdc_volume", "refused_replays", "near_ai_calls", "near_ai_cost_usd", "near_ai_cost_basis", "treasury_near_spent", "faucet_near", "wall_time_s",
 ]);
 
@@ -277,7 +278,7 @@ export function assertPublic(record, path = "record") {
   if (record && typeof record === "object") {
     for (const [k, v] of Object.entries(record)) {
       if (SECRET_KEY.test(k) || !RECORD_KEYS.has(k)) throw new Error(`${path}.${k}: not a field of the public record`);
-      if (typeof v === "string" && HEX64.test(v) && !["buyer", "nullifier", "signer"].includes(k)) throw new Error(`${path}.${k}: a 32-byte hex value does not belong here`);
+      if (typeof v === "string" && HEX64.test(v) && !["buyer", "nullifier", "signer", "answer_key"].includes(k)) throw new Error(`${path}.${k}: a 32-byte hex value does not belong here`);
       assertPublic(v, `${path}.${k}`);
     }
     return;
@@ -543,6 +544,32 @@ async function run(a) {
     shared.stop ??= `treasury under ${yoctoToNear(need).toFixed(2)} NEAR`;
     return false;
   });
+
+  // A reveal also sets a merchant's registered schedule, and rounds from before the bid pin are
+  // priced from it. After a model run, the merchants that bid commit and reveal their listed
+  // schedules (agents/merchants.json) in one short round, and the result is checked here and by
+  // verify-live. Resumable: a rerun finishes what is left.
+  async function restoreSchedules() {
+    if (st.restore?.ok) return;
+    const listed = JSON.parse(readFileSync("agents/merchants.json", "utf8"));
+    const bid = new Set(Object.values(st.rounds).flatMap((r) => Object.keys(r.decisions ?? {})));
+    const back = listed.filter((m) => bid.has(m.account));
+    if (!back.length) return;
+    const cwd = join(swarmDir, a.tag, "restore");
+    mkdirSync(join(cwd, "agents"), { recursive: true });
+    writeFileSync(join(cwd, "agents", "merchants.json"), JSON.stringify(back));
+    const tag = `${a.tag}-rs`;
+    const pre = "[restore]";
+    if (!existsSync(join(c.keysDir, "rounds", `${tag}.json`))) await child(["open", tag, "2", "2"], pre, cwd);
+    await child(["commit", tag], pre, cwd);
+    await child(["reveal", tag], pre, cwd);
+    const { scheduleJson } = await import("../sdk/merchant.mjs");
+    const got = await Promise.all(back.map((m) => client.view(c.bazaar, "merchant", { merchant: m.account })));
+    const off = back.filter((m, i) => scheduleJson(got[i].schedule) !== scheduleJson(m.schedule)).map((m) => m.account.split(".")[0]);
+    st.restore = { round_ids: [...new Set(back.map((m) => `${tag}-${m.category}`))], merchants: back.length, ok: !off.length };
+    save();
+    console.log(`${pre} ${off.length ? `NOT restored: ${off.join(", ")}` : `${back.length} merchants' listed schedules are registered again`} (${st.restore.round_ids.join(", ")})`);
+  }
 
   async function prepareRound(n) {
     const r = (st.rounds[n] ??= { n, blind_tag: `${a.tag}-r${n}`, cats: {} });
@@ -879,6 +906,7 @@ async function run(a) {
       gate[n].bought();
     }
     await roundsTrack;
+    if (BRAIN && !shared.stop) await restoreSchedules();
   } finally {
     st.wall_ms += Date.now() - t0;
     const spent = before + faucetIn - (await balance().catch(() => before + faucetIn));
@@ -975,15 +1003,25 @@ async function verify(a) {
     const { bidCommitment } = await import("../sdk/merchant.mjs");
     const withSig = decided.filter((d) => d.signature);
     const bad = [];
+    // The signing key must be a NEAR AI model key the bazaar registered against its attestation.
+    const modelKeys = new Set();
+    for (const k of new Set(withSig.map((d) => d.signer))) if (await client.view(rec.bazaar, "model_attestation", { signing_key: k })) modelKeys.add(k);
     for (const d of withSig) {
       if (!edVerify(d.signed_text, d.signature, d.signer)) { bad.push(`${d.merchant.split(".")[0]} r${d.r.n}: signature`); continue; }
+      if (!modelKeys.has(d.signer)) { bad.push(`${d.merchant.split(".")[0]} r${d.r.n}: signer has no model attestation registered on ${rec.bazaar}`); continue; }
       const roundId = d.r.categories[0]?.round_id;
       const info = roundId ? await client.view(rec.bazaar, "round", { round_id: roundId }) : null;
       const onChain = info?.commits.find(([a]) => a === d.merchant)?.[1];
       const s = { base_price: d.bid.base_price, rules: d.bid.rules, cap_bps: d.bid.cap_bps };
       if (onChain !== bidCommitment(d.merchant, s, Buffer.from(decisionSalt(d), "hex"))) bad.push(`${d.merchant.split(".")[0]} r${d.r.n}: commitment`);
     }
-    if (withSig.length) say(!bad.length, `${withSig.length} model decisions: TEE signature re-checked from the record, and each sealed bid on chain opens only with the salt its decision names`, bad.slice(0, 5).join("; "));
+    if (withSig.length) say(!bad.length, `${withSig.length} model decisions: TEE signature re-checked from the record under a model key the bazaar registered against its attestation, and each sealed bid on chain opens only with the salt its decision names`, bad.slice(0, 5).join("; "));
+    const disclosed = withSig.filter((d) => d.answer_key);
+    if (disclosed.length) {
+      const { rederive } = await import("./merchant-brain.mjs");
+      const wrong = disclosed.map((d) => [d, rederive(d)]).filter(([, e]) => e).map(([d, e]) => `${d.merchant.split(".")[0]} r${d.r.n}: ${e}`);
+      say(!wrong.length, `${disclosed.length} disclosed decisions re-derived: the kept bytes match the signed hashes, the model's answer opens with its disclosed key, and clamping it gives the bid committed on chain`, wrong.slice(0, 5).join("; "));
+    } else if (withSig.length) console.log(`SKIP  ${withSig.length} decisions keep no request, response or answer key: that each bid is the clamped model answer rests on the run`);
     if (decided.length > withSig.length) console.log(`SKIP  ${decided.length - withSig.length} model decisions from before the record kept signatures (s2): checked during the run only`);
   }
 

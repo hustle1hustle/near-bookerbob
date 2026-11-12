@@ -30,3 +30,23 @@ test("the history a merchant reads is the last two rounds, public fields only", 
   assert.deepEqual(h.map((x) => x.round), [2, 3]);
   assert.deepEqual(h[1].sales, [{ winner: "m02", price: 40, buyer_bits: SETS[0] }]);
 });
+
+test("a disclosed decision re-derives to its bid, and a changed bid or byte is caught", async () => {
+  const { rederive } = await import("./merchant-brain.mjs");
+  const { clientKey, fieldKey, sealTo, sha } = await import("./lib/e2ee.mjs");
+  const me = clientKey();
+  const answer = { base_price: 40, discounts: { airbnb_frequent: 1000, world_id_human: 1000 }, cap_bps: 2000, why: "test" };
+  const content = sealTo(JSON.stringify(answer), me.pubHex);
+  const req = Buffer.from('{"sealed":"request"}');
+  const res = Buffer.from(JSON.stringify({ id: "chat-1", choices: [{ message: { content } }] }));
+  const bid = clamp(answer, { cost: 25 }, SETS);
+  const d = {
+    unit_cost: 25, bit_sets: SETS, signed_text: `m:${sha(req)}:${sha(res)}`,
+    request_b64: req.toString("base64"), response_b64: res.toString("base64"), answer_key: fieldKey(content, me.xSecret),
+    bid: { base_price: String(bid.base_price), cap_bps: bid.cap_bps, rules: bid.rules },
+  };
+  assert.equal(rederive(d), null);
+  assert.equal(rederive({ ...d, bid: { ...d.bid, base_price: "39000000" } }), "the clamped answer is not the bid");
+  assert.equal(rederive({ ...d, response_b64: Buffer.from(res.toString().replace("chat-1", "chat-2")).toString("base64") }), "bytes do not match the signed hashes");
+  assert.equal(rederive({ ...d, answer_key: undefined }), "not disclosed");
+});
