@@ -166,8 +166,14 @@ pub struct Round {
 }
 
 /// A commit never revealed is a default, see `mark_unrevealed`. Forfeited from the merchant's
-/// bond per default (a tenth of `OPEN_BOND`), in token base units; less if the bond is smaller.
-pub const UNREVEALED_FORFEIT: u128 = 1_000_000;
+/// bond per default (half of `OPEN_BOND`, so committing several bids to open only the useful one
+/// costs half a bond per bid left shut), in token base units; less if the bond is smaller.
+pub const UNREVEALED_FORFEIT: u128 = 5_000_000;
+/// Rounds whose commit deadline is at or after this time break a price tie by
+/// sha256(nullifier | merchant), lowest first, not by who revealed first: no merchant knows the
+/// buyer's nullifier when it bids, and none controls the order. Earlier rounds keep the rule
+/// they ran under (first revealed wins), so their recorded winners stay the winners.
+pub const TIE_HASH_FROM_MS: u64 = 1_794_506_400_000;
 /// How long a marked merchant is refused by `commit_bid`, counted from the marking.
 pub const UNREVEALED_BAR_MS: u64 = 24 * 3600 * 1000;
 /// A default can be marked only this long after the round's reveal deadline, so a round that
@@ -2094,17 +2100,27 @@ impl Bazaar {
         require!(bookerbob_core::bid_commitment(merchant.as_str(), &schedule, &salt) == commitment, "bid does not open its commitment");
         check_price_anchor(&merchant, &schedule);
         // Open rounds: two bids under one operator cannot both stand. Same payout account, or a
-        // hire edge either way, counts as one operator; the later reveal is refused.
+        // hire edge, counts as one operator. The later reveal is refused when it shares the
+        // payout or it hired the other; when the other hired it, the hirer's bid is dropped
+        // instead, since anyone may hire anyone: hiring a rival can only cost the hirer.
+        let mut dropped = vec![];
         if round.category == OPEN_CATEGORY {
             let me = self.merchants.get(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
             let my_hires = self.hires.get(&merchant).cloned().unwrap_or_default();
             for other in &round.revealed {
                 let o = self.merchants.get(other).expect("revealed merchants are registered");
-                let linked = o.payout == me.payout || my_hires.contains(other) || self.hires.get(other).is_some_and(|h| h.contains(&merchant));
-                require!(!linked, "linked to a merchant already revealed in this round (same payout or a hire edge)");
+                require!(o.payout != me.payout && !my_hires.contains(other), "linked to a merchant already revealed in this round (same payout or a hire edge)");
+                if self.hires.get(other).is_some_and(|h| h.contains(&merchant)) {
+                    dropped.push(other.clone());
+                }
             }
         }
         let round = self.rounds.get_mut(&round_id).expect("checked above");
+        for other in &dropped {
+            round.revealed.retain(|x| x != other);
+            env::storage_remove(&bid_pin_key(&round_id, other));
+            emit("bid_dropped", serde_json::json!({ "round": round_id, "merchant": other, "reason": "it hired a merchant that revealed in the same round" }));
+        }
         round.revealed.push(merchant.clone());
         let m = self.merchants.get_mut(&merchant).unwrap_or_else(|| env::panic_str("unknown merchant"));
         // Committed blind before the deadline, so this change keeps the approval.
@@ -2181,9 +2197,7 @@ impl Bazaar {
         let Some(me) = self.merchants.get(merchant) else { return false };
         let my_hires = self.hires.get(merchant).cloned().unwrap_or_default();
         round.revealed.iter().any(|other| {
-            self.merchants.get(other).is_some_and(|o| o.payout == me.payout)
-                || my_hires.contains(other)
-                || self.hires.get(other).is_some_and(|h| h.contains(merchant))
+            self.merchants.get(other).is_some_and(|o| o.payout == me.payout) || my_hires.contains(other)
         })
     }
 
@@ -2239,11 +2253,13 @@ impl Bazaar {
         require!(env::block_timestamp_ms() >= round.reveal_until_ms, "round still open");
         let v = self.verdicts.get(nullifier).unwrap_or_else(|| env::panic_str("unknown nullifier"));
         let mut best: Option<MerchantQuote> = None;
+        let hash_tie = round.commit_until_ms >= TIE_HASH_FROM_MS;
+        let tie = |m: &AccountId| env::sha256(format!("{nullifier}|{m}").as_bytes());
         for id in &round.revealed {
             let Some(m) = self.merchants.get(id).filter(|m| m.approved) else { continue };
             // The bid as revealed, not the schedule as it stands now.
             let q = self.quote_for(&pinned_bid(round_id, id).unwrap_or_else(|| m.schedule.clone()), v);
-            if best.as_ref().is_none_or(|b| q.price < b.quote.price) {
+            if best.as_ref().is_none_or(|b| q.price < b.quote.price || (hash_tie && q.price == b.quote.price && tie(id) < tie(&b.merchant))) {
                 best = Some(MerchantQuote { merchant: id.clone(), quote: q });
             }
         }

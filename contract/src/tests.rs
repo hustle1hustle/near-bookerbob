@@ -2750,8 +2750,10 @@ mod open_market {
     }
 
     #[test]
-    #[should_panic(expected = "linked to a merchant already revealed in this round")]
-    fn hire_linked_merchants_cannot_both_reveal() {
+    fn a_hire_edge_drops_the_hirer_not_the_merchant_it_hired() {
+        // Anyone may hire anyone. a hires its rival b and reveals first, hoping b's reveal is
+        // refused as linked. b's reveal stands and a's bid is dropped: one bid per operator,
+        // and the hire costs only the hirer.
         let mut c = setup();
         join(&mut c, "a.testnet", None, OPEN_BOND);
         join(&mut c, "b.testnet", None, OPEN_BOND);
@@ -2762,6 +2764,69 @@ mod open_market {
         bid(&mut c, "b.testnet", 2);
         reveal(&mut c, "a.testnet", 1, COMMIT_UNTIL);
         reveal(&mut c, "b.testnet", 2, COMMIT_UNTIL + 1);
+        assert!(get_logs().iter().any(|l| l.contains("bid_dropped") && l.contains("a.testnet")));
+        assert_eq!(c.round("o1".into()).unwrap().revealed, vec![acc("b.testnet")]);
+        at("agent.testnet", REVEAL_UNTIL);
+        assert_eq!(c.round_best_quote("o1".into(), hex::encode([1u8; 32])).unwrap().merchant, acc("b.testnet"));
+        // a cannot come back in: it hired a merchant revealed in this round.
+        let again = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| reveal(&mut c, "a.testnet", 1, COMMIT_UNTIL + 2)));
+        assert!(again.is_err());
+    }
+
+    #[test]
+    #[should_panic(expected = "linked to a merchant already revealed in this round")]
+    fn a_merchant_that_hired_a_revealed_one_cannot_reveal() {
+        let mut c = setup();
+        join(&mut c, "a.testnet", None, OPEN_BOND);
+        join(&mut c, "b.testnet", None, OPEN_BOND);
+        set("b.testnet");
+        c.hire(acc("a.testnet"));
+        open_round(&mut c);
+        bid(&mut c, "a.testnet", 1);
+        bid(&mut c, "b.testnet", 2);
+        reveal(&mut c, "a.testnet", 1, COMMIT_UNTIL);
+        reveal(&mut c, "b.testnet", 2, COMMIT_UNTIL + 1);
+    }
+
+    /// Rounds from TIE_HASH_FROM_MS on: two equal prices, and the winner is the lower
+    /// sha256(nullifier | merchant) whichever revealed first. Each run is one fresh test.
+    fn tied(first: &str, second: &str) -> (AccountId, String) {
+        let mut c = setup();
+        join(&mut c, "a.testnet", None, OPEN_BOND);
+        join(&mut c, "b.testnet", None, OPEN_BOND);
+        set("agent.testnet");
+        c.submit_verdict(sign_ed(envelope(1, "agent.testnet")));
+        let (cu, ru) = (TIE_HASH_FROM_MS + 60_000, TIE_HASH_FROM_MS + 120_000);
+        at("owner.testnet", TIE_HASH_FROM_MS);
+        c.open_round("t1".into(), OPEN_CATEGORY.into(), cu, ru);
+        for (m, salt) in [("a.testnet", 1u8), ("b.testnet", 2u8)] {
+            at(m, TIE_HASH_FROM_MS);
+            c.commit_bid("t1".into(), sealed(m, &schedule(), salt));
+        }
+        for (i, m) in [first, second].iter().enumerate() {
+            at(m, cu + i as u64);
+            c.reveal_bid("t1".into(), schedule(), hex::encode([if *m == "a.testnet" { 1u8 } else { 2u8 }; 32]));
+        }
+        at("agent.testnet", ru);
+        let n = hex::encode([1u8; 32]);
+        (c.round_best_quote("t1".into(), n.clone()).unwrap().merchant, n)
+    }
+
+    fn hash_winner(n: &str) -> AccountId {
+        let key = |m: &str| bookerbob_core::sha256(format!("{n}|{m}").as_bytes());
+        acc(if key("a.testnet") < key("b.testnet") { "a.testnet" } else { "b.testnet" })
+    }
+
+    #[test]
+    fn a_price_tie_is_broken_by_hash_when_a_reveals_first() {
+        let (w, n) = tied("a.testnet", "b.testnet");
+        assert_eq!(w, hash_winner(&n));
+    }
+
+    #[test]
+    fn a_price_tie_is_broken_by_hash_when_b_reveals_first() {
+        let (w, n) = tied("b.testnet", "a.testnet");
+        assert_eq!(w, hash_winner(&n));
     }
 }
 
@@ -2816,7 +2881,7 @@ mod unrevealed {
             "\"by\":\"anyone.testnet\"",
             "\"defaults\":1",
             &format!("\"barred_until_ms\":{BAR_ENDS}"),
-            "\"forfeit_usdc\":\"1000000\"",
+            "\"forfeit_usdc\":\"5000000\"",
             "\"forfeit_demo\":\"0\"",
         ] {
             assert!(log.contains(part), "{part} missing in {log}");
@@ -2947,18 +3012,18 @@ mod unrevealed {
         let mut c = silent_m02();
         set_no_deposit("owner.testnet");
         c.set_demo_token(acc(DUSDC));
-        bond(&mut c, USDC, M2, 400_000);
-        bond(&mut c, DUSDC, M2, 900_000);
+        bond(&mut c, USDC, M2, 2_000_000);
+        bond(&mut c, DUSDC, M2, 4_500_000);
         mark(&mut c, "r1", M2, MARKED_AT);
-        assert_eq!((c.merchant_bond(acc(M2), "usdc".into()), c.merchant_bond(acc(M2), "demo".into())), (U128(0), U128(300_000)));
-        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(400_000), U128(600_000)));
-        // A second default, in r2 after the bar: only the 300,000 left can go.
+        assert_eq!((c.merchant_bond(acc(M2), "usdc".into()), c.merchant_bond(acc(M2), "demo".into())), (U128(0), U128(1_500_000)));
+        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(2_000_000), U128(3_000_000)));
+        // A second default, in r2 after the bar: only the 1,500,000 left can go.
         open_r2(&mut c);
         at(M2, BAR_ENDS);
         c.commit_bid("r2".into(), sealed(M2, &cheap(), 3));
         mark(&mut c, "r2", M2, BAR_ENDS + 120_000);
         assert_eq!((c.merchant_bond(acc(M2), "usdc".into()), c.merchant_bond(acc(M2), "demo".into())), (U128(0), U128(0)));
-        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(400_000), U128(900_000)));
+        assert_eq!((c.forfeited_bonds("usdc".into()), c.forfeited_bonds("demo".into())), (U128(2_000_000), U128(4_500_000)));
         assert_eq!(c.unrevealed_defaults(acc(M2)), 2);
         assert_eq!(c.barred_until(acc(M2)), BAR_ENDS + 120_000 + UNREVEALED_BAR_MS);
     }
@@ -3007,13 +3072,12 @@ mod unrevealed {
     }
 
     #[test]
-    #[should_panic(expected = "linked to a merchant revealed in this round")]
-    fn an_open_merchant_another_one_linked_itself_to_is_not_marked() {
+    fn an_open_merchant_a_rival_hired_could_still_reveal_so_its_silence_is_marked() {
+        // a hired b and revealed; b's reveal would have stood (and dropped a), so b's silence
+        // is its own and it is marked like any other.
         let mut c = open_round_with_silent_b(true);
-        // b's reveal is refused by the one-operator rule, through a's hire alone.
-        at("b.testnet", COMMIT_UNTIL + 1);
-        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.reveal_bid("o1".into(), schedule(), hex::encode([2u8; 32])))).is_err());
         mark(&mut c, "o1", "b.testnet", MARKED_AT);
+        assert_eq!(c.unrevealed_defaults(acc("b.testnet")), 1);
     }
 
     #[test]
