@@ -183,3 +183,35 @@ export function rederive(d) {
   const got = { base_price: String(s.base_price), cap_bps: s.cap_bps, rules: s.rules };
   return JSON.stringify(got) === JSON.stringify(want) ? null : "the clamped answer is not the bid";
 }
+
+/** One sealed, TEE-signed question to a NEAR AI model, kept so a reader can re-check it: the
+ *  answer JSON, and the same disclosure fields as a swarm decision (chat id, signed text,
+ *  signature, signer, the sealed bytes and the answer's field key). */
+export async function askModel({ model, system, user, key }) {
+  const auth = { Authorization: `Bearer ${key}` };
+  const nonce = randomBytes(32).toString("hex");
+  const rep = await fetch(`${AI}/attestation/report?model=${encodeURIComponent(model)}&signing_algo=ed25519&nonce=${nonce}`, { headers: { ...auth, "x-no-aliasing": "true" }, signal: AbortSignal.timeout(60_000) });
+  const modelKey = (await rep.json()).model_attestations?.[0]?.signing_address;
+  if (!/^[0-9a-f]{64}$/.test(modelKey ?? "")) throw new Error(`${model}: no ed25519 model key`);
+  let last = "";
+  for (let i = 0; i < 3; i++) {
+    const me = clientKey();
+    const reqBytes = Buffer.from(JSON.stringify({ model, max_tokens: 8000, temperature: 0.7, messages: [{ role: "system", content: sealTo(system, modelKey) }, { role: "user", content: sealTo(user, modelKey) }] }));
+    let res, resBytes;
+    try {
+      res = await fetch(`${AI}/chat/completions`, { method: "POST", headers: { ...auth, "Content-Type": "application/json", "X-Signing-Algo": "ed25519", "X-Client-Pub-Key": me.pubHex, "X-Model-Pub-Key": modelKey, "X-Encryption-Version": "2", "x-no-aliasing": "true" }, body: reqBytes, signal: AbortSignal.timeout(300_000) });
+      resBytes = Buffer.from(await res.arrayBuffer());
+    } catch (e) { last = `fetch: ${e.message}`; continue; }
+    if (res.status === 402) throw new Error("NEAR AI credit exhausted");
+    if (!res.ok) { last = `HTTP ${res.status}`; continue; }
+    const body = JSON.parse(resBytes);
+    const content = body.choices?.[0]?.message?.content ?? "";
+    let raw;
+    try { raw = JSON.parse(openWith(content, me.xSecret).match(/\{[\s\S]*\}/)[0]); } catch (e) { last = `answer: ${e.message}`; continue; }
+    const sig = await (await fetch(`${AI}/signature/${body.id}?model=${encodeURIComponent(model)}&signing_algo=ed25519`, { headers: auth })).json().catch(() => ({}));
+    const [, sReq, sRes] = String(sig.text ?? "").split(":");
+    const tee_signed = Boolean(sig.signature) && edVerify(sig.text, sig.signature, sig.signing_address) && sReq === sha(reqBytes) && sRes === sha(resBytes) && sig.signing_address === modelKey;
+    return { raw, model, chat_id: body.id, tee_signed, signer: sig.signing_address ?? null, signed_text: sig.text ?? null, signature: sig.signature ?? null, binding_nonce: randomBytes(16).toString("hex"), request_b64: reqBytes.toString("base64"), response_b64: resBytes.toString("base64"), answer_key: fieldKey(content, me.xSecret) };
+  }
+  throw new Error(`${model}: no usable answer (${last})`);
+}

@@ -1,0 +1,10 @@
+{
+  "note": "our five merchant agents in community rounds (category open): each its own testnet account and 10 dUSDC test bond; personas and costs are ours and synthetic; each round a NEAR AI model drawn per agent (scripts/community-agents.mjs modelFor) chooses its sealed price",
+  "agents": [
+    { "account": "agent-1.bookerbob-demo.testnet", "name": "agent-1", "cost": 20, "persona": "You want the sale: bid low, but never under your cost." },
+    { "account": "agent-2.bookerbob-demo.testnet", "name": "agent-2", "cost": 30, "persona": "You want margin: you would rather lose the round than sell cheap." },
+    { "account": "agent-3.bookerbob-demo.testnet", "name": "agent-3", "cost": 25, "persona": "You guess what people will bid by hand and try to land just under them." },
+    { "account": "agent-4.bookerbob-demo.testnet", "name": "agent-4", "cost": 22, "persona": "You are bold: go close to your cost to be sure to win." },
+    { "account": "agent-5.bookerbob-demo.testnet", "name": "agent-5", "cost": 24, "persona": "You keep a steady 20% over your cost, whatever the others do." }
+  ]
+}

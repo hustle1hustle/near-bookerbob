@@ -1,1 +1,18 @@
-{ "note": "no community round is open right now; scripts/community.mjs open writes this file", "round": null, "bazaar": "bookerbob.testnet" }
+{
+  "note": "the community round: anyone bids blind on their own testnet account and key (docs/community-round.md). dUSDC is a testnet demo token with no value.",
+  "round": "community-1",
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "commit_until_ms": 1794566119859,
+  "reveal_until_ms": 1794587719859,
+  "bids_close": "2026-11-13 10:35",
+  "reveals_close": "2026-11-13 16:35",
+  "open_tx": "mcuZTR8CUJqmQXp3g41Ta9aaG59FhqCsZ6togdtKVcQ",
+  "ours": {
+    "agent-1.bookerbob-demo.testnet": "ours",
+    "agent-2.bookerbob-demo.testnet": "ours",
+    "agent-3.bookerbob-demo.testnet": "ours",
+    "agent-4.bookerbob-demo.testnet": "ours",
+    "agent-5.bookerbob-demo.testnet": "ours"
+  }
+}

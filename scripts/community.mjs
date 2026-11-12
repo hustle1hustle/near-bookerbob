@@ -91,12 +91,14 @@ async function main() {
     if (o.status !== 0 || !tx) throw new Error(`open_round failed: ${`${o.stdout}${o.stderr}`.slice(-300)}`);
     mkdirSync("fixtures/live/community", { recursive: true });
     writeFileSync(ROUND_FILE, JSON.stringify({ note: "the community round: anyone bids blind on their own testnet account and key (docs/community-round.md). dUSDC is a testnet demo token with no value.", round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, bids_close: when(commit_until_ms), reveals_close: when(reveal_until_ms), open_tx: tx }, null, 2) + "\n");
-    writeFileSync("agents/community.json", readFileSync(ROUND_FILE, "utf8"));
+    // The page marks our open-category agents (agents/community-agents.json) as ours.
+    const oursAll = Object.fromEntries(JSON.parse(readFileSync("agents/community-agents.json", "utf8")).agents.map((m) => [m.account, "ours"]));
+    writeFileSync("agents/community.json", JSON.stringify({ ...JSON.parse(readFileSync(ROUND_FILE, "utf8")), ours: oursAll }, null, 2) + "\n");
     // The public round page lives in its own small repo (bookerbob-round): same config, plus
     // which bidders are ours, so its table marks them.
     const mini = process.env.COMMUNITY_MINI_REPO ?? `${process.env.HOME}/dev/bookerbob-round`;
     if (existsSync(join(mini, "index.html"))) {
-      const ours = Object.fromEntries(JSON.parse(readFileSync("agents/merchants.json", "utf8")).map((m) => [m.account, "ours"]));
+      const ours = Object.fromEntries(JSON.parse(readFileSync("agents/community-agents.json", "utf8")).agents.map((m) => [m.account, "ours"]));
       writeFileSync(join(mini, "community.json"), JSON.stringify({ round, bazaar: c.bazaar, dusdc: c.dusdc, commit_until_ms, reveal_until_ms, ours }, null, 2) + "\n");
       console.log(`   wrote ${join(mini, "community.json")}: commit and push it there too`);
     }
