@@ -203,7 +203,7 @@ export function buildRecord(st) {
     categories: CATEGORIES.filter((c) => r.cats?.[c]).map((c) => ({ category: c, round_id: r.cats[c].round_id, open_tx: r.cats[c].open_tx ?? null, commits: r.cats[c].commits ?? 0, reveals: r.cats[c].reveals ?? 0, commit_until_ms: r.cats[c].commit_until_ms, reveal_until_ms: r.cats[c].reveal_until_ms })),
     replay: r.replay ? { nullifier: r.replay.nullifier, tx: r.replay.tx, refused: "nullifier spent" } : null,
     ...(r.note && { note: clean(r.note) }),
-    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer, ...(d.signature && { signed_text: d.signed_text, signature: d.signature }) })) }),
+    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer, ...(d.signature && { signed_text: d.signed_text, signature: d.signature, binding_nonce: d.binding_nonce }) })) }),
   }));
   const purchases = [];
   const failures = [];
@@ -266,7 +266,7 @@ const RECORD_KEYS = new Set([
   "note", "tag", "network", "bazaar", "dusdc", "relayer", "explorer", "started_at", "updated_at", "complete", "dusdc_registrations", "first_round", "failures_first_pass", "retried_ok", "failures_final", "stopped", "plan", "rounds", "purchases", "failures", "totals",
   "buyers", "commit_min", "reveal_min", "n", "ready", "seconds", "categories", "replay", "category", "round_id", "open_tx", "commits", "reveals", "commit_until_ms", "reveal_until_ms", "nullifier", "tx", "refused",
   "round", "bit_set", "predicates", "buyer", "merchant", "price", "model", "chat_id", "txs", ...TX_KEYS, "step", "error", "retried",
-  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer", "signed_text", "signature",
+  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer", "signed_text", "signature", "binding_nonce", "bound",
   "merchant_agents", "buyer_agents", "sealed_bids", "model_verdicts", "purchases_settled", "dusdc_volume", "refused_replays", "near_ai_calls", "near_ai_cost_usd", "near_ai_cost_basis", "treasury_near_spent", "faucet_near", "wall_time_s",
 ]);
 
@@ -282,6 +282,8 @@ export function assertPublic(record, path = "record") {
     }
     return;
   }
+  // A NEAR AI signed text is public by design: "<model>:<sha256 request>:<sha256 response>".
+  if (typeof record === "string" && path.endsWith(".signed_text") && /^[\w./-]+:[0-9a-f]{64}:[0-9a-f]{64}$/.test(record)) return;
   if (typeof record === "string" && (/\.rep-secrets|\/Users\/|ed25519:[1-9A-HJ-NP-Za-km-z]{80,}|Bearer\s|sk-[A-Za-z0-9]{16,}/.test(record) || /\b[0-9a-f]{64}\b/.test(record) && !HEX64.test(record))) throw new Error(`${path}: looks like a key or a private path`);
 }
 
@@ -561,7 +563,11 @@ async function run(a) {
           save();
           for (const [m, d] of Object.entries(r.decisions)) console.log(`[r${n}] ${m.split(".")[0]} ${d.skip ? "sits out: " + d.why : `bids base ${d.schedule.base_price / 1e6}, ${d.schedule.rules.map((q) => `${q.predicate} -${q.bps / 100}%`).join(", ") || "no discounts"}, cap ${d.schedule.cap_bps / 100}%${d.tee_signed ? ", TEE-signed" : ", SIGNATURE NOT CHECKED"}: ${d.why}`}`);
         }
-        bidders = bidders.filter((m) => r.decisions[m.account] && !r.decisions[m.account].skip).map((m) => ({ ...m, schedule: r.decisions[m.account].schedule }));
+        const { decisionSalt } = await import("./merchant-brain.mjs");
+        bidders = bidders.filter((m) => r.decisions[m.account] && !r.decisions[m.account].skip).map((m) => {
+          const d = r.decisions[m.account];
+          return { ...m, schedule: d.schedule, ...(d.signature && d.binding_nonce && { bid_salt: decisionSalt(d) }) };
+        });
       }
       writeFileSync(join(cwd, "agents", "merchants.json"), JSON.stringify(bidders));
     }
@@ -958,6 +964,28 @@ async function verify(a) {
     say(ok, `round ${cat.round_id}: ${cat.commits} sealed bids, ${cat.reveals} opened`, ok ? "" : `chain: ${info ? `${info.commits.length} and ${info.revealed.length}` : "no such round"}`);
   }
   say(merchantsSeen.size === rec.totals.merchant_agents, `${rec.totals.merchant_agents} merchant agents opened a bid`, merchantsSeen.size === rec.totals.merchant_agents ? "" : `chain: ${merchantsSeen.size}`);
+
+  // Model merchants (s3 on): every decision's TEE signature re-checked from the record, and the
+  // bid on chain tied to it: the salt is derived from the decision, so the commitment the
+  // merchant posted before the deadline opens only to this decision's bid.
+  const decided = rec.rounds.flatMap((r) => (r.decisions ?? []).map((d) => ({ ...d, r })));
+  if (decided.length) {
+    const { edVerify } = await import("./lib/e2ee.mjs");
+    const { decisionSalt } = await import("./merchant-brain.mjs");
+    const { bidCommitment } = await import("../sdk/merchant.mjs");
+    const withSig = decided.filter((d) => d.signature);
+    const bad = [];
+    for (const d of withSig) {
+      if (!edVerify(d.signed_text, d.signature, d.signer)) { bad.push(`${d.merchant.split(".")[0]} r${d.r.n}: signature`); continue; }
+      const roundId = d.r.categories[0]?.round_id;
+      const info = roundId ? await client.view(rec.bazaar, "round", { round_id: roundId }) : null;
+      const onChain = info?.commits.find(([a]) => a === d.merchant)?.[1];
+      const s = { base_price: d.bid.base_price, rules: d.bid.rules, cap_bps: d.bid.cap_bps };
+      if (onChain !== bidCommitment(d.merchant, s, Buffer.from(decisionSalt(d), "hex"))) bad.push(`${d.merchant.split(".")[0]} r${d.r.n}: commitment`);
+    }
+    if (withSig.length) say(!bad.length, `${withSig.length} model decisions: TEE signature re-checked from the record, and each sealed bid on chain opens only with the salt its decision names`, bad.slice(0, 5).join("; "));
+    if (decided.length > withSig.length) console.log(`SKIP  ${decided.length - withSig.length} model decisions from before the record kept signatures (s2): checked during the run only`);
+  }
 
   // Every purchase through the normal RPC: the nullifier is spent under a model verdict held
   // by the buyer, and the round still names the same winner at the same price.

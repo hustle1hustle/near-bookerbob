@@ -45,6 +45,15 @@ const PERSONA_TEXT = {
   adaptive: "You adapt: read what won last round and move toward the price that wins with margin left.",
 };
 
+/** The salt that seals a model merchant's bid: it names the decision that chose the bid.
+ *  sha256("bookerbob/bid-decision/v1" | chat_id | signed_text | signature | nonce). The salt is
+ *  public once the bid is revealed, so anyone with the record recomputes it, recomputes the
+ *  commitment the merchant put on chain before the deadline, and sees that this decision, and no
+ *  other, chose this bid. */
+export function decisionSalt(d) {
+  return createHash("sha256").update(["bookerbob/bid-decision/v1", d.chat_id, d.signed_text, d.signature, d.binding_nonce].join("|")).digest("hex");
+}
+
 /** The price a schedule gives a buyer who revealed `bits` (contract rules: sum of matching bps, capped). */
 export function priceFor(s, bits) {
   const bps = Math.min(s.cap_bps, s.rules.filter((r) => bits.includes(r.predicate)).reduce((a, r) => a + r.bps, 0));
@@ -101,8 +110,12 @@ async function decideOne({ account, me, history, n, rounds, bitSets, auth, model
   for (let i = 0; i < 3; i++) {
     const me2 = clientKey();
     const reqBytes = Buffer.from(JSON.stringify({ model: BRAIN_MODEL, max_tokens: 8000, temperature: 0.7, messages: [{ role: "system", content: sealTo(system, modelKey) }, { role: "user", content: sealTo(user, modelKey) }] }));
-    const res = await fetch(`${AI}/chat/completions`, { method: "POST", headers: { ...auth, "Content-Type": "application/json", "X-Signing-Algo": "ed25519", "X-Client-Pub-Key": me2.pubHex, "X-Model-Pub-Key": modelKey, "X-Encryption-Version": "2", "x-no-aliasing": "true" }, body: reqBytes });
-    const resBytes = Buffer.from(await res.arrayBuffer());
+    // A reasoning model can think for minutes; swarm-run's default fetch timeout is 2.
+    let res, resBytes;
+    try {
+      res = await fetch(`${AI}/chat/completions`, { method: "POST", headers: { ...auth, "Content-Type": "application/json", "X-Signing-Algo": "ed25519", "X-Client-Pub-Key": me2.pubHex, "X-Model-Pub-Key": modelKey, "X-Encryption-Version": "2", "x-no-aliasing": "true" }, body: reqBytes, signal: AbortSignal.timeout(300_000) });
+      resBytes = Buffer.from(await res.arrayBuffer());
+    } catch (e) { last = `fetch: ${e.message}`; continue; }
     if (res.status === 402) throw new Error("NEAR AI credit exhausted");
     if (!res.ok) { last = `HTTP ${res.status} ${resBytes.toString().slice(0, 160)}`; await new Promise((ok) => setTimeout(ok, 2000 * (i + 1))); continue; }
     const body = JSON.parse(resBytes);
@@ -121,7 +134,7 @@ async function decideOne({ account, me, history, n, rounds, bitSets, auth, model
       why: String(raw.why ?? "").slice(0, 200), model: BRAIN_MODEL, chat_id: body.id, tee_signed: signed, signer: sig.signing_address ?? null,
       // Kept so a reader can re-check the signature: the signed text names sha256 of the request
       // and response bytes (the bytes themselves are sealed and not kept).
-      signed_text: sig.text ?? null, signature: sig.signature ?? null,
+      signed_text: sig.text ?? null, signature: sig.signature ?? null, binding_nonce: randomBytes(16).toString("hex"),
       usage: body.usage ?? null,
     };
   }

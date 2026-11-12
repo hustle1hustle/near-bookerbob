@@ -34,6 +34,15 @@ const rounds = rec.rounds.filter((r) => r.decisions?.length).map((r) => {
     replay_refused: Boolean(r.replay),
   };
 });
+// Baseline, simulated from the record (not run on chain): from round 1's price, a scripted
+// merchant bids 1% under the last winning price each round, never under the lowest unit cost.
+const { PERSONAS } = await import("./merchant-brain.mjs");
+const floorCost = Math.min(...Object.values(PERSONAS).map((p) => p.cost));
+let prevBase = null;
+for (const r of rounds) {
+  r.baseline = prevBase == null ? r.paid_frequent : Math.max(floorCost, Math.round(prevBase * 0.99 * 100) / 100);
+  prevBase = r.baseline;
+}
 const out = { note: `price discovery in swarm run ${tag}, from fixtures/live/swarm/${tag}.json; each bid priced for a buyer revealing ${BITS.join(", ")}`, tag, bits: BITS, totals: rec.totals, rounds };
 writeFileSync(`agents/swarm-${tag}.json`, JSON.stringify(out) + "\n");
 
@@ -55,9 +64,12 @@ rounds.forEach((r) => {
 });
 const pts = rounds.map((r) => (r.paid_frequent != null ? `${x(r.n)},${y(r.paid_frequent)}` : null)).filter(Boolean);
 if (pts.length) svg += `<polyline points="${pts.join(" ")}" fill="none" stroke="#E6E6EF" stroke-width="2"/>` + pts.map((p) => `<circle cx="${p.split(",")[0]}" cy="${p.split(",")[1]}" r="3" fill="#E6E6EF"/>`).join("");
+const bpts = rounds.filter((r) => r.baseline != null).map((r) => `${x(r.n)},${y(r.baseline)}`);
+if (bpts.length > 1) svg += `<polyline points="${bpts.join(" ")}" fill="none" stroke="#7C7C94" stroke-width="1.5" stroke-dasharray="5 4"/>`;
 [["undercutter", "#5BE3A0"], ["premium", "#FF9F5B"], ["adaptive", "#3B5BFF"], ["other strategy", "#C77DFF"], ["paid (3 bits)", "#E6E6EF"]].forEach(([k, c], i) => (svg += `<circle cx="${W - R + 14}" cy="${T + 10 + i * 18}" r="4" fill="${c}"/><text x="${W - R + 24}" y="${T + 14 + i * 18}" fill="#7C7C94">${k}</text>`));
+svg += `<line x1="${W - R + 8}" x2="${W - R + 20}" y1="${T + 100}" y2="${T + 100}" stroke="#7C7C94" stroke-dasharray="4 3"/><text x="${W - R + 24}" y="${T + 104}" fill="#7C7C94">scripted: last</text><text x="${W - R + 24}" y="${T + 118}" fill="#7C7C94">winner -1%,</text><text x="${W - R + 24}" y="${T + 132}" fill="#7C7C94">floor at cost</text><text x="${W - R + 24}" y="${T + 146}" fill="#7C7C94">(simulated)</text>`;
 svg += `</svg>\n`;
 writeFileSync(`docs/media/${tag}-prices.svg`, svg);
 writeFileSync(`agents/${tag}-prices.svg`, svg);
-for (const r of rounds) console.log(`round ${r.n}: ${r.bids.length} bids, ${r.low.toFixed(2)} to ${r.high.toFixed(2)} (median ${r.median.toFixed(2)}), buyers with 3 bits paid ${r.paid_frequent ?? "-"}, winners ${r.winners.join(", ") || "-"}${r.sold_out.length ? `, sold out: ${r.sold_out.join(", ")}` : ""}`);
+for (const r of rounds) console.log(`baseline ${r.baseline} | round ${r.n}: ${r.bids.length} bids, ${r.low.toFixed(2)} to ${r.high.toFixed(2)} (median ${r.median.toFixed(2)}), buyers with 3 bits paid ${r.paid_frequent ?? "-"}, winners ${r.winners.join(", ") || "-"}${r.sold_out.length ? `, sold out: ${r.sold_out.join(", ")}` : ""}`);
 console.log(`wrote agents/swarm-${tag}.json and docs/media/${tag}-prices.svg`);

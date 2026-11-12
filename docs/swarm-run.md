@@ -90,6 +90,11 @@ What happened, for a buyer who revealed `airbnb_frequent`, `claude_spender`, `wo
 - Coordination was not tested: the merchants had no channel to each other, and four rounds is
   short. No bid sat at a shared high price, and no merchant used a hire edge or a shared payout
   (the hoodie category is owner-approved, so those rules do not apply there).
+- The dashed line on the chart is a baseline we simulated from the record, not a run: from
+  round 1's price, a scripted merchant bids 1% under the last winning price, never under the
+  lowest cost (26.53, 26.26, 26.00). The models went faster (25.55, 24.31, 24.08). The 1% step
+  is our choice; a more aggressive script would match them, so the line shows they moved faster
+  than a cautious rule, not faster than any rule.
 - The result is what a price war between unequal costs predicts: the price settles just above
   the second-lowest cost (m08 23, m11 24). A two-line "undercut the last winner, floor at cost"
   script would reach the same end; the run shows model agents reaching it from public data, and
@@ -109,6 +114,25 @@ never opened: the model calls for it timed out three times, so its 6 buyers did 
 30 settled, 604.44 test dUSDC, 4 replays refused). Merchant decisions are 40 more E2EE chats on
 top of the 24 buyer verdicts. `make swarm-verify TAG=s2` re-checks the rounds and purchases over
 public RPC; `node scripts/swarm-chart.mjs s2` redraws the chart from the record.
+
+## s3: each sealed bid tied on chain to the model decision that chose it (2026-11-12)
+
+A short rerun of s2's setup (2 rounds, the same 10 merchant agents, 6 buyers) with two changes:
+
+- The record keeps each decision's signed text, signature and signing key, so
+  `make swarm-verify TAG=s3` re-checks all 20 TEE signatures from the record, with no NEAR AI
+  key.
+- Each bid's salt is `sha256("bookerbob/bid-decision/v1" | chat id | signed text | signature |
+  nonce)` (`decisionSalt` in `scripts/merchant-brain.mjs`). The salt is public once the bid is
+  revealed, so the verifier recomputes it from the record and checks that the commitment the
+  merchant put on chain before the deadline opens to that decision's bid and no other: 20 of 20.
+
+6 of 6 purchases settled (165.69 test dUSDC), 2 replays refused; buyers with 3 proven bits
+paid 29.20, then 26.03. Round 2's decisions took more than the run's 2-minute request timeout
+on the first try (the model reasons at length); they now get 5 minutes, and the round ran on a
+rerun. Record: `fixtures/live/swarm/s3.json`. After s2 and s3 the merchants' original schedules
+were put back in two short rounds (`restore1-hoodie`, `restore2-hoodie`), because a reveal also
+sets a merchant's schedule, and rounds from before the bid pin are priced from it.
 
 ## A mini run the day after (try1, 2026-11-12)
 

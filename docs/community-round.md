@@ -16,7 +16,10 @@ The live round, its deadlines and every bid so far:
 Open `https://hustle1hustle.github.io/near-bookerbob/round.html` on a phone or a laptop.
 No wallet, no install, no signup.
 
-1. Type a price and press "seal my bid". The page makes a throwaway NEAR testnet account for
+1. Choose your price (the slider or the number box; nothing is filled in for you) and, if you
+   like, one line telling your agent how to bid. Only that line's hash is used: its first 16
+   bytes become the first half of your bid's salt, which goes on chain with your reveal, so the
+   instruction is fixed with the bid and only you can show what it said. Press "seal my bid". The page makes a throwaway NEAR testnet account for
    you through the public faucet, mints 100 dUSDC, posts the 10 dUSDC bond (the bond is the
    approval: nobody lets you in) and sends the sealed bid. It takes about half a minute and
    each step links to its transaction. The transaction carries a hash, not the price.

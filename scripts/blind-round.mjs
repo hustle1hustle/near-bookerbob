@@ -57,7 +57,8 @@ if (cmd === "open") {
   let ok = 0;
   for (const m of merchants) {
     if (st.bids[m.account]?.commit_tx) { ok++; continue; }
-    const salt = randomBytes(32).toString("hex");
+    // A model merchant's bid comes with the salt that names its decision (merchant-brain.mjs).
+    const salt = /^[0-9a-f]{64}$/.test(m.bid_salt ?? "") ? m.bid_salt : randomBytes(32).toString("hex");
     st.bids[m.account] = { salt, round: roundOf(m.category) };
     save();
     const r = call(m.account, "commit_bid", commitBidArgs(roundOf(m.category), m.account, m.schedule, Buffer.from(salt, "hex")), "0.01 NEAR");

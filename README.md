@@ -14,9 +14,11 @@ last two rounds' public bids and sales. Code clamps every answer (base 20 to 80,
 bit, never under cost) and the contract prices every sale. m08 (adaptive) and m11 (an
 undercutter) traded the lead down to just above their costs; the other eight never won. With
 fixed price rules in s1, a buyer with the same 3 proven bits paid 36.00; here 26.80, then 25.55,
-24.31, 24.08. Round 4 never opened (the model calls timed out), so 24 of 30 buyers settled.
-Each decision's TEE signature was checked during the run, 40 of 40; the record keeps the chat id
-and signer, not the signed bytes. [Every decision and its reason](docs/swarm-run.md#s2).
+24.31, 24.08, where a scripted rule (bid 1% under the last winner, never under cost; simulated,
+dashed on the chart) reaches 26.00. Round 4 never opened (the model calls timed out), so 24 of 30 buyers settled.
+Each decision's TEE signature was checked during the run, 40 of 40. In the follow-up run s3,
+every check can be redone from the record, and each sealed bid's salt names its decision, so
+the chain ties the bid to the decision that chose it (`make swarm-verify TAG=s3`: 20 of 20). [Every decision and its reason](docs/swarm-run.md#s2).
 
 ![s2: each model merchant's sealed bid per round and what buyers paid; round 4 did not open](docs/media/s2-prices.svg)
 
@@ -396,6 +398,11 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   a merchant that knows its sales cannot tell whose rating a one-rating round is. A round under
   k_d is not carried into the next one; its ratings never open. The rating itself is still in
   the public `reveal_review` args, sent from a relayer, so the floor is what keeps it unlinked.
+- **A merchant's stated inventory is not enforced.** `round_best_quote` gives every buyer to
+  the lowest revealed price; a merchant agent's units (s2's personas carry them) are a number
+  the agent reasons about, not a rule the contract checks, so a winner can "sell" past its
+  stock. Enforcing it needs units in the sealed bid and new contract state; not done before the
+  deadline.
 - **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
   full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
   price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
