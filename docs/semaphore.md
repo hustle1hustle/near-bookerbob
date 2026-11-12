@@ -75,6 +75,13 @@ own ceremony. We commit the verification keys we use and their source.
 3. **Privacy rules.**
    - k-floor: a round's ratings are released only if the group had at least 5 members
      when the round closed (same floor as the cohorts). Below that they stay sealed.
+   - k_d floor (`K_RATERS_MIN`, 5): the group floor counts members, not ratings, so a round
+     in a large group could still hold one rating, and a merchant that knows its sales could
+     tell whose it is. A reveal is refused while the round holds fewer than 5 sealed ratings
+     (5 distinct Semaphore nullifiers), and `publish_reviews` holds a round with fewer than 5
+     revealed. Both events log the release size (`ratings`, `sealed`, `k_d`). A thin round's
+     ratings stay sealed for good; they are not carried into the next round. In the code since
+     2026-11-12, not yet on the deployed bazaars.
    - Batch release: only sealed hashes exist during the round; reveals happen after it
      closes, and `publish_reviews` (after the reveal window) releases them sorted by sealed
      hash, not by arrival. A reveal is refused while the group has fewer than 5 members,

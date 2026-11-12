@@ -1729,6 +1729,7 @@ mod reviews {
         }
         at("anyone.testnet", T + 2 * REVIEW_ROUND_MS);
         assert!(c.publish_reviews(acc("m01.bookerbob.testnet"), round));
+        assert!(get_logs().iter().any(|l| l.contains("reviews_published") && l.contains(r#""ratings":6"#) && l.contains(r#""k_d":5"#)), "the release logs its size");
         let out = c.reviews(acc("m01.bookerbob.testnet"), round).unwrap();
         assert_eq!(out.iter().map(|x| x.rating as u64).sum::<u64>(), 23);
         let s = c.merchant_score(acc("m01.bookerbob.testnet"));
@@ -1837,6 +1838,56 @@ mod reviews {
         assert!(!c.publish_reviews(acc("m02.bookerbob.testnet"), round));
         assert!(c.reviews(acc("m02.bookerbob.testnet"), s["round"].as_u64().unwrap()).is_none());
         assert_eq!(c.merchant_score(acc("m02.bookerbob.testnet")).ratings, 0);
+    }
+
+    #[test]
+    fn a_round_under_k_d_distinct_raters_stays_sealed_in_a_group_over_k() {
+        // Six members, two ratings: the group passes k, the round does not. A merchant that
+        // knows its two sales this round could tell whose rating is whose; nothing opens.
+        let (mut c, r) = six();
+        let ps = r["proofs"].as_array().unwrap();
+        for (i, e) in ps.iter().take(2).enumerate() {
+            rate(&mut c, "m01.bookerbob.testnet", e, &format!("relayer{i}.testnet"));
+        }
+        let round = r["round"].as_u64().unwrap();
+        assert!(c.review_persons(acc("m01.bookerbob.testnet")) >= bookerbob_core::K_MIN as u64);
+        let rv = &ps[0]["review"];
+        at("relayer0.testnet", T + REVIEW_ROUND_MS);
+        let refused = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            c.reveal_review(
+                acc("m01.bookerbob.testnet"),
+                round,
+                rv["rating"].as_u64().unwrap() as u8,
+                rv["delivered"].as_bool().unwrap(),
+                rv["reason_hash"].as_str().unwrap().into(),
+                rv["salt"].as_str().unwrap().into(),
+            )
+        }));
+        assert!(refused.is_err(), "a reveal in a two-rater round is refused");
+        at("anyone.testnet", T + 2 * REVIEW_ROUND_MS);
+        assert!(!c.publish_reviews(acc("m01.bookerbob.testnet"), round));
+        assert!(c.reviews(acc("m01.bookerbob.testnet"), round).is_none());
+        assert_eq!(c.merchant_score(acc("m01.bookerbob.testnet")).ratings, 0);
+    }
+
+    #[test]
+    fn a_release_needs_k_d_revealed_ratings_and_logs_its_size() {
+        // Five sealed, three revealed: a release of three is held, and the event says so.
+        let (mut c, r) = six();
+        let ps = r["proofs"].as_array().unwrap();
+        for (i, e) in ps.iter().take(5).enumerate() {
+            rate(&mut c, "m01.bookerbob.testnet", e, &format!("relayer{i}.testnet"));
+        }
+        let round = r["round"].as_u64().unwrap();
+        for (i, e) in ps.iter().take(3).enumerate() {
+            reveal(&mut c, "m01.bookerbob.testnet", round, &e["review"], &format!("relayer{i}.testnet"));
+        }
+        at("anyone.testnet", T + 2 * REVIEW_ROUND_MS);
+        assert!(!c.publish_reviews(acc("m01.bookerbob.testnet"), round));
+        let held = get_logs().into_iter().find(|l| l.contains("reviews_held")).expect("a reviews_held event");
+        assert!(held.contains(r#""ratings":3"#) && held.contains(r#""sealed":5"#) && held.contains(r#""k_d":5"#), "{held}");
+        assert!(c.reviews(acc("m01.bookerbob.testnet"), round).is_none());
+        assert_eq!(c.merchant_score(acc("m01.bookerbob.testnet")).ratings, 0);
     }
 
     #[test]

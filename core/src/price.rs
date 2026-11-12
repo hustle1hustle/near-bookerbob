@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 pub const BPS_DENOM: u128 = 10_000;
 /// Smallest cohort that unlocks a group price (k-anonymity floor).
 pub const K_MIN: u32 = 5;
+/// Fewest distinct raters (one Semaphore nullifier each) a review round must hold before any
+/// of its ratings opens or is released (k_d). The group floor `K_MIN` counts members; a
+/// merchant that knows its sales could still tell whose rating a one-rating round is.
+pub const K_RATERS_MIN: u32 = 5;
 /// Largest base price (token base units): 10^30, far above any real price and far below
 /// u128::MAX / BPS_DENOM, so `base * bps` cannot overflow in a quote (audit finding A7).
 pub const MAX_BASE_PRICE: u128 = 1_000_000_000_000_000_000_000_000_000_000;

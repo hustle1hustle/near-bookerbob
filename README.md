@@ -340,6 +340,12 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   pot to a merchant with no receipt for it. Found by our own audit on 2026-11-06, fixed in the
   code both bazaars run since the 2026-11-10 redeploy (`contract/DEPLOYED.json`). The fixes are
   covered by contract tests; neither attack was replayed on chain before or after.
+- **The review floor on testnet counts members, not raters.** The deployed bazaars release a
+  round's ratings once the merchant's review group has 5 members, however few of them rated
+  that round; a merchant that knows its sales could tell whose rating a one-rating release is.
+  The code now also needs 5 distinct raters per round (k_d) before any rating opens or is
+  released, and logs each release's size (`reviews_published`, `reviews_held`). Covered by
+  contract tests and staged; the live bazaars still run the old rule until a redeploy.
 - **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
   full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
   price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,

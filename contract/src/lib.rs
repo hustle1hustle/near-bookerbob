@@ -1468,7 +1468,9 @@ impl Bazaar {
     }
 
     /// After the round closes (within the next round): open a sealed rating. Refused while
-    /// the group has fewer than K_MIN members, so a small group's ratings never appear.
+    /// the group has fewer than K_MIN members, or the round holds fewer than K_RATERS_MIN
+    /// sealed ratings (k_d distinct raters), so a small group's or a thin round's ratings
+    /// never appear.
     #[payable]
     pub fn reveal_review(&mut self, merchant: AccountId, round: u64, rating: u8, delivered: bool, reason_hash: String, salt: String) {
         let before = env::storage_usage();
@@ -1484,6 +1486,8 @@ impl Bazaar {
         let mut rr = self.review_rounds.get(&rk).cloned().unwrap_or_else(|| env::panic_str("no ratings for this round"));
         require!(rr.sealed.iter().any(|(_, h)| h == &sealed), "no sealed rating opens to this");
         require!(!rr.revealed.iter().any(|(h, _)| h == &sealed), "already revealed");
+        // k_d: a round with fewer distinct raters stays sealed, whatever the group size.
+        require!(rr.sealed.len() as u64 >= bookerbob_core::K_RATERS_MIN as u64, "round under k_d distinct raters: keep it sealed");
         rr.revealed.push((sealed, Review { rating, delivered, reason_hash }));
         self.review_rounds.insert(rk, rr);
         self.review_rounds.flush();
@@ -1491,7 +1495,8 @@ impl Bazaar {
     }
 
     /// After the reveal window, release the round's revealed ratings together, sorted by
-    /// sealed hash (not by arrival). False, and nothing released, below K_MIN members.
+    /// sealed hash (not by arrival). False, and nothing released, below K_MIN members or
+    /// below K_RATERS_MIN revealed ratings; both events log the release size.
     /// The caller pays the storage it adds (the merchant's totals entry, audit A9).
     #[payable]
     pub fn publish_reviews(&mut self, merchant: AccountId, round: u64) -> bool {
@@ -1513,6 +1518,13 @@ impl Bazaar {
             emit("reviews_held", serde_json::json!({ "merchant": merchant, "round": round, "members": members, "k_min": bookerbob_core::K_MIN }));
             return false;
         }
+        if (rr.revealed.len() as u64) < bookerbob_core::K_RATERS_MIN as u64 {
+            emit(
+                "reviews_held",
+                serde_json::json!({ "merchant": merchant, "round": round, "members": members, "ratings": rr.revealed.len(), "sealed": rr.sealed.len(), "k_d": bookerbob_core::K_RATERS_MIN }),
+            );
+            return false;
+        }
         rr.revealed.sort_by(|a, b| a.0.cmp(&b.0));
         rr.published = true;
         let (mut n, mut sum, mut del) = self.review_totals.get(&merchant).copied().unwrap_or((0, 0, 0));
@@ -1526,7 +1538,7 @@ impl Bazaar {
         self.review_totals.insert(merchant.clone(), (n, sum, del));
         // Released ratings seed standing on the graph: the merchant's running totals.
         self.push_graph_event(bookerbob_graph::Event::Seed { merchant: merchant.to_string(), ratings: n, sum });
-        emit("reviews_published", serde_json::json!({ "merchant": merchant, "round": round, "ratings": count, "sealed": sealed, "members": members }));
+        emit("reviews_published", serde_json::json!({ "merchant": merchant, "round": round, "ratings": count, "sealed": sealed, "members": members, "k_d": bookerbob_core::K_RATERS_MIN }));
         true
     }
 

@@ -20,7 +20,7 @@ pub mod world;
 
 pub use bid::{bid_commitment, BID_TAG};
 pub use envelope::{Attestation, Envelope, Opening, SigAlg, SignedVerdict, SEALED_TIER};
-pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN};
+pub use price::{quote, quote_in_cohort, CohortLine, CohortRule, DiscountLine, Quote, Rule, Schedule, K_MIN, K_RATERS_MIN};
 pub use referee::{referee, Citation, Claim, RefereeOutcome};
 pub use referee_result::{DisputeBody, DisputeDecision, ResultBody, WorkerResult};
 pub use tier::{derive, Derived, Fact, ProofSet, Tier, TierResult};
