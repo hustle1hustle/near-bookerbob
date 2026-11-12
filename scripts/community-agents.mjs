@@ -30,7 +30,20 @@ export const modelFor = (round, account) => MODELS[createHash("sha256").update(`
 /** Code's bound on the answer: a price from the agent's cost to 100 dUSDC, in cents. */
 export const clampPrice = (p, cost) => Math.round(Math.min(100, Math.max(cost, Number(p) || cost)) * 100) / 100;
 
-async function bid(roundId) {
+async function bidSeries(roundId) {
+  const file = "fixtures/live/community/round.json";
+  const cfg = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
+  const series = cfg.series?.length ? [...cfg.series].sort((x, y) => x.commit_until_ms - y.commit_until_ms) : [{ round: cfg.round }];
+  const pick = roundId ?? process.env.COMMUNITY_ROUND;
+  for (const [i, s] of series.entries()) {
+    if (pick && s.round !== pick) continue;
+    if (!pick && s.commit_until_ms && Date.now() >= s.commit_until_ms - 60_000) continue;
+    console.log(`== ${s.round}`);
+    await bid(s.round, i);
+  }
+}
+
+async function bid(roundId, idx = 0) {
   const file = "fixtures/live/community/round.json";
   const cfg = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
   const round = roundId ?? process.env.COMMUNITY_ROUND ?? cfg.round;
@@ -63,7 +76,7 @@ async function bid(roundId) {
     const ak = await client.accessKey(a.account, k.pub);
     const head = await client.block();
     const blocks = BigInt(Math.ceil(Math.max(0, r.reveal_until_ms - Date.now()) / 500) + 20000);
-    const del = signDelegate({ sender_id: a.account, receiver_id: bazaar, actions: [{ type: "FunctionCall", method_name: "reveal_bid", args: { round_id: round, schedule: s, salt }, gas: 50n * TGAS, deposit: 20n * MILLI }], nonce: BigInt(ak.nonce) + 1000n, max_block_height: BigInt(head.height) + blocks, public_key_hex: k.pub }, k);
+    const del = signDelegate({ sender_id: a.account, receiver_id: bazaar, actions: [{ type: "FunctionCall", method_name: "reveal_bid", args: { round_id: round, schedule: s, salt }, gas: 50n * TGAS, deposit: 20n * MILLI }], nonce: BigInt(ak.nonce) + 1000n * BigInt(idx + 1), max_block_height: BigInt(head.height) + blocks, public_key_hex: k.pub }, k);
     const plain = JSON.stringify(del, (_, v) => (typeof v === "bigint" ? v.toString() : v));
     const sealed_reveal = await tl.timelockEncrypt(tl.roundAt(r.commit_until_ms + 5000, info), tl.Buffer.from(plain), drand);
     const res = await send(client, { signer_id: a.account, key: k, receiver_id: bazaar, actions: [{ type: "FunctionCall", method_name: "commit_bid", args: { round_id: round, commitment: bidCommitment(a.account, s, Buffer.from(salt, "hex")), sealed_reveal }, gas: 50n * TGAS, deposit: 20n * MILLI }] });
@@ -84,5 +97,5 @@ async function bid(roundId) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, round] = process.argv.slice(2);
   if (cmd !== "bid") { console.error("usage: community-agents.mjs bid [round]"); process.exit(2); }
-  await bid(round).catch((e) => { console.error(`FAIL  ${e.message}`); process.exit(1); });
+  await bidSeries(round).catch((e) => { console.error(`FAIL  ${e.message}`); process.exit(1); });
 }

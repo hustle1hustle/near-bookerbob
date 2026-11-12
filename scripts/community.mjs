@@ -155,6 +155,12 @@ async function main() {
     const { createPublicKey, verify } = await import("node:crypto");
     const keysDir = process.env.KEYS_DIR ?? join(homedir(), ".rep-secrets", "bookerbob-testnet");
     const relayer = { id: process.env.RELAYER_ACCOUNT ?? "bookerbob-demo.testnet", key: keyFromSeed(readFileSync(join(keysDir, "treasury.seed"), "utf8")) };
+    // A series (round.json `series`): every round still in its reveal window, in deadline order.
+    const file = existsSync(ROUND_FILE) ? JSON.parse(readFileSync(ROUND_FILE, "utf8")) : {};
+    const ids = process.env.COMMUNITY_ROUND ? [process.env.COMMUNITY_ROUND] : (file.series?.length ? [...file.series].sort((x, y) => x.commit_until_ms - y.commit_until_ms).filter((x) => Date.now() < x.reveal_until_ms).map((x) => x.round) : [c.round]);
+    for (const id of ids) {
+    c.round = id;
+    console.log(`== ${id}`);
     const r = await roundInfo();
     const wait = r.commit_until_ms + 4000 - Date.now();
     if (wait > 0) { console.log(`waiting ${Math.ceil(wait / 1000)} s for the commit deadline (${when(r.commit_until_ms)} UTC)`); await new Promise((ok) => setTimeout(ok, wait)); }
@@ -197,6 +203,34 @@ async function main() {
     }
     const fin = await client.view(c.bazaar, "round", { round_id: c.round });
     console.log(`round ${c.round}: ${fin.commits.length} sealed, ${fin.revealed.length} revealed`);
+    }
+    return;
+  }
+
+  if (cmd === "add") {
+    // Add a round to the series: open it (owner) with a fixed close time, and append it to the
+    // series in round.json, agents/community.json and the round page's community.json.
+    const [round, closeIso, revealH, ...buyerWords] = [a1, a2, a3, ...process.argv.slice(6)];
+    const commit_until_ms = Date.parse(closeIso);
+    if (!round || !Number.isFinite(commit_until_ms) || !(Number(revealH) > 0)) throw new Error('add <round> <close ISO UTC> <reveal_hours> "<buyer line>"');
+    const reveal_until_ms = commit_until_ms + Math.round(Number(revealH) * 3600e3);
+    const buyer = buyerWords.join(" ") || "one buyer agent wants a room";
+    const o = spawnSync("near", ["contract", "call-function", "as-transaction", c.bazaar, "open_round", "json-args", JSON.stringify({ round_id: round, category: "open", commit_until_ms, reveal_until_ms }), "prepaid-gas", "30.0 Tgas", "attached-deposit", "0 NEAR", "sign-as", c.bazaar, "network-config", "testnet-fastnear", "sign-with-keychain", "send"], { encoding: "utf8" });
+    const tx = `${o.stdout}${o.stderr}`.match(/Transaction ID: (\w+)/)?.[1];
+    if (o.status !== 0 || !tx) throw new Error(`open_round failed: ${`${o.stdout}${o.stderr}`.slice(-300)}`);
+    const base = existsSync(ROUND_FILE) ? JSON.parse(readFileSync(ROUND_FILE, "utf8")) : { bazaar: c.bazaar, dusdc: c.dusdc };
+    const series = base.series ?? (base.round ? [{ round: base.round, commit_until_ms: base.commit_until_ms, reveal_until_ms: base.reveal_until_ms, buyer: "one buyer agent wants a room", open_tx: base.open_tx }] : []);
+    series.push({ round, commit_until_ms, reveal_until_ms, buyer, open_tx: tx });
+    const next = { ...base, round: base.round ?? round, series };
+    writeFileSync(ROUND_FILE, JSON.stringify(next, null, 2) + "\n");
+    const page = existsSync("agents/community.json") ? JSON.parse(readFileSync("agents/community.json", "utf8")) : {};
+    writeFileSync("agents/community.json", JSON.stringify({ ...page, ...next, series }, null, 2) + "\n");
+    const mini = process.env.COMMUNITY_MINI_REPO ?? `${process.env.HOME}/dev/bookerbob-round`;
+    if (existsSync(join(mini, "community.json"))) {
+      const m = JSON.parse(readFileSync(join(mini, "community.json"), "utf8"));
+      writeFileSync(join(mini, "community.json"), JSON.stringify({ ...m, series: series.map(({ round, commit_until_ms, reveal_until_ms, buyer }) => ({ round, commit_until_ms, reveal_until_ms, buyer })) }, null, 2) + "\n");
+    }
+    console.log(`   ok open_round ${round}  ${link(tx)}\n   bids until ${when(commit_until_ms)} UTC, reveals until ${when(reveal_until_ms)} UTC; series now ${series.map((x) => x.round).join(", ")}`);
     return;
   }
 
