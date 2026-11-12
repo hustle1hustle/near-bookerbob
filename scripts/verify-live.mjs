@@ -374,9 +374,11 @@ if (existsSync(new URL("../fixtures/live/community/round.json", import.meta.url)
     const community = r.commits.map(([a]) => a).filter((a) => !ours.has(a) && !isFounder(a));
     // Margins: price minus the bidder's cost (scripts/community.mjs costOf; ours from cr.costs).
     const { costOf } = await import("./community.mjs");
-    const margins = priced.filter((x) => x.p != null).map((x) => `${x.a.split(".")[0]} ${(x.p - costOf(cr.round, x.a, cr.costs ?? {})).toFixed(2)}`);
+    // Score: the margin earned. The lowest revealed price wins the buyer and scores price minus
+    // cost; everyone else scores 0.
+    const margins = [];
     const best = priced.filter((x) => x.p != null).sort((x, y) => x.p - y.p)[0];
-    return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts (${community.slice(0, 5).join(", ")}${community.length > 5 ? ", ..." : ""}), ${founder.length} founder's bid; lowest revealed ${best ? `${best.a} at ${best.p.toFixed(2)}` : "none"}${margins.length ? `; margins ${margins.join(", ")}` : ""}`];
+    return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts (${community.slice(0, 5).join(", ")}${community.length > 5 ? ", ..." : ""}), ${founder.length} founder's bid; lowest revealed ${best ? `${best.a} at ${best.p.toFixed(2)}` : "none"}${best ? `; score ${best.a.split(".")[0]} ${(best.p - costOf(cr.round, best.a, cr.costs ?? {})).toFixed(2)}, everyone else 0` : ""}`];
   });
 }
 
