@@ -340,12 +340,11 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   pot to a merchant with no receipt for it. Found by our own audit on 2026-11-06, fixed in the
   code both bazaars run since the 2026-11-10 redeploy (`contract/DEPLOYED.json`). The fixes are
   covered by contract tests; neither attack was replayed on chain before or after.
-- **The review floor on testnet counts members, not raters.** The deployed bazaars release a
-  round's ratings once the merchant's review group has 5 members, however few of them rated
-  that round; a merchant that knows its sales could tell whose rating a one-rating release is.
-  The code now also needs 5 distinct raters per round (k_d) before any rating opens or is
-  released, and logs each release's size (`reviews_published`, `reviews_held`). Covered by
-  contract tests and staged; the live bazaars still run the old rule until a redeploy.
+- **Thin review rounds stay sealed for good.** Since 2026-11-12 both bazaars need 5 distinct
+  raters in a round (k_d) before any rating opens, besides 5 members in the merchant's group, so
+  a merchant that knows its sales cannot tell whose rating a one-rating round is. A round under
+  k_d is not carried into the next one; its ratings never open. The rating itself is still in
+  the public `reveal_review` args, sent from a relayer, so the floor is what keeps it unlinked.
 - **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
   full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
   price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
@@ -493,7 +492,7 @@ not entered tracks.
 | [17](docs/status.md#r17) | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | **built** | [`worker/`](worker/) |
 | [18](docs/status.md#r18) | dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | **built** | [`worker/src/lib.rs`](worker/src/lib.rs) |
 | [19](docs/status.md#r19) | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | **live** | [`core/src/world.rs`](core/src/world.rs) |
-| [20](docs/status.md#r20) | sealed reviews (Semaphore v4): a buyer who paid rates anonymously, a Groth16 proof is checked on chain, ratings release only at k >= 5 | swarms, privacy | **live** | [`docs/semaphore.md`](docs/semaphore.md) |
+| [20](docs/status.md#r20) | sealed reviews (Semaphore v4): a buyer who paid rates anonymously, a Groth16 proof is checked on chain, ratings open only at 5 members and 5 raters a round | swarms, privacy | **live** | [`docs/semaphore.md`](docs/semaphore.md) |
 | [21](docs/status.md#r21) | conserved delegation: standing flows from a merchant's ratings along hire edges at 1/2, capped for the whole chain | swarms, security | **live** | [`core/src/delegation.rs`](core/src/delegation.rs) |
 | [22](docs/status.md#r22) | Jolt zkVM, four guests (standing graph, price, referee, cohort). The contract verifies no proof: a bonded worker key signs that it did | swarms, security | **live** | [`graph/`](graph/) |
 | [23](docs/status.md#r23) | NEP-366 meta-tx relayer for `submit_review` and `reveal_review`: the rater signs with a one-time key, the relayer pays gas (gasless rating) | privacy, realworld | **live** | [`relayer/`](relayer/) |

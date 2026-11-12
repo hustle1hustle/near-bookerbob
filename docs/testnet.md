@@ -627,3 +627,20 @@ then re-registered at 5.00
 `round_bid(community-t2, bb-test-b6282.testnet)` still answers 31.00 and the lowest revealed
 price is the 30.00 bid. Record: `fixtures/live/community/pin.json`. Rounds revealed before
 this redeploy have no pin; the other limits are in the README under Known limits.
+
+## A review round needs 5 distinct raters (2026-11-12)
+
+Fourth redeploy of both bazaars, state kept, market first as a canary (views byte-identical
+before and after on both): `market.bookerbob.testnet`
+[Cgc4TfB1…](https://testnet.nearblocks.io/txns/Cgc4TfB1b9XZ3MdqciN8bgAgJauRmJziH8mGAELV21Nd),
+`bookerbob.testnet`
+[HPLgchgS…](https://testnet.nearblocks.io/txns/HPLgchgS4AveMoYNZ2pqggSWwVnBQFJghtA9sUsPivjG).
+Code hash `9XNm56RkXA4jcKCXwUHsx93SuHZdBUCWmMZosbze5UiE`, tag `bazaar-2026-11-12`.
+
+Why: the review floor counted the merchant's group members, not the ratings in a round, so a
+round in a large group could release one rating, and a merchant that knows its sales could
+tell whose it is. `reveal_review` now needs 5 sealed ratings in the round (5 distinct
+Semaphore nullifiers, k_d) and `publish_reviews` holds a round with fewer than 5 revealed;
+`reviews_held` and `reviews_published` log the release size. Not exercised live after the
+redeploy: covered by contract tests. The three review rounds released before it held 6
+ratings each, over the new floor.

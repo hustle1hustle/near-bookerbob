@@ -2,7 +2,7 @@
   "market": "market.bookerbob.testnet",
   "owner": "bookerbob-gov.sputnikv2.testnet",
   "decided": "2026-11-05, by the coordinating session on the founder's delegation (testnet, no money)",
-  "wasm_sha256": "68d8ff89dd26d23d14315ee47ecabf9819b5ac9bf59db362b107c75fba2d2dcf",
+  "wasm_sha256": "7ea5860b4b6bc7b054f2516c52b4ecba8d875bcb82943bd6c87d9661034ff833",
   "txs": {
     "create": "4vKrCcqpu8tuePkeRoHQKYydkizxyWSn3J4CFgxNmTTX",
     "deploy": "Ev2g3obUoZkSuLUoQjA9hmF9PFszjEWL45ZtF6kWRkad",
@@ -15,7 +15,8 @@
     "redeploy_6": "Hodwi5M4aRqP4jTsEiAppbdqvkNteUjRWD6JqHJwF7jC",
     "redeploy_7": "HNBFRnXGfvsK28U48bzKAnYPTFaszD1w399izrkxPK3C",
     "redeploy_8": "7qYedWcyTGeBkcuM5DtvMbfHaasEnqtZoTkmEwYX64gs",
-    "redeploy_9": "4HEkVJAgYvoYmmhnSC9vMuAbF4BY4KLdKyCeCs8sK5c7"
+    "redeploy_9": "4HEkVJAgYvoYmmhnSC9vMuAbF4BY4KLdKyCeCs8sK5c7",
+    "redeploy_10": "Cgc4TfB1b9XZ3MdqciN8bgAgJauRmJziH8mGAELV21Nd"
   },
   "anchors": {
     "proposal": 3,
