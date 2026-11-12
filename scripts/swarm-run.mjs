@@ -203,7 +203,7 @@ export function buildRecord(st) {
     categories: CATEGORIES.filter((c) => r.cats?.[c]).map((c) => ({ category: c, round_id: r.cats[c].round_id, open_tx: r.cats[c].open_tx ?? null, commits: r.cats[c].commits ?? 0, reveals: r.cats[c].reveals ?? 0, commit_until_ms: r.cats[c].commit_until_ms, reveal_until_ms: r.cats[c].reveal_until_ms })),
     replay: r.replay ? { nullifier: r.replay.nullifier, tx: r.replay.tx, refused: "nullifier spent" } : null,
     ...(r.note && { note: clean(r.note) }),
-    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer })) }),
+    ...(r.decisions && { decisions: Object.entries(r.decisions).map(([m, d]) => (d.skip ? { merchant: m, skip: true, why: clean(d.why) } : { merchant: m, persona: d.persona, unit_cost: d.unit_cost, units_left: d.units_left, asked: { base_price: Number(d.asked?.base_price) || null, cap_bps: Number(d.asked?.cap_bps) || null, rules: Object.entries(d.asked?.discounts ?? {}).map(([predicate, bps]) => ({ predicate: String(predicate).slice(0, 40), bps: Number(bps) || 0 })) }, bid: { base_price: String(d.schedule.base_price), cap_bps: d.schedule.cap_bps, rules: d.schedule.rules }, why: clean(d.why), model: d.model, chat_id: d.chat_id, tee_signed: d.tee_signed, signer: d.signer, ...(d.signature && { signed_text: d.signed_text, signature: d.signature }) })) }),
   }));
   const purchases = [];
   const failures = [];
@@ -266,7 +266,7 @@ const RECORD_KEYS = new Set([
   "note", "tag", "network", "bazaar", "dusdc", "relayer", "explorer", "started_at", "updated_at", "complete", "dusdc_registrations", "first_round", "failures_first_pass", "retried_ok", "failures_final", "stopped", "plan", "rounds", "purchases", "failures", "totals",
   "buyers", "commit_min", "reveal_min", "n", "ready", "seconds", "categories", "replay", "category", "round_id", "open_tx", "commits", "reveals", "commit_until_ms", "reveal_until_ms", "nullifier", "tx", "refused",
   "round", "bit_set", "predicates", "buyer", "merchant", "price", "model", "chat_id", "txs", ...TX_KEYS, "step", "error", "retried",
-  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer",
+  "decisions", "skip", "why", "persona", "unit_cost", "units_left", "asked", "base_price", "cap_bps", "rules", "predicate", "bps", "bid", "tee_signed", "signer", "signed_text", "signature",
   "merchant_agents", "buyer_agents", "sealed_bids", "model_verdicts", "purchases_settled", "dusdc_volume", "refused_replays", "near_ai_calls", "near_ai_cost_usd", "near_ai_cost_basis", "treasury_near_spent", "faucet_near", "wall_time_s",
 ]);
 

@@ -41,17 +41,19 @@ writeFileSync(`agents/swarm-${tag}.json`, JSON.stringify(out) + "\n");
 const W = 760, H = 300, L = 46, R = 120, T = 28, B = 34;
 const all = rounds.flatMap((r) => r.bids.map((b) => b.price));
 const ymax = Math.ceil(Math.max(...all, 1) / 10) * 10, ymin = Math.floor(Math.min(...all, ymax) / 10) * 10;
-const x = (i) => L + ((W - L - R) * (i + 0.5)) / Math.max(1, rounds.length);
+const lastN = Math.max(...rounds.map((r) => r.n), 1);
+const x = (n) => L + ((W - L - R) * (n - 0.5)) / lastN;
 const y = (p) => T + ((H - T - B) * (ymax - p)) / Math.max(1, ymax - ymin);
 const color = (p) => (p.startsWith("undercut") ? "#5BE3A0" : p.startsWith("premium") ? "#FF9F5B" : p.startsWith("adaptive") ? "#3B5BFF" : "#C77DFF");
 let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="ui-monospace,Menlo,monospace" font-size="11"><rect width="${W}" height="${H}" fill="#0A0A0F"/>`;
 svg += `<text x="${L}" y="16" fill="#E6E6EF" font-size="12">${tag}: each model merchant's sealed bid for a buyer with 3 proven bits, and what buyers paid (dUSDC)</text>`;
 for (let p = ymin; p <= ymax; p += 10) svg += `<line x1="${L}" x2="${W - R}" y1="${y(p)}" y2="${y(p)}" stroke="#1C1C2A"/><text x="${L - 6}" y="${y(p) + 4}" fill="#7C7C94" text-anchor="end">${p}</text>`;
-rounds.forEach((r, i) => {
-  svg += `<text x="${x(i)}" y="${H - 12}" fill="#7C7C94" text-anchor="middle">round ${r.n}</text>`;
-  r.bids.forEach((b, j) => (svg += `<circle cx="${x(i) + ((j % 5) - 2) * 5}" cy="${y(b.price)}" r="4" fill="${color(b.persona)}" fill-opacity="0.85"><title>${b.merchant} (${b.persona}): ${b.price.toFixed(2)}</title></circle>`));
+for (let n = 1; n <= lastN; n++) if (!rounds.some((r) => r.n === n)) svg += `<text x="${x(n)}" y="${H - 12}" fill="#7C7C94" text-anchor="middle">round ${n}</text><text x="${x(n)}" y="${y((ymax + ymin) / 2)}" fill="#7C7C94" text-anchor="middle">did not open</text>`;
+rounds.forEach((r) => {
+  svg += `<text x="${x(r.n)}" y="${H - 12}" fill="#7C7C94" text-anchor="middle">round ${r.n}</text>`;
+  r.bids.forEach((b, j) => (svg += `<circle cx="${x(r.n) + ((j % 5) - 2) * 5}" cy="${y(b.price)}" r="4" fill="${color(b.persona)}" fill-opacity="0.85"><title>${b.merchant} (${b.persona}): ${b.price.toFixed(2)}</title></circle>`));
 });
-const pts = rounds.map((r, i) => (r.paid_frequent != null ? `${x(i)},${y(r.paid_frequent)}` : null)).filter(Boolean);
+const pts = rounds.map((r) => (r.paid_frequent != null ? `${x(r.n)},${y(r.paid_frequent)}` : null)).filter(Boolean);
 if (pts.length) svg += `<polyline points="${pts.join(" ")}" fill="none" stroke="#E6E6EF" stroke-width="2"/>` + pts.map((p) => `<circle cx="${p.split(",")[0]}" cy="${p.split(",")[1]}" r="3" fill="#E6E6EF"/>`).join("");
 [["undercutter", "#5BE3A0"], ["premium", "#FF9F5B"], ["adaptive", "#3B5BFF"], ["other strategy", "#C77DFF"], ["paid (3 bits)", "#E6E6EF"]].forEach(([k, c], i) => (svg += `<circle cx="${W - R + 14}" cy="${T + 10 + i * 18}" r="4" fill="${c}"/><text x="${W - R + 24}" y="${T + 14 + i * 18}" fill="#7C7C94">${k}</text>`));
 svg += `</svg>\n`;

@@ -76,21 +76,35 @@ What happened, for a buyer who revealed `airbnb_frequent`, `claude_spender`, `wo
 ![price discovery in s2](media/s2-prices.svg)
 
 - Price discovery: the spread fell from 26.80 to 71.60 in round 1 to 24.08 to 32.50 in round 5.
-- Two undercutters, m08 and m11, traded the lead round by round, each pricing just under the
+- m08 (adaptive) and m11 (an undercutter) traded the lead round by round, each pricing just under the
   last winner and just over its own cost ("m11 took last round at 25.55, so I price at ~24.31";
   "undercut m08's winning 24.31 with a 3-bit price of 24.08").
-- The premium merchant m03 refused to follow below its cost of 30 ("I hold just above cost and
-  accept likely losing this round") and sold nothing.
+- m03, a premium merchant, held about 2.50 above its cost of 30 ("I hold just above cost and
+  accept likely losing this round") and sold nothing; m06, the other premium, came down to
+  just above its cost by round 5. No bid can go under cost: that floor is code (`clamp`), not
+  the model's choice. Code also cut the highest asks: in round 1 m03 asked 88, m05 100 and m06
+  140 as a base, and all three bid 80.
 - m07, the niche player, priced only the one bit every buyer revealed, `airbnb_frequent`. It
   asked for more than 30% off that bit; code cut it to 30%, so it bid 28.00 where its own
   reason says 26.5.
-- No merchant tried to coordinate with another: no bid sat at a shared high price, and no
-  merchant used a hire edge or a shared payout (the hoodie category is owner-approved, so those
-  rules do not apply there).
+- Coordination was not tested: the merchants had no channel to each other, and four rounds is
+  short. No bid sat at a shared high price, and no merchant used a hire edge or a shared payout
+  (the hoodie category is owner-approved, so those rules do not apply there).
+- The result is what a price war between unequal costs predicts: the price settles just above
+  the second-lowest cost (m08 23, m11 24). A two-line "undercut the last winner, floor at cost"
+  script would reach the same end; the run shows model agents reaching it from public data, and
+  m08 probing upward once (round 2, "nudge price to ~28 to capture extra margin"), losing, and
+  coming back down.
 
 What it is not: the personas, costs and inventories are ours and synthetic; every merchant and
-buyer account is ours. The model's reasons are its own text and are sometimes wrong (m11 says
-"zero sales" in round 5 after winning round 2); prices come only from the revealed bids. Round 4
+buyer account is ours. The model's reasons are its own text and are sometimes wrong; prices come
+only from the revealed bids. Two things were our code's, not the model's: the units sold it
+was given counted only the last two rounds, so m11 was told it had no sales in round 5 after
+winning round 2 (fixed for the next run), and units are not enforced: the contract gives every
+buyer to the lowest price, so a merchant can "sell" past its stated inventory. The TEE
+signature of each decision was checked during the run (40 of 40); the record keeps the chat id
+and the signer, not the signed text and signature, so it cannot be re-checked from the record
+(the next run keeps both). Round 4
 never opened: the model calls for it timed out three times, so its 6 buyers did not buy (24 of
 30 settled, 604.44 test dUSDC, 4 replays refused). Merchant decisions are 40 more E2EE chats on
 top of the 24 buyer verdicts. `make swarm-verify TAG=s2` re-checks the rounds and purchases over

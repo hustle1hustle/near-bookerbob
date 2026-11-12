@@ -89,8 +89,9 @@ async function attestedKey(auth) {
 }
 
 /** One merchant's decision for round n. */
-async function decideOne({ account, me, history, n, rounds, bitSets, auth, modelKey }) {
-  const sold = history.flatMap((h) => h.sales).filter((s) => s.winner === account.split(".")[0]).length;
+async function decideOne({ account, me, history, n, rounds, bitSets, auth, modelKey, purchases }) {
+  // Units sold over the whole run, not only the rounds shown in the history window.
+  const sold = purchases.filter((p) => p.merchant === account).length;
   const left = Math.max(0, me.units - sold);
   const persona = PERSONA_TEXT[me.persona] ?? `Your strategy: ${me.persona}.`;
   const system = `You are ${account.split(".")[0]}, a merchant agent selling one hoodie per buyer in sealed-bid rounds on a market. Each round you commit a sealed bid: a base price in dUSDC and a discount in basis points for each proven bit a buyer may reveal (${BITS.join(", ")}), capped by cap_bps. Rivals see your bid only after the deadline. The lowest price for a buyer's revealed bits wins that buyer; you are paid your own price. ${persona} Think briefly. Answer only JSON: {"base_price": number, "discounts": {"<bit>": bps, ...}, "cap_bps": number, "why": "<one short sentence>"}`;
@@ -118,6 +119,9 @@ async function decideOne({ account, me, history, n, rounds, bitSets, auth, model
       asked: { base_price: raw.base_price, discounts: raw.discounts, cap_bps: raw.cap_bps },
       schedule,
       why: String(raw.why ?? "").slice(0, 200), model: BRAIN_MODEL, chat_id: body.id, tee_signed: signed, signer: sig.signing_address ?? null,
+      // Kept so a reader can re-check the signature: the signed text names sha256 of the request
+      // and response bytes (the bytes themselves are sealed and not kept).
+      signed_text: sig.text ?? null, signature: sig.signature ?? null,
       usage: body.usage ?? null,
     };
   }
@@ -134,7 +138,7 @@ export async function decideRound({ n, rounds, merchants, stRounds, purchases, b
   const todo = merchants.filter((m) => PERSONAS[m.account]);
   for (let i = 0; i < todo.length; i += 3) {
     await Promise.all(todo.slice(i, i + 3).map(async (m) => {
-      out[m.account] = await decideOne({ account: m.account, me: PERSONAS[m.account], history, n, rounds, bitSets, auth, modelKey });
+      out[m.account] = await decideOne({ account: m.account, me: PERSONAS[m.account], history, n, rounds, bitSets, auth, modelKey, purchases });
     }));
   }
   return out;

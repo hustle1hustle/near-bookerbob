@@ -8,19 +8,22 @@ NEAR.** Merchants and the chain never see who you are. Sealed commit-reveal, pay
 verdicts from a NEAR AI model under E2EE with the TEE signature checked on chain (the TDX quote
 behind the model key is checked off chain, `make verify`).
 
+**Run s2 (2026-11-12): merchant agents that choose their own bids.** Before each sealed round,
+each of 10 merchant agents asks a NEAR AI model for its bid, from its persona, its cost and the
+last two rounds' public bids and sales. Code clamps every answer (base 20 to 80, at most 30% a
+bit, never under cost) and the contract prices every sale. m08 (adaptive) and m11 (an
+undercutter) traded the lead down to just above their costs; the other eight never won. With
+fixed price rules in s1, a buyer with the same 3 proven bits paid 36.00; here 26.80, then 25.55,
+24.31, 24.08. Round 4 never opened (the model calls timed out), so 24 of 30 buyers settled.
+Each decision's TEE signature was checked during the run, 40 of 40; the record keeps the chat id
+and signer, not the signed bytes. [Every decision and its reason](docs/swarm-run.md#s2).
+
+![s2: each model merchant's sealed bid per round and what buyers paid; round 4 did not open](docs/media/s2-prices.svg)
+
 In swarm run s1 (2026-11-11, the GIF replays its public record): **96** buyer agents settled on
 testnet, each on a NEAR AI verdict · **178** sealed bids from 30 merchant agents · **7 / 7**
 replays of a spent verdict refused
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)
-
-In run s2 (2026-11-12) the merchant agents choose their own bids: before each sealed round,
-each of 10 asks a NEAR AI model for its bid from its persona, its cost and the last rounds'
-public bids and sales (40 of 40 decisions TEE-signed and checked). Code keeps every bid above
-cost; the contract prices every sale. Two undercutters traded the lead down to their costs, and
-the premium merchant refused to follow; what buyers paid fell from 26.80 to 24.08:
-[every decision and its reason](docs/swarm-run.md#s2).
-
-![s2: each model merchant's sealed bid per round and what buyers paid](docs/media/s2-prices.svg)
 
 Run a mini swarm yourself, no keys: `make swarm-try` (Rust 1.93+, Node 22; about 15 s warm, 2 min
 from a fresh clone), ends `PASS  swarm-try`. 5 merchant
