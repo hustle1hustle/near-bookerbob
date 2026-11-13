@@ -12,7 +12,7 @@ Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Pri
 
 | real (on NEAR testnet, or signed by a real service) | simulated | not claimed |
 |---|---|---|
-| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](docs/real-attestations.md)); outside people bidding in the community series on their own keys; one agent-to-agent settlement on NEAR Intents mainnet ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond that one settlement (the bazaar runs on testnet); real money beyond 0.1 wNEAR; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
+| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](docs/real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict ([docs/mainnet.md](docs/mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, one purchase and one Intents settlement ([docs/mainnet.md](docs/mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
 
 **Trust assumptions today, and how each shrinks**
 
@@ -141,7 +141,7 @@ re-checks it over public RPC with no keys ([docs/swarm-run.md](docs/swarm-run.md
 verdict are synthetic (two pipeline tests notarized a public GitHub profile), the money is a
 test token with no value, and every trust key is ours. What is real: the contract, its rules,
 the model's signed verdicts and every transaction linked below. It is a working market on NEAR
-testnet; nothing is on mainnet.
+testnet; on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](docs/mainnet.md)).
 
 **Tracks:** swarms first, privacy second. Also entered: open, agents, security, social.
 
@@ -169,7 +169,7 @@ hoodie round is where the proofs change the winner: m22 has the lowest list pric
 finishes 6th of 22; m01 wins at 36.00 from a list price of 48.00 (`agents/board.json`).
 
 It is a replay of rounds that ran on NEAR testnet: the facts behind every verdict are
-synthetic, dUSDC is a test token, nothing is on mainnet.
+synthetic, dUSDC is a test token; on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](docs/mainnet.md)).
 
 **Why it is different.** In the other entries we read, the buyer proves nothing about itself
 (some of them do refuse or penalize a false claim by a seller). Here the buyer carries a proven
@@ -217,7 +217,7 @@ ran as written.
 **What is synthetic.** Every fact behind every verdict, with two exceptions of one kind: a
 `make prove-me` and a `make try` pipeline test each notarized a public GitHub profile (a real
 fact about a public account, not proof that the buyer holds it; docs/prove-me.md). The phone run is parked (docs/device-run.md). Also synthetic: the rest of every proof set, the World ID action (a placeholder, our verifier key) and
-the money (dUSDC on testnet; nothing is on mainnet). Every trust key is REP's today: the
+the money (dUSDC on testnet; on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](docs/mainnet.md))). Every trust key is REP's today: the
 issuer, the referee, the one live arbiter (and the three test arbiters) and the nullifier key
 (see "Who can lie" below).
 
@@ -331,7 +331,7 @@ market from its own events and checks every round against NEAR
 ## What is live and what is offline
 
 Counts as of 2026-11-10, before the swarm run of 2026-11-11, whose 102 purchases (a pilot of 6, then 96) are counted apart in `fixtures/live/swarm/`. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
-tx hash in [docs/testnet.md](docs/testnet.md)); nothing is on mainnet. On testnet, 31 purchases
+tx hash in [docs/testnet.md](docs/testnet.md)); on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](docs/mainnet.md)). On testnet, 31 purchases
 settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 18 sealed
 reviews were released over 3 rounds and a standing update from a Jolt proof was accepted; `make verify-live`
 re-derives all of it over public RPC, and checks that the manifest and the swarm records together list every nullifier the contract has spent. "Live" means captured once from the real service and
@@ -446,7 +446,7 @@ never on their data; price tiers come from verified context; cohorts stay above 
 nullifiers per context; the verdict path and the DAO-owned market. His calls also include:
 
 - Testnet only, with dUSDC, a demo token; mainnet (Circle USDC, 1Click, Agent Market) only on
-  his word, and nothing on mainnet yet ([7889d94](https://github.com/hustle1hustle/near-bookerbob/commit/7889d94), [8f0efd7](https://github.com/hustle1hustle/near-bookerbob/commit/8f0efd7)).
+  his word; on 2026-11-13 he gave it for one sealed round, one purchase and one Intents settlement ([docs/mainnet.md](docs/mainnet.md)) ([7889d94](https://github.com/hustle1hustle/near-bookerbob/commit/7889d94), [8f0efd7](https://github.com/hustle1hustle/near-bookerbob/commit/8f0efd7)).
 - The account nullifier is an RFC 9497 VOPRF (chosen 2026-09-24, built 2026-11-05); older purchases used an HMAC and stay recomputable ([f68a427](https://github.com/hustle1hustle/near-bookerbob/commit/f68a427)).
 - The market bazaar is owned by a 2-of-3 DAO from block one, its anchors behind a public delay
   (2026-11-05, [1ec99ee](https://github.com/hustle1hustle/near-bookerbob/commit/1ec99ee)); the post-quantum pack goes in ([c121717](https://github.com/hustle1hustle/near-bookerbob/commit/c121717)); OutLayer only in
@@ -665,7 +665,7 @@ not entered tracks.
 
 ## Deployments
 
-Testnet only; nothing is on mainnet. Every tx hash is in [docs/testnet.md](docs/testnet.md).
+Testnet, except on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](docs/mainnet.md)). Every testnet tx hash is in [docs/testnet.md](docs/testnet.md).
 
 - `bookerbob.testnet`: the bazaar, owned by one REP key (the "before" exhibit).
 - `market.bookerbob.testnet`: the same bazaar owned by the Sputnik DAO `bookerbob-gov` from block

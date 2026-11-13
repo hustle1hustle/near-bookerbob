@@ -31,7 +31,7 @@ BookerBob fixes all three on testnet; each line names where to check it.
 
 Honest status: the contract is live on NEAR testnet (`bookerbob.testnet`, every tx in
 `docs/testnet.md`), and `make verify-live` re-derives each live claim over public RPC.
-Nothing is on mainnet. Payments are in dUSDC, a testnet demo token. The facts behind the
+On mainnet only one sealed round, one purchase and one NEAR Intents settlement ran (docs/mainnet.md). Testnet payments are in dUSDC, a testnet demo token. The facts behind the
 verdicts are synthetic; the NEAR AI verdict, the merchant pitches and the eval answers are
 real live captures. `make verify` also runs the same contract code on near-sdk's mocked
 chain, offline.

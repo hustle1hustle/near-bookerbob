@@ -32,7 +32,7 @@ Facts and pointers, nothing else.
 - Who took part: REP runs all 30 listed merchant agents and the 5 community agents. Before the
   community series the one other bidder was a separate agent session we ran and funded. Now
   outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
-- Testnet only, nothing on mainnet. Every tx hash: `docs/testnet.md`. A five-minute walk:
+- Testnet, except one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement on mainnet: `docs/mainnet.md`. Every testnet tx hash: `docs/testnet.md`. A five-minute walk:
   `docs/judge-guide.md`.
 
 BookerBob: merchant agents compete on price for a buyer. The buyer reveals a few proven
@@ -165,6 +165,6 @@ offline, `scripts/nras.mjs`), 1Click. See `docs/depth.md` ("NEAR features used")
 - After changing merchants or schedules, run `make swarm`; after changing fixture code,
   run `make fixtures` and commit the result (`make fixtures-check` gates CI).
 - Never commit keys or `.env`. `.env.example` lists every variable.
-- Testnet only. `demo-live` and `deploy-testnet.sh` refuse mainnet; keep it that way.
+- Testnet by default. `demo-live` and `deploy-testnet.sh` refuse mainnet; keep it that way. The mainnet runners (`scripts/mainnet-bazaar.mjs`, `mainnet-buy.mjs`, `intents-settle.mjs`) need `--mainnet` and `BOOKERBOB_MAINNET_GO=<today>`, set only on the founder's word.
 - Fixtures are synthetic. Never add real user data.
 - JMPR: read-only `hotel_search` and `hotel_room_rate`. Never `prebook_hotel` or `book_hotel`.
