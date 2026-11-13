@@ -33,10 +33,12 @@ export function parseCurl(s) {
 }
 
 /** The same GraphQL query as a POST: the variables (the userId) move into the body. */
-export function asPost({ url, headers }) {
+export function asPost({ url, headers, body: copied }) {
   const u = new URL(url);
-  if (u.hostname !== "www.airbnb.com" || !u.pathname.startsWith("/api/v3/PastTripsV2Query/")) throw new Error("not the PastTripsV2Query request: copy that one");
-  const body = JSON.stringify({ operationName: "PastTripsV2Query", variables: JSON.parse(u.searchParams.get("variables")), extensions: JSON.parse(u.searchParams.get("extensions")) });
+  if (u.hostname !== "www.airbnb.com" || !u.pathname.startsWith("/api/v3/PastTripsV2Query")) throw new Error("not the PastTripsV2Query request: copy that one");
+  // Copied as a GET, the variables are in the query; copied as a POST, they are already in the body.
+  const body = u.searchParams.has("variables") ? JSON.stringify({ operationName: "PastTripsV2Query", variables: JSON.parse(u.searchParams.get("variables")), extensions: JSON.parse(u.searchParams.get("extensions")) }) : copied;
+  if (!body) throw new Error("no variables in the copied request");
   const line = new URL(u.origin + u.pathname);
   for (const k of ["operationName", "locale", "currency"]) if (u.searchParams.has(k)) line.searchParams.set(k, u.searchParams.get(k));
   const keep = headers.filter(([n]) => !/^(accept-encoding|content-length|content-type|host|priority|sec-fetch-|sec-ch-|upgrade-insecure)/i.test(n));
