@@ -66,7 +66,9 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
 - **On NEAR mainnet:** the same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, one
   purchase of 0.9025 Circle USDC with a real NEAR AI verdict (the verdict's signature by the
   registered model key is checked on chain; the model key's TDX quote was verified on testnet),
-  and one agent-to-agent settlement on NEAR Intents: [docs/mainnet.md](docs/mainnet.md).
+  one agent-to-agent settlement on NEAR Intents, and one purchase on real data: the founder's own
+  GitHub proof, where the model refused a discount the facts do not back and he paid the plain
+  price: [docs/mainnet.md](docs/mainnet.md).
 - **Real attestations:** TLSNotary proofs of GitHub (one of them the founder signed in to his
   own account), a QFEX notary receipt and a zero-knowledge QFEX referral floor:
   [docs/real-attestations.md](docs/real-attestations.md).

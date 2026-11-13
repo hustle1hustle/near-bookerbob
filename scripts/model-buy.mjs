@@ -46,7 +46,7 @@ const RULES = [
 const cli = (args) => execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", ...args], { encoding: "utf8" }).trim();
 
 /** The model issues the verdict for `base` (the tester's envelope): returns envelope, proof, record. */
-export async function issue(client, bazaar, base, proofsPath, keysDir) {
+export async function issue(client, bazaar, base, proofsPath, keysDir, opts = {}) {
   const KEY = (process.env.NEAR_AI_KEY ?? readFileSync(`${process.env.HOME}/.rep-secrets/near-ai.key`, "utf8")).trim();
   const auth = { Authorization: `Bearer ${KEY}` };
   const att = await client.view(bazaar, "model_attestation", { signing_key: MODEL_KEY });
@@ -76,10 +76,12 @@ export async function issue(client, bazaar, base, proofsPath, keysDir) {
   const answer = JSON.parse(openWith(wire, me.xSecret).match(/\{[\s\S]*\}/)[0]);
   if (answer.bind !== bind) throw new Error("the model did not echo the binding");
   const missing = base.predicates.filter((p) => !answer.predicates.includes(p));
-  if (missing.length) throw new Error(`the model did not attest ${missing.join(", ")}: stop (the referee claims cite them)`);
+  if (missing.length && !opts.allowRefusal) throw new Error(`the model did not attest ${missing.join(", ")}: stop (the referee claims cite them)`);
   const sig = await (await fetch(`${API}/signature/${body.id}?model=${encodeURIComponent(att.model)}&signing_algo=ed25519`, { headers: auth })).json();
   const [, sReq, sRes] = sig.text.split(":");
   if (!edVerify(sig.text, sig.signature, sig.signing_address) || sReq !== sha(req) || sRes !== sha(resBytes) || sig.signing_address !== MODEL_KEY) throw new Error("the TEE signature does not cover these bytes with the registered key");
+  // opts.allowRefusal: a predicate the facts do not prove is a refusal to record, TEE-signed.
+  if (missing.length) return { refused: missing, record: { model: att.model, signing_key: MODEL_KEY, chat_id: body.id, request_sha256: sha(req), response_sha256: sha(resBytes), signed_text: sig.text, signature: sig.signature, asked: base.predicates, attested: answer.predicates, response_key: fieldKey(wire, me.xSecret), response: resBytes.toString("utf8") } };
   const proof = { chat_id: body.id, signing_key: MODEL_KEY, nonce: att.nonce, request_sha256: sha(req), response: resBytes.toString("utf8"), response_key: fieldKey(wire, me.xSecret), signature: sig.signature };
   // The evaluator: this process built the request above from the proof set, so it signs that
   // request for this envelope. A buyer's own chat about typed facts gets no such signature.

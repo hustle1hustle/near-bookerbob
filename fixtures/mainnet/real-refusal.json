@@ -1,0 +1,59 @@
+{
+  "note": "Real data on the mainnet bazaar: the founder's signed-in GitHub proof (TLSNotary, REP notary) is the whole proof set. Asked for github_builder (account at least 3 years old), the NEAR AI model's TEE-signed answer refuses it: the account is 2 years old. The buyer then pays the plain price with a verdict that claims nothing. Check: node scripts/mainnet-real.mjs check",
+  "network": "mainnet",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "buyer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+  "merchant": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+  "presentation": "fixtures/live/prove-me/founder-github-owner.presentation",
+  "facts": [
+    {
+      "platform": "github",
+      "field": "account_age_years",
+      "value": 2
+    },
+    {
+      "platform": "github",
+      "field": "public_repos",
+      "value": 12
+    },
+    {
+      "platform": "github",
+      "field": "followers",
+      "value": 4
+    }
+  ],
+  "txs": {
+    "near_deposit": "D7bYByor5DweFjmHTxSJVY9DdGrAUrjkTyzau36ebXqD",
+    "swap to USDC": "9omkmguSqi1UoCY5u9dkHnRXXzzxkZryD2o4c6BbN8M2",
+    "verdict": "9E6copWnJBPDPGm5wro7ncYkUzBaSSyvmTtmNhVKgB4u",
+    "receipt": "HzytNczRieBmKKnk2PVjLAUgYBxJJP6xZ6vqYNyfuNev",
+    "escrow": "9Q6J6hzKhj9fszTeDeNNHDB76RXKFDLMX4E5YsjWBVCK",
+    "settle": "GwLCRE5c41gvhZPryEprGtqmWwiN3bbnKatUF8aAeSj"
+  },
+  "nullifier": "6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0",
+  "refusal": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+    "chat_id": "chatcmpl-7827d638-f2d9-4630-b4ef-47f62cd349d3",
+    "request_sha256": "df6ad0f883ab720fb36e6a6faa6335e83d3ea256dd0b92c16a014c70988ab2d1",
+    "response_sha256": "b441fdba85e2948659e335f6083c8e8fd08391cbe6cb034d066795b4a52b54aa",
+    "signed_text": "deepseek-ai/DeepSeek-V4.1-Flash-1017:df6ad0f883ab720fb36e6a6faa6335e83d3ea256dd0b92c16a014c70988ab2d1:b441fdba85e2948659e335f6083c8e8fd08391cbe6cb034d066795b4a52b54aa",
+    "signature": "ab42cbdcf47c24ce4508f4809f7834398d46c4ca2abcfc891a0072dc725bf8ef2cd2af03e84bff83b05413ebeb67ea40a57d5943dc5dd9438e0384fd4c99060c",
+    "asked": [
+      "github_builder"
+    ],
+    "attested": [],
+    "response_key": "8aafee345eecd9e79fe08611ad608c7214b39a92db21af7a85563119c23c2221",
+    "response": "{\"id\":\"chatcmpl-7827d638-f2d9-4630-b4ef-47f62cd349d3\",\"object\":\"chat.completion\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"f99705e8ae8d8fd76be47c635f8246ba419e9d0c345d0f2667ac11a1ce114c53983d3c5cd2fea7fc7c84ae8a287f1acefa44c1556e60179d8c3a69a38c74e6a3d9dab4f60bd1b31d546e2987c3ba4141bb3ff375cd1963add3fb33a1c34af548f3101f34ed0d22495c106a37212fc1b9d8f879773230f26507107a86c7d288d56d6143c6c397388ab51df514d40e549ba5cb1f99306bff8fab624f7ab5ee758ba5d1d7\",\"reasoning_content\":\"b96bdafe88b89675fd8b0eed73014413069de7dfdcf06a08ae5f29e17fc1344cbc98a041a9c269522ccd7b7a98ec53f3684324ff9dc7ec96b75de7ea7ec747aa075a62ec8f05360649395c5c6768acbe6c295abe1ac6b79826cebf07d770865b7171f8db54a18898dfa9cd77e77aeaf27f522842af2f81ee7ac43191e498b2d09310e6b317dbc7b70d2fb0ce6fd0140b05610b7d597decaead34e1cc21954393b201cb1adb31858ba9dbe78f9decdc28677760bfedffa8f4782b47bff547b73be5202449976a462afb04cbc63b32ae2e117428536457cfa808f233fc69ad85631b39824729184b33670f20a2846df95c84b3051a905608da03c6ea89fd2b57a6156ee1e6c3d9ae8d88f3589858d02b89261f9a6122ee2fc98811fc9d04aea96fde3ba76d551cf42e9cf5411ed9796f25233cfbdc4b0e69fb30f04d8a6328e7c70b88f188b26a788cc2645a786152e790effb86b19513b698a3edb52991de6b0b551c5db65d72042d193b123946fe3e30c5ef836834617241\"},\"finish_reason\":\"stop\",\"logprobs\":null}],\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash-1017\",\"created\":1794590217,\"usage\":{\"prompt_tokens\":210,\"total_tokens\":332,\"completion_tokens\":122,\"prompt_tokens_details\":{\"cached_tokens\":0,\"created_cache_tokens\":192},\"completion_tokens_details\":{\"reasoning_tokens\":75}},\"system_fingerprint\":\"vllm-0.33.0-dp8-ep-630ec158\"}"
+  },
+  "verdict": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+    "chat_id": "chatcmpl-5883a5ee-fa41-4745-9007-d2783c4d97cc",
+    "request_sha256": "c7927cffd51d2753d81b2b1fcf9317fb6df1dfe7626d5fa2892f6a896acb697f",
+    "response_sha256": "217b6a8a0a641a0117a7896dbea4ad9db82a88ba50b09b4f2099bce7f416eff1",
+    "attested": []
+  },
+  "price": "950000",
+  "checkout_ref": "mainnet-real-1794590252292"
+}
