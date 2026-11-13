@@ -1,5 +1,5 @@
 {
-  "note": "The bazaar on NEAR mainnet: the audited wasm (the same code hash as both testnet bazaars) on a fresh implicit account, and one sealed round with two merchant agents. No purchase: the contract refuses synthetic (fixture) verdicts off testnet. Check: node scripts/mainnet-bazaar.mjs check",
+  "note": "The bazaar on NEAR mainnet: the audited wasm (the same code hash as both testnet bazaars) on a fresh implicit account, and one sealed round with two merchant agents. The purchase on it is in fixtures/mainnet/buy.json (a NEAR AI model verdict; issuer-signed synthetic 'fixture' verdicts are refused off testnet). Check: node scripts/mainnet-bazaar.mjs check",
   "network": "mainnet",
   "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
   "code_hash": "Bt2rNwTLp1wyhL5rjJfyLUigiBiLXiSMt1BD1gAqysfn",
