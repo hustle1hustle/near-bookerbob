@@ -47,11 +47,43 @@
   .more a.card:hover { border-color: var(--blue); }
   .more a.card b { color: var(--blue); font-weight: 600; }
   @media (max-width: 560px) { .one { font-size: 16px; } .num b { font-size: 20px; } }
+  .hero { margin: 14px 0 22px; }
+  .scale { font-size: 30px; font-weight: 700; color: var(--blue); line-height: 1.15; margin: 10px 0 2px; }
+  .src { color: var(--dim); font-size: 11px; margin-bottom: 14px; }
+  .breaks { display: grid; gap: 8px; margin: 10px 0 14px; }
+  .brk { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .brk b { color: var(--fg); }
+  .brk .fix { color: var(--fg); margin-top: 2px; }
+  .brk .chk { color: var(--dim); font-size: 12px; margin-top: 4px; }
+  .brk .chk a { color: var(--dim); }
+  .figs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+  .figs img { width: 100%; display: block; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .series { color: var(--dim); font-size: 12px; margin: 8px 0; }
+  .series a { color: var(--fg); }
+  #video[hidden] { display: none; }
+  @media (max-width: 560px) { .figs { grid-template-columns: 1fr; } .scale { font-size: 24px; } }
 </style>
 </head>
 <body>
 <main>
   <h1>LFG BookerBob <span>/ built at NEAR HACKATHON / NEAR testnet</span></h1>
+  <section class="hero">
+    <div class="scale">$3 to 5 trillion</div>
+    <div class="one" style="margin-top:0">of shopping could run through agents by 2030. When agents buy and sell for people, three things break that human markets quietly rely on. BookerBob fixes all three, and anyone can check the run.</div>
+    <div class="src">McKinsey, The agentic commerce opportunity, 2025 (goods only, a forecast)</div>
+    <div class="breaks">
+      <div class="brk"><b>Agents leak you.</b> To get a better price, a shopping agent tells sellers who you are and your history.<div class="fix">Your agent proves a few facts in a signed NEAR AI verdict; sellers price the verdict, the history stays with you, and a claim the proofs do not back is refused.</div><div class="chk">check: public rate 510.00, the proven buyer pays 408.00, <a href="https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6">9Esa4qik&hellip;</a></div></div>
+      <div class="brk"><b>Agents collude.</b> Pricing algorithms are known to learn to hold prices up together with no message passed (Calvano et al. 2020; Fish, Gonczarowski and Shorrer 2024).<div class="fix">Each seller agent commits a sealed hash and sees no rival price before the deadline; linked accounts cannot both stand in a round; a bid left sealed costs part of its bond.</div><div class="chk">check: 10 model merchants took the price from 26.80 to 24.08, just above cost (<code>make swarm-verify TAG=s2</code>)</div></div>
+      <div class="brk"><b>Agents are unaccountable.</b> When an AI agent sets a price, nobody can later say what it decided.<div class="fix">Each model decision is signed inside a TEE and named in the bid's salt on chain, so each bid traces to one signed decision.</div><div class="chk">check: 20 of 20 bids tied to a signed decision (<code>make swarm-verify TAG=s3</code>)</div></div>
+    </div>
+    <div class="figs">
+      <img src="media/stack.jpg" alt="One purchase in 8 steps: you, your agent and the verdict signer, the referee, 8 seller agents, the contract pricing from code, the receipt, anonymous ratings, anyone re-checking; the buyer pays 408.00 in Lisbon">
+      <img src="media/swarm-setup.svg" alt="The swarm setup: buyer agents, merchant agents, model merchants, adversarial agents and outside people bidding into the bazaar contract on NEAR testnet">
+    </div>
+    <div class="series">The outside test: on Nov 13 a public series of 4 sealed rounds let anyone bid from a phone, on their own testnet key, against our five model agents; each sealed bid carries its own time-locked reveal, opened after the deadline. <a href="https://hustle1hustle.github.io/bookerbob-round/">the rounds</a></div>
+    <div class="series" id="video" hidden><a id="video-link" href="#">watch the 90 s video</a></div>
+    <div class="src">NEAR testnet only. Every agent but the outside bidders is ours, the facts behind every verdict are synthetic, dUSDC is a test token.</div>
+  </section>
   <div class="one">Tell your agent what you want. Sellers' agents compete on price for it, <b>sealed</b>. You <b>prove</b> you qualify for a discount without saying who you are, and pay only against a <b>receipt</b> checked on NEAR.</div>
   <div class="mech">sealed commit-reveal, pay-as-bid, one nullifier per verdict &middot; NEAR AI verdicts under E2EE, TEE signature checked on chain &middot; today every agent and key is ours, the facts are synthetic (REP's evaluator reads them), dUSDC is a test token: <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/swarm-run.md">what it is and what it is not</a></div>
   <div class="row">

@@ -1,5 +1,7 @@
 # LFG BookerBob
 
+Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Private AI, AI Security & Defense.
+
 When agents buy and sell for people, three things break that human markets quietly rely on.
 BookerBob is a market on NEAR testnet where seller agents bid on price for a buyer's agent, and
 it fixes all three. Every row below opens its proof.
@@ -73,7 +75,7 @@ from a fresh clone), ends `PASS  swarm-try`. 5 merchant
 agents bid sealed and 6 buyers settle on the contract's own code (near-sdk's mocked chain, not
 testnet), then 6 of our 96 testnet purchases are re-read live; `NEAR_AI_KEY=<yours>` adds 6 live
 model verdicts with their TEE signatures checked. Or
-**[watch one buyer agent shop](https://hustle1hustle.github.io/near-bookerbob/)** (a replay, 1 min).
+**[watch one buyer agent shop](https://hustle1hustle.github.io/near-bookerbob/swarm.html)** (a replay, 1 min).
 
 Every agent and trust key in these runs is ours, the facts are synthetic (REP's evaluator reads
 them), dUSDC is a test token: [what it is and what it is not](docs/swarm-run.md). Tracks:
