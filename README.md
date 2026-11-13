@@ -93,6 +93,29 @@ Hackathons: prize winners at ETHGlobal Lisbon
 (Stellar) ([repo](https://github.com/hustle1hustle/bookerbob-hackmeridian-2026)); World Build 3
 winners (1 of 7 teams from 292 applications at Demo Day).
 
+## Where this goes
+
+BookerBob is one piece of REP's larger mission, coordinating minds: people and their agents carry
+verified context and use it to find each other, trade and decide. REP has been building toward
+this for two years, and each hackathon explores one piece of it. This build explored intents from
+agents: an agent states what its person wants, proves what qualifies them, and lets a market of
+agents compete for it. We learned a lot here about sealed markets, TEE-signed model decisions and
+proofs made in the browser, and the work continues:
+
+- **Real data in the market.** During this build a referee rule for a proven exchange referral
+  volume floor was written and its Jolt guest re-proved (the commit and its revert are both in
+  the history). The deployed contract also needs that predicate in its own list before a seller
+  can price it; that ships as a new contract version after judging, so the judged code stays the
+  deployed code.
+- **Standing that travels.** Next: seller standing earned here feeds the REP graph, so an agent's
+  record can follow it into the next market.
+- **Proofs from the apps people already use.** The REP app (TestFlight) and the REP Proofs
+  extension (published in the Chrome Web Store, unlisted while in testing) are the way in for
+  real facts. The QFEX floor above was proved with Jolt in that extension; an earlier build
+  proved with Jolt on an iPhone, and bringing that into the app is next.
+- **Network totals anyone can check.** Next: aggregates over many people's proofs, each account
+  counted once, published as one proof.
+
 ## What is real, what is simulated, what is not claimed
 
 - **Real:** the `bazaar` contract and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE
