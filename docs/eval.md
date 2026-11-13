@@ -27,7 +27,7 @@ publishing the benchmark. `scripts/rep-eval.mjs`, panel round 3 action 9.
 
 ## Results: the held-out set (the headline, testnet, 2026-11-05)
 
-The protocol (400 tokens, these 3 models, one run) was frozen and committed (`4370ed7`) before
+The protocol (400 tokens, these 3 models, one run) was frozen and committed (`872b054`) before
 this set existed. Then a fresh sealed set of 120 items (root `b7b6094074b1b70a…`) was made
 and run once.
 
@@ -168,7 +168,7 @@ a set that separates models by accuracy. Committed before any v4 item is generat
 Set root `af82187494d180ed…` (40 items, 5 with every claim holding, against the frozen "about
 a fifth": reported, not regenerated), committed by its own owner `evalset.bookerbob-demo.testnet`
 [91ZUKXoz…](https://testnet.nearblocks.io/txns/91ZUKXoz78uvTLd4C75LZV8TP83iCmksiqsSuAtH7YyM).
-The generator was committed (`6d23772`) before any model saw an item.
+The generator was committed (`951c32b`) before any model saw an item.
 
 | model | correct | 95% CI | by tier (t4 / t5, of 20) | answered | wrong among answered | no answer (cut at 4,000 tokens) | bucket on chain | certificate |
 |---|---|---|---|---|---|---|---|---|
@@ -183,13 +183,13 @@ The generator was committed (`6d23772`) before any model saw an item.
 - In the generator, before the set was made: a sample showed the first mistake sat at claim 1 in
   60% of items, which a model could guess. The placement was made uniform (the first mistake
   at any of claims 1 to n-1, the others after it) before the one set was generated. Both are in
-  `6d23772`; no model had seen an item.
+  `951c32b`; no model had seen an item.
 - **Cost:** about $0.16 of existing NEAR AI credit; no 402.
 
 ## Results v5: 120 items, the gate on the lower bound (testnet, 2026-11-06)
 
-Protocol: [eval-v5-protocol.md](eval-v5-protocol.md), committed first (`0976bfc`), then the code
-(`5a780a8`) with the set made once. Set root `3001d46569c9d36e…` (120 items, 20 with every
+Protocol: [eval-v5-protocol.md](eval-v5-protocol.md), committed first (`90d44b8`), then the code
+(`adf5bdd`) with the set made once. Set root `3001d46569c9d36e…` (120 items, 20 with every
 claim holding), committed by its own owner [9VsgCw8z…](https://testnet.nearblocks.io/txns/9VsgCw8zGuwggfPpS9cvuToGae3iGCauDxyZkHJRkcku) and on the market bazaar too.
 
 | model | correct | Wilson 95% | t4 / t5, of 60 | finished | wrong among finished | cut at 8,000 tokens | point bucket | certified lower bound | passes 70 |
@@ -209,7 +209,7 @@ claim holding), committed by its own owner [9VsgCw8z…](https://testnet.nearblo
   finished answers: DeepSeek 91 of 94 (Wilson 91.0 to 98.9), glm 88 of 89 (93.9 to 99.8).
 - **One restart.** The first attempt died on a network error at glm's 69th of 120 replies, before
   any reply was graded, so no score was seen. Those replies were not saved and were asked again.
-  The fix (`48f548e`: a longer wait, retries, a private journal of answers) touched no item,
+  The fix (`4c57faa`: a longer wait, retries, a private journal of answers) touched no item,
   prompt or grading. The protocol's "run once" holds for the run that was graded; the 69 aborted
   replies cost about $0.08.
 - **Cost:** about $0.66 for the graded run, about $0.74 with the aborted one, under the 2 USD cap,

@@ -9,7 +9,7 @@
 //
 // run:
 //  1. `make leak` before.
-//  2. tools/prove-me notarizes GET api.github.com/user with your token (PROVE_ME_TOKEN_FILE,
+//  2. REP's prover (not in this repo) notarizes GET api.github.com/user with your token (PROVE_ME_TOKEN_FILE,
 //     default KEYS_DIR/../github-throwaway.token) through the REP notary on Fly (MPC-TLS, a
 //     pinned key, not TEE-attested). Only `created_at`, `public_repos` and `followers` are
 //     revealed; the request (and the token in it) is never revealed.
@@ -84,7 +84,7 @@ async function check(c) {
   const ok = (x, what, detail = "") => out.push(`${x ? "ok  " : "NO  "} ${what}${detail ? `  (${detail})` : ""}`);
   const info = await fetch(`${NOTARY_URL}/info`, { signal: AbortSignal.timeout(15000) }).then((r) => r.status, () => 0);
   ok(info === 200, `REP notary at ${NOTARY_URL} (MPC-TLS, pinned key, not TEE-attested)`, String(info));
-  ok(existsSync(PROVE_ME), "prover tools/prove-me built", PROVE_ME);
+  ok(existsSync(PROVE_ME), "prover REP's prover (not in this repo) built", PROVE_ME);
   ok(existsSync(REP_VERIFY), "rep-verify built", REP_VERIFY);
   for (const f of ["issuer.seed", "referee.seed", "world.seed", "treasury.seed"]) ok(existsSync(join(c.keysDir, f)), `testnet key ${f}`);
   const tok = tokenFile(c);
@@ -127,7 +127,7 @@ export async function run(c, round, dry, publicLogin, opts = {}) {
   const before = leak();
   console.log(`1. make leak before: ${before.ok ? "PASS" : "FAIL"} (${before.lines.length} lines)`);
   const file = join(dir, `github-${Date.now()}.presentation`);
-  // opts.presentation: the owner of the account ran tools/prove-me on their own machine with
+  // opts.presentation: the owner of the account ran REP's prover (not in this repo) on their own machine with
   // their own token and sent only the presentation. The token never reaches this machine.
   if (opts.presentation) copyFileSync(opts.presentation, file);
   else {

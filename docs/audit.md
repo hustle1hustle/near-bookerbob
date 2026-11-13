@@ -9,14 +9,14 @@ A self-audit by the build session, not an external audit. Scope: `contract/src/l
 | id | area | finding | status |
 |---|---|---|---|
 | A1 | callbacks: `ft_transfer` in `settle` | the transfer failing (unregistered payout, USDC paused) restores escrow, the nullifier and `spent_count` in `on_settle_transfer` | pass (`failed_payout_restores_escrow_and_nullifier`) |
-| A2 | callbacks: state between `settle` and its callback | `spent` is set before the transfer; a review membership could be added from a purchase whose payout then failed and rolled back | **fixed** `2b1cc46`: `paid` set only by a successful callback, `join_review_group` requires it |
+| A2 | callbacks: state between `settle` and its callback | `spent` is set before the transfer; a review membership could be added from a purchase whose payout then failed and rolled back | **fixed** `0844882`: `paid` set only by a successful callback, `join_review_group` requires it |
 | A3 | callbacks: `withdraw` | escrow is debited first and re-credited in `on_withdraw` if the transfer fails; requires 1 yoctoNEAR (full-access key) | pass |
 | A4 | callbacks: OutLayer `request_referee` | a failed or garbled worker run emits `referee_failed` and changes no state; a panic inside the callback leaves the record as it was | pass; known limit: the deposit sent to OutLayer is spent either way |
-| A5 | Groth16 input range | the review nullifier set compared decimal strings; a zero-padded nullifier is the same field element, so a member could rate twice | **fixed** `2ebfa15`: nullifier and root must be the canonical decimal of a field element (test fails without the fix) |
+| A5 | Groth16 input range | the review nullifier set compared decimal strings; a zero-padded nullifier is the same field element, so a member could rate twice | **fixed** `3209b9e`: nullifier and root must be the canonical decimal of a field element (test fails without the fix) |
 | A6 | Groth16 input range | public signals and proof coordinates at or above the modulus: the alt_bn128 host functions reject scalars not in the field and points not on the curve or not in the subgroup, so the call fails; a re-randomized (malleated) proof carries the same nullifier and is refused by the nullifier set | pass |
-| A7 | integer overflow: price | `base_price * discount_bps` overflows above about 3.4e34; with overflow checks on, one approved merchant's schedule would make `best_quote` panic for its whole category | **fixed** `cc4d136`: `base_price` capped at 10^30 base units in `Schedule::validate` |
-| A8 | storage: escrow entry | a repeat `storage_deposit` kept the whole deposit | **fixed** `9f64cb2`: refunded |
-| A9 | storage: `publish_reviews` | anyone could add the merchant's totals entry at the contract's cost | **fixed** `9f64cb2`: payable, charges the caller |
+| A7 | integer overflow: price | `base_price * discount_bps` overflows above about 3.4e34; with overflow checks on, one approved merchant's schedule would make `best_quote` panic for its whole category | **fixed** `f8cec6c`: `base_price` capped at 10^30 base units in `Schedule::validate` |
+| A8 | storage: escrow entry | a repeat `storage_deposit` kept the whole deposit | **fixed** `e0ac7d0`: refunded |
+| A9 | storage: `publish_reviews` | anyone could add the merchant's totals entry at the contract's cost | **fixed** `e0ac7d0`: payable, charges the caller |
 | A10 | storage: every other growth | verdicts (plus a 512-byte reserve for the receipt and settle), merchants, bids, World ID binding, review groups, sealed and revealed ratings, hires: each charged to the caller with the rest refunded; owner-only registrations are paid by the owner | pass (`docs/evidence.md` per method) |
 | A11 | integer overflow: escrow | `ft_on_transfer` adds with overflow checks on (release profile `overflow-checks = true`): an overflow panics and the token refunds; debits are behind `require!(bal >= amount)`; re-credits in callbacks restore an amount that was just subtracted | pass |
 | A12 | integer overflow: counters | `spent_count` saturating; cohort counters `u32` (+1 per verdict); review totals `u64`; delegation mass `u128` from at most `n * 10^6` | pass |
@@ -47,7 +47,7 @@ A self-audit by the build session, not an external audit. Scope: `contract/src/l
 `cargo-mutants` is not installed, so `scripts/mutate.py` flips 10 hand-picked conditions
 and runs the package tests. First run: 8/10 killed. The two survivors were real gaps in
 `core`: a claim with no citations and a fact that proves a different line were covered
-only by the CLI evals. Two core tests added (`d34073e`); now **10/10 killed**:
+only by the CLI evals. Two core tests added (`3c292af`); now **10/10 killed**:
 
 | mutant | what it breaks | killed by |
 |---|---|---|
@@ -89,7 +89,7 @@ Stated plainly:
   this change keep their guessable hashes. Their facts are synthetic, and the one
   `make prove-me` test proved a public profile, so nothing private leaks from them; new ones
   are salted.
-- The parked phone run (`scripts/device-run.mjs`) blinds its `proof_ref` the same way.
+- The parked phone run (not in this public copy) blinds its `proof_ref` the same way.
 
 ## Not covered by this audit
 

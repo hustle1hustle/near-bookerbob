@@ -2,7 +2,7 @@
 // `make try TOKEN=<file>`: the judge is the buyer. Your own GitHub account is the fact behind one
 // testnet purchase, on the local path (this machine runs the prover; nothing is hosted for you):
 //
-//  1. tools/prove-me notarizes the authenticated GET api.github.com/user with the token in
+//  1. REP's prover (not in this repo) notarizes the authenticated GET api.github.com/user with the token in
 //     <file> (sent inside TLS only, never printed, never revealed). PROXY mode by default
 //     (TRY_MPC=1 for MPC-TLS). The notary: PROVE_ME_NOTARY_URL / PROVE_ME_NOTARY_KEY when set
 //     (the Phala TDX notary, when it is up), else the REP notary on Fly (pinned key, not attested).
@@ -21,13 +21,13 @@ import { existsSync, statSync } from "node:fs";
 import { config, guard } from "./demo-tester.mjs";
 import { run } from "./prove-me.mjs";
 
-// PRESENTATION=<file>: the account's owner ran tools/prove-me on their own machine and sent
+// PRESENTATION=<file>: the account's owner ran REP's prover (not in this repo) on their own machine and sent
 // only the presentation (three revealed fields under the notary's signature). No token here.
 const presentation = process.env.PRESENTATION || null;
 const token = presentation ? null : process.env.TOKEN || process.argv[2];
 const round = process.env.ROUND || "builder-1";
 if (presentation ? !existsSync(presentation) : !token || !existsSync(token) || statSync(token).size < 10) {
-  console.error("usage: make try TOKEN=<file holding your GitHub token>   (a fine-grained token with no permissions is enough)\n       PRESENTATION=<file> make try   (a presentation the account's owner made with tools/prove-me)");
+  console.error("usage: make try TOKEN=<file holding your GitHub token>   (a fine-grained token with no permissions is enough)\n       PRESENTATION=<file> make try   (a presentation the account's owner made with REP's prover (not in this repo))");
   process.exit(2);
 }
 const c = config(process.env);

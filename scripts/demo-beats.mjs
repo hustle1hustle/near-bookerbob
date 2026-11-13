@@ -1,5 +1,5 @@
 // The 2:30 video, beat by beat: what to say, what runs on screen, the live tx it points to.
-// One source for docs/demo.md and scripts/demo-run.mjs. Lines are plain and lowercase; every
+// One source for the demo script (not in this public copy) and scripts/demo-run.mjs. Lines are plain and lowercase; every
 // tx is on NEAR testnet; dUSDC is a testnet demo token; the facts behind verdicts are synthetic.
 // Beats marked short make the 95 s cut (demo-run --short): one buyer, one refusal, one purchase.
 const tx = (h) => `https://testnet.nearblocks.io/txns/${h}`;

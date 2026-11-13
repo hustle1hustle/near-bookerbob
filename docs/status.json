@@ -371,7 +371,7 @@
     "tracks": "privacy, security",
     "where": "`core/src/envelope.rs` (`Opening`), `worker/src/lib.rs`, `contract/src/lib.rs` (`disclosure`, `verdict`), `bookerbob sign-real-sealed`",
     "status": "live",
-    "detail": "four sealed purchases on testnet (38.40 dUSDC twice on synthetic facts; 28 in the `make prove-me` and `make try` pipeline tests); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (docs/device-run.md)",
+    "detail": "four sealed purchases on testnet (38.40 dUSDC twice on synthetic facts; 28 in the `make prove-me` and `make try` pipeline tests); `make verify-live` checks that their txs, events and records carry no predicate, tier or cap; 6 contract and 3 worker tests. `make prove-me` uses this path; the phone run is parked (not in this public copy)",
     "evidence": [
       "testers"
     ]
@@ -380,7 +380,7 @@
     "feature": "`make prove-me`: your own GitHub account as the real fact. Authenticated `api.github.com/user` notarized with MPC-TLS through the REP notary (pinned key, not attested), 3 fields revealed, the facts sealed to NEAR AI (E2EE v2), a sealed verdict, a `github_builder` line that wins a blind round, one dUSDC settle, `make leak` before and after",
     "short": "`make prove-me`: a GitHub account as the real fact, notarized with MPC-TLS; ran once on a public profile, not on an account its owner holds",
     "tracks": "privacy, realworld, security, agents",
-    "where": "`scripts/prove-me.mjs`, `tools/prove-me/`, `docs/prove-me.md`",
+    "where": "`scripts/prove-me.mjs`, REP's prover (not in this repo), `docs/prove-me.md`",
     "status": "built",
     "detail": "the whole pipeline ran live once as a test on a public profile (no token, so a fact about an account, not ownership): builders won `builder-1` at 28 dUSDC (36 without the builder line), `make verify-live` re-checks it; the run on your own `/user` waits on a token; 4 tests",
     "evidence": []

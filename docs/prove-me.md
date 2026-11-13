@@ -1,6 +1,6 @@
 # make prove-me: your own GitHub account as the real fact
 
-Panel round 4, action 6. It replaces the parked phone run (docs/device-run.md) as the one real
+Panel round 4, action 6. It replaces the parked phone run (not in this public copy) as the one real
 fact behind a testnet purchase. Anyone with a GitHub account can run it on their own
 account, so the fact is the judge's, not ours.
 
@@ -12,7 +12,7 @@ account, so the fact is the judge's, not ours.
   public profile (below); no run on an account its owner holds has happened yet.
 - **What is revealed:** exactly three fields of the reply, `created_at`, `public_repos` and
   `followers`. The login, name, email, ids and every header stay out of the presentation. The
-  request (the token in it) is never revealed; `tools/prove-me` refuses to write a presentation
+  request (the token in it) is never revealed; REP's prover (not in this repo) refuses to write a presentation
   if it is. Out of the presentation is not the same as unlinkable: all three fields are public
   for any GitHub account, and `created_at` to the second picks out one account for whoever
   holds the presentation or reads the revealed fields. What the authenticated path adds is
@@ -24,7 +24,7 @@ account, so the fact is the judge's, not ours.
 ## The path
 
 1. `make leak` before.
-2. `tools/prove-me` notarizes the request through the REP notary on Fly (MPC-TLS): the notary
+2. REP's prover (not in this repo) notarizes the request through the REP notary on Fly (MPC-TLS): the notary
    co-runs TLS and sees ciphertext only, then signs. Its key is pinned
    (`02114d7e…ab25ef`). **The notary is not TEE-attested**: it is one key REP holds. The
    Phala TDX notary is behind `PROVE_ME_NOTARY_URL` / `PROVE_ME_NOTARY_KEY`; it is not up
@@ -51,7 +51,7 @@ node scripts/prove-me.mjs check        # notary, prover, verifier, keys, token f
 node scripts/prove-me.mjs run builder-1 --dry-run   # everything up to the first tx
 ```
 
-Needs: the tlsn-extension checkout next to this repo (for `tools/prove-me`, prior work,
+Needs: the tlsn-extension checkout next to this repo (for REP's prover (not in this repo), prior work,
 PRIOR_WORK.md), a GitHub token in a file (`PROVE_ME_TOKEN_FILE`; a fine-grained token with no
 permissions is enough for `/user`), the testnet keys, and a NEAR AI key for step 4.
 

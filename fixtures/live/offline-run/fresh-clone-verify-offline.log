@@ -1,4 +1,4 @@
-# fresh clone of ae99df7, empty CARGO_HOME, CARGO_NET_OFFLINE=true, 2026-11-05: make verify-offline, 77 s
+# fresh clone of 23c7583, empty CARGO_HOME, CARGO_NET_OFFLINE=true, 2026-11-05: make verify-offline, 77 s
 vendor/crates.tar.xz: OK
 Cargo.lock: OK
 bookerbob verify: fixtures (synthetic fixtures, offline)

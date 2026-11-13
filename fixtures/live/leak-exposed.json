@@ -5,7 +5,7 @@
     {
       "key_sha256": "258b72938e5ae8d4b24fdb9421e974add648d5e02f098a243b0abb289823c403",
       "file": "fixtures/live/near-ai/capture.json",
-      "added_in": "1cb5f71",
+      "added_in": "9e40923",
       "added": "2026-11-04",
       "opens": [
         "fixtures/live/near-ai content",
@@ -15,7 +15,7 @@
     {
       "key_sha256": "e6eb6a03d11f7bf932b9a7fb8ae394ad62541850b65101a4a540550916ff24f3",
       "file": "fixtures/live/model-buy/run.json",
-      "added_in": "bb0ee59",
+      "added_in": "66846fb",
       "added": "2026-11-05",
       "opens": [
         "tx 8JfM9iTS content",
@@ -25,7 +25,7 @@
     {
       "key_sha256": "2efc551d4463304d50f918aa10715a2f47b209f549faa113e12dd3805eec4993",
       "file": "fixtures/live/model-buy/refused-v5.json",
-      "added_in": "3ca1ead",
+      "added_in": "616d2c2",
       "added": "2026-11-06",
       "opens": [
         "tx DCqyqPjE content",
