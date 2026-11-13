@@ -28,9 +28,10 @@ test token. All numbers come from the run records in `fixtures/live/`.
 | adversarial runs, before the swarm | a base cheater, a silent bidder, prompt injection | inflated prices, withheld bids, false claims | h05 re-registering at 600 against a public rate of 510: refused on chain ([6M3Bi7RY…](https://testnet.nearblocks.io/txns/6M3Bi7RY6thU4yfbUUQShHz9M9drHSNwrMY683rjB16u)); round `silent-1`: the silent bid marked, its bond cut ([DEd5NAPw…](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ)); referee evals 50 of 50 (39 cheats refused; 30 of the 50 cases are injection style) | `make verify-live`, `make verify` |
 | community series, Nov 13 | our 5 model merchants, outside people on their own keys from a phone, the founder | all three, with strangers: can people beat AI sellers in a sealed round? | 4 rounds; each sealed bid carries its own time-locked reveal, opened after the deadline; rounds 1 and 2: 30 sealed bids, all 30 opened | `make verify-live` |
 
-Real attestations in this repo, each with its check: three TLSNotary presentations of
-api.github.com signed by the REP notary, one of them the founder's own profile (`make
-verify-presentation`, upstream TLSNotary only), the NEAR AI TEE verdict and its TDX quote
+Real attestations in this repo, each with its check: four TLSNotary presentations of
+api.github.com signed by the REP notary, one of them the founder signed in to his own account
+(`make verify-presentation`, upstream TLSNotary only), a QFEX leaderboard receipt from REP's
+notary on Phala (`node scripts/verify-receipt.mjs`), the NEAR AI TEE verdict and its TDX quote
 (`make verify`), a NEAR Chain Signatures signature: [docs/real-attestations.md](docs/real-attestations.md).
 
 The outside test: on Nov 13 a public series of 4 sealed rounds lets anyone bid from a phone, on

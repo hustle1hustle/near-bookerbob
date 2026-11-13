@@ -13,6 +13,7 @@ const CASES = [
   { file: `${D}/public-test.presentation`, record: `${D}/public-test.json`, path: "/users/octocat", what: "a public GitHub profile (octocat), the prove-me pipeline test" },
   { file: `${D}/try-public-test.presentation`, record: `${D}/try-public-test.json`, path: "/users/octocat", what: "the same, through the notary in proxy mode" },
   { file: `${D}/founder-github.presentation`, path: "/users/hustle1hustle", what: "the founder's own GitHub profile (hustle1hustle), public endpoint" },
+  { file: `${D}/founder-github-owner.presentation`, path: "/user", what: "the founder's own GitHub account, signed in (GET /user with his token; the request past its first line is hidden)" },
 ];
 let bad = 0;
 for (const c of CASES) {
@@ -23,7 +24,8 @@ for (const c of CASES) {
   const revealed = v.recv.split(/X+/).filter(Boolean);
   const fields = revealed.filter((x) => x.startsWith('"'));
   const recorded = c.record ? JSON.parse(readFileSync(c.record, "utf8")).presentation_sha256 : null;
-  const ok = v.verified && v.key_matches && v.server_name === "api.github.com" && v.sent.startsWith(`GET ${c.path} `) && fields.length === 3 && (!recorded || recorded === sha);
+  const sentShown = v.sent.replace(/X+/g, "");
+  const ok = v.verified && v.key_matches && v.server_name === "api.github.com" && v.sent.startsWith(`GET ${c.path} `) && !/authorization|bearer|cookie|gh[op]_/i.test(sentShown) && fields.length === 3 && (!recorded || recorded === sha);
   if (!ok) bad++;
   console.log(`${ok ? "PASS" : "FAIL"}  ${c.what}: notary ${v.notary_key.slice(0, 8)}.. pinned, server ${v.server_name}, ${new Date(v.time_secs * 1000).toISOString().slice(0, 10)}, GET ${c.path}, revealed ${fields.join(" ")}${recorded ? `; sha256 ${sha.slice(0, 8)}.. equals ${c.record}` : ""}`);
 }

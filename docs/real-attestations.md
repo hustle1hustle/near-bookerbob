@@ -3,11 +3,28 @@
 Most inputs here are synthetic (the facts behind every verdict, the buyers, the World ID action).
 These are the ones signed by a real key or service, each with the command that checks it.
 
+
+## The gallery: proofs of real web data
+
+| source | what it proves | revealed | signed by | check it |
+|---|---|---|---|---|
+| GitHub, signed in | the founder holds a GitHub account with these fields: `GET api.github.com/user` with his own token, which stays hidden | `public_repos` 12, `followers` 4, `created_at` 2024-09-18 (the same account as the public hustle1hustle profile) | the REP notary, `02114d7e…ab25ef`, MPC-TLS | `make verify-presentation` |
+| GitHub, public profile | what api.github.com returned for `/users/hustle1hustle` | the same three fields | the REP notary | `make verify-presentation` |
+| GitHub, public profile, twice | the prove-me pipeline test on `/users/octocat`, MPC and proxy mode | the same three fields | the REP notary | `make verify-presentation` |
+| QFEX, public leaderboard | what api.qfex.com returned for `/public/leaderboard`, no account | `"count":100`; the request is hidden | REP's notary on Phala (`rep-notary-ext`, `0307293878…aaed32`), a signed session receipt | `node scripts/verify-receipt.mjs` |
+
+The TLSNotary presentations carry the server's certificate chain, so anyone re-checks them
+against GitHub's certificate with upstream code. The QFEX receipt is the notary's signed word
+over a session it relayed: it is checked against the notary's key, and the notary's Intel TDX
+attestation is published ([attestation](https://cc7da91b37b31c4ba114f4d2e67d4446f77339ec-7048.dstack-pha1-prod13.phala.network/notary/attestation));
+it cannot be re-checked against QFEX's certificate. That key was made while the machine briefly
+ran Phala's dev image, so the claim is "signed by REP's notary", not "a key that never left an
+enclave".
+
+## Other real signatures in the repo
+
 | what | signed by | file | check it |
 |---|---|---|---|
-| TLSNotary presentation: GET api.github.com/users/octocat, 3 fields revealed (`public_repos`, `followers`, `created_at`), the prove-me pipeline test | the REP notary, key `02114d7e…ab25ef` (MPC-TLS) | `fixtures/live/prove-me/public-test.presentation` (its sha256 is in `public-test.json`) | `make verify-presentation` |
-| the same request, notary in proxy mode | the REP notary | `fixtures/live/prove-me/try-public-test.presentation` | `make verify-presentation` |
-| TLSNotary presentation: the founder's own GitHub profile, GET api.github.com/users/hustle1hustle, the same 3 fields | the REP notary | `fixtures/live/prove-me/founder-github.presentation` | `make verify-presentation` |
 | NEAR AI verdict under E2EE v2: Intel TDX quote, NVIDIA GPU evidence, the model's TEE signature over the request and response (the facts it judged are synthetic) | NEAR AI Cloud's TEE model key | `fixtures/live/near-ai/` | `make verify` (`PASS  NEAR AI verdict: 17 checks`); the TDX quote on chain: `spike.bookerbob.testnet` |
 | the E2EE v2 signature covers the ciphertext | NEAR AI Cloud | `fixtures/live/e2ee-signature.json` | `node scripts/spikes/e2ee-signature.mjs` (needs a NEAR AI key) |
 | a recorded NEAR AI run, 33 of 33 response signatures over the exact bytes | NEAR AI Cloud | `agents/out/live-run.json` | `make judge` (status check) |
@@ -31,14 +48,14 @@ upstream TLSNotary (`tlsnotary/tlsn`, tag `v0.1.0-alpha.15`), and for each file 
 The first build takes about a minute and a half. Then:
 
 ```
-PASS  verify-presentation: 3 real presentations, signed by the notary key 02114d7e..
+PASS  verify-presentation: 4 real presentations, signed by the notary key 02114d7e..
 ```
 
 What they show and what they do not:
 
-- They prove what api.github.com returned for a public profile at that time. The public
-  endpoint needs no login, so they do not show the prover owns the account; an authenticated
-  `GET /user` would (`docs/prove-me.md`).
+- The public-profile ones prove what api.github.com returned for a public profile at that time;
+  the endpoint needs no login, so they do not show the prover owns the account. The signed-in
+  one does: `GET /user` answers only with the token's own account.
 - The notary is one key REP holds, not TEE-attested, so REP could sign a false presentation.
 - The prover that made them is REP's (prior work) and is not in this repo; checking needs
   only the presentation and the notary key.

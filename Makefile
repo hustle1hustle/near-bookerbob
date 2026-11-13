@@ -152,6 +152,7 @@ ROUND ?= builder-1
 verify-presentation:
 	cd tools/verify-presentation && cargo build --release -q
 	node scripts/verify-presentations.mjs
+	node scripts/verify-receipt.mjs fixtures/live/qfex/leaderboard-receipt.json
 
 prove-me:
 	node scripts/prove-me.mjs check

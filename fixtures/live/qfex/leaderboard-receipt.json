@@ -1,0 +1,27 @@
+{
+  "note": "A REP notary session receipt for GET api.qfex.com/public/leaderboard (no account, no login), proxy mode, signed by REP's notary on Phala (rep-notary-ext, key 1). It reveals one field of the response, \"count\":100; the request is not revealed. It is the notary's signed word over the session it relayed, not a TLS presentation re-checkable against QFEX's certificate. Check: node scripts/verify-receipt.mjs.",
+  "notary_attestation": "https://cc7da91b37b31c4ba114f4d2e67d4446f77339ec-7048.dstack-pha1-prod13.phala.network/notary/attestation",
+  "receipt": {
+    "version": "REP-SESSION-v1",
+    "server_name": "api.qfex.com",
+    "tls_time": 1794581083,
+    "signed_at": 1794581084,
+    "mode": "proxy",
+    "nonce": "bookerbob-gallery-qfex-1",
+    "entries": [
+      {
+        "dir": "recv",
+        "action": "reveal",
+        "start": 29570,
+        "end": 29581,
+        "value": "\"count\":100"
+      }
+    ],
+    "results_digest": "f7e34ad1f3b986fec92c4eddfcf26bb303996218f39eefd04c17b482f6ade055",
+    "view_digest": "c78ef3dceb613d06ab3b43290251b5b62e0487ba33d3ab45f9eacd6ec0c2a9da",
+    "statement": "REP-SESSION-v1\napi.qfex.com\n1794581083\n1794581084\nproxy\nbookerbob-gallery-qfex-1\nf7e34ad1f3b986fec92c4eddfcf26bb303996218f39eefd04c17b482f6ade055\nc78ef3dceb613d06ab3b43290251b5b62e0487ba33d3ab45f9eacd6ec0c2a9da",
+    "signature": "7cdc94f4b5b339892ec36e7982918bd2d39b12a18dcd7bb9d84221536c9bccf979c40d983e15d8ce44f8d937482506a66856bad6d2c11808d72efae851e934bc",
+    "notary_key": "0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32",
+    "scheme": "ecdsa-secp256k1-sha256; sig=compact-r||s hex (64B); verify over statement utf8-bytes"
+  }
+}
