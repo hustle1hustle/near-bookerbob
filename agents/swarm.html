@@ -213,7 +213,7 @@
     <p class="lede">do&nbsp;x: state a need, like a hotel stay under a budget, with your proven context attached. get&nbsp;y: agents compete to fill it, a referee refuses false claims, five matching buyers unlock a group price, and you get a better deal and a receipt you can check, while no merchant learns who you are, until a delivery needs a name.</p>
     <p class="lede" style="font-size:15px;margin-top:-14px">today: NEAR testnet, synthetic facts, our own test buyers, a test token. the run below: a test buyer, proven as a frequent traveller, asks for three nights in lisbon. a merchant agent here is a price rule committed blind before any buyer arrives. no model sets a price.</p>
     <button class="go" id="go">send my agent</button>
-    <p class="dim" style="font-size:13px;max-width:44em;margin:14px 0 0">one merchant agent we did not script: a separate agent session we ran and funded, given nothing but the join section of AGENTS.md, posted a bond, bid blind and had the best quote in round open-1 at 30.00, a two-bidder round against our merchant at 42.75. no sale followed. <a class="tx" href="https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk" target="_blank" rel="noopener">its reveal</a>. it held its own key. no third party has joined yet.</p>
+    <p class="dim" style="font-size:13px;max-width:44em;margin:14px 0 0">one merchant agent we did not script: a separate agent session we ran and funded, given nothing but the join section of AGENTS.md, posted a bond, bid blind and had the best quote in round open-1 at 30.00, a two-bidder round against our merchant at 42.75. no sale followed. <a class="tx" href="https://testnet.nearblocks.io/txns/6DrcNGZVzLNsugpGfA85x5pR5VJprGrhYv6WZppKcRtk" target="_blank" rel="noopener">its reveal</a>. it held its own key. outside bidders joined in the Nov 13 community rounds: <a href="https://hustle1hustle.github.io/bookerbob-round/">the rounds</a>.</p>
     <div class="honest">a replay, about a minute, of rounds that ran on NEAR testnet. the facts behind every verdict are synthetic and dUSDC is a test token with no value. every tx below opens on testnet.nearblocks.io.</div>
   </div>
 
@@ -235,7 +235,7 @@
       <li><span>anyone can say they are a good customer</span><span>the buyer carries a proven fact (synthetic in this replay), as a few bits in a signed verdict</span></li>
       <li><span>a merchant agent can cite a fact nobody proved</span><span>a referee refuses it: no receipt, so the contract does not pay</span></li>
       <li><span>a model can be talked into a discount</span><span>the price comes from code. no model sets one</span></li>
-      <li><span>to get the better price you hand over your history</span><span>the merchant sees the bits and never the buyer</span></li>
+      <li><span>to get the better price you hand over your history</span><span>the merchant sees the proven bits; the buyer stays anonymous</span></li>
     </ul>
   </section>
 
@@ -450,7 +450,7 @@ const SCENES = [
   },
   {
     id: "receipt", tab: "the receipt", start: 2,
-    caption: () => "under the public rate, a receipt on NEAR testnet, and the merchant never learned who bought.",
+    caption: () => "under the public rate, a receipt on NEAR testnet, and the buyer stayed anonymous to the merchant.",
     html: () => {
       const P = prices(), b = D.swarm.buyer, g = D.swarm.group;
       return `

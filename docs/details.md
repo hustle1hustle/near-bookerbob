@@ -12,11 +12,11 @@ Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Pri
 |---|---|---|---|
 | `make judge` | Node 22, offline | about 25 s | `PASS  make judge` |
 | `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try` |
-| `make verify-live` | public NEAR testnet RPC | 5 to 13 min | `PASS  verify-live` |
+| `make verify-live` | public NEAR testnet RPC | 5 to 20 min | `PASS  verify-live` |
 
 | real (on NEAR testnet, or signed by a real service) | simulated | not claimed |
 |---|---|---|
-| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict (the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote was verified on testnet (spike.bookerbob.testnet), not on mainnet; [docs/mainnet.md](mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, one purchase and one Intents settlement ([docs/mainnet.md](mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
+| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict (the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote was verified on testnet (spike.bookerbob.testnet), not on mainnet; [docs/mainnet.md](mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, two purchases (one on real data) and one Intents settlement ([docs/mainnet.md](mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
 
 **Trust assumptions today, and how each shrinks**
 
@@ -63,7 +63,7 @@ test token. All numbers come from the run records in `fixtures/live/`.
 | try1, Nov 12 | 30 merchant agents, 6 buyers, a replayer | a silent bidder | 30 sealed, 29 opened (m01 ran out of gas); m01 marked and barred for 24 h; 6 purchases; the replay refused (1 of 1) | `make swarm-verify TAG=try1` |
 | adversarial runs, before the swarm | a base cheater, a silent bidder, prompt injection | inflated prices, withheld bids, false claims | h05 re-registering at 600 against a public rate of 510: refused on chain ([6M3Bi7RY…](https://testnet.nearblocks.io/txns/6M3Bi7RY6thU4yfbUUQShHz9M9drHSNwrMY683rjB16u)); round `silent-1`: the silent bid marked, its bond cut ([DEd5NAPw…](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ)); referee evals 50 of 50 (39 cheats refused; 30 of the 50 cases are injection style) | `make verify-live`, `make verify` |
 | `make adversarial`, offline | 3,724 seeded attacks on the contract's own code (mocked chain) and the referee, with honest controls | replays, out-of-proof and injection claims, forged or late reveals | 1200 of 1200 replays, 1300 of 1300 out-of-proof claims and 1224 of 1224 bad reveals refused, each for the predicted reason; every honest control accepted ([docs/adversarial.md](adversarial.md)) | `make adversarial` (about 35 s, no keys) |
-| community series, Nov 13 | our 5 model merchants, outside people on their own keys from a phone, the founder | all three, with strangers: can people beat AI sellers in a sealed round? | 4 rounds; each sealed bid carries its own time-locked reveal, opened after the deadline; rounds 1 and 2: 30 sealed bids, all 30 opened | `make verify-live` |
+| community series, Nov 13 | our 5 model merchants, outside people on their own keys from a phone, the founder | all three, with strangers: can people beat AI sellers in a sealed round? | 4 rounds: 55 sealed bids (16, 14, 13, 12), all 55 opened, each by its own time-locked reveal; scored sale our agent-1 each round (+0.05, +0.01, +0.01, +0.01); the lowest price on chain each round an outside bid far below its own cost, which scored nothing | `make verify-live` |
 
 Real attestations in this repo, each with its check: four TLSNotary presentations of
 api.github.com signed by the REP notary, one of them the founder signed in to his own account
@@ -73,7 +73,7 @@ notary on Phala (`node scripts/verify-receipt.mjs`), the NEAR AI TEE verdict and
 
 The outside test: on Nov 13 a public series of 4 sealed rounds lets anyone bid from a phone, on
 their own testnet key, against our five model agents ([the round page](https://hustle1hustle.github.io/bookerbob-round/)).
-The point is that this experiment is now possible at all: people and AI agents bid sealed in one market, and every bid and margin can be checked on chain. In rounds 1 and 2 the scored sale landed just above cost (+0.05 and +0.01) and bids below cost scored nothing; what strategies the market finds next, adaptation or tricks, is the open part.
+The point is that this experiment is now possible at all: people and AI agents bid sealed in one market, and every bid and margin can be checked on chain. All 4 rounds closed: 55 sealed bids, all 55 opened (16, 14, 13, 12). In every round the scored sale was our agent-1 (cost 20.00, the floor) at +0.05, +0.01, +0.01, +0.01, and the lowest price on chain was an outside bid, mellow-otter-50.testnet, far below its own cost, which scored nothing. What strategies the market finds next, adaptation or tricks, is the open part.
 Check it all yourself: `make judge` (Node 22, offline, about 25 s) or `make swarm-try` (below).
 
 ![96 buyer agents settle with 30 merchant agents over 7 sealed-bid rounds on NEAR testnet, replayed from the run's public record](media/swarm.gif)
@@ -201,8 +201,8 @@ matters when an input is hidden or the checker is a contract, and neither is tru
 
 | command | what you see |
 |---|---|
-| `make judge` | offline, about 25 s (measured 2026-11-11, a warm laptop, macOS arm64): it replays the committed snapshot of the testnet reads, verifies the committed Jolt proofs with the committed verifier and runs the JS suites; ends `PASS  make judge`. It makes no proof and needs no network. `JUDGE_LIVE=1 make judge` reads the live chain instead, 5 to 13 minutes (see the next row) |
-| `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live`. 5 to 13 minutes: about 170 old txs are read from a public archival node that serves about 30 a minute at best and less when it throttles (`NEAR_ARCHIVAL_RPC` and `TX_GAP_MS=0` for your own). A scheduled workflow runs it daily (`.github/workflows/live.yml`) |
+| `make judge` | offline, about 25 s (measured 2026-11-11, a warm laptop, macOS arm64): it replays the committed snapshot of the testnet reads, verifies the committed Jolt proofs with the committed verifier and runs the JS suites; ends `PASS  make judge`. It makes no proof and needs no network. `JUDGE_LIVE=1 make judge` reads the live chain instead, 5 to 20 minutes (see the next row) |
+| `make verify-live` | every testnet claim re-derived over public RPC, ends `PASS  verify-live`. 5 to 20 minutes: about 170 old txs are read from a public archival node that serves about 30 a minute at best and less when it throttles (`NEAR_ARCHIVAL_RPC` and `TX_GAP_MS=0` for your own). A scheduled workflow runs it daily (`.github/workflows/live.yml`) |
 | `make verify` | the contract on near-sdk's mocked chain (Rust), ends `ALL PASS (26 checks)`; with no network, `make verify-offline` (the same checks from the vendored crates) |
 
 **Five words used above.** *Verdict*: a signed statement of a few yes/no facts about a buyer
@@ -344,7 +344,7 @@ committed; `make verify` then re-checks it offline.
 
 The two tables of what is captured live and what runs offline: [docs/depth.md](depth.md).
 
-Every feature with its status and evidence: [the table below](#every-feature-its-status-and-its-evidence).
+Every feature with its status and evidence: [the README table](../README.md#every-feature-its-status-and-its-evidence).
 
 ## Try it
 
@@ -352,7 +352,7 @@ Every feature with its status and evidence: [the table below](#every-feature-its
   testnet claim from the committed RPC snapshot, the committed Jolt proofs (outputs, program
   hashes, and the proofs themselves with the committed verifier), the REP Eval and NVIDIA
   checks, and the JS suites. `JUDGE_LIVE=1 make judge` reads the live chain over public RPC
-  instead: 5 to 13 minutes, old txs come from a rate-limited public archive.
+  instead: 5 to 20 minutes, old txs come from a rate-limited public archive.
 - `make verify` (Rust 1.93+): the contract on near-sdk's mocked chain, one `PASS` line per link,
   ending `ALL PASS (26 checks)`; `make demo-offline` tells the same story on one screen. With no
   network, `make verify-offline` builds from the vendored crates (`vendor/`, pinned with
@@ -371,7 +371,7 @@ fixtures are synthetic; no real user data is in this repository.
 `make verify-offline` 77 s with no network; `make verify` 114 s with the network (crates
 fetched); `make test` 36 s; `make zk-verify-prebuilt` 1.3 s. All pass. Logs:
 `fixtures/live/offline-run/`. `make judge` and `make verify-live` have grown since that run,
-so their times are the ones in the table at the top: about 25 s, and 5 to 13 minutes (308 s and 797 s in
+so their times are the ones in the table at the top: about 25 s, and 5 to 20 minutes (308 s and 797 s in
 two runs on 2026-11-10, 101 checks, all pass; the purchase txs have left the regular testnet
 node and are read from the archive).
 

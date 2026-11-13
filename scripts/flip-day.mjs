@@ -78,7 +78,7 @@ async function market() {
 function outlayer() {
   console.log("OutLayer goes last. `make outlayer-local` first (the component against a mock host), then the plan below, one step per command, reading each result:\n");
   sh("node", ["scripts/outlayer-go.mjs"], { stdio: "inherit" });
-  console.log("\nAfter step 15: node scripts/live-manifest.mjs, SNAPSHOT_RECORD=1 node scripts/verify-live.mjs (5 to 13 minutes), node scripts/status.mjs, then README, docs/outlayer.md and WOW-BANK.md get the tx links.");
+  console.log("\nAfter step 15: node scripts/live-manifest.mjs, SNAPSHOT_RECORD=1 node scripts/verify-live.mjs (5 to 20 minutes), node scripts/status.mjs, then README, docs/outlayer.md and WOW-BANK.md get the tx links.");
 }
 
 async function links() {

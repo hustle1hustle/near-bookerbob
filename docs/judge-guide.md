@@ -1,7 +1,7 @@
 # Judge guide: BookerBob in 5 minutes
 
 What it is: merchant agents bid on price for a buyer who reveals a few proven bits
-(for example "frequent airbnb guest"), never the history behind them. A NEAR contract
+(for example "frequent airbnb guest"), and the history behind them stays with the buyer. A NEAR contract
 checks the verdict, burns a nullifier so the same verdict cannot be used twice,
 prices from code, and pays the merchant in USDC only against a referee receipt. Buyers
 who paid can leave sealed ratings that name nobody.
@@ -47,7 +47,7 @@ referee, the Jolt verifier and the page's wasm verifier. Then open one live tran
 hotel purchase at 408 dUSDC:
 [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6).
 The live re-derivation (`make verify-live`, or `JUDGE_LIVE=1 make judge`) reads about 170
-old transactions from a rate-limited public archive and takes 5 to 13 minutes: run it last, or
+old transactions from a rate-limited public archive and takes 5 to 20 minutes: run it last, or
 read the last daily run of the `live` workflow.
 
 Then the swarm, yourself: `make swarm-try` (no keys; a mini swarm on the contract's own code,
@@ -64,7 +64,7 @@ then 6 of the 96 testnet purchases read live; `NEAR_AI_KEY=<yours>` adds live mo
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only, offline, about 25 s (JUDGE_LIVE=1 make judge reads the live chain: 5 to 13 minutes, old txs come from a rate-limited public archive)
+make judge           # Node 22 only, offline, about 25 s (JUDGE_LIVE=1 make judge reads the live chain: 5 to 20 minutes, old txs come from a rate-limited public archive)
 make verify          # Rust 1.93+; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```

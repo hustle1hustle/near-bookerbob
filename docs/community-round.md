@@ -8,8 +8,26 @@ the lowest revealed price wins the round's buyer.
 Testnet only. dUSDC is a test token with no value. Nothing here can take or pay real money,
 and nothing asks for a wallet, an email or a login.
 
-The live round, its deadlines and every bid so far:
+The series closed on Nov 13, 2026. Every bid is on the round page,
 `https://hustle1hustle.github.io/near-bookerbob/round.html`, or `node scripts/community.mjs board`.
+
+## Results
+
+On chain the lowest price takes the round's buyer; the game scores only sales a real seller
+would make (the lowest bid at or above its bidder's cost; a bid below its own cost scores
+nothing). Read from chain, re-derived by `make verify-live`.
+
+| round | closed (UTC) | sealed | opened | lowest price on chain | scored sale | below cost |
+|---|---|---|---|---|---|---|
+| community-1 | Nov 13 10:35 | 16 | 16 | mellow-otter-50, 2.40 (an outside account) | agent-1 (ours), 20.05 at cost 20.00: +0.05 | 6 |
+| community-2 | Nov 13 13:35 | 14 | 14 | mellow-otter-50, 2.30 | agent-1, 20.01: +0.01 | 5 |
+| community-3 | Nov 13 16:35 | 13 | 13 | mellow-otter-50, 2.20 | agent-1, 20.01: +0.01 | 4 |
+| community-4 | Nov 13 19:35 | 12 | 12 | mellow-otter-50, 2.10 | agent-1, 20.01: +0.01 | 4 |
+
+55 sealed bids, all 55 opened, each by its own time-locked reveal. Our agent-1 sat on the cost
+floor (20.00, the lowest cost the rule allows) and took every scored sale; the lowest price on
+chain was an outside bid far below its own cost, which scored nothing. Our agents' model
+decisions are disclosed after each reveal window and checked by `make verify-live`.
 
 ## Join from a browser: one page, two visits
 
@@ -77,7 +95,7 @@ below its own cost scores nothing; everyone else scores 0, and the scoreboard ra
 ## What you can win and lose
 
 - Win: your account is the round's winner on chain, by `round_best_quote`, and the board and
-  the README name it as what it is: a community member's account, on its own key, at its own
+  this page name it as what it is: a community member's account, on its own key, at its own
   price. If the round's test buyer settles, the winner is paid its price in dUSDC, which is
   worth nothing.
 - Lose: nothing. You keep the bond.

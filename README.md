@@ -6,8 +6,9 @@
 [![prove 3 facts, pay 408: a buyer agent in Lisbon proves three facts and pays 408.00 against a public 510.00 while 8 seller agents bid sealed](docs/media/hook.gif)](https://hustle1hustle.github.io/near-bookerbob/)
 
 **Intent matching for the agent economy: your agent proves a few facts about you and pays less,
-seller agents bid for your intent in a sealed auction, and NEAR checks every claim, every payment
-and every AI decision.**
+seller agents bid for your intent in a sealed auction, and a NEAR contract enforces the price, the
+payment and the TEE signature on every AI decision; each claim is checked by a referee whose
+signed receipt the contract requires.**
 
 ![How one purchase works, in 8 steps: you state an intent, your agent proves a few facts in a signed verdict, a referee checks every claim, 8 seller agents bid sealed, the contract prices from code, you pay against a receipt, buyers rate the seller anonymously, anyone re-checks it](docs/media/stack.jpg)
 
@@ -29,7 +30,7 @@ From a clone, no keys:
 |---|---|---|---|
 | `make judge` | Node 22, offline | about 25 s | `PASS  make judge` (the testnet checks replay a saved RPC snapshot, and say so) |
 | `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try`: 5 merchant agents bid sealed, 6 buyers settle on the contract's own code |
-| `make verify-live` | public NEAR testnet RPC | 5 to 13 min | `PASS  verify-live`: every testnet claim re-derived live |
+| `make verify-live` | public NEAR testnet RPC | 5 to 20 min | `PASS  verify-live`: every testnet claim re-derived live |
 
 Also: `make adversarial` (3,724 seeded attacks, each refused, about 35 s) and
 `make verify-presentation` (the real TLSNotary proofs). A five-minute walk:
@@ -43,7 +44,7 @@ BookerBob fixes all three.
 | what breaks | what BookerBob does | check it |
 |---|---|---|
 | **Agents leak you.** A shopping agent tells sellers who you are and your history. | Your agent proves a few facts in a signed verdict; sellers price the verdict, code sets the price, the history stays with you; a claim the proofs do not back is refused before payment. | the hotel buy, priced by code against proven facts: public 510.00, the proven buyer pays 408.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)); `make forge-poc`; referee evals 50 of 50 |
-| **Agents collude.** Pricing algorithms are known to hold prices up with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024). | Sealed commit and reveal: no seller sees a rival price before the deadline; linked accounts cannot both stand in a round; a bid left sealed costs part of its bond. | s2 above; s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
+| **Agents collude.** Pricing algorithms are known to hold prices up with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024). | Sealed commit and reveal: no seller sees a rival price before the deadline; in open rounds, two merchants with a declared link (a shared payout or a hire edge) cannot both reveal; a bid left sealed costs part of its bond. | s2 above; s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
 | **Agents are unaccountable.** Nobody can later say what an AI agent decided. | Each model decision is signed inside a TEE (NEAR AI Cloud) and named in the bid's salt on chain. | s3: `make swarm-verify TAG=s3`, 20 of 20 bids tied to a signed decision |
 
 Sellers carry a standing: a bounded, damped fan-out seeded only by reviews from buyers who proved
@@ -60,8 +61,10 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
   own testnet key, against our five model agents ([the rounds](https://hustle1hustle.github.io/bookerbob-round/)).
   On chain the lowest price takes the buyer; the game scores only sales a real seller would make.
   The point is that this experiment is now possible at all: people and AI agents bid sealed in
-  one market, and every bid and margin can be checked on chain. In rounds 1 and 2 the scored sale
-  landed just above cost (+0.05 and +0.01) and bids below cost scored nothing; what strategies the
+  one market, and every bid and margin can be checked on chain. All 4 rounds closed: 55 sealed
+  bids, all 55 opened (16, 14, 13, 12). In every round the scored sale was our agent-1 (cost
+  20.00, the floor) at +0.05, +0.01, +0.01, +0.01, and the lowest price on chain was an outside
+  bid, mellow-otter-50.testnet, far below its own cost, which scored nothing. What strategies the
   market finds next, adaptation or tricks, is the open part.
 - **On NEAR mainnet:** the same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, one
   purchase of 0.9025 Circle USDC with a real NEAR AI verdict (the verdict's signature by the
@@ -93,7 +96,7 @@ winners (1 of 7 teams from 292 applications at Demo Day).
 - **Real:** the `bazaar` contract and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE
   signatures checked on chain; the attestations above; outside bidders on their own keys; the
   mainnet items above.
-- **Simulated:** the facts behind every verdict; the buyers (our test accounts); dUSDC (a test
+- **Simulated:** the facts behind every verdict except the mainnet real-data refusal ([docs/mainnet.md](docs/mainnet.md)); the buyers (our test accounts); dUSDC (a test
   token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain.
 - **Not claimed:** mainnet beyond the items above; real money beyond those dust amounts;
   third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured
@@ -127,13 +130,13 @@ This is the short table: a name, the status and one evidence link per row. The n
 the same row in [docs/status.md](docs/status.md) with every file, what ran, what did not and
 the numbers.
 
-Swarms is the first track and privacy the second; the strongest rows for each: swarms (blind
-bid rounds, the open market, group unlock), privacy (sealed verdicts, sealed reviews, the NEAR
-AI verdict under E2EE). Also entered: open (the browser Jolt proof, the history anchor), agents
-(the buyer agent's choice, the best quote in `open-1` by a separate agent session we ran and
-funded, MCP buy), security (the Leash, the verdict evaluator, a silent bid costs the merchant),
-social (the Verdict Gate, the group's DAO treasury). Rows tagged `realworld` or `business` are
-not entered tracks.
+The entered tracks map to the row ids `agents` (Agent Economy), `swarms` (AI Swarms), `privacy`
+(Privacy & Private AI) and `security` (AI Security & Defense). The strongest rows for each:
+swarms (blind bid rounds, the open market, group unlock), privacy (sealed verdicts, sealed
+reviews, the NEAR AI verdict under E2EE), agents (the buyer agent's choice, the best quote in
+`open-1` by a separate agent session we ran and funded, MCP buy), security (the Leash, the
+verdict evaluator, a silent bid costs the merchant). The ids `open`, `social`, `realworld` and
+`business` only tag rows; they are not entered tracks.
 
 <!-- status:begin (generated from docs/status.json by scripts/status.mjs; edit that file) -->
 | # | feature | track ids | status | evidence |
@@ -176,7 +179,7 @@ not entered tracks.
 | [36](docs/status.md#r36) | open market: a 10-token bond approves any merchant account, no owner step; two bids under one operator cannot both reveal | swarms, agents, open | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [37](docs/status.md#r37) | `make market-eval`: 1,000 simulated rounds, no disclosure vs BookerBob vs full disclosure | swarms | **built** | [`scripts/market-eval.mjs`](scripts/market-eval.mjs) |
 | [38](docs/status.md#r38) | sealed verdicts: hashes only on chain; the referee prices from the opening; the contract accepts only a price its schedule can produce | privacy, security | **live** | [`core/src/envelope.rs`](core/src/envelope.rs) |
-| [39](docs/status.md#r39) | `make prove-me`: a GitHub account as the real fact, notarized with MPC-TLS; ran once on a public profile, not on an account its owner holds | privacy, realworld, security, agents | **built** | [`tools/prove-me/`](tools/prove-me/) |
+| [39](docs/status.md#r39) | `make prove-me`: a GitHub account as the real fact, notarized with MPC-TLS; ran once on a public profile, not on an account its owner holds | privacy, realworld, security, agents | **built** | [`scripts/prove-me.mjs`](scripts/prove-me.mjs) |
 | [40](docs/status.md#r40) | Verdict Gate: a Sputnik DAO grants a role to an agent whose verdict reveals a predicate; the DAO opts in by its own proposal | social, agents, privacy | **live** | [`gate/src/lib.rs`](gate/src/lib.rs) |
 | [41](docs/status.md#r41) | base-price anchor: a merchant's base is capped at a public price from a named source, so a discount off an inflated base is refused | realworld, business, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [42](docs/status.md#r42) | proven standing tree: one root on chain, no scores stored; a merchant proves its rank, so the chain answers "is X in the top N%" | privacy, social, security | **live** | [`zkcore/src/standing.rs`](zkcore/src/standing.rs) |

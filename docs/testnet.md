@@ -232,7 +232,7 @@ Sealed reviews for m01, round 5979413: 6 ratings, each a Semaphore proof checked
 `publish_reviews` [5Fe4Qrat…](https://testnet.nearblocks.io/txns/5Fe4Qrat6GoKb3n7jJzHfjZfXBPargF2UKDVqFeoaGCZ): mean 4.33, score 3.72; the contract pushed the Seed
 graph event.
 
-Standing on the live graph (3 hires + 1 seed, root `ad42980d…`): a Jolt proof (coordinating session:
+Standing on the live graph (3 hires + 1 seed, root `ad42980d…`): a Jolt proof (the coordinating session:
 prove 3.32 s, verify 66 ms, proof 84,796 B, peak RSS 998 MB, `zk/out/standing-testnet`),
 signed by the worker key and accepted by `submit_graph_scores`
 [5Us18yJb…](https://testnet.nearblocks.io/txns/5Us18yJbi7Z19wgnyaWpgpk2Dt3eSxt4jzo2EoGPx1PJ) with 1 merchant
@@ -252,7 +252,7 @@ Contract with challengeable graph updates, bonds and the liability ledger:
 | bond the worker key, 0.5 NEAR | bookerbob-demo.testnet | [FuBdzQBQ…](https://testnet.nearblocks.io/txns/FuBdzQBQvgDiNpNin7DaaQyqDxWgYin71R7C1M8pu1A3) |
 | post the round-2 standing update, pending, with sha256 of its Jolt proof (`a001a88a…`, `zk/out/standing-testnet-2`) | bookerbob-demo.testnet | [9EJTKQNR…](https://testnet.nearblocks.io/txns/9EJTKQNRjVrw5uBZFdEAkJt8cEauBxKBmRYWWbNATRdU) |
 | challenge it, 0.1 NEAR bond | agent.bookerbob.testnet | [6z9po7X9…](https://testnet.nearblocks.io/txns/6z9po7X9DkafmygZQNeQokzWwKeBSUxtDXdox9wuCMBt) |
-| arbiter resolution `valid`, after the Jolt verifier passed on that proof (coordinating session: 65 ms); the update applies, the challenger's bond goes to the bonder | bookerbob-demo.testnet (relays the arbiter's signature) | [95PrdqgG…](https://testnet.nearblocks.io/txns/95PrdqgGboj2GUiLnsd7aJjw2Rc2Dp9Fnspf3yKiVcDQ) |
+| arbiter resolution `valid`, after the Jolt verifier passed on that proof (the coordinating session: 65 ms); the update applies, the challenger's bond goes to the bonder | bookerbob-demo.testnet (relays the arbiter's signature) | [95PrdqgG…](https://testnet.nearblocks.io/txns/95PrdqgGboj2GUiLnsd7aJjw2Rc2Dp9Fnspf3yKiVcDQ) |
 
 After it: `proven_score(m01)` = 4.00 on root `39615a18…` (3 hires + 2 seeds; 12 ratings).
 The invalid path (update dropped, worker bond slashed to the challenger) is covered by the

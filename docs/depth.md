@@ -14,7 +14,7 @@ customer, and keeps the customer private.
 
 ## The board
 
-![bookerbob board: 30 merchant agents bid, the buyer column shows only k=6 and the disclosure counter, the injected claim gets a red refused receipt](docs/img/board.png)
+![bookerbob board: 30 merchant agents bid, the buyer column shows only k=6 and the disclosure counter, the injected claim gets a red refused receipt](img/board.png)
 
 `make swarm` writes `agents/board.json`; `python3 -m http.server -d agents` and open
 `/board.html`. The buyer, proofs and hoodie merchants are synthetic fixtures.
@@ -34,7 +34,7 @@ Public receipts (`/receipts.html`, data `agents/receipts.json` from `make receip
 verdict and purchase the contract logged, hashes and public payment fields only, built
 from the contract's own NEP-297 events in the `make verify` run and checked there.
 
-![receipts page: nullifier, commitment, status, referee receipt, merchant, amount, event chips](docs/img/receipts.png)
+![receipts page: nullifier, commitment, status, referee receipt, merchant, amount, event chips](img/receipts.png)
 
 ## How one purchase works
 
@@ -316,7 +316,7 @@ near-cli-rs was installed here: dry-run first, check the first live step by hand
 [`bookerbob.testnet`](https://testnet.nearblocks.io/address/bookerbob.testnet) (wasm 600 KB,
 sha256 in the build output), with 30 merchant sub-accounts registered and approved, the
 trust-anchor keys registered and USDC storage paid. 156 transactions so far, every hash in
-[docs/testnet.md](docs/testnet.md). Key ones:
+[docs/testnet.md](testnet.md). Key ones:
 
 | what | tx |
 |---|---|
@@ -342,6 +342,6 @@ Where testnet stands, as of 2026-11-10:
   standing update with nonzero merchants, 21 orders in the Shopify test store.
 - Not on testnet yet: the OutLayer referee (its registration waits on the founder). The NEP-366
   relayer sends on testnet: it paid every demo purchase call and every sealed rating.
-- Demo mode: [docs/demo-mode.md](docs/demo-mode.md), `make demo-tester`.
+- Demo mode: [docs/demo-mode.md](demo-mode.md), `make demo-tester`.
 - Mainnet only on an explicit go.
 

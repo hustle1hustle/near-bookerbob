@@ -35,7 +35,7 @@ demo-tester:
 
 # Re-derive every testnet claim over public RPC (no keys, no build).
 # The fast path for judges, Node only, offline by default: about 25 s on a warm laptop.
-# JUDGE_LIVE=1 make judge also re-derives the testnet claims over public RPC, 5 to 13 minutes.
+# JUDGE_LIVE=1 make judge also re-derives the testnet claims over public RPC, 5 to 20 minutes.
 # Full-history secret scan before the repo goes public (patterns + exact values from ~/.rep-secrets).
 secret-scan:
 	scripts/secret-scan.sh

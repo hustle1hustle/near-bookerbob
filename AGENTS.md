@@ -19,7 +19,7 @@ Facts and pointers, nothing else.
   - `make verify`: Rust 1.93+, the contract on near-sdk's mocked chain, about 11 s warm and
     114 s from a fresh clone (crates fetched). Ends `ALL PASS (26 checks)`.
   - `make verify-live`, or `JUDGE_LIVE=1 make judge`: the same testnet claims over public RPC,
-    5 to 13 minutes (old txs come from a rate-limited public archive).
+    5 to 20 minutes (old txs come from a rate-limited public archive).
 - The status of every feature (live, built, stub, planned) with its evidence: `README.md`,
   "Every feature, its status and its evidence" (the short table) and `docs/status.md` (every
   row in full). Both are generated from `docs/status.json`; `node scripts/status.mjs --check`
@@ -36,8 +36,8 @@ Facts and pointers, nothing else.
   `docs/judge-guide.md`.
 
 BookerBob: merchant agents compete on price for a buyer. The buyer reveals a few proven
-bits (for example `airbnb_frequent`) inside a signed verdict, never the history behind
-them. A NEAR contract checks the signature, burns a per-context nullifier, prices from
+bits (for example `airbnb_frequent`) inside a signed verdict, and the history behind them
+stays with the buyer. A NEAR contract checks the signature, burns a per-context nullifier, prices from
 code, and pays the merchant in USDC only against a referee receipt.
 
 ## One flow, first (`make one-flow`)

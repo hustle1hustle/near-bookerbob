@@ -1,8 +1,9 @@
 # On NEAR mainnet (2026-11-13)
 
-Everything else in this repo ran on NEAR testnet. On mainnet, with the founder's own NEAR, three
-things ran once each. The facts behind the verdict are the same synthetic fixture facts as on
-testnet; the money is real and small.
+Everything else in this repo ran on NEAR testnet. On mainnet, with the founder's own NEAR, four
+things ran once each. The facts behind the first purchase's verdict are the same synthetic
+fixture facts as on testnet; the second purchase ran on the founder's real GitHub proof. The
+money is real and small.
 
 | what | record | check it (keyless, public RPC) |
 |---|---|---|

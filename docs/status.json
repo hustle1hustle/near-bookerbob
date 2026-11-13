@@ -380,7 +380,7 @@
     "feature": "`make prove-me`: your own GitHub account as the real fact. Authenticated `api.github.com/user` notarized with MPC-TLS through the REP notary (pinned key, not attested), 3 fields revealed, the facts sealed to NEAR AI (E2EE v2), a sealed verdict, a `github_builder` line that wins a blind round, one dUSDC settle, `make leak` before and after",
     "short": "`make prove-me`: a GitHub account as the real fact, notarized with MPC-TLS; ran once on a public profile, not on an account its owner holds",
     "tracks": "privacy, realworld, security, agents",
-    "where": "`tools/prove-me/`, `scripts/prove-me.mjs`, `docs/prove-me.md`",
+    "where": "`scripts/prove-me.mjs`, `tools/prove-me/`, `docs/prove-me.md`",
     "status": "built",
     "detail": "the whole pipeline ran live once as a test on a public profile (no token, so a fact about an account, not ownership): builders won `builder-1` at 28 dUSDC (36 without the builder line), `make verify-live` re-checks it; the run on your own `/user` waits on a token; 4 tests",
     "evidence": []

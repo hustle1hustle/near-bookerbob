@@ -3,7 +3,7 @@
 // no keys, no network). It checks what is committed:
 //   1. every testnet claim, re-derived from the committed RPC snapshot (scripts/verify-live.mjs
 //      with SNAPSHOT_REPLAY=1). `JUDGE_LIVE=1 make judge` re-derives them over public RPC
-//      instead: 5 to 13 minutes, because old txs come from a rate-limited public archive.
+//      instead: 5 to 20 minutes, because old txs come from a rate-limited public archive.
 //   2. the committed Jolt proofs' outputs equal the committed inputs' expected values, and
 //      each program hash is sha256 of its committed verifier preprocessing
 //   3. the JS test suites (relayer, demo mode, UCP/Shopify handler, MCP, x402, SDK)
@@ -36,7 +36,7 @@ if (!online) {
   const got = createHash("sha256").update(readFileSync(snapFile)).digest("hex");
   console.log(wantLive
     ? "SKIP  testnet: JUDGE_LIVE=1 but no network here, so the live RPC checks are skipped (not failed)"
-    : `NOTE  testnet: these checks replay a saved RPC snapshot taken ${JSON.parse(readFileSync(snapFile, "utf8")).taken_at}, not a live read of the chain (JUDGE_LIVE=1 make judge or make verify-live reads the live chain, 5 to 13 minutes)`);
+    : `NOTE  testnet: these checks replay a saved RPC snapshot taken ${JSON.parse(readFileSync(snapFile, "utf8")).taken_at}, not a live read of the chain (JUDGE_LIVE=1 make judge or make verify-live reads the live chain, 5 to 20 minutes)`);
   line(got === want, "testnet snapshot: committed RPC responses match their sha256", `${got.slice(0, 12)}..`);
   const rep = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 60_000, env: { ...process.env, SNAPSHOT_REPLAY: "1" } });
   const taken = JSON.parse(readFileSync(snapFile, "utf8")).taken_at;
@@ -46,7 +46,7 @@ if (!online) {
 // Too slow is not wrong: a run cut off by the limit with no FAIL is a SKIP, and only a check that
 // failed is a failure. A timed-out run is not retried, the second would hit the same limit.
 // 150 old txs come from a public archive at about 30 a minute: verify-live took 308 to 797 s on 2026-11-10.
-const LIVE_MS = Number(process.env.JUDGE_LIVE_MS ?? 900_000);
+const LIVE_MS = Number(process.env.JUDGE_LIVE_MS ?? 1_800_000);
 const verifyLive = () => spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: LIVE_MS });
 const cut = (r) => r.error?.code === "ETIMEDOUT" && !/^FAIL /m.test(r.stdout);
 let live = online ? verifyLive() : { status: 0, stdout: "" };
