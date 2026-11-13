@@ -115,13 +115,6 @@ mod tests {
     }
 
     #[test]
-    fn a_qfex_referral_floor_of_100k_is_a_referrer() {
-        let one = |f: Fact| derive(&ProofSet { facts: vec![f] }).predicates();
-        assert_eq!(one(fact("F9", "qfex", "referral_volume_30d_floor_usd", 1_000_000)), vec!["qfex_referrer"]);
-        assert!(one(fact("F9", "qfex", "referral_volume_30d_floor_usd", 50_000)).is_empty());
-    }
-
-    #[test]
     fn a_github_account_three_years_old_is_a_builder() {
         let one = |f: Fact| derive(&ProofSet { facts: vec![f] }).predicates();
         assert_eq!(one(fact("F6", "github", "account_age_years", 3)), vec!["github_builder"]);

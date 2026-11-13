@@ -15,9 +15,6 @@ pub const RULES: &[(&str, &str, u64, &str)] = &[
     ("anthropic", "monthly_spend_usd", 20, "claude_spender"),
     // `make prove-me`: the account behind an authenticated api.github.com/user, at least 3 years old.
     ("github", "account_age_years", 3, "github_builder"),
-    // A QFEX referral volume floor, proven in zero knowledge over a notarized session
-    // (fixtures/live/qfex/referral-zk-bundle.json): at least $100,000 over 30 days.
-    ("qfex", "referral_volume_30d_floor_usd", 100_000, "qfex_referrer"),
     ("steam", "account_age_years", 5, "steam_veteran"),
     ("uber", "trips_90d", 10, "uber_regular"),
     ("world_id", "verified", 1, "world_id_human"),
