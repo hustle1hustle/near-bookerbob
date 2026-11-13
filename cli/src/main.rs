@@ -12,6 +12,7 @@
 //! MockedBlockchain, which executes host functions (ed25519_verify, p256_verify, sha256)
 //! through nearcore's VM logic. No network, no keys.
 
+mod adversarial;
 #[cfg(test)]
 mod e2e_tests;
 mod evals;
@@ -308,6 +309,8 @@ fn main() -> ExitCode {
         Some("zk-inputs") if args.len() >= 2 => zk_inputs::run(Path::new(&args[1]), args.iter().any(|a| a == "--check")),
         Some("scenario") if args.len() >= 2 => scenario::run(Path::new(&args[1])),
         Some("swarm-try") => swarm_try::run(),
+        // adversarial <out.json>: thousands of attacks on the contract and the referee, each refused (docs/adversarial.md).
+        Some("adversarial") if args.len() >= 2 => adversarial::run(Path::new(&args[1])),
         Some("reviews") if args.len() >= 2 => {
             reviews::run(Path::new(&args[1]), args.get(2).filter(|a| !a.starts_with("--")).map(Path::new), args.iter().any(|a| a == "--check"))
         }

@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: verify-presentation swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: adversarial verify-presentation swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -72,6 +72,14 @@ cheat:
 # You are the buyer: your GitHub token file proves the fact behind one testnet purchase (docs/prove-me.md).
 try:
 	node scripts/try.mjs $(TOKEN)
+
+# Thousands of attacks, each refused, offline and keyless (docs/adversarial.md): spent-nullifier
+# replays and bid fuzz on the contract's own code (MockedBlockchain), out-of-proof claims on the
+# referee. Fixed seed; writes fixtures/adversarial/run.json. Contract logs (stderr) hidden.
+adversarial:
+	@$(CARGO) build $(CARGO_FLAGS) -q -p bookerbob-cli
+	@./target/debug/bookerbob adversarial fixtures/adversarial/run.json 2>/dev/null
+	@echo "PASS  make adversarial"
 
 # A mini swarm you run yourself, about 15 s warm, no keys (NEAR_AI_KEY=<yours> adds live model verdicts).
 swarm-try:
