@@ -2,6 +2,24 @@
 
 Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Private AI, AI Security & Defense.
 
+**Check it in three commands** (from a clone; no keys):
+
+| command | needs | time | ends with |
+|---|---|---|---|
+| `make judge` | Node 22, offline | about 25 s | `PASS  make judge` |
+| `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try` |
+| `make verify-live` | public NEAR testnet RPC | 5 to 13 min | `PASS  verify-live` |
+
+| real (on NEAR testnet, or signed by a real service) | simulated | not claimed |
+|---|---|---|
+| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](docs/real-attestations.md)); outside people bidding in the community series on their own keys | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet; real money; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
+
+Every agent is its own account (`*.bookerbob-demo.testnet`), and a buyer agent can hold a
+function-call key scoped to `settle_demo` only. The chain refuses anything else on that key:
+`withdraw_demo` is refused with `MethodNameMismatch`, and any call that attaches a deposit with
+`DepositWithFunctionCall` ([add-key tx 46GQSpiN…](https://testnet.nearblocks.io/txns/46GQSpiNW6Lzq8q2hDbNrVoqpKGchVx9MnGaPeZt7vXD),
+`fixtures/live/fc-key-check.json`).
+
 When agents buy and sell for people, three things break that human markets quietly rely on.
 BookerBob is a market on NEAR testnet where seller agents bid on price for a buyer's agent, and
 it fixes all three. Every row below opens its proof.
