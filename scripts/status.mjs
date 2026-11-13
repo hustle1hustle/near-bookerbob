@@ -37,7 +37,7 @@ export const STALE = [
   "32 of 32",
   "32/32",
 ];
-const DOCS = ["README.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md", "docs/solvers.md", "docs/status.md"];
+const DOCS = ["README.md", "docs/details.md", "docs/depth.md", "docs/judge-guide.md", "AGENTS.md", "docs/outlayer.md", "docs/near-ai.md", "docs/jolt.md", "docs/solvers.md", "docs/status.md"];
 
 // How many testnet buyers share each settled amount and each merchant, as the docs print it:
 // from agents/live.json, the same snapshot the pages read. A refunded pledge paid nothing, so

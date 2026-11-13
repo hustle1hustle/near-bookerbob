@@ -24,8 +24,8 @@ Facts and pointers, nothing else.
   "Every feature, its status and its evidence" (the short table) and `docs/status.md` (every
   row in full). Both are generated from `docs/status.json`; `node scripts/status.mjs --check`
   fails when either differs.
-- What does not hold yet: `README.md`, "Known limits". Who holds each trust key (REP holds all
-  of them today): `README.md`, "Who can lie, what catches it, who holds the key".
+- What does not hold yet: `docs/details.md`, "Known limits". Who holds each trust key (REP holds all
+  of them today): `docs/details.md`, "Who can lie, what catches it, who holds the key".
 - What is synthetic: the facts behind every verdict, the buyers (our own test accounts), the
   money (dUSDC, a testnet demo token), the World ID action. Detail: "What is real and what is
   fixture" below.
@@ -153,7 +153,7 @@ Fixture or synthetic:
 Not built: a TDX quote check inside the bazaar contract (since 2026-11-05 a separate verifier
 contract, `spike.bookerbob.testnet`, checks the quote on chain, and the bazaar registers a model
 key only against its result), an on-chain check of the NVIDIA GPU evidence (it is checked
-offline, `scripts/nras.mjs`), 1Click. See `docs/depth.md` ("NEAR features used") and `README.md`
+offline, `scripts/nras.mjs`), 1Click. See `docs/depth.md` ("NEAR features used") and `docs/details.md`
 ("Known limits").
 
 ## Rules for changes
