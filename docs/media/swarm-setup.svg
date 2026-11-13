@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
+<rect width="1000" height="640" fill="#0A0A0F"/>
+<text x="32" y="44" fill="#E8E8EE" font-size="22" font-weight="700">the swarm: how we battle-tested it (NEAR testnet)</text>
+<text x="32" y="68" fill="#8A8A9A" font-size="11.5">every agent ours except the outside bidders; facts behind verdicts are synthetic; dUSDC is a test token</text>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8A8A9A"/></marker></defs>
+<text x="32" y="110" fill="#E8E8EE" font-size="14" font-weight="700">buyer agents</text>
+<text x="32" y="127" fill="#8A8A9A" font-size="11.5">96 in s1, 24 in s2, 6 in s3 and try1</text>
+<circle cx="40" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="142" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="155" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="168" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="181" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="194" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="207" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="220" r="4.5" fill="#3B5BFF"/>
+<circle cx="40" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="53" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="66" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="79" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="92" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="105" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="118" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="131" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="144" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="157" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="170" cy="233" r="4.5" fill="#3B5BFF"/>
+<circle cx="183" cy="233" r="4.5" fill="#3B5BFF"/>
+<line x1="380" y1="187.5" x2="472" y2="270" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="32" y="268" fill="#E8E8EE" font-size="14" font-weight="700">merchant agents, price rules</text>
+<text x="32" y="285" fill="#8A8A9A" font-size="11.5">30, sealed bids</text>
+<circle cx="40" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="53" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="66" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="79" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="92" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="105" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="118" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="131" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="144" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="157" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="170" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="183" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="196" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="209" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="222" cy="300" r="4.5" fill="#E8E8EE"/>
+<circle cx="40" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="53" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="66" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="79" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="92" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="105" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="118" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="131" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="144" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="157" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="170" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="183" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="196" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="209" cy="313" r="4.5" fill="#E8E8EE"/>
+<circle cx="222" cy="313" r="4.5" fill="#E8E8EE"/>
+<line x1="380" y1="306.5" x2="472" y2="270" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="32" y="348" fill="#E8E8EE" font-size="14" font-weight="700">model merchants (NEAR AI)</text>
+<text x="32" y="365" fill="#8A8A9A" font-size="11.5">10 in s2 and s3, 5 in the series</text>
+<circle cx="40" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="53" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="66" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="79" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="92" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="105" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="118" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="131" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="144" cy="380" r="4.5" fill="#3DDC97"/>
+<circle cx="157" cy="380" r="4.5" fill="#3DDC97"/>
+<line x1="380" y1="380.0" x2="472" y2="270" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="32" y="415" fill="#E8E8EE" font-size="14" font-weight="700">adversarial agents</text>
+<text x="32" y="432" fill="#8A8A9A" font-size="11.5">replayer, silent bidder, base cheater, injection</text>
+<circle cx="40" cy="447" r="4.5" fill="#FF5A5A"/>
+<circle cx="53" cy="447" r="4.5" fill="#FF5A5A"/>
+<circle cx="66" cy="447" r="4.5" fill="#FF5A5A"/>
+<circle cx="79" cy="447" r="4.5" fill="#FF5A5A"/>
+<line x1="380" y1="447.0" x2="472" y2="270" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="32" y="482" fill="#E8E8EE" font-size="14" font-weight="700">outside people, from a phone</text>
+<text x="32" y="499" fill="#8A8A9A" font-size="11.5">community series, own keys</text>
+<circle cx="40" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="53" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="66" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="79" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="92" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="105" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="118" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="131" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="144" cy="514" r="4.5" fill="#FFB547"/>
+<circle cx="157" cy="514" r="4.5" fill="#FFB547"/>
+<line x1="380" y1="514.0" x2="472" y2="270" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<rect x="478" y="190" width="220" height="160" rx="10" fill="none" stroke="#3B5BFF" stroke-width="2.5"/>
+<text x="588" y="220" fill="#E8E8EE" font-size="15" font-weight="700" text-anchor="middle">bazaar contract</text>
+<text x="588" y="239" fill="#E8E8EE" font-size="12.5" font-weight="400" text-anchor="middle">bookerbob.testnet</text>
+<text x="588" y="258" fill="#8A8A9A" font-size="12.5" font-weight="400" text-anchor="middle"></text>
+<text x="588" y="277" fill="#8A8A9A" font-size="12.5" font-weight="400" text-anchor="middle">sealed commit, reveal</text>
+<text x="588" y="296" fill="#8A8A9A" font-size="12.5" font-weight="400" text-anchor="middle">nullifier burned once</text>
+<text x="588" y="315" fill="#8A8A9A" font-size="12.5" font-weight="400" text-anchor="middle">price from code</text>
+<text x="588" y="334" fill="#8A8A9A" font-size="12.5" font-weight="400" text-anchor="middle">pay only on a receipt</text>
+<rect x="722" y="130" width="248" height="64" rx="8" fill="none" stroke="#3DDC97" stroke-width="1.6"/>
+<text x="734" y="156" fill="#E8E8EE" font-size="13.5" font-weight="700">NEAR AI TEE</text>
+<text x="734" y="176" fill="#8A8A9A" font-size="10">verdicts and bid decisions, signed</text>
+<line x1="698" y1="270" x2="720" y2="162" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<rect x="722" y="250" width="248" height="64" rx="8" fill="none" stroke="#E8E8EE" stroke-width="1.6"/>
+<text x="734" y="276" fill="#E8E8EE" font-size="13.5" font-weight="700">referee</text>
+<text x="734" y="296" fill="#8A8A9A" font-size="10">refuses claims the proofs do not back</text>
+<line x1="698" y1="270" x2="720" y2="282" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<rect x="722" y="370" width="248" height="64" rx="8" fill="none" stroke="#3B5BFF" stroke-width="1.6"/>
+<text x="734" y="396" fill="#E8E8EE" font-size="13.5" font-weight="700">the public record</text>
+<text x="734" y="416" fill="#8A8A9A" font-size="10">make swarm-verify, make verify-live</text>
+<line x1="698" y1="270" x2="720" y2="402" stroke="#8A8A9A" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="32" y="618" fill="#8A8A9A" font-size="11.5">tried to break: leaks, collusion, replays, silent bids, inflated prices, prompt injection, unaccountable model choices</text>
+</svg>

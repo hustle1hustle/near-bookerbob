@@ -10,6 +10,24 @@ it fixes all three. Every row below opens its proof.
 | **Agents collude.** Pricing algorithms are known to learn to hold prices up together with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024, on LLM pricing agents). | Sealed commit and reveal: each seller agent commits a hash and sees no rival price before the deadline. Two accounts with a declared link (a shared payout, a hire edge) cannot both stand in one round, and a bid left sealed costs 5 dUSDC of its bond. | s2: 10 model merchants took the price from 26.80 to 24.08 over four rounds, just above their costs (fixed rules in s1: 36.00) ([docs/swarm-run.md](docs/swarm-run.md#s2)); s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
 | **Agents are unaccountable.** When an AI agent sets a price, nobody can later say what it decided or why. | Each model decision is signed inside a TEE (NEAR AI Cloud) and named in the bid's salt on chain, so each bid traces to one signed decision from the public record, with no keys. The verdict's TEE signature is checked on chain. | s3: `make swarm-verify TAG=s3`, 20 of 20 bids tied to a signed decision; one verdict checked on chain: [CY5bwBMr…](https://testnet.nearblocks.io/txns/CY5bwBMrEtBU9DRpxyCPYnkZPGU8mQ1B3kCLqkeX5ne1) |
 
+## The swarm: how we battle-tested it
+
+We ran the market against our own agents, adversarial ones included, and then against outside
+people bidding from a phone, to see whether the three breaks above hold. Every agent below is
+ours except the outside bidders. The facts behind every verdict are synthetic, and dUSDC is a
+test token. All numbers come from the run records in `fixtures/live/`.
+
+![The swarm setup: buyer agents, merchant agents, model merchants, adversarial agents and outside people bidding into the bazaar contract on NEAR testnet, with NEAR AI TEE signatures, a referee and a public record](docs/media/swarm-setup.svg)
+
+| run | agents | what it tried to break | what happened | re-check |
+|---|---|---|---|---|
+| s1, Nov 11 | 30 merchant agents (fixed price rules), 96 buyer agents (one-time accounts, each with a NEAR AI verdict), a replayer | leaks at scale, replays, price discovery | 178 sealed bids over 7 rounds; 96 purchases settled against referee receipts (22,589.76 test dUSDC); every replay of a spent verdict refused (7 of 7) | `make swarm-verify` |
+| s2, Nov 12 | 10 model merchants (a NEAR AI model picks each bid from its persona, its cost and the last two rounds' public bids), 24 buyers, a replayer | collusion: do AI sellers hold prices up when they see each other's past prices? | 40 sealed bids, 40 of 40 decisions TEE-signed; the price fell from 26.80 to 24.08 over 4 rounds, just above cost; 24 purchases; every replay refused (4 of 4) | `make swarm-verify TAG=s2` |
+| s3, Nov 12 | the same 10 model merchants, 6 buyers, a replayer | accountability | 20 sealed bids, 20 of 20 tied on chain to a signed decision through the bid's salt; 6 purchases; every replay refused (2 of 2) | `make swarm-verify TAG=s3` |
+| try1, Nov 12 | 30 merchant agents, 6 buyers, a replayer | a silent bidder | 30 sealed, 29 opened (m01 ran out of gas); m01 marked and barred for 24 h; 6 purchases; the replay refused (1 of 1) | `make swarm-verify TAG=try1` |
+| adversarial runs, before the swarm | a base cheater, a silent bidder, prompt injection | inflated prices, withheld bids, false claims | h05 re-registering at 600 against a public rate of 510: refused on chain ([6M3Bi7RY…](https://testnet.nearblocks.io/txns/6M3Bi7RY6thU4yfbUUQShHz9M9drHSNwrMY683rjB16u)); round `silent-1`: the silent bid marked, its bond cut ([DEd5NAPw…](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ)); referee evals 50 of 50 (39 cheats refused; 30 of the 50 cases are injection style) | `make verify-live`, `make verify` |
+| community series, Nov 13 | our 5 model merchants, outside people on their own keys from a phone, the founder | all three, with strangers: can people beat AI sellers in a sealed round? | 4 rounds; each sealed bid carries its own time-locked reveal, opened after the deadline; rounds 1 and 2: 30 sealed bids, all 30 opened | `make verify-live` |
+
 Real attestations in this repo, each with its check: three TLSNotary presentations of
 api.github.com signed by the REP notary, one of them the founder's own profile (`make
 verify-presentation`, upstream TLSNotary only), the NEAR AI TEE verdict and its TDX quote
