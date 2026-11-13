@@ -35,12 +35,19 @@ export function parseCurl(s) {
 /** The same GraphQL query as a POST: the variables (the userId) move into the body. */
 export function asPost({ url, headers, body: copied }) {
   const u = new URL(url);
-  if (u.hostname !== "www.airbnb.com" || !u.pathname.startsWith("/api/v3/PastTripsV2Query")) throw new Error("not the PastTripsV2Query request: copy that one");
+  if (u.hostname !== "www.airbnb.com" || !/^\/api\/v3\/PastTrips(V2|List)Query/.test(u.pathname)) throw new Error("not the past trips request: copy that one");
+  const keep0 = headers.filter(([n]) => !/^(accept-encoding|content-length|host|priority|sec-fetch-|sec-ch-|upgrade-insecure)/i.test(n));
+  // Airbnb's newer PastTripsListQuery carries no user id in its variables (the session cookie
+  // says who): it is sent as copied, a GET whose request line holds nothing personal.
+  if (u.searchParams.has("variables") && !/userId|VXNlcj/.test(u.searchParams.get("variables"))) {
+    return { url: u.toString(), method: "GET", headers: keep0.filter(([n]) => !/^content-type$/i.test(n)), body: null, reveal: REVEAL };
+  }
   // Copied as a GET, the variables are in the query; copied as a POST, they are already in the body.
-  const body = u.searchParams.has("variables") ? JSON.stringify({ operationName: "PastTripsV2Query", variables: JSON.parse(u.searchParams.get("variables")), extensions: JSON.parse(u.searchParams.get("extensions")) }) : copied;
+  const body = u.searchParams.has("variables") ? JSON.stringify({ operationName: u.searchParams.get("operationName") ?? "PastTripsV2Query", variables: JSON.parse(u.searchParams.get("variables")), extensions: JSON.parse(u.searchParams.get("extensions")) }) : copied;
   if (!body) throw new Error("no variables in the copied request");
   const line = new URL(u.origin + u.pathname);
   for (const k of ["operationName", "locale", "currency"]) if (u.searchParams.has(k)) line.searchParams.set(k, u.searchParams.get(k));
+  const op = u.searchParams.get("operationName") ?? "PastTripsV2Query";
   const keep = headers.filter(([n]) => !/^(accept-encoding|content-length|content-type|host|priority|sec-fetch-|sec-ch-|upgrade-insecure)/i.test(n));
   return { url: line.toString(), method: "POST", headers: [...keep, ["Content-Type", "application/json"]], body, reveal: REVEAL };
 }
@@ -54,7 +61,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const out = join(process.env.KEYS_DIR ?? join(homedir(), ".rep-secrets", "bookerbob-testnet"), "zktls", `airbnb-${Date.now()}.presentation`);
   try {
     writeFileSync(specFile, JSON.stringify(spec), { mode: 0o600 });
-    console.log(`request line to be revealed: POST ${new URL(spec.url).pathname.slice(0, 40)}..${new URL(spec.url).search}`);
+    console.log(`request line to be revealed: ${spec.method} ${new URL(spec.url).pathname}${new URL(spec.url).search.slice(0, 160)}`);
     execFileSync(PROVE_ME, [out, ...(process.argv.includes("--proxy") ? ["--proxy"] : [])], { env: { ...process.env, PROVE_SITE_SPEC: specFile }, stdio: ["ignore", "inherit", "inherit"] });
   } finally { rmSync(dir, { recursive: true, force: true }); }
   const v = JSON.parse(execFileSync(VERIFY, [out, KEY], { encoding: "utf8" }));
