@@ -1,0 +1,7 @@
+{
+  "name": "rep-zk-gallery-verify",
+  "private": true,
+  "type": "module",
+  "description": "Verify a REP zk gallery bundle against the REP rules registry.",
+  "dependencies": { "@noble/hashes": "1.8.0" }
+}
