@@ -1,0 +1,100 @@
+{
+  "what": "make adversarial: attacks run offline on the bazaar contract's own code (near-sdk MockedBlockchain) and on the core referee; fixture keys, synthetic facts",
+  "seed": "0x20261113b00ce2b0",
+  "prng": "splitmix64",
+  "pass": true,
+  "classes": {
+    "replays": {
+      "attempts": 1200,
+      "refused": 1200,
+      "by_attack": {
+        "resubmit a re-signed verdict with a new cap and fewer predicates": 240,
+        "resubmit the original verdict": 236,
+        "resubmit the verdict re-signed for another account": 251,
+        "settle again from the same agent": 241,
+        "settle from another account": 232
+      },
+      "refusal_reasons": {
+        "nullifier spent": 1200
+      },
+      "control: honest buyers settled once": {
+        "attempts": 8,
+        "passed": 8
+      }
+    },
+    "out_of_proof_claims": {
+      "attempts": 1300,
+      "refused": 1300,
+      "by_attack": {
+        "(of which also carried extra JSON fields)": 337,
+        "a discount line with no claim": 97,
+        "a number the claim does not assert": 92,
+        "a real fact that proves another line": 109,
+        "fact id not in the proof set": 99,
+        "inflated value": 92,
+        "injected status in the text": 89,
+        "known predicate the verdict did not reveal": 96,
+        "no citation": 92,
+        "non-ascii text (homoglyph, zero-width, bidi)": 117,
+        "text names another platform": 89,
+        "text over 280 characters": 92,
+        "unknown or recased predicate": 111,
+        "wrong or recased field": 125
+      },
+      "refusal_reasons": {
+        "asserted": 309,
+        "cites no fact": 92,
+        "does not prove": 198,
+        "has no cited claim": 97,
+        "is not a known predicate": 111,
+        "must be plain ascii": 117,
+        "names unproven status": 89,
+        "not in proof set": 99,
+        "not revealed": 96,
+        "over 280 characters": 92
+      },
+      "control: honest inputs got a receipt": {
+        "attempts": 200,
+        "passed": 200
+      }
+    },
+    "bid_fuzz": {
+      "attempts": 1224,
+      "refused": 1224,
+      "by_attack": {
+        "another merchant's schedule and salt": 74,
+        "early reveal, before the commit deadline": 48,
+        "matching reveal after the reveal deadline": 48,
+        "reveal without a commitment": 24,
+        "salt: a fresh random salt": 71,
+        "salt: not hex": 82,
+        "salt: one bit flipped": 80,
+        "salt: truncated to 31 bytes": 74,
+        "schedule: a discount changed": 79,
+        "schedule: a rule added": 94,
+        "schedule: a rule dropped": 50,
+        "schedule: base price moved": 73,
+        "schedule: cap changed": 60,
+        "schedule: group rule toggled": 103,
+        "schedule: one JSON byte flipped": 64,
+        "schedule: rules reordered": 56,
+        "second reveal of an opened bid": 144
+      },
+      "refusal_reasons": {
+        "already revealed": 144,
+        "bad salt hex": 82,
+        "bad salt length": 74,
+        "bid does not open its commitment": 747,
+        "no committed bid": 24,
+        "reveal opens after the commit deadline": 48,
+        "reveal phase is over": 48,
+        "unknown predicate in cohort rule": 6,
+        "unknown predicate in schedule": 51
+      },
+      "control: matching reveals accepted": {
+        "attempts": 144,
+        "passed": 144
+      }
+    }
+  }
+}
