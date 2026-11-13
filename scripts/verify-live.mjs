@@ -383,9 +383,14 @@ if (existsSync(new URL("../fixtures/live/community/round.json", import.meta.url)
       const closed = chainNow >= r.reveal_until_ms;
       let scored = "";
       if (closed && best) {
-        const sc = best.p - costOf(s.round, best.a, cr.costs ?? {});
-        totals.set(best.a, (totals.get(best.a) ?? 0) + sc);
-        scored = `; closed: buyer to ${best.a.split(".")[0]} at ${best.p.toFixed(2)}, score ${sc.toFixed(2)}, everyone else 0`;
+        // On chain the lowest price takes the buyer. The game scores only sales a real seller would
+        // make: below its own cost a bid scores nothing; the lowest bid at or above its bidder's cost
+        // scores price minus cost (tightened 2026-11-13, after round 2, for every round).
+        const cost = (a) => costOf(s.round, a, cr.costs ?? {});
+        const ok = priced.filter((x) => x.p != null && x.p >= cost(x.a)).sort((x, y) => x.p - y.p)[0];
+        const below = priced.filter((x) => x.p != null && x.p < cost(x.a)).length;
+        if (ok) totals.set(ok.a, (totals.get(ok.a) ?? 0) + (ok.p - cost(ok.a)));
+        scored = `; closed: on chain the buyer goes to ${best.a.split(".")[0]} at ${best.p.toFixed(2)}; scored sale ${ok ? `${ok.a.split(".")[0]} at ${ok.p.toFixed(2)}, +${(ok.p - cost(ok.a)).toFixed(2)}` : "none"}; ${below} below cost score nothing, everyone else 0`;
       }
       // Our agents' decisions, once disclosed after the reveal deadline: each TEE-signed answer
       // opens with its key, clamps to the price on chain, and its salt is inside the commit.

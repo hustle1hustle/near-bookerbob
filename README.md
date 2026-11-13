@@ -69,6 +69,7 @@ notary on Phala (`node scripts/verify-receipt.mjs`), the NEAR AI TEE verdict and
 
 The outside test: on Nov 13 a public series of 4 sealed rounds lets anyone bid from a phone, on
 their own testnet key, against our five model agents ([the round page](https://hustle1hustle.github.io/bookerbob-round/)).
+The point is that this experiment is now possible at all: people and AI agents bid sealed in one market, and every bid and margin can be checked on chain. In rounds 1 and 2 the scored sale landed just above cost (+0.05 and +0.01) and bids below cost scored nothing; what strategies the market finds next, adaptation or tricks, is the open part.
 Check it all yourself: `make judge` (Node 22, offline, about 25 s) or `make swarm-try` (below).
 
 ![96 buyer agents settle with 30 merchant agents over 7 sealed-bid rounds on NEAR testnet, replayed from the run's public record](docs/media/swarm.gif)
