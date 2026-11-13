@@ -17,3 +17,4 @@ node_modules/
 
 # Session-only files, kept local
 /RESUME.md
+.gstack/

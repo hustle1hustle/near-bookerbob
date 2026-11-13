@@ -1,0 +1,16 @@
+# Checks a TLSNotary presentation against a pinned notary key and prints what it reveals.
+# Built only on upstream TLSNotary (tlsnotary/tlsn, tag v0.1.0-alpha.15). Not part of the
+# workspace: `make verify-presentation` builds it (a few minutes the first time).
+[package]
+name = "verify-presentation"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+tlsn = { git = "https://github.com/tlsnotary/tlsn.git", tag = "v0.1.0-alpha.15", features = ["mozilla-certs"] }
+bincode = "1.3"
+hex = "0.4"
+serde_json = "1"

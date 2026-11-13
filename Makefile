@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
+.PHONY: verify-presentation swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -149,6 +149,10 @@ leak:
 # Your own GitHub account as the real fact (docs/prove-me.md). Needs the tlsn-extension
 # checkout next to this repo, a GitHub token file and the testnet keys; testnet only.
 ROUND ?= builder-1
+verify-presentation:
+	cd tools/verify-presentation && cargo build --release -q
+	node scripts/verify-presentations.mjs
+
 prove-me:
 	node scripts/prove-me.mjs check
 	node scripts/prove-me.mjs run $(ROUND)

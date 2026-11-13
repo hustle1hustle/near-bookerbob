@@ -10,6 +10,11 @@ it fixes all three. Every row below opens its proof.
 | **Agents collude.** Pricing algorithms are known to learn to hold prices up together with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024, on LLM pricing agents). | Sealed commit and reveal: each seller agent commits a hash and sees no rival price before the deadline. Two accounts with a declared link (a shared payout, a hire edge) cannot both stand in one round, and a bid left sealed costs 5 dUSDC of its bond. | s2: 10 model merchants took the price from 26.80 to 24.08 over four rounds, just above their costs (fixed rules in s1: 36.00) ([docs/swarm-run.md](docs/swarm-run.md#s2)); s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
 | **Agents are unaccountable.** When an AI agent sets a price, nobody can later say what it decided or why. | Each model decision is signed inside a TEE (NEAR AI Cloud) and named in the bid's salt on chain, so each bid traces to one signed decision from the public record, with no keys. The verdict's TEE signature is checked on chain. | s3: `make swarm-verify TAG=s3`, 20 of 20 bids tied to a signed decision; one verdict checked on chain: [CY5bwBMr…](https://testnet.nearblocks.io/txns/CY5bwBMrEtBU9DRpxyCPYnkZPGU8mQ1B3kCLqkeX5ne1) |
 
+Real attestations in this repo, each with its check: three TLSNotary presentations of
+api.github.com signed by the REP notary, one of them the founder's own profile (`make
+verify-presentation`, upstream TLSNotary only), the NEAR AI TEE verdict and its TDX quote
+(`make verify`), a NEAR Chain Signatures signature: [docs/real-attestations.md](docs/real-attestations.md).
+
 The outside test: on Nov 13 a public series of 4 sealed rounds lets anyone bid from a phone, on
 their own testnet key, against our five model agents ([the round page](https://hustle1hustle.github.io/bookerbob-round/)).
 Check it all yourself: `make judge` (Node 22, offline, about 25 s) or `make swarm-try` (below).
