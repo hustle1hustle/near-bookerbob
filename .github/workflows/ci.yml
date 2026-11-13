@@ -15,7 +15,12 @@ jobs:
         with:
           node-version: 22
       - name: format
-        run: cargo fmt --all -- --check
+        # contract/src/lib.rs stays byte for byte as deployed: its panic locations carry line
+        # numbers, so reformatting it changes the wasm and breaks make wasm-parity. It is
+        # formatted with the next deploy; every other file must be formatted.
+        run: |
+          left=$(cargo fmt --all -- --check -l | grep -v '/contract/src/lib.rs$' || true)
+          if [ -n "$left" ]; then echo "not formatted:"; echo "$left"; cargo fmt --all -- --check; exit 1; fi
       - name: clippy
         run: cargo clippy --workspace --all-targets -j 4 -- -D warnings
       - name: unit tests

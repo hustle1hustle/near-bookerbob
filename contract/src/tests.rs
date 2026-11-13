@@ -1729,7 +1729,10 @@ mod reviews {
         }
         at("anyone.testnet", T + 2 * REVIEW_ROUND_MS);
         assert!(c.publish_reviews(acc("m01.bookerbob.testnet"), round));
-        assert!(get_logs().iter().any(|l| l.contains("reviews_published") && l.contains(r#""ratings":6"#) && l.contains(r#""k_d":5"#)), "the release logs its size");
+        assert!(
+            get_logs().iter().any(|l| l.contains("reviews_published") && l.contains(r#""ratings":6"#) && l.contains(r#""k_d":5"#)),
+            "the release logs its size"
+        );
         let out = c.reviews(acc("m01.bookerbob.testnet"), round).unwrap();
         assert_eq!(out.iter().map(|x| x.rating as u64).sum::<u64>(), 23);
         let s = c.merchant_score(acc("m01.bookerbob.testnet"));

@@ -95,7 +95,15 @@ pub fn run() -> ExitCode {
         at(&m.account, COMMIT_UNTIL);
         let ok = call(|| c.reveal_bid(ROUND.into(), m.schedule.clone(), hex::encode(salt(&m.account)))).is_ok();
         let rules: Vec<String> = m.schedule.rules.iter().map(|r| format!("{} -{}%", r.predicate, r.bps / 100)).collect();
-        line(ok, format!("{:<4} reveals: base {}, {}", short(&m.account), usd(m.schedule.base_price), if rules.is_empty() { "no discounts".into() } else { rules.join(", ") }));
+        line(
+            ok,
+            format!(
+                "{:<4} reveals: base {}, {}",
+                short(&m.account),
+                usd(m.schedule.base_price),
+                if rules.is_empty() { "no discounts".into() } else { rules.join(", ") }
+            ),
+        );
     }
 
     // Six buyers: the fixture buyer and five peers, each one World-bound person.
@@ -137,7 +145,13 @@ pub fn run() -> ExitCode {
     at(WALLET2, NOW_MS);
     let replay = call(|| c.submit_verdict(fixtures::sign_ed(fixtures::envelope(WALLET2))));
     let refused = replay.as_ref().err().is_some_and(|m| m.contains("nullifier spent"));
-    line(refused, format!("a replay of buyer 1's spent verdict from another wallet is refused: {}", if refused { "nullifier spent".to_string() } else { format!("{replay:?}") }));
+    line(
+        refused,
+        format!(
+            "a replay of buyer 1's spent verdict from another wallet is refused: {}",
+            if refused { "nullifier spent".to_string() } else { format!("{replay:?}") }
+        ),
+    );
 
     if fails == 0 {
         println!(
