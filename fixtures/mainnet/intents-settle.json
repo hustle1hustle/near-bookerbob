@@ -1,0 +1,41 @@
+{
+  "note": "One agent-to-agent settlement on NEAR Intents mainnet: the buyer agent's own signed transfer intent moved 0.1 wNEAR to the merchant agent inside intents.near. Two implicit accounts held by REP; the memo names one testnet purchase. Check: node scripts/intents-settle.mjs check",
+  "network": "mainnet",
+  "verifier": "intents.near",
+  "buyer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+  "merchant": "b20521b94e5ed0d18a422c23eb9fcab9d3dbb0282d8b89cd85e6c966f61899d8",
+  "token": "nep141:wrap.near",
+  "amount": "100000000000000000000000",
+  "memo": "bookerbob: settles testnet purchase 9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6",
+  "intent": {
+    "signer_id": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+    "deadline": "2026-11-13T15:36:32.898Z",
+    "intents": [
+      {
+        "intent": "transfer",
+        "receiver_id": "b20521b94e5ed0d18a422c23eb9fcab9d3dbb0282d8b89cd85e6c966f61899d8",
+        "tokens": {
+          "nep141:wrap.near": "100000000000000000000000"
+        },
+        "memo": "bookerbob: settles testnet purchase 9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6"
+      }
+    ]
+  },
+  "public_key": "ed25519:Bzn5eQ593QAPwAF55qxETf3qRXSaZ2QDR391XAtbFkWu",
+  "signature": "ed25519:2s4a5Wb4QvXX6HX52VZaR4bii4LMbkT9ryeHN6WeYCBTkxXkrvhDw8sDnER4rSjVBtfBzJSjnSefLNLrRevpa5uu",
+  "nonce": "JSgSs5rJJh5yyQz/XKK7+lwBEqYgnL8b2T/Qoc722vc=",
+  "txs": {
+    "storage_deposit": "ExDSgC9pCmCPi61UNGD3hC6KeXYKeWdZAgtawo9Ey2a9",
+    "near_deposit": "Dum5MWnfv6sZVGe5KszEs55GxCFZVoFbvSes5y94uBij",
+    "deposit_to_intents": "Gx5mfiWq59yTAi8jtvuwVVJQdqy5JhtkCFmz7PM6CPzA",
+    "execute_intents": "42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz"
+  },
+  "before": {
+    "buyer": "100000000000000000000000",
+    "merchant": "0"
+  },
+  "after": {
+    "buyer": "0",
+    "merchant": "100000000000000000000000"
+  }
+}
