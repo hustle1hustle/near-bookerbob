@@ -71,6 +71,20 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
   own account), a QFEX notary receipt and a zero-knowledge QFEX referral floor:
   [docs/real-attestations.md](docs/real-attestations.md).
 
+## Who built this
+
+REP builds verified context for agentic coordination: people and their agents prove facts about
+themselves and keep the history. BookerBob rests on pieces the team ships: an MPC-TLS notary
+running in an Intel TDX enclave, Jolt proofs made in the browser and on an iPhone, the REP app
+(TestFlight) and the REP Proofs browser extension, with first revenue from an exchange
+integration. Distribution: REP launches reached 3.4M users, and the founding team has scaled
+consumer apps to tens of millions of users.
+
+Earlier hackathon builds: HackMeridian (Stellar, Lisbon, October 2026), proof of stay: top 2
+([repo](https://github.com/hustle1hustle/bookerbob-hackmeridian-2026)); ETHGlobal Mumbai
+(November 2026), BookerBob: agent payments under an owner's limit with private reasons, a Jolt
+proof of the agent's pick, participation.
+
 ## What is real, what is simulated, what is not claimed
 
 - **Real:** the `bazaar` contract and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE
