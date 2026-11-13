@@ -73,7 +73,9 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
   GitHub proof, where the model refused a discount the facts do not back and he paid the plain
   price: [docs/mainnet.md](docs/mainnet.md).
 - **Real attestations:** TLSNotary proofs of GitHub (one of them the founder signed in to his
-  own account), a QFEX notary receipt and a zero-knowledge QFEX referral floor:
+  own account), a QFEX notary receipt and a zero-knowledge QFEX referral floor,
+  proved with Jolt in the REP Proofs browser extension over a notarized MPC-TLS session on the
+  founder's own account (floors only, account not identified):
   [docs/real-attestations.md](docs/real-attestations.md).
 
 ## Who built this
