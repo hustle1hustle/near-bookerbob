@@ -12,7 +12,7 @@ Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Pri
 
 | real (on NEAR testnet, or signed by a real service) | simulated | not claimed |
 |---|---|---|
-| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](docs/real-attestations.md)); outside people bidding in the community series on their own keys | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet; real money; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
+| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](docs/real-attestations.md)); outside people bidding in the community series on their own keys; one agent-to-agent settlement on NEAR Intents mainnet ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond that one settlement (the bazaar runs on testnet); real money beyond 0.1 wNEAR; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
 
 Every agent is its own account (`*.bookerbob-demo.testnet`), and a buyer agent can hold a
 function-call key scoped to `settle_demo` only. The chain refuses anything else on that key:
@@ -23,6 +23,7 @@ function-call key scoped to `settle_demo` only. The chain refuses anything else 
 When agents buy and sell for people, three things break that human markets quietly rely on.
 BookerBob is a market on NEAR testnet where seller agents bid on price for a buyer's agent, and
 it fixes all three. Every row below opens its proof.
+Sellers carry a standing, a PageRank-style flow seeded only by ratings from buyers who proved their context and paid, updated under a Jolt proof; the sealed auction picks by price.
 
 | what breaks | what BookerBob does | check it |
 |---|---|---|
