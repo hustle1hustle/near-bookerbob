@@ -14,6 +14,8 @@ esac
 t=${ZK_TARGET:-$t}
 xzf="bin/bookerbob-zk-$t.xz"
 if [ ! -f "$xzf" ]; then
+  # The two shipped targets must be present: a missing one is a failure, not a skip.
+  case "$t" in aarch64-apple-darwin | x86_64-unknown-linux-gnu) echo "FAIL  zk-verify-prebuilt: the shipped verifier $xzf is missing"; exit 1 ;; esac
   echo "SKIP  zk-verify-prebuilt: no prebuilt Jolt verifier for $t ($(uname -s) $(uname -m)) in zk/bin (have: $(ls bin | grep '\.xz$' | sed 's/bookerbob-zk-//; s/\.xz$//' | tr '\n' ' ')); make zk-verify builds one"
   exit 3
 fi

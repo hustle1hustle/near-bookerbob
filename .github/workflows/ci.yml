@@ -29,6 +29,16 @@ jobs:
         run: make fixtures-check JOBS=4
       - name: offline end-to-end
         run: make verify JOBS=4
+  judge:
+    # make judge on Linux x86_64: Node only, offline, the committed Linux Jolt verifier.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: make judge
+        run: make judge
   coverage:
     runs-on: ubuntu-latest
     steps:

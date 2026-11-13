@@ -36,7 +36,7 @@ if (!online) {
   const got = createHash("sha256").update(readFileSync(snapFile)).digest("hex");
   console.log(wantLive
     ? "SKIP  testnet: JUDGE_LIVE=1 but no network here, so the live RPC checks are skipped (not failed)"
-    : "SKIP  testnet live checks: offline by default, the committed RPC snapshot is replayed instead (JUDGE_LIVE=1 make judge reads the live chain, 5 to 13 minutes)");
+    : `NOTE  testnet: these checks replay a saved RPC snapshot taken ${JSON.parse(readFileSync(snapFile, "utf8")).taken_at}, not a live read of the chain (JUDGE_LIVE=1 make judge or make verify-live reads the live chain, 5 to 13 minutes)`);
   line(got === want, "testnet snapshot: committed RPC responses match their sha256", `${got.slice(0, 12)}..`);
   const rep = spawnSync("node", ["scripts/verify-live.mjs"], { cwd: root, encoding: "utf8", timeout: 60_000, env: { ...process.env, SNAPSHOT_REPLAY: "1" } });
   const taken = JSON.parse(readFileSync(snapFile, "utf8")).taken_at;
