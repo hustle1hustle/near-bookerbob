@@ -158,25 +158,31 @@ async function main() {
     // A series (round.json `series`): every round still in its reveal window, in deadline order.
     const file = existsSync(ROUND_FILE) ? JSON.parse(readFileSync(ROUND_FILE, "utf8")) : {};
     const ids = process.env.COMMUNITY_ROUND ? [process.env.COMMUNITY_ROUND] : (file.series?.length ? [...file.series].sort((x, y) => x.commit_until_ms - y.commit_until_ms).filter((x) => Date.now() < x.reveal_until_ms).map((x) => x.round) : [c.round]);
+    // Every network call retries with backoff: one dropped fetch (a sleeping laptop, a busy RPC)
+    // must not end the watch. A round that still fails is logged and the next round goes on.
+    const retry = async (what, fn) => { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 7) throw e; const ms = Math.min(60000, 2000 * 2 ** i); console.log(`   ${what}: ${String(e.message).slice(0, 100)}, retry in ${ms / 1000} s`); await new Promise((ok) => setTimeout(ok, ms)); } } };
+    const view = (m, a) => retry(`view ${m}`, () => client.view(c.bazaar, m, a));
     for (const id of ids) {
+    try {
     c.round = id;
-    console.log(`== ${id}`);
-    const r = await roundInfo();
+    console.log(`== ${id}  ${new Date().toISOString()}`);
+    const r = await view("round", { round_id: id });
     const wait = r.commit_until_ms + 4000 - Date.now();
-    if (wait > 0) { console.log(`waiting ${Math.ceil(wait / 1000)} s for the commit deadline (${when(r.commit_until_ms)} UTC)`); await new Promise((ok) => setTimeout(ok, wait)); }
+    if (wait > 0) { console.log(`waiting ${Math.ceil(wait / 1000)} s for the commit deadline (${when(r.commit_until_ms)} UTC)`); while (Date.now() < r.commit_until_ms + 4000) await new Promise((ok) => setTimeout(ok, Math.min(60000, r.commit_until_ms + 4000 - Date.now()))); }
     const drand = tl.mainnetClient();
     const done = [];
-    for (let pass = 0; pass < 3; pass++) {
-      const now = await client.view(c.bazaar, "round", { round_id: c.round });
+    for (let pass = 0; pass < 40; pass++) {
+      const now = await view("round", { round_id: c.round });
+      if (now.commits.every(([w]) => now.revealed.includes(w) || done.includes(w))) break;
       if (Date.now() >= now.reveal_until_ms) { console.log("the reveal window is over"); break; }
       for (const [who] of now.commits) {
         if (now.revealed.includes(who) || done.includes(who)) continue;
         try {
-          const list = await (await fetch(`https://api-testnet.nearblocks.io/v3/accounts/${who}/txns?limit=25`, { signal: AbortSignal.timeout(20000) })).json();
+          const list = await retry(`nearblocks ${who}`, async () => (await fetch(`https://api-testnet.nearblocks.io/v3/accounts/${who}/txns?limit=25`, { signal: AbortSignal.timeout(20000) })).json());
           const hashes = (list.data ?? []).filter((t) => t.receiver_account_id === c.bazaar && t.actions?.some((x) => x.method === "commit_bid")).map((t) => t.transaction_hash);
           let sealed = null;
           for (const h of hashes) {
-            const t = (await client.rpc("tx", { tx_hash: h, sender_account_id: who, wait_until: "FINAL" })).result;
+            const t = (await retry(`tx ${h.slice(0, 8)}`, () => client.rpc("tx", { tx_hash: h, sender_account_id: who, wait_until: "FINAL" }))).result;
             if (!t) continue;
             for (const act of t.transaction.actions) {
               const f = act.FunctionCall;
@@ -186,13 +192,20 @@ async function main() {
             }
           }
           if (!sealed) { console.log(`   ${who}: no time-locked reveal in its commit (revealed by hand, or not from the page)`); done.push(who); continue; }
-          const signed = JSON.parse((await tl.timelockDecrypt(sealed, drand)).toString());
+          const signed = JSON.parse((await retry("drand", () => tl.timelockDecrypt(sealed, drand))).toString());
           const d = signed.delegate_action;
           const a = d.actions?.[0];
           const pub = createPublicKey({ key: Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), Buffer.from(d.public_key_hex, "hex")]), format: "der", type: "spki" });
           const fine = d.sender_id === who && d.receiver_id === c.bazaar && d.actions.length === 1 && a.method_name === "reveal_bid" && a.args?.round_id === c.round && BigInt(a.deposit) <= 50n * MILLI && verify(null, signableHash(d), pub, Buffer.from(signed.signature_hex, "hex"));
           if (!fine) { console.log(`   ${who}: the opened reveal is not one reveal_bid on ${c.round} signed by ${who}: not sent`); done.push(who); continue; }
-          const res = await send(client, { signer_id: relayer.id, key: relayer.key, receiver_id: who, actions: [{ type: "Delegate", delegate_action: d, signature_hex: signed.signature_hex }] });
+          let res = await send(client, { signer_id: relayer.id, key: relayer.key, receiver_id: who, actions: [{ type: "Delegate", delegate_action: d, signature_hex: signed.signature_hex }] });
+          // Our own agents' keys moved past the delegate's nonce (test rounds after the bid). The
+          // opened reveal holds the same price and salt; the agent sends it itself, on its own key.
+          const own = join(keysDir, "merchants", `${who}.seed`);
+          if (!res.ok && /DelegateActionInvalidNonce/.test(res.error) && existsSync(own)) {
+            console.log(`   ${who}: delegate nonce is stale; the agent sends the same reveal_bid from its own key`);
+            res = await send(client, { signer_id: who, key: keyFromSeed(readFileSync(own, "utf8")), receiver_id: c.bazaar, actions: [{ type: "FunctionCall", method_name: "reveal_bid", args: a.args, gas: BigInt(a.gas), deposit: BigInt(a.deposit) }] });
+          }
           console.log(`   ${res.ok ? "ok" : "FAILED"} ${who}: revealed ${(Number(a.args.schedule.base_price) / 1e6).toFixed(2)}  ${link(res.hash)}${res.ok ? "" : `  ${res.error}`}`);
           if (res.ok) done.push(who);
         } catch (e) {
@@ -201,8 +214,10 @@ async function main() {
       }
       await new Promise((ok) => setTimeout(ok, 15000));
     }
-    const fin = await client.view(c.bazaar, "round", { round_id: c.round });
-    console.log(`round ${c.round}: ${fin.commits.length} sealed, ${fin.revealed.length} revealed`);
+    const fin = await view("round", { round_id: c.round });
+    const left = fin.commits.map(([w]) => w).filter((w) => !fin.revealed.includes(w));
+    console.log(`round ${c.round}: ${fin.commits.length} sealed, ${fin.revealed.length} revealed${left.length ? `; not revealed: ${left.join(", ")}` : ""}  ${new Date().toISOString()}`);
+    } catch (e) { console.log(`round ${id}: FAILED ${String(e.message).slice(0, 200)}; going on to the next round`); }
     }
     return;
   }
