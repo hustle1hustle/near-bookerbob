@@ -14,6 +14,16 @@ Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Pri
 |---|---|---|
 | the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](docs/real-attestations.md)); outside people bidding in the community series on their own keys; one agent-to-agent settlement on NEAR Intents mainnet ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond that one settlement (the bazaar runs on testnet); real money beyond 0.1 wNEAR; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
 
+**Trust assumptions today, and how each shrinks**
+
+| what you trust today | why | how it shrinks |
+|---|---|---|
+| every trust key (verdict issuer, referee, arbiter, notary) is REP's | one operator runs the demo | keys held by independent parties, rotation with retired keys published; the referee's check already runs as a Jolt guest, so code replaces trust there |
+| the REP notary (`rep-notary.fly.dev`, key `02114d7e…ab25ef`): one key REP holds, not TEE-attested | it signs the TLSNotary presentations | MPC-TLS, already used: the notary co-runs TLS and sees ciphertext only; then several notaries per presentation, and a notary in a TEE (REP's Phala notary already publishes its TDX quote, `docs/real-attestations.md`) |
+| NEAR AI Cloud's TEE (Intel TDX, NVIDIA GPU) | it reads the facts sealed to it and signs the verdict | its TDX quote is checked on chain before the model key is registered (`spike.bookerbob.testnet`); the referee re-checks every claim against the proofs, so a broken TEE cannot buy a discount the proofs do not back |
+| REP's verdict evaluator reads the facts | privacy from REP does not hold today | the facts go to the model sealed (E2EE); the evaluator's step moves into a TEE or a zk proof |
+| testnet, a test token, synthetic facts | the hackathon scope | mainnet already ran once (one NEAR Intents settlement); real facts already ran once (the founder's GitHub proof) |
+
 Every agent is its own account (`*.bookerbob-demo.testnet`), and a buyer agent can hold a
 function-call key scoped to `settle_demo` only. The chain refuses anything else on that key:
 `withdraw_demo` is refused with `MethodNameMismatch`, and any call that attaches a deposit with
@@ -23,7 +33,8 @@ function-call key scoped to `settle_demo` only. The chain refuses anything else 
 When agents buy and sell for people, three things break that human markets quietly rely on.
 BookerBob is a market on NEAR testnet where seller agents bid on price for a buyer's agent, and
 it fixes all three. Every row below opens its proof.
-Sellers carry a standing, a PageRank-style flow seeded only by ratings from buyers who proved their context and paid, updated under a Jolt proof; the sealed auction picks by price.
+Sellers carry a standing: a bounded, damped fan-out seeded only by reviews from buyers who proved their context and paid, updated under a Jolt proof; the sealed auction picks by price.
+Proofs in BookerBob run on Jolt (a16z crypto's zkVM): the price, the referee's check, cohort membership and seller standing are proven natively on a Mac, and a buyer agent's pick is proven in the browser (`agents/prove.html`); `make judge` verifies them, in the page's wasm verifier and a prebuilt one.
 
 | what breaks | what BookerBob does | check it |
 |---|---|---|
