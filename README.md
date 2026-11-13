@@ -1,4 +1,4 @@
-# BookerBob
+# BookerBob <img align="right" src="docs/media/psybob.png" width="96" alt="psy-bob, the BookerBob mascot">
 
 [![ci](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml)
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)

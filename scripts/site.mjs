@@ -14,7 +14,7 @@ const slots = JSON.parse(readFileSync("agents/built.json", "utf8")).slots;
 for (const [slot, f] of Object.entries(OPTIONAL)) {
   if (existsSync(join("agents", f)) !== slots[slot]) throw new Error(`agents/built.json is stale about ${f}: run node scripts/built-counts.mjs`);
 }
-const FILES = ["media/stack.jpg", "media/swarm-setup.svg", "swarm.html", "swarm.json", "swarm-s1.json", "swarm-s2.json", "s2-prices.svg", "built.json", ...Object.values(OPTIONAL).filter((f) => existsSync(join("agents", f))), "clearing.html", "round.html", "round-tx.js", "vendor/noble-ed25519.js", "vendor/noble-ed25519.LICENSE", "community.json", "board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "eval-v5.json", "live.json", "out/live-run.json"];
+const FILES = ["media/psybob.png", "media/stack.jpg", "media/swarm-setup.svg", "swarm.html", "swarm.json", "swarm-s1.json", "swarm-s2.json", "s2-prices.svg", "built.json", ...Object.values(OPTIONAL).filter((f) => existsSync(join("agents", f))), "clearing.html", "round.html", "round-tx.js", "vendor/noble-ed25519.js", "vendor/noble-ed25519.LICENSE", "community.json", "board.html", "receipts.html", "eval.html", "live.js", "board.json", "receipts.json", "reviews.json", "eval.json", "eval-v5.json", "live.json", "out/live-run.json"];
 // The prove page (a Jolt proof made in the visitor's browser) ships its built files as they
 // are committed under agents/prove/ (zk/browser/build.sh makes them; the build needs Rust).
 const walk = (d) => readdirSync(join("agents", d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]));
