@@ -138,6 +138,38 @@ applied here as `zk/browser/jolt-wasm32.patch`, not ours). The four guests above
 chain, and is not zero-knowledge (every input is public). No phone has been timed on it yet.
 Build and numbers: `zk/browser/README.md`.
 
+## A sixth guest: the QFEX referral floor (REP Proofs extension, separate pin)
+
+The founder's QFEX referral floor in the gallery ([real-attestations.md](real-attestations.md))
+is a Jolt proof made in the browser, in the REP Proofs extension, over a notarized MPC-TLS
+session with `api.qfex.com` (`GET /users/me/referrals/activity`, 2026-11-13). REP's notary in
+an Intel TDX enclave saw only two hash commitments, one over the whole request and one over the
+whole answer, and signed them. The guest recomputes both commitments from the private bytes,
+checks the HTTP framing, the request line, the host, the login token's pinned issuer and every
+referral row, and outputs floors only:
+
+- 30-day and lifetime referral volume: at least $1,000,000;
+- referrals per level: 1+, 25+, 0+;
+- the account is not identified (public mode carries no account tag).
+
+| item | value |
+|---|---|
+| guest ELF (reproducible build) | `57f74108b49d2d5c7bfaf0bd8107657f198ea5d98901cfb593045615256bec0e` |
+| Jolt pin | `248aefd` (REP's build, separate from this repo's guests) |
+| rules registry head | BLAKE3 `e77bb403acdeeb222b5fc46d10ec4e6676e8d0c52f2c441faf97986e1dc0781d`, SHA-256 `84ccc1a4baa23b545771de0e3cf7e113f1e4c5ca4a826067a20c4da61a247a79` |
+| notary key | key 1, `0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32`, valid 2026-11-11 to 2026-12-11 |
+| bundle | `tools/zk-gallery-verify/qfex-gallery-bundle.json` (the same bytes as `fixtures/live/qfex/referral-zk-bundle.json`) |
+
+Check it offline (a verifier only: 1.8 MB of Jolt verifier wasm and the guest's verifier data):
+
+```
+cd tools/zk-gallery-verify && npm install && node verify-gallery.mjs qfex-gallery-bundle.json
+```
+
+It prints `VALID (registry head e77bb403acdeeb22...)` and the floors above. It walks the
+registry's hash chain, checks the notary's signature and key window, that the proof's two
+commitments are the two digests the notary signed, and the Jolt proof against the pinned guest.
+
 ## Dependency and prior work
 
 - Jolt: upstream a16z/jolt pinned to `997c1543efd49eb193ca403bb7722fc4b2f8e65b`
