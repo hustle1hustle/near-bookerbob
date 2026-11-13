@@ -387,7 +387,18 @@ if (existsSync(new URL("../fixtures/live/community/round.json", import.meta.url)
         totals.set(best.a, (totals.get(best.a) ?? 0) + sc);
         scored = `; closed: buyer to ${best.a.split(".")[0]} at ${best.p.toFixed(2)}, score ${sc.toFixed(2)}, everyone else 0`;
       }
-      return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed; ${community.length} community accounts, ${r.commits.filter(([a]) => ours.has(a)).length} ours, ${founder.length} founder's bid${scored || (best ? `; lowest revealed so far ${best.a.split(".")[0]} at ${best.p.toFixed(2)}` : "")}`];
+      // Our agents' decisions, once disclosed after the reveal deadline: each TEE-signed answer
+      // opens with its key, clamps to the price on chain, and its salt is inside the commit.
+      const recf = new URL(`../fixtures/live/community/agents-${s.round}.json`, import.meta.url);
+      let dec = "";
+      if (existsSync(recf)) {
+        const { checkDecision } = await import("./community-agents.mjs");
+        const rec = JSON.parse(readFileSync(recf, "utf8")).agents.filter((x) => x.answer_key);
+        const bad = rec.map((x) => [x.account, checkDecision(x, priced.find((y) => y.a === x.account)?.p, r.commits.find(([w]) => w === x.account)?.[1])]).filter(([, e]) => e);
+        if (bad.length) return [false, `our agents' decisions: ${bad.map(([a, e]) => `${a}: ${e}`).join("; ")}`];
+        if (rec.length) dec = `; our ${rec.length} model decisions opened, each the price on chain and inside its commit`;
+      }
+      return [priced.every((x) => x.p != null), `${r.commits.length} sealed, ${r.revealed.length} revealed${dec}; ${community.length} community accounts, ${r.commits.filter(([a]) => ours.has(a)).length} ours, ${founder.length} founder's bid${scored || (best ? `; lowest revealed so far ${best.a.split(".")[0]} at ${best.p.toFixed(2)}` : "")}`];
     });
   }
   if (series.length > 1) {

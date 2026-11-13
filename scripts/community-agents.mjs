@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { keyFromSeed, rpcClient, send, signDelegate } from "../relayer/near.mjs";
 import { bidCommitment, schedule } from "../sdk/merchant.mjs";
 import { askModel, decisionSalt } from "./merchant-brain.mjs";
+import { openField } from "./lib/e2ee.mjs";
 
 const RPC = process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com";
 const KEYS = process.env.KEYS_DIR ?? join(homedir(), ".rep-secrets", "bookerbob-testnet");
@@ -94,8 +95,51 @@ async function bid(roundId, idx = 0) {
   console.log(`wrote ${out}; the answer keys (they open the prices) stay in ${join(KEYS, "community-agents")} until the reveal deadline`);
 }
 
+/** After a round's reveal deadline: put each agent's answer key, price and reason into the public
+ *  record, so anyone opens the TEE-signed answer and checks it against the price on chain. */
+async function disclose(roundId) {
+  const cfg = JSON.parse(readFileSync("fixtures/live/community/round.json", "utf8"));
+  const ids = roundId ? [roundId] : (cfg.series ?? []).map((x) => x.round);
+  const client = rpcClient(RPC);
+  for (const round of ids) {
+    const out = `fixtures/live/community/agents-${round}.json`;
+    if (!existsSync(out)) continue;
+    const r = await client.view(cfg.bazaar, "round", { round_id: round });
+    if (Date.now() < r.reveal_until_ms) { console.log(`   ${round}: reveals open until ${new Date(r.reveal_until_ms).toISOString()}; not yet`); continue; }
+    const rec = JSON.parse(readFileSync(out, "utf8"));
+    let n = 0;
+    for (const x of rec.agents) {
+      const f = join(KEYS, "community-agents", `${round}-${x.account}.json`);
+      if (x.answer_key || !existsSync(f)) continue;
+      const k = JSON.parse(readFileSync(f, "utf8"));
+      Object.assign(x, { answer_key: k.answer_key, price: k.price, why: k.why });
+      n++;
+    }
+    writeFileSync(out, JSON.stringify(rec, null, 2) + "\n");
+    console.log(`   ${round}: ${n} answer keys disclosed in ${out}`);
+  }
+}
+
+/** Open one disclosed decision: the bytes match the signed hashes, the answer opens with its key,
+ *  the clamped price is the price on chain, and the bid's salt names this decision. */
+export function checkDecision(x, chainPrice, chainCommit) {
+  if (!x.answer_key) return "not disclosed yet";
+  const sha = (b) => createHash("sha256").update(b).digest("hex");
+  const req = Buffer.from(x.request_b64, "base64"), res = Buffer.from(x.response_b64, "base64");
+  const [, sReq, sRes] = String(x.signed_text).split(":");
+  if (sha(req) !== sReq || sha(res) !== sRes) return "bytes do not match the signed hashes";
+  let raw;
+  try { raw = JSON.parse(openField(JSON.parse(res).choices[0].message.content, Buffer.from(x.answer_key, "hex")).match(/\{[\s\S]*\}/)[0]); } catch (e) { return `answer does not open: ${e.message}`; }
+  const price = clampPrice(raw.price, x.cost);
+  if (Math.abs(price - chainPrice) > 0.005) return `clamped answer ${price} is not the price on chain ${chainPrice}`;
+  // The commit on chain is sha256 over the account, this schedule and the decision's salt.
+  const sched = schedule({ basePrice: Math.round(price * 1e6), rules: [], capBps: 0 });
+  if (chainCommit != null && bidCommitment(x.account, sched, Buffer.from(decisionSalt(x), "hex")) !== chainCommit) return "the commit on chain is not this decision's bid";
+  return null;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, round] = process.argv.slice(2);
-  if (cmd !== "bid") { console.error("usage: community-agents.mjs bid [round]"); process.exit(2); }
-  await bidSeries(round).catch((e) => { console.error(`FAIL  ${e.message}`); process.exit(1); });
+  if (cmd !== "bid" && cmd !== "disclose") { console.error("usage: community-agents.mjs bid [round] | disclose [round]"); process.exit(2); }
+  await (cmd === "bid" ? bidSeries(round) : disclose(round)).catch((e) => { console.error(`FAIL  ${e.message}`); process.exit(1); });
 }
