@@ -12,10 +12,11 @@ When agents buy and sell for people, three things break that human markets quiet
 BookerBob fixes all three on testnet; each line names where to check it.
 
 1. **Agents leak you.** A shopping agent has to tell sellers who you are and your history to get
-   a better price, and every seller agent keeps it. Here the agent proves a few facts in a verdict
-   signed by a NEAR AI model; sellers price the verdict, the history stays with you, and a claim
-   the proofs do not back is refused before payment. Check: the 408.00 hotel buy against a public
-   510.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)),
+   a better price, and every seller agent keeps it. Here the agent proves a few facts in a signed verdict
+   (for the swarm buyers, issued by a NEAR AI model under E2EE); sellers price the verdict, code
+   sets the price, the history stays with you, and a claim
+   the proofs do not back is refused before payment. Check: the 408.00 hotel buy, priced by code
+   against proven facts, against a public 510.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)),
    `make forge-poc`, referee evals 50 of 50 in `make verify`.
 2. **Agents collude.** Pricing algorithms are known to learn to hold prices up together with no
    message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024, on LLM pricing
