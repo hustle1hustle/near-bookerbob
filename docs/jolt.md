@@ -1,7 +1,7 @@
 # Jolt zkVM for BookerBob (numbers measured 2026-11-04 to 2026-11-10)
 
 Status: **all four guests are proven and verified** (first on 2026-11-04; standing and referee
-re-proved on 2026-11-05, see below).
+re-proved on 2026-11-05, see below; referee re-proved on 2026-11-13 after the rule table gained `qfex_referrer`, program hash `6d4c5afb..` before).
 
 Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), Jolt a16z@997c1543e; peak RAM from `/usr/bin/time -l`. Proved and verified in the founder-approved build session; the committed files are in `zk/out/<guest>/`.
 
@@ -9,7 +9,7 @@ Measured 2026-11-04 on this Mac (Apple Silicon, 11 cores, cargo -j4, AC power), 
 |---|---|---|---|---|---|---|---|
 | `standing` | 8.94 | 70 | 92,716 | 3,230 | 15.1 | 4,180,340 | `c780ceabae4decfa..` |
 | `price` | 1.27 | 59 | 80,380 | 375 | 3.4 | 3,284,109 | `6a35b5c3a8c1fe69..` |
-| `referee` | 2.26 | 62 | 84,796 | 744 | not measured | 4,669,874 | `6d4c5afb8a61704f..` |
+| `referee` | 2.77 | 63 | 84,796 | 665 | not measured | 4,684,271 | `f502874be1bd72c1..` |
 | `cohort` | 2.91 | 63 | 84,724 | 560 | 5.0 | 2,876,057 | `50eb77d3d5c13c68..` |
 
 The standing row is the re-proof of 2026-11-05 (`zk/out/standing/result.json`: 8.94 s, 92,716
