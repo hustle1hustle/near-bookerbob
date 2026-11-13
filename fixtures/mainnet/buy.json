@@ -1,0 +1,46 @@
+{
+  "note": "One purchase on the mainnet bazaar: a real E2EE NEAR AI verdict (TEE-signed, its model key verified on chain on testnet) over the synthetic fixture facts, the referee's receipt from a fresh mainnet key, escrow and settle in Circle USDC to the lowest bidder of round mainnet-1, and the replay refused. Check: node scripts/mainnet-buy.mjs check",
+  "network": "mainnet",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "buyer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+  "merchant": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "model_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+  "model_verified_on": {
+    "contract": "spike.bookerbob.testnet",
+    "verification_id": "7a9d54baff023cd8fb520dae411bcdd633860757db8fdd611cb8589bbb78c765",
+    "tx": "5RLuLYSu3ageykv7ATMCyajZPxehMy2D55xqPoLACai3"
+  },
+  "txs": {
+    "register_model_attestation": "AR5ciRLBjcj48a25iqdGYAYrxoKrGJfWzeYmUkMWWixv",
+    "set_evaluator_key": "J2YxEzKmFmVHX799S3ECHu1dDizAh9zFcniCThTMhq62",
+    "register_referee": "F4qpic6W9ncUmzQaC6opKjmU1nNdcbS12GtV5LEJtHdT",
+    "usdc storage bazaar": "4XVUJeGoZ4y1U2oyRoWZd8RvhrKUhg1sZHcRufwmTRxH",
+    "usdc storage merchant": "DwAkEqtWoP7uTxaW9pbkHemiDQLrepnKxspiekgbfo8J",
+    "usdc storage buyer": "9rJnhfh2KczbYHJ3Pk11CRAbFAXmCpe5LUt4NyHjYeXs",
+    "ref storage": "8fqPsJsoPPxRJ4iy1LZpmFA6NaNzuXBoRkKreDf7EsTX",
+    "near_deposit": "A8FXnEayxVWjP2mkGLn9UoC9daPDwjxVNh3G7kJjTAsB",
+    "swap to USDC": "6jcVS1yTK6pVoWpS8PHbiPBea8guPtDaw5V1s45pJ54x",
+    "bazaar storage": "5oXemcx1n5dcueA1mu1644NcFv4NxcQ5qQQR9ZAphKxn",
+    "verdict": "99A78KAXogT5N9tKWnMugMfHmw7pL6hpAfwtyQgAFUnV",
+    "receipt": "46bSUqZ8JDc6hwHmEtioqYstgCKj9PFABw7tZwkF9U1W",
+    "escrow": "H9NKhrjWCBfaEjcg4d7SRU3L4fTKcXHHuph5Aj8SbNA4",
+    "settle": "6V7RHkgzkAyZVweT5J2E6WEfz6ZV4kg8Py8pwAJpNu84",
+    "replay": "BvZ9SerkAeVS1LJ5SuhkZfpzqpWwNN9uGM3ZQAP2gSec"
+  },
+  "usdc_after_swap": "1215717",
+  "nullifier": "93cb1f5da1ad043bcb0a9010aa1f2801c811929dc3e211347c2d7909a5bb786c",
+  "near_ai": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+    "chat_id": "chatcmpl-86fe6e33-03a6-4848-aa7b-1755327ae382",
+    "request_sha256": "89bbdecda821a70aef37d596c06295f9032f2746d96371cd3325b0e6032c66dc",
+    "response_sha256": "f1d39752390533baa30c13e1c8153453d08d824ac045a7df74ad98afd5db1cc2",
+    "attested": [
+      "airbnb_frequent",
+      "claude_spender"
+    ]
+  },
+  "price": "902500",
+  "checkout_ref": "mainnet-1794585014493"
+}
