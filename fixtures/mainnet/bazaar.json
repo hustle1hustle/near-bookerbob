@@ -1,0 +1,37 @@
+{
+  "note": "The bazaar on NEAR mainnet: the audited wasm (the same code hash as both testnet bazaars) on a fresh implicit account, and one sealed round with two merchant agents. No purchase: the contract refuses synthetic (fixture) verdicts off testnet. Check: node scripts/mainnet-bazaar.mjs check",
+  "network": "mainnet",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "code_hash": "Bt2rNwTLp1wyhL5rjJfyLUigiBiLXiSMt1BD1gAqysfn",
+  "usdc": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+  "owner": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "category": "mainnet-rooms",
+  "merchants": {
+    "merchant-a": {
+      "account": "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5"
+    },
+    "merchant-b": {
+      "account": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0"
+    }
+  },
+  "txs": {
+    "fund bazaar": "6QgeBbEQBMcNhGMaHQdkVd2FviG7Z6XhjgW6VktA9dXj",
+    "fund merchant-a": "CgmfiEDdc7f3FBiCqGdJDBjkCJLvx4wv4Bcxcor7bkme",
+    "fund merchant-b": "FDnC1L4apkEeMoY5ZpCFR5p6dwmWC3CX7nDT3z6Yw4kn",
+    "deploy and init": "Dz4UugSeNPbZ2w4WYFQXTtYbzPNMJNkWeoozaqvKXbpd",
+    "register merchant-a": "FrMCaqcYRonNi873id6XVwmt8kYAkTm3GBRXfkTounLS",
+    "approve merchant-a": "7U2Fci98YwndPVEHqYGF5xRRamVqneRZjc5LaWYsRTgb",
+    "register merchant-b": "GbnN6hC1iwK9dPpQDd5J8hNvuatRsqimjgYPDaqkd44u",
+    "approve merchant-b": "6LCv74jtc5sVnYKucyxnzyfPfvYTjfUg7g82YARNu4ct",
+    "open_round": "6btt5Yce1QoZm92XT2JS4TUomPNLgwB1nLWo4kbVzGJs",
+    "commit merchant-a": "8VcVUEYTyQEFqGh2nwGpc6x5oRLS24s3eSNU54uA3wL1",
+    "commit merchant-b": "CDYZjvk9DahqA4ZX2R3614F7ArjBgj2Zq9orSXAhL4R9",
+    "reveal merchant-a": "gQ4XvFft7CaTGsD2FgJuaCJYa9cTBKFcUiSKPzskHjC",
+    "reveal merchant-b": "9sK7nHeHnDHpnZqpRkRwAW6Fyfy9WDepDUTr89BphTwJ"
+  },
+  "round": {
+    "id": "mainnet-1",
+    "commit_until_ms": 1794584763579,
+    "reveal_until_ms": 1794585963579
+  }
+}
