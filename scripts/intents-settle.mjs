@@ -44,8 +44,10 @@ async function main() {
   const c = rpcClient(RPC);
   if (cmd === "check") {
     const r = JSON.parse(readFileSync(process.argv[3] ?? OUT, "utf8"));
+    // Txs older than about two days live only on the archival node; the regular one waits forever.
+    const arch = rpcClient(process.env.NEAR_MAINNET_ARCHIVAL_RPC ?? "https://archival-rpc.mainnet.fastnear.com");
     for (const [step, h] of Object.entries(r.txs)) {
-      const t = (await c.rpc("tx", { tx_hash: h, sender_account_id: r.buyer, wait_until: "FINAL" })).result;
+      const t = (await arch.rpc("tx", { tx_hash: h, sender_account_id: r.buyer, wait_until: "NONE" })).result;
       const ok = t && !("Failure" in (t.status ?? {}));
       console.log(`${ok ? "PASS" : "FAIL"}  ${step}: ${link(h)}`);
     }

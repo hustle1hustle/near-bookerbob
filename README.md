@@ -32,9 +32,10 @@ From a clone, no keys:
 | `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try`: 5 merchant agents bid sealed, 6 buyers settle on the contract's own code |
 | `make verify-live` | public NEAR testnet RPC | 5 to 20 min | `PASS  verify-live`: every testnet claim re-derived live |
 
-Also: `make adversarial` (3,724 seeded attacks, each refused, about 35 s) and
-`make verify-presentation` (the real TLSNotary proofs). A five-minute walk:
+Also: `make adversarial` (3,724 attacks, all refused) and
+`make verify-presentation`. A five-minute walk:
 [docs/judge-guide.md](docs/judge-guide.md). For agents: [AGENTS.md](AGENTS.md).
+Verify in your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), the zk gallery kit (`tools/zk-gallery-verify`).
 
 ## Three things an agent economy breaks
 
@@ -56,7 +57,7 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
 - **The swarm, on NEAR testnet:** 96 buyer agents with NEAR AI verdicts under E2EE, 30 merchant
   agents, 178 sealed bids, 96 purchases settled against referee receipts; model merchants in s2
   and s3; adversarial agents (a base-price cheater, a silent bidder, prompt injection), each
-  caught. Every run, its agents and what it tried to break: [docs/details.md](docs/details.md#the-swarm-how-we-battle-tested-it).
+  caught. Every run: [docs/details.md](docs/details.md#the-swarm-how-we-battle-tested-it).
 - **The outside test:** on Nov 13, 4 public sealed rounds let anyone bid from a phone, on their
   own testnet key, against our five model agents ([the rounds](https://hustle1hustle.github.io/bookerbob-round/)).
   On chain the lowest price takes the buyer; the game scores only sales a real seller would make.
@@ -68,12 +69,11 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
   market finds next, adaptation or tricks, is the open part.
 - **On NEAR mainnet:** the same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, one
   purchase of 0.9025 Circle USDC with a real NEAR AI verdict (the verdict's signature by the
-  registered model key is checked on chain; the model key's TDX quote was verified on testnet),
+  registered model key is checked on chain; the model key's TDX quote verified on chain on mainnet),
   one agent-to-agent settlement on NEAR Intents, and one purchase on real data: the founder's own
   GitHub proof, where the model refused a discount the facts do not back and he paid the plain
   price: [docs/mainnet.md](docs/mainnet.md).
-- **Real attestations:** TLSNotary proofs of GitHub (one of them the founder signed in to his
-  own account), a QFEX notary receipt and a zero-knowledge QFEX referral floor,
+- **Real attestations:** TLSNotary proofs of GitHub, a QFEX notary receipt and a zero-knowledge QFEX referral floor,
   proved with Jolt in the REP Proofs browser extension over a notarized MPC-TLS session on the
   founder's own account (floors only, account not identified):
   [docs/real-attestations.md](docs/real-attestations.md).
@@ -116,18 +116,21 @@ proofs made in the browser, and the work continues:
 - **Network totals anyone can check.** Next: aggregates over many people's proofs, each account
   counted once, published as one proof.
 
-## What is real, what is simulated, what is not claimed
+## Trust model
 
-- **Real:** the `bazaar` contract and every tx in [docs/testnet.md](docs/testnet.md); NEAR AI TEE
-  signatures checked on chain; the attestations above; outside bidders on their own keys; the
-  mainnet items above.
-- **Simulated:** the facts behind every verdict except the mainnet real-data refusal ([docs/mainnet.md](docs/mainnet.md)); the buyers (our test accounts); dUSDC (a test
-  token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain.
-- **Not claimed:** mainnet beyond the items above; real money beyond those dust amounts;
-  third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured
-  by us (cited research only).
-- **Trust today:** REP holds every key. The trust assumptions and how each shrinks, who can lie
-  and what catches it, and every known limit: [docs/details.md](docs/details.md#known-limits).
+**Checked by anyone, with no trust in REP.** On chain: the NEAR AI model's TDX quote, verified on mainnet by Intel DCAP, with the bazaar's model key registered against it; the Semaphore Groth16
+proof behind every anonymous review, the TEE signature on every NEAR AI verdict, each sealed bid
+against its commitment, the referee's signed receipt before any payment, and one
+nullifier burned per verdict. In your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), `tools/zk-gallery-verify`. Upstream TLSNotary: `make verify-presentation`.
+
+**Trusted today, as in TLSNotary's model, and built to be swapped.** The operator keys and notaries are REP's; one notary runs inside a TDX enclave. The verdict issuer: on mainnet the model's attested TEE key is the only verdict signer (no REP issuer registered); testnet still has REP's issuer. The referee: an attested TEE key through OutLayer. The arbiter: a 2-of-3 threshold. The evaluator: moves into the TEE. The
+deploy key: the DAO lock, done on `market.bookerbob.testnet` (2026-11-14).
+The swarm's facts: reproducible fixtures; real data ran on mainnet (the founder's GitHub
+proof) and in the REP Proofs extension (the QFEX floor).
+
+Not claimed: real money beyond dust amounts; outside merchants beyond the 4 public rounds; privacy from REP's evaluator
+until it runs in the TEE; collusion measured by us. Detail:
+[docs/details.md](docs/details.md#known-limits).
 
 ## Read more
 
@@ -155,72 +158,25 @@ This is the short table: a name, the status and one evidence link per row. The n
 the same row in [docs/status.md](docs/status.md) with every file, what ran, what did not and
 the numbers.
 
-The entered tracks map to the row ids `agents` (Agent Economy), `swarms` (AI Swarms), `privacy`
-(Privacy & Private AI) and `security` (AI Security & Defense). The strongest rows for each:
-swarms (blind bid rounds, the open market, group unlock), privacy (sealed verdicts, sealed
-reviews, the NEAR AI verdict under E2EE), agents (the buyer agent's choice, the best quote in
-`open-1` by a separate agent session we ran and funded, MCP buy), security (the Leash, the
-verdict evaluator, a silent bid costs the merchant). The ids `open`, `social`, `realworld` and
-`business` only tag rows; they are not entered tracks.
+Track ids: `agents` (Agent Economy), `swarms` (AI Swarms), `privacy` (Privacy & Private AI) and `security` (AI Security & Defense) are the entered tracks; `open`, `social`, `realworld` and `business` only tag rows.
 
 <!-- status:begin (generated from docs/status.json by scripts/status.mjs; edit that file) -->
+<!-- status:headline -->
 | # | feature | track ids | status | evidence |
 |---|---|---|---|---|
 | [1](docs/status.md#r1) | near-sdk-rs contract: merchant registry, nullifier spent-set, enclave key registry | security, swarms | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [2](docs/status.md#r2) | `env::ed25519_verify` and `env::p256_verify` (low-S) on verdict signatures | security, privacy | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [3](docs/status.md#r3) | NEP-141 USDC escrow (`ft_on_transfer`, `storage_deposit`) and `ft_transfer` payout in `settle` | realworld, agents | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [4](docs/status.md#r4) | NEP-297 events (`verdict_submitted`, `settled`, `settle_reverted`, ...) | realworld | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [5](docs/status.md#r5) | Verdict evaluator: a model verdict needs its signature on the request and envelope, so a signed answer about a typed fact is refused | security, privacy | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [6](docs/status.md#r6) | The Leash: an owner signs limits on an agent (per purchase, total, expiry); the contract refuses a payment outside them | security, agents | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [7](docs/status.md#r7) | Buy Twice: a past buyer proves it from a fresh account with a Semaphore proof and pays less; a repeat count held below k, with no customer list | privacy, realworld | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [8](docs/status.md#r8) | deterministic tier, price stack, referee (cheat mode) | security, swarms | **built** | [`core/src/`](core/src/) |
-| [9](docs/status.md#r9) | disclosure policy: merchants ask, the buyer agent answers by rule; a budget caps the bits revealed per purchase | privacy | **built** | [`core/src/disclosure.rs`](core/src/disclosure.rs) |
-| [10](docs/status.md#r10) | group unlock: a cohort price opens when k>=5 verdicts in the same context reveal a predicate; only the count is public (`cohort_size`) | swarms, privacy | **live** | [`core/src/price.rs`](core/src/price.rs) |
 | [11](docs/status.md#r11) | blind bid rounds on chain: commit a sealed hash, reveal after the deadline, best quote after that. A merchant agent here is a price rule, not a model | swarms | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [12](docs/status.md#r12) | a sealed bid never revealed costs the merchant: 5 tokens of its bond and a 24 hour bar from bidding (finding: Dan, DenisDI) | swarms, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [13](docs/status.md#r13) | NEAR AI Cloud inference for every merchant pitch and the buyer's cited "why", response signatures verified | privacy, swarms | **built** | [`agents/why.mjs`](agents/why.mjs) |
-| [14](docs/status.md#r14) | the buyer's agent chooses among hotel offers by a real NEAR AI inference; code computes every price and checks the pick | swarms, agents | **built** | [`agents/choose.mjs`](agents/choose.mjs) |
-| [15](docs/status.md#r15) | a Jolt proof of the agent's pick made and checked in the visitor's own browser; not zero-knowledge, not checked on chain | swarms, privacy, open | **built** | [`agents/prove.html`](agents/prove.html) |
 | [16](docs/status.md#r16) | NEAR AI issues the verdict under E2EE v2: facts sealed to the attested model key; `make verify` checks the TDX quote and the TEE signature offline | privacy, security | **live** | [`scripts/near-ai-verdict.mjs`](scripts/near-ai-verdict.mjs) |
-| [17](docs/status.md#r17) | OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt | security, privacy | **built** | [`worker/`](worker/) |
-| [18](docs/status.md#r18) | dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked | security | **built** | [`worker/src/lib.rs`](worker/src/lib.rs) |
-| [19](docs/status.md#r19) | World ID "one person, one agent": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it | security, privacy | **live** | [`core/src/world.rs`](core/src/world.rs) |
 | [20](docs/status.md#r20) | sealed reviews (Semaphore v4): a buyer who paid rates anonymously, a Groth16 proof is checked on chain, ratings open only at 5 members and 5 raters a round | swarms, privacy | **live** | [`docs/semaphore.md`](docs/semaphore.md) |
-| [21](docs/status.md#r21) | conserved delegation: standing flows from a merchant's ratings along hire edges at 1/2, capped for the whole chain | swarms, security | **live** | [`core/src/delegation.rs`](core/src/delegation.rs) |
-| [22](docs/status.md#r22) | Jolt zkVM, four guests (standing graph, price, referee, cohort). The contract verifies no proof: a bonded worker key signs that it did | swarms, security | **live** | [`graph/`](graph/) |
-| [23](docs/status.md#r23) | NEP-366 meta-tx relayer for `submit_review` and `reveal_review`: the rater signs with a one-time key, the relayer pays gas (gasless rating) | privacy, realworld | **live** | [`relayer/`](relayer/) |
-| [24](docs/status.md#r24) | function-call keys: the agent's key is limited to `settle`; deposits and withdrawals stay with the full-access key | security, agents | **live** | [`scripts/demo-live.mjs`](scripts/demo-live.mjs) |
-| [25](docs/status.md#r25) | x402 v2 paid verdict read (`exact`, USDC on `near:testnet`, verify and settle through an explicit x402 facilitator) | agents, realworld | **stub** | [`x402/verdict-read.mjs`](x402/verdict-read.mjs) |
-| [26](docs/status.md#r26) | MCP tool "REP Read for agents": read-only contract views for any MCP client, plus a `buy` tool on the sdk/buy.mjs flow | agents | **live** | [`mcp/rep-read.mjs`](mcp/rep-read.mjs) |
-| [27](docs/status.md#r27) | UCP payment handler `xyz.r3p.near_usdc`: reads `settle` from NEAR RPC, NEP-297 event, USDC transfer, builds the order fields with `near_tx` | realworld, agents | **live** | [`ucp/src/near-usdc.mjs`](ucp/src/near-usdc.mjs) |
-| [28](docs/status.md#r28) | merchant SDK for merchant agents that are not ours (schedule, validate, blind bid commitment, quote preview, register args); Agent Market listing plan | swarms, agents | **built** | [`sdk/`](sdk/) |
-| [29](docs/status.md#r29) | testnet demo mode: dUSDC (a demo token with no value), its own escrow, a funded tester account, gasless purchase calls | realworld, agents | **live** | [`dusdc/`](dusdc/) |
-| [30](docs/status.md#r30) | paid orders in the Shopify test store through the Admin API (draft order completed as paid, `near_tx` in the note) | realworld | **live** | [`ucp/src/near-usdc.mjs`](ucp/src/near-usdc.mjs) |
-| [31](docs/status.md#r31) | review k counts distinct World-bound persons, not purchases (`review_persons`) | privacy, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [32](docs/status.md#r32) | `make leak`: what a passive observer links from public testnet data; found 6 of 6 ratings linked by order, fixed, re-run: 1 of 6 (chance) | privacy | **live** | [`scripts/leak.mjs`](scripts/leak.mjs) |
-| [33](docs/status.md#r33) | challengeable Jolt updates: a score update waits with a bond; a challenge with a bond and an arbiter's signed resolution slash a false one | security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [34](docs/status.md#r34) | liability record per settle, and a merchant refund bond that refunds the buyer when a receipt is overturned after settle | security, realworld | **built** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [35](docs/status.md#r35) | `min_tcb`: a verdict below the TDX TCB floor (UpToDate by default) is never quoted or paid | security, privacy | **live** | [`core/src/envelope.rs`](core/src/envelope.rs) |
 | [36](docs/status.md#r36) | open market: a 10-token bond approves any merchant account, no owner step; two bids under one operator cannot both reveal | swarms, agents, open | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [37](docs/status.md#r37) | `make market-eval`: 1,000 simulated rounds, no disclosure vs BookerBob vs full disclosure | swarms | **built** | [`scripts/market-eval.mjs`](scripts/market-eval.mjs) |
-| [38](docs/status.md#r38) | sealed verdicts: hashes only on chain; the referee prices from the opening; the contract accepts only a price its schedule can produce | privacy, security | **live** | [`core/src/envelope.rs`](core/src/envelope.rs) |
-| [39](docs/status.md#r39) | `make prove-me`: a GitHub account as the real fact, notarized with MPC-TLS; ran once on a public profile, not on an account its owner holds | privacy, realworld, security, agents | **built** | [`scripts/prove-me.mjs`](scripts/prove-me.mjs) |
-| [40](docs/status.md#r40) | Verdict Gate: a Sputnik DAO grants a role to an agent whose verdict reveals a predicate; the DAO opts in by its own proposal | social, agents, privacy | **live** | [`gate/src/lib.rs`](gate/src/lib.rs) |
-| [41](docs/status.md#r41) | base-price anchor: a merchant's base is capped at a public price from a named source, so a discount off an inflated base is refused | realworld, business, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [42](docs/status.md#r42) | proven standing tree: one root on chain, no scores stored; a merchant proves its rank, so the chain answers "is X in the top N%" | privacy, social, security | **live** | [`zkcore/src/standing.rs`](zkcore/src/standing.rs) |
-| [43](docs/status.md#r43) | post-quantum: the sealed referee input is hybrid (X25519 + ML-KEM-768); the README says per piece what holds and what does not | security, privacy | **built** | [`worker/src/sealed.rs`](worker/src/sealed.rs) |
 | [44](docs/status.md#r44) | the NEAR AI model's TDX quote verified on chain (Intel DCAP, five calls); the bazaar registers a model key only against that result | security, privacy, agents | **live** | [`tools/dcap-spike/`](tools/dcap-spike/) |
 | [45](docs/status.md#r45) | buying groups on sealed intents: World-bound buyers with the same predicates pool for a fixed-tier discount (10% at 5, 20% at 10) | swarms, privacy, social | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [46](docs/status.md#r46) | trust anchors under a DAO and a timelock: every anchor change is queued for a public delay; a Sputnik DAO owns a test bazaar | security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [47](docs/status.md#r47) | a buying group's own treasury: a Sputnik DAO per group; only a passed proposal refunds a member or pays the merchant | social, swarms, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [48](docs/status.md#r48) | market fee into a DAO treasury: at most 2%, taken from the merchant's side of the price; a raise waits out the timelock | business, social, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| [49](docs/status.md#r49) | certified private eval: a model answers a sealed 20-item set on NEAR AI Cloud, code grades, the bazaar stores the certified score | agents, privacy, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [50](docs/status.md#r50) | REP Eval, calibrated: 120 sealed items, 3 NEAR AI models, every answer TEE-signed, a 95% CI, a leaderboard read from chain | agents, privacy, security, open | **live** | [`scripts/rep-eval.mjs`](scripts/rep-eval.mjs) |
-| [51](docs/status.md#r51) | REP Eval v4 and the eval gate: a merchant sells only to a verdict from a model whose certificate passes the threshold | agents, security, open | **live** | [`scripts/rep-eval-v2.mjs`](scripts/rep-eval-v2.mjs) |
-| [52](docs/status.md#r52) | REP Eval v5: 120 items, protocol committed first, the gate on the Wilson 95% lower bound | agents, security, open | **live** | [`docs/eval-v5-protocol.md`](docs/eval-v5-protocol.md) |
-| [53](docs/status.md#r53) | NEAR INTENTS / 1Click top-up from any chain | realworld, agents | **planned** | [`docs/`](docs/) |
-| [54](docs/status.md#r54) | history anchor: hash-chained round roots of our Arc testnet market on NEAR; `make anchor-rebuild` checks that market against them | open, swarms, security | **built** | [`anchor/`](anchor/) |
-| [55](docs/status.md#r55) | one price for a batch (`propose_clearing`, design: Dan, DenisDI): the contract method is on the branch `clearing`, not on testnet | swarms, agents | **built** | [`docs/clearing.md`](docs/clearing.md) |
+| | every feature, 55 rows, with its full status | | | [docs/status.md](docs/status.md) |
 <!-- status:end -->
 
 ## License

@@ -268,7 +268,7 @@
     "tracks": "swarms, agents",
     "where": "`sdk/`, `docs/agent-market.md`",
     "status": "built",
-    "detail": "cross-checked against the Rust board; used by a separate agent session we ran and funded, which had the best quote in `open-1`; not listed (Agent Market is mainnet only)",
+    "detail": "cross-checked against the Rust board; used by a separate agent session we ran and funded, which had the best quote in `open-1`; not listed yet: the no-money listing is staged in `scripts/agent-market.mjs` and waits for the founder's word",
     "evidence": [
       "open_round"
     ]
@@ -433,7 +433,7 @@
     "tracks": "security, privacy, agents",
     "where": "`tools/dcap-spike/`, `contract/src/lib.rs` (`set_quote_verifier`, `register_model_attestation_verified`)",
     "status": "live",
-    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account keeps REP's key; the GPU evidence is checked off chain (NRAS)",
+    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account keeps REP's key; the GPU evidence is checked off chain (NRAS); on mainnet since 2026-11-14: the same verifier (byte-identical wasm) verified the model's quote in five calls and the mainnet bazaar registered its model key through it (docs/mainnet.md, `node scripts/mainnet-dcap.mjs check`)",
     "evidence": [
       "quote_verification"
     ]
@@ -455,7 +455,7 @@
     "tracks": "security",
     "where": "`contract/src/lib.rs` (`set_anchor_delay`, `queue_anchor`, `execute_anchor`, `cancel_anchor`), `scripts/dao-bazaar.mjs`, `docs/testnet.md`",
     "status": "live",
-    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. The live `bookerbob.testnet` still has one owner key, delay 0, and its full-access key can redeploy the code",
+    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. `market.bookerbob.testnet`, the DAO-owned copy, holds no full-access key since 2026-11-14 (DeleteKey 8YPFUgnU\u2026, re-checked by `make verify-live`). The live `bookerbob.testnet` still has one owner key and its full-access key can redeploy the code",
     "evidence": [
       "dao",
       "dao.timelock"
@@ -528,11 +528,12 @@
     ]
   },
   {
-    "feature": "NEAR INTENTS / 1Click top-up from any chain",
+    "feature": "NEAR Intents: one agent-to-agent settlement on mainnet; 1Click top-up planned",
+    "short": "NEAR Intents: one agent-to-agent settlement on mainnet; 1Click top-up planned",
     "tracks": "realworld, agents",
-    "where": "`docs/`",
-    "status": "planned",
-    "detail": "mainnet only; not attempted on testnet. A buying group's escrow is the natural NEAR Intents target: on mainnet, members would top up through 1Click from any chain into the group's escrow",
+    "where": "`scripts/intents-settle.mjs`, `fixtures/mainnet/intents-settle.json`, `docs/mainnet.md`",
+    "status": "built",
+    "detail": "ran once on mainnet: the buyer agent's own signed NEP-413 transfer intent moved 0.1 wNEAR to the merchant agent inside intents.near (execute_intents 42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz, memo naming testnet purchase 9Esa4qik), re-read keyless by `node scripts/intents-settle.mjs check` and `make mainnet-check`. Planned, not attempted: a 1Click top-up from any chain into a buying group's escrow",
     "evidence": []
   },
   {

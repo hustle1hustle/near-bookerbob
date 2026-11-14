@@ -157,6 +157,9 @@ leak:
 # Your own GitHub account as the real fact (docs/prove-me.md). Needs the tlsn-extension
 # checkout next to this repo, a GitHub token file and the testnet keys; testnet only.
 ROUND ?= builder-1
+mainnet-check:
+	node scripts/mainnet-check.mjs
+
 verify-presentation:
 	cd tools/verify-presentation && cargo build --release -q
 	node scripts/verify-presentations.mjs

@@ -9,18 +9,23 @@ import { readFileSync } from "node:fs";
 const BIN = process.env.VERIFY_PRESENTATION ?? "tools/verify-presentation/target/release/verify-presentation";
 const NOTARY_KEY = "02114d7e15cb2a93ad88997af3394d00008dae381b601f31379d638de492ab25ef";
 const D = "fixtures/live/prove-me";
+const TEE_KEY = "0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32";
 const CASES = [
   { file: `${D}/public-test.presentation`, record: `${D}/public-test.json`, path: "/users/octocat", what: "a public GitHub profile (octocat), the prove-me pipeline test" },
   { file: `${D}/try-public-test.presentation`, record: `${D}/try-public-test.json`, path: "/users/octocat", what: "the same, through the notary in proxy mode" },
   { file: `${D}/founder-github.presentation`, path: "/users/hustle1hustle", what: "the founder's own GitHub profile (hustle1hustle), public endpoint" },
   { file: `${D}/founder-github-owner.presentation`, path: "/user", what: "the founder's own GitHub account, signed in (GET /user with his token; the request past its first line is hidden)" },
+  // Notarized by REP's notary inside an Intel TDX enclave on Phala (rep-notary-ext, key 1).
+  { file: "fixtures/live/tee-notary/octocat-proxy.presentation", path: "/users/octocat", key: TEE_KEY, what: "a public GitHub profile (octocat), notarized inside a TDX enclave, proxy mode" },
+  { file: "fixtures/live/tee-notary/octocat-mpc.presentation", path: "/users/octocat", key: TEE_KEY, what: "the same, notarized inside a TDX enclave, MPC-TLS" },
+  { file: "fixtures/live/tee-notary/founder-github-proxy.presentation", path: "/users/hustle1hustle", key: TEE_KEY, what: "the founder's public GitHub profile, notarized inside a TDX enclave" },
 ];
 let bad = 0;
 for (const c of CASES) {
   const bytes = readFileSync(c.file);
   const sha = createHash("sha256").update(bytes).digest("hex");
   let v;
-  try { v = JSON.parse(execFileSync(BIN, [c.file, NOTARY_KEY], { encoding: "utf8" })); } catch (e) { console.log(`FAIL  ${c.file}: ${String(e.stderr || e.message).trim().slice(0, 200)}`); bad++; continue; }
+  try { v = JSON.parse(execFileSync(BIN, [c.file, c.key ?? NOTARY_KEY], { encoding: "utf8" })); } catch (e) { console.log(`FAIL  ${c.file}: ${String(e.stderr || e.message).trim().slice(0, 200)}`); bad++; continue; }
   const revealed = v.recv.split(/X+/).filter(Boolean);
   const fields = revealed.filter((x) => x.startsWith('"'));
   const recorded = c.record ? JSON.parse(readFileSync(c.record, "utf8")).presentation_sha256 : null;
@@ -29,5 +34,5 @@ for (const c of CASES) {
   if (!ok) bad++;
   console.log(`${ok ? "PASS" : "FAIL"}  ${c.what}: notary ${v.notary_key.slice(0, 8)}.. pinned, server ${v.server_name}, ${new Date(v.time_secs * 1000).toISOString().slice(0, 10)}, GET ${c.path}, revealed ${fields.join(" ")}${recorded ? `; sha256 ${sha.slice(0, 8)}.. equals ${c.record}` : ""}`);
 }
-console.log(bad ? `FAIL  verify-presentation: ${bad} failed` : `PASS  verify-presentation: ${CASES.length} real presentations, signed by the notary key ${NOTARY_KEY.slice(0, 8)}..`);
+console.log(bad ? `FAIL  verify-presentation: ${bad} failed` : `PASS  verify-presentation: ${CASES.length} real presentations: the REP Fly notary ${NOTARY_KEY.slice(0, 8)}.. and the TDX enclave notary ${TEE_KEY.slice(0, 8)}..`);
 process.exit(bad ? 1 : 0);

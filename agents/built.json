@@ -58,20 +58,20 @@
     {
       "n": 39,
       "label": "features live, of 55 listed",
-      "detail": "14 built, 1 stub, 1 planned",
+      "detail": "15 built, 1 stub",
       "source": "docs/status.json",
       "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/README.md#every-feature-its-status-and-its-evidence"
     },
     {
-      "n": 388,
+      "n": 394,
       "label": "Rust test functions",
       "detail": "contract, core, worker, cli; make test runs them",
       "source": "#[test] in contract/src, core/src, worker/src, cli/src",
       "href": "https://github.com/hustle1hustle/near-bookerbob/blob/main/contract/src/tests.rs"
     },
     {
-      "n": 319,
-      "label": "commits, 2026-11-04 to 2026-11-11",
+      "n": 386,
+      "label": "commits, 2026-11-04 to 2026-11-13",
       "detail": "counted when this page was built",
       "source": "git rev-list --count HEAD",
       "href": "https://github.com/hustle1hustle/near-bookerbob/commits/main"

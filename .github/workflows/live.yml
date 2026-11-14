@@ -24,3 +24,13 @@ jobs:
         with:
           node-version: 22
       - run: make verify-live
+  mainnet-check:
+    # The four mainnet records (docs/mainnet.md), re-read over public mainnet RPC, no keys.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: make mainnet-check

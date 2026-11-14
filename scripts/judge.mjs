@@ -61,6 +61,15 @@ if (cut(live)) console.log(`SKIP  testnet: public RPC too slow, ${passes} checks
 else if (online) line(live.status === 0, "testnet: every claim re-derived over public RPC", `${passes} checks passed, ${fails} failed; make verify-live for the list`);
 if (live.status !== 0 && !cut(live)) console.log(live.stdout.split("\n").filter((l) => l.startsWith("FAIL")).join("\n"));
 
+// 1a. mainnet (JUDGE_LIVE=1 only): the keyless mainnet checks (make mainnet-check). Public
+// mainnet RPC unreachable or slow is a SKIP, the same rule as the testnet block above.
+if (wantLive) {
+  const mc = spawnSync("node", ["scripts/mainnet-check.mjs"], { cwd: root, encoding: "utf8", timeout: 900_000 });
+  const lastLine = (mc.stdout || "").trim().split("\n").pop() ?? "";
+  if (mc.status === 3 || mc.error) console.log(mc.error ? "SKIP  mainnet: public RPC too slow (skipped, not failed; make mainnet-check has no limit)" : lastLine);
+  else line(mc.status === 0, "mainnet: the bazaar, its round, two purchases, the Intents settlement and the on-chain DCAP check re-read over public RPC", lastLine.replace(/^(PASS|FAIL)\s+/, ""));
+} else console.log("SKIP  mainnet checks: offline by default (JUDGE_LIVE=1 make judge or make mainnet-check reads mainnet)");
+
 // 1b. the README's status table is generated from docs/status.json and every live row has
 // testnet evidence; a stale phrase anywhere in the docs fails here.
 const mk = spawnSync("node", ["scripts/market-eval.mjs", "--check"], { cwd: root, encoding: "utf8" });
