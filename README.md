@@ -52,6 +52,10 @@ BookerBob fixes all three.
 
 Sellers carry an agent reputation: a damped fan-out seeded only by reviews from buyers who proved
 their context and paid, updated under a Jolt proof ([docs/coalitions.md](docs/coalitions.md), [standing.html](https://hustle1hustle.github.io/near-bookerbob/standing.html)).
+Purchase nullifiers come from a VOPRF (RFC 9497, ristretto255-SHA512): the buyer blinds a fresh
+input (the context and 32 random bytes), the evaluator evaluates it once per requester and context
+and proves the evaluation with a DLEQ proof under the key anchored on the bazaar, so the evaluator
+never sees the input and anyone re-derives the nullifier from the public record ([cli/src/voprf.rs](cli/src/voprf.rs)).
 
 ## What ran, and where
 
