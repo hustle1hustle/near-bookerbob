@@ -62,3 +62,13 @@ Held to 0.25 NEAR plus at most 0.20 USDC: the watcher key's
 allowance (0.1 NEAR at most), our agents' commits and reveals, relayed reveals, the purchase's gas
 and storage, 0.06 NEAR to the page-test account (still ours, its key in
 `~/.rep-secrets/bookerbob-mainnet`), and the winning price in USDC from the buyer's existing balance.
+
+## The first 10 entries are sponsored
+
+The first 10 new accounts made on the page could press "get 0.07 NEAR to start": a small service
+of ours (`faucet/server.mjs`, Fly app `bookerbob-faucet`) sends 0.07 NEAR from a faucet account
+funded once with 0.72 NEAR. It funds only a 64-hex implicit account that does not exist on chain
+yet, one per IP per 10 minutes, ten in all; the faucet's balance alone also allows no more. Those
+entries were sponsored by BookerBob; the bids on them are still each bidder's own, on a key made in
+their browser. Funding and every payout: `fixtures/mainnet/faucet.json` (`node scripts/round-mainnet.mjs faucet`
+re-reads it from chain), checked by `node scripts/round-mainnet.mjs check`.

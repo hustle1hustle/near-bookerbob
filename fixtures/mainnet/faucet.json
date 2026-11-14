@@ -1,0 +1,10 @@
+{
+  "note": "The mainnet round's starter faucet (faucet/server.mjs on Fly, app bookerbob-faucet): 0.72 NEAR from the DCAP verifier account, then 0.07 NEAR to each of the first 10 new accounts made on round-mainnet.html. Those entries were sponsored by BookerBob. Check: node scripts/round-mainnet.mjs check",
+  "faucet": "090c51e9e379cb26d8be89369c519f98703af6a46a704e3d4ee5016018377800",
+  "funded_by": "e99f0afb347a1e5155cabb6c55489291794f89cdfb9457e4ba6a4a55882a4b02",
+  "funding": [
+    "6bFbGJK5zZRwobvqqApDLy4YsXjLf4mdL7MvSnET1pdn"
+  ],
+  "payout_yocto": "70000000000000000000000",
+  "payouts": []
+}

@@ -353,6 +353,20 @@ async function board(c) {
   for (const [w] of round.commits) if (!round.revealed.includes(w)) console.log(`  ${w.padEnd(66)} sealed${rec.ours[w] ? "  (ours)" : ""}`);
 }
 
+const FAUCET_OUT = "fixtures/mainnet/faucet.json";
+const FAUCET = "090c51e9e379cb26d8be89369c519f98703af6a46a704e3d4ee5016018377800";
+const DCAP = "e99f0afb347a1e5155cabb6c55489291794f89cdfb9457e4ba6a4a55882a4b02";
+
+/** Keyless: the starter faucet's funding and payouts, read from nearblocks into faucet.json. */
+async function faucetRecord(c) {
+  const list = await (await fetch(`${NB}/accounts/${FAUCET}/txns?limit=50`, { signal: AbortSignal.timeout(20000) })).json();
+  const txs = (list.data ?? []).filter((t) => t.outcomes?.status !== false);
+  const funding = txs.filter((t) => t.signer_account_id === DCAP && t.receiver_account_id === FAUCET).map((t) => t.transaction_hash);
+  const payouts = txs.filter((t) => t.signer_account_id === FAUCET && t.actions?.every((a) => a.action === "TRANSFER")).map((t) => ({ to: t.receiver_account_id, tx: t.transaction_hash })).reverse();
+  writeFileSync(FAUCET_OUT, JSON.stringify({ note: "The mainnet round's starter faucet (faucet/server.mjs on Fly, app bookerbob-faucet): 0.72 NEAR from the DCAP verifier account, then 0.07 NEAR to each of the first 10 new accounts made on round-mainnet.html. Those entries were sponsored by BookerBob. Check: node scripts/round-mainnet.mjs check", faucet: FAUCET, funded_by: DCAP, funding, payout_yocto: "70000000000000000000000", payouts }, null, 2) + "\n");
+  console.log(`faucet: funded by ${funding.length} tx, ${payouts.length} payouts`);
+}
+
 async function check(c) {
   const rec = load();
   if (!rec) { console.log("PASS  round mainnet-open-1: not opened yet (no fixtures/mainnet/round.json)"); return; }
@@ -376,11 +390,20 @@ async function check(c) {
     if (!JSON.stringify(st).includes("Spent")) fails.push("the purchase's nullifier is not spent");
     tail += `; winner ${rec.result.winner.slice(0, 12)}.. (${rec.result.winner_is_ours ? "ours" : "an outside account"}) at ${(Number(rec.result.price) / 1e6).toFixed(2)} USDC, paid by settle`;
   }
+  if (existsSync(FAUCET_OUT)) {
+    const f = JSON.parse(readFileSync(FAUCET_OUT, "utf8"));
+    for (const [signer, h] of [...f.funding.map((h) => [f.funded_by, h]), ...f.payouts.map((p) => [f.faucet, p.tx])]) {
+      const r = (await c.rpc("tx", { tx_hash: h, sender_account_id: signer, wait_until: "FINAL" })).result;
+      if (!r || r.status.Failure) fails.push(`faucet tx ${h.slice(0, 8)}.. did not succeed`);
+    }
+    if (f.payouts.length > 10) fails.push("the faucet paid more than 10 accounts");
+    tail += `; faucet: ${f.payouts.length} sponsored accounts`;
+  }
   console.log(`${fails.length ? "FAIL" : "PASS"}  round ${rec.round} on mainnet: ${tail}; ${Object.keys(rec.txs).length} txs re-read${fails.length ? `: ${fails.join("; ")}` : ""}`);
   if (fails.length) process.exit(1);
 }
 
 const [cmd, arg] = process.argv.slice(2);
 const c = rpcClient(RPC);
-const cmds = { open, agents, watch, settle, board, check, bid: (c) => stranger(c, "bid", arg), reveal: (c) => stranger(c, "reveal") };
+const cmds = { faucet: faucetRecord, open, agents, watch, settle, board, check, bid: (c) => stranger(c, "bid", arg), reveal: (c) => stranger(c, "reveal") };
 await (cmds[cmd] ?? (() => Promise.reject(new Error("usage: open|agents|watch|settle --mainnet, bid <price>|reveal (JOIN_ACCOUNT, JOIN_KEY_FILE), board, check"))))(c).catch((e) => { console.error(`FAIL  ${e.message}`); process.exit(1); });

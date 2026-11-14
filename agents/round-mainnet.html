@@ -112,7 +112,7 @@
 <div class="tiles" id="tiles" aria-label="sealed bids in this round"></div>
 <div class="clock"><span class="tag" id="clock-label">bids close in</span><span id="clock">--:--:--</span></div>
 <ol class="steps3">
-  <li><b>01</b><span>send 0.1 NEAR to a key made in this page</span></li>
+  <li><b>01</b><span>a key made in this page, 0.07 NEAR on us for the first 10</span></li>
   <li><b>02</b><span>seal one price in USDC</span></li>
   <li><b>03</b><span>lowest revealed price is paid by the buyer</span></li>
 </ol>
@@ -126,6 +126,7 @@
     <div class="addr" id="addr"></div>
     <p><button class="ghost" id="copy">copy the address</button></p>
     <p class="fund" id="fund"></p>
+    <button id="faucet" class="wide" hidden>get 0.07 NEAR to start (first 10 accounts)</button>
   </div>
   <button id="mkkey" class="wide">make my key</button>
   <div id="form" hidden>
@@ -159,7 +160,7 @@
 <details class="how">
   <summary>how it works</summary>
   <p>you are a seller with one room to sell. your price goes on chain as a hash, so nobody can read it before the deadline, us included. after the deadline every bid is revealed and the contract pins it. the lowest revealed price wins, and our buyer agent pays it in Circle USDC on NEAR, against a NEAR AI verdict and a referee receipt.</p>
-  <p>the page makes an ed25519 key in this browser. its public key in hex is your NEAR account name (an implicit account). send it about 0.1 NEAR from any wallet or exchange; that creates the account. NEAR asks a transaction to hold more than it spends (unused gas and storage deposits come back), and bidding ends up using about 0.01 NEAR. the rest stays on your account, and "show my key" lets you take it with you.</p>
+  <p>the page makes an ed25519 key in this browser. its public key in hex is your NEAR account name (an implicit account). the first 10 accounts can press "get 0.07 NEAR to start": BookerBob's faucet sends 0.07 NEAR, enough to bid. after that, send it about 0.1 NEAR from any wallet or exchange; that creates the account. NEAR asks a transaction to hold more than it spends (unused gas and storage deposits come back), and bidding ends up using about 0.01 NEAR. the rest stays on your account, and "show my key" lets you take it with you.</p>
   <p>BookerBob's watcher approves every account that registers in this round's category and has registered with USDC, usually within a minute or two, up to 60 accounts. it holds a key on the bazaar limited to open_round and approve_merchant, with a gas allowance NEAR enforces. the permissionless lane (a 10 USDC bond, no approval) stays on testnet, so nothing of yours is locked here.</p>
   <p>one visit is enough. your reveal is signed in this page and time-locked with <a href="https://drand.love">drand</a> until the bid deadline; after it our relayer opens it and sends it, paying the gas. it cannot change your price. you can also come back after the deadline and press reveal.</p>
   <p class="small">the buyer's facts are synthetic fixture facts and the buyer is our own agent; the payment is real. one bid per account. a bid never revealed bars the account from new rounds for 24 hours. prices above 0.23 USDC are refused by this page (the buyer's budget). the buyer holds enough USDC to pay any allowed price; we settle after reveals close.</p>
@@ -181,6 +182,10 @@ function step(text) { const li = document.createElement("li"); li.className = "r
 async function sent(text, p) { const s = step(text); const r = await p; if (!r.ok) { s.bad(r.error); throw new Error(text + " failed"); } s.ok(r.hash); return r.hash; }
 const hexOf = (u8) => Array.from(u8, (x) => x.toString(16).padStart(2, "0")).join("");
 const MILLI = 10n ** 21n;
+// The starter faucet (faucet/server.mjs): 0.07 NEAR for each of the first 10 new accounts.
+const FAUCET = "https://bookerbob-faucet.fly.dev";
+let faucetLeft = null;
+const faucetStatus = () => fetch(FAUCET + "/status").then((r) => r.json()).then((j) => { faucetLeft = j.left; }, () => { faucetLeft = 0; });
 
 let cfg = null, round = null, balance = 0n;
 const ours = (w) => Boolean(cfg?.ours?.[w]);
@@ -215,6 +220,8 @@ async function paintPlay() {
     const near = Number(balance / 10n ** 20n) / 1e4;
     $("fund").innerHTML = balance >= 60n * MILLI ? "<b>funded:</b> " + near.toFixed(4) + " NEAR" : balance > 0n ? "holds " + near.toFixed(4) + " NEAR: send at least 0.06 NEAR in all, 0.1 is comfortable" : "save your key before you send NEAR (show my key, below): clearing this site's data loses it. then send about 0.1 NEAR to this address from any wallet or exchange. this page checks every few seconds.";
   }
+  $("faucet").hidden = !st || balance > 0n || !bidsOpen() || !(faucetLeft > 0);
+  if (!$("faucet").hidden) $("faucet").textContent = "get 0.07 NEAR to start (" + faucetLeft + " of the first 10 left)";
   $("form").hidden = !st || committed || !bidsOpen();
   $("bid").disabled = !(balance >= 60n * MILLI) || !(Number($("price").value) > 0);
   $("play-title").textContent = committed ? "your bid is sealed" : bidsOpen() ? "seal one bid" : Date.now() < round.reveal_until_ms ? "bids are closed: reveals are open" : "the round is closed";
@@ -256,6 +263,17 @@ $("mkkey").onclick = async () => {
   const pub = await tx.publicKeyHex(seed);
   if (!store.set({ account: pub, seed, pub, txs: {} })) { $("note").hidden = false; $("note").textContent = "this browser blocks page storage (private mode?). open the page in a normal tab"; return; }
   draw();
+};
+$("faucet").onclick = async () => {
+  const btn = $("faucet"); btn.disabled = true; $("steps").innerHTML = ""; $("note").hidden = true;
+  const s = step("starter NEAR from BookerBob's faucet");
+  try {
+    const r = await (await fetch(FAUCET + "/fund", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: store.get().account }) })).json();
+    if (!r.ok) throw new Error(r.error);
+    s.ok(r.tx);
+    for (let i = 0; i < 20 && (await readBalance(store.get().account)) === 0n; i++) await new Promise((ok) => setTimeout(ok, 1500));
+  } catch (e) { s.bad(e.message); }
+  await faucetStatus(); btn.disabled = false; draw();
 };
 $("copy").onclick = () => navigator.clipboard?.writeText(store.get()?.account ?? "");
 
@@ -310,7 +328,7 @@ $("reveal").onclick = async () => {
   btn.disabled = false; draw();
 };
 $("export").onclick = () => { const st = store.get(); const box = $("keybox"); box.hidden = !box.hidden; box.textContent = "your NEAR mainnet key. it controls the NEAR left on this account: keep it private.\n" + JSON.stringify({ account_id: st.account, public_key: tx.nearPublicKey(st.pub), private_key: tx.nearSecretKey(st.seed, st.pub) }, null, 2); };
-draw(); setInterval(draw, 8000);
+faucetStatus().then(draw); setInterval(draw, 8000); setInterval(faucetStatus, 60000);
 </script>
 </body>
 </html>
