@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Drives the 2:30 video on testnet, one beat per keypress (docs/demo.md). Each beat prints the
+// Drives the 2:30 video on testnet, one beat per keypress (not in this public copy). Each beat prints the
 // line to say, runs its on-screen step and prints the live tx it points to.
 //
 //   python3 -m http.server -d agents 8000      in another terminal, for the board beat

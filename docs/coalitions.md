@@ -615,7 +615,7 @@ The anchor covers the text of the design. The code was not anchored. `fixtures/c
 records the sha256 of `cli/src/coalition_sim.rs` and `Cargo.lock` that wrote it
 (`code_sha256`). Those hashes do not cover the crates it calls (`bookerbob-graph`,
 `bookerbob-core`, `bookerbob-zkcore`, `bookerbob-bazaar`); the run was made on git HEAD
-`576dc63` with uncommitted changes, the sim file among them. The code was extended after the
+`0d5011d` with uncommitted changes, the sim file among them. The code was extended after the
 registered run (the exploratory arms below); the registered numbers are equal to the numbers
 recorded before the extension (prior audit), and `make coalition-check` re-runs them byte for
 byte.

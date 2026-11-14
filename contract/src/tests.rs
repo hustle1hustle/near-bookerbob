@@ -4796,10 +4796,10 @@ mod bid_pin {
     }
 }
 
-// ---------- stored layout, pinned against main at b6dc27c ----------
+// ---------- stored layout, pinned against main at 2278b42 ----------
 
 /// Both live bazaars keep their state across redeploys only while the root struct and every
-/// borsh-stored type keep their layout. These bytes were captured from main at b6dc27c: a
+/// borsh-stored type keep their layout. These bytes were captured from main at 2278b42: a
 /// field added, removed, reordered or retyped in any of them fails here.
 mod layout {
     use super::*;
@@ -4910,7 +4910,7 @@ mod layout {
         ]
     }
 
-    /// Captured by running `samples()` on main at b6dc27c, before `mark_unrevealed` existed.
+    /// Captured by running `samples()` on main at 2278b42, before `mark_unrevealed` existed.
     const MAIN_B6DC27C: [(&str, &str); 14] = [
         ("Bazaar", "0d0000006f776e65722e746573746e65740c000000757364632e746573746e65740000000002000000697602000000696d00000000020000006d76020000006d6d0100000076010000006500000000000000000000000002000000727602000000726d00010000006b0000000002000000777602000000776d00010000006101000000680000000002000000647602000000646d0100000062010000006e01000000670100000071010000006f010000007401000000780000000000000000000000000000000000000000000000000000000000000000000000000000000000010000007a000100000063"),
         ("Round", "06000000686f6f6469650100000000000000020000000000000001000000120000006d30312e62617a6161722e746573746e657402000000616201000000120000006d30312e62617a6161722e746573746e6574"),

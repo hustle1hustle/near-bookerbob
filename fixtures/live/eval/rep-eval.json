@@ -1,5 +1,5 @@
 {
-  "note": "REP Eval, held-out: a fresh sealed set of 120 items made after the protocol was frozen (400 tokens, 3 models, one run; commit 4370ed7). REP Eval, calibrated: 120 sealed items at 4 levels, 3 NEAR AI models in a fixed token budget; every answer's TEE signature checks against its request and response hashes; grading and the bootstrap CI ran in the worker's code; a separate eval issuer key signed each certificate. The items stay private.",
+  "note": "REP Eval, held-out: a fresh sealed set of 120 items made after the protocol was frozen (400 tokens, 3 models, one run; commit 872b054). REP Eval, calibrated: 120 sealed items at 4 levels, 3 NEAR AI models in a fixed token budget; every answer's TEE signature checks against its request and response hashes; grading and the bootstrap CI ran in the worker's code; a separate eval issuer key signed each certificate. The items stay private.",
   "set_root": "b7b6094074b1b70a2abb4ec05847ec07975402b986965d24038d443c86d33539",
   "n": 120,
   "levels": [

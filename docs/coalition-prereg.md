@@ -149,5 +149,5 @@ records, under `code_sha256`, the sha256 of the code that wrote it: `cli/src/coa
 the code gained exploratory arms (an audit asked for them); the registered numbers are equal to
 the numbers recorded before the extension (prior audit) and are re-run byte for byte by
 `make coalition-check`. The hashes do not cover the crates the sim calls; the run was made on
-git HEAD `576dc63` with uncommitted changes. The exploratory arms are beyond this
+git HEAD `0d5011d` with uncommitted changes. The exploratory arms are beyond this
 pre-registration and do not enter its pass rule (docs/coalitions.md, "Exploratory").

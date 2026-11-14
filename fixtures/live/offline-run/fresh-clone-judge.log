@@ -1,4 +1,4 @@
-# fresh clone of ae99df7, JUDGE_OFFLINE=1, 2026-11-05
+# fresh clone of 23c7583, JUDGE_OFFLINE=1, 2026-11-05
 make judge: fast path (Node and the committed Jolt verifier; deep path: make verify, make zk-verify)
 
 SKIP  testnet: no network here, so the live RPC checks are skipped (not failed)

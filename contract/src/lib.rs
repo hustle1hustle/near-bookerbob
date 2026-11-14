@@ -432,7 +432,7 @@ pub fn verify_signature(v: &SignedVerdict) -> bool {
     }
 }
 
-// ---------- testnet demo mode, see docs/demo-mode-plan.md ----------
+// ---------- testnet demo mode, see the demo mode plan (not in this public copy) ----------
 
 /// Demo mode exists only on a `.testnet` bazaar. Checked when it is switched on and again
 /// on every use, so a mainnet deploy refuses the demo token even with one stored.

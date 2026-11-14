@@ -221,7 +221,7 @@ ran as written.
 
 **What is synthetic.** Every fact behind every verdict, with two exceptions of one kind: a
 `make prove-me` and a `make try` pipeline test each notarized a public GitHub profile (a real
-fact about a public account, not proof that the buyer holds it; docs/prove-me.md). The phone run is parked (docs/device-run.md). Also synthetic: the rest of every proof set, the World ID action (a placeholder, our verifier key) and
+fact about a public account, not proof that the buyer holds it; docs/prove-me.md). The phone run is parked (not in this public copy). Also synthetic: the rest of every proof set, the World ID action (a placeholder, our verifier key) and
 the money (dUSDC on testnet; on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md))). The operator (us) holds the eval-certificate issuer key, a referee key on each
 network, one live arbiter key (and the three test arbiters) and the nullifier key; the OutLayer project's TEE-derived keys are a referee on testnet and mainnet and the second arbiter on testnet
 (see "Who can lie" below).
@@ -451,12 +451,12 @@ never on their data; price tiers come from verified context; cohorts stay above 
 nullifiers per context; the verdict path and the DAO-owned market. His calls also include:
 
 - Testnet only, with dUSDC, a demo token; mainnet (Circle USDC, 1Click, Agent Market) only on
-  his word; on 2026-11-13 he gave it for one sealed round, one purchase and one Intents settlement ([docs/mainnet.md](mainnet.md)) ([7889d94](https://github.com/hustle1hustle/near-bookerbob/commit/7889d94), [8f0efd7](https://github.com/hustle1hustle/near-bookerbob/commit/8f0efd7)).
-- The account nullifier is an RFC 9497 VOPRF (chosen 2026-09-24, built 2026-11-05); older purchases used an HMAC and stay recomputable ([f68a427](https://github.com/hustle1hustle/near-bookerbob/commit/f68a427)).
+  his word; on 2026-11-13 he gave it for one sealed round, one purchase and one Intents settlement ([docs/mainnet.md](mainnet.md)) ([74927a9](https://github.com/hustle1hustle/near-bookerbob/commit/74927a9), [17e4512](https://github.com/hustle1hustle/near-bookerbob/commit/17e4512)).
+- The account nullifier is an RFC 9497 VOPRF (chosen 2026-09-24, built 2026-11-05); older purchases used an HMAC and stay recomputable ([d406b71](https://github.com/hustle1hustle/near-bookerbob/commit/d406b71)).
 - The market bazaar is owned by a 2-of-3 DAO from block one, its anchors behind a public delay
-  (2026-11-05, [1ec99ee](https://github.com/hustle1hustle/near-bookerbob/commit/1ec99ee)); the post-quantum pack goes in ([c121717](https://github.com/hustle1hustle/near-bookerbob/commit/c121717)); OutLayer only in
+  (2026-11-05, [ad4ffd2](https://github.com/hustle1hustle/near-bookerbob/commit/ad4ffd2)); the post-quantum pack goes in ([1c9f936](https://github.com/hustle1hustle/near-bookerbob/commit/1c9f936)); OutLayer only in
   reversible steps (the referee: live on testnet 2026-11-14, TDX quote verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md)).
-- Hotel prices are JMPR's public rates as of 2026-11-04; JMPR is not a participant and no real room is booked ([85161a9](https://github.com/hustle1hustle/near-bookerbob/commit/85161a9)).
+- Hotel prices are JMPR's public rates as of 2026-11-04; JMPR is not a participant and no real room is booked ([da7e6f4](https://github.com/hustle1hustle/near-bookerbob/commit/da7e6f4)).
 
 ## Known limits
 

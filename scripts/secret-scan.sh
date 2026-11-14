@@ -23,7 +23,7 @@ check "NEAR secret key (ed25519:<88 base58>) next to a key-like name" '(private|
 # leaked seed in the keys dir is still caught by the exact-value check below.
 check "PEM private key" 'BEGIN [A-Z ]*PRIVATE KEY'
 check "Shopify token (shpat_, shpss_, shpca_)" 'shp(at|ss|ca|pa)_[0-9a-fA-F]{20,}'
-# One named exception: commit 1327ad2 put the alphabet dummy "sk-abcdefghijklmnopqrstuv" in
+# One named exception: commit 8a495b8 put the alphabet dummy "sk-abcdefghijklmnopqrstuv" in
 # scripts/swarm-run.test.mjs (a test that the swarm record refuses key-looking fields). It is
 # not a key; the history keeps the line, so it is filtered here by its exact value only.
 sed -i.bak 's/sk-abcdefghijklmnopqrstuv/sk_alphabet_dummy/g' "$tmp/history.txt" && rm -f "$tmp/history.txt.bak"
