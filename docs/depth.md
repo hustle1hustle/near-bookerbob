@@ -160,12 +160,12 @@ visible as `anchor_queued`, executable by anyone after the delay and cancellable
 inside it. Raising the TCB floor and removing an issuer apply at once, because they only narrow
 trust and are the response to a compromised key. The delay is 5 minutes on the DAO test bazaar
 and, since 2026-11-10, 5 minutes on the live bazaar too ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)). It
-covers anchors, not the code: the full-access key of `bookerbob.testnet` can still redeploy.
+covers anchors; the code is fixed: `bookerbob.testnet` has no access key since 2026-11-14 (DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)).
 
 | who holds | what it can do today |
 |---|---|
-| the full-access key on `bookerbob.testnet` (one key, `ed25519:BDvqs4A7…`, held by the BookerBob operator) | redeploy the contract code at any time, which bypasses every rule above, including the timelock. The contract cannot defend against its own account's full-access key. Fix: hand the account to the DAO and delete the key, so an upgrade is a DAO proposal (planned; it is irreversible, so it waits on the founder) |
-| the owner role on `bookerbob.testnet` (the same account) | register trust anchors, each after the 5 minute public delay |
+| the full-access key on `bookerbob.testnet` | deleted on 2026-11-14 ([28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)): no one can redeploy the contract code (`node scripts/keyless-check.mjs`) |
+| the owner role on `bookerbob.testnet` (the same account) | nothing since the lock: no key can sign an owner call, so trust anchors, rounds and fees are frozen |
 | the DAO test bazaar's account | its full-access key is also the operator's; the DAO holds the owner role, not the code |
 
 | layer | what it proves | what it does not |

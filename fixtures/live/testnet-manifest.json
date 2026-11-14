@@ -1669,6 +1669,11 @@
   },
   "keyless": [
     {
+      "account": "bookerbob.testnet",
+      "what": "the testnet bazaar",
+      "lock_tx": "28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ"
+    },
+    {
       "account": "verifier.bookerbob-jolt-a.testnet",
       "what": "the on-chain Jolt verifier",
       "lock_tx": "EVRobx8K5h4H145c7tCUU1KmTiJx3Bke17sqmJPaMaFQ"

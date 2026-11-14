@@ -482,12 +482,12 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   the agent reasons about, not a rule the contract checks, so a winner can "sell" past its
   stock. Enforcing it needs units in the sealed bid and new contract state; not done before the
   deadline.
-- **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
-  full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
-  price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
-  so a swap of a trust key is queued in public; a code swap is not. The DAO-owned copy,
-  `market.bookerbob.testnet`, has no full-access key since 2026-11-14 (its code can change only
-  through a call the contract allows); `bookerbob.testnet` keeps its key as the fix path.
+- **The deploy keys are deleted on testnet.** From Dan's review (DenisDI): while one
+  full-access key could redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
+  price code held only until the next deploy. Since 2026-11-14 neither testnet bazaar has an
+  access key (`market.bookerbob.testnet`, then `bookerbob.testnet`, DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)); the code
+  can change only through a call the contract allows. Mainnet runs the same bazaar code; we keep
+  its key for now so the storage deposit can be reclaimed after judging.
 - **A revealed bid is pinned for its round since the 2026-11-11 redeploy, with three limits.**
   Before it, a round stored no schedule and `round_best_quote` priced each revealed merchant's
   current schedule, so a bonded `open` merchant could reveal, read its rivals, register a
@@ -596,7 +596,7 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 
 Testnet, except on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)). Every testnet tx hash is in [docs/testnet.md](testnet.md).
 
-- `bookerbob.testnet`: the bazaar, owned by one of our keys (the "before" exhibit).
+- `bookerbob.testnet`: the bazaar, locked since 2026-11-14 (no access key, DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)).
 - `market.bookerbob.testnet`: the same bazaar owned by the Sputnik DAO `bookerbob-gov` from block
   one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key made the redeploys and was deleted on 2026-11-14 ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)): no key can redeploy it now, re-checked by `make verify-live` and `make no-owner`.
 - `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys; its full-access key was deleted on 2026-11-14 ([7pgUUjnb…](https://testnet.nearblocks.io/txns/7pgUUjnb6qiAwqVF8gZdKXXGysjbtmXymbVfkoJY4Wcv)), so its code is fixed.

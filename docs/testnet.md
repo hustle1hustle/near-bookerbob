@@ -507,9 +507,10 @@ stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.m
   verifier, arbiter, 1% fee to the DAO); a second approved m01 and h05, set h05's public price
   anchor and the anchor delay to 5 minutes.
 - One live purchase on it: `t-fb06d2` paid 38.40 dUSDC to m01, replay refused, Shopify #1065.
-- **Not done yet: deleting the temporary full-access key**, the last, irreversible step. Until
-  it is deleted, `make no-owner` shows one full-access key, ours; after it, none.
-  `bookerbob.testnet` stays as the "before" exhibit with its single operator key.
+- **Done 2026-11-14: the temporary full-access key deleted**
+  ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)), the last,
+  irreversible step; `make no-owner` shows none. `bookerbob.testnet` followed the same day
+  (DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)).
 
 ## A second merchant with standing, and the proven standing tree (2026-11-05)
 

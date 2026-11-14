@@ -11,6 +11,10 @@ re-check it with `node scripts/jolt-onchain-check.mjs`.
 **On mainnet, every verdict is signed by one model key whose TDX quote our DCAP verifier checked
 on chain.**
 
+Agent reputation is a closed loop on chain: a keyless NEAR contract verifies the Jolt proof of the
+reputation root, and a keyless coalition admits agents only against that verified proof; the
+bazaar, the verifier and the coalition hold no keys (testnet, `node scripts/keyless-check.mjs`).
+
 On top runs an agent economy: coalitions admitted by Jolt-proven agent reputation, a smith that
 writes new Jolt checks on request, and a referee and arbiter that run in OutLayer's TEE.
 

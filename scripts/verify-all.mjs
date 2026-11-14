@@ -28,7 +28,7 @@ const CHECKS = [
   ["testnet", "the coalition jobs on testnet", ["node", "scripts/coalition-live.mjs", "verify"], "scripts/coalition-live.mjs"],
   ["testnet", "the transparency anchor", ["node", "scripts/anchor.mjs", "verify"], "scripts/anchor.mjs"],
   ["testnet", "the locked on-chain Jolt verifier: the standing proof verified over 8 txs, every recorded job bound to its proof, claim and code", ["node", "scripts/jolt-onchain-check.mjs"], "scripts/jolt-onchain-check.mjs"],
-  ["testnet", "keyless contracts: the on-chain Jolt verifier, coalition v4, the DCAP verifier and the market bazaar hold no access key, each lock tx a DeleteKey on itself", ["node", "scripts/keyless-check.mjs"], "scripts/keyless-check.mjs"],
+  ["testnet", "keyless contracts: the testnet bazaar, the on-chain Jolt verifier, coalition v4, the DCAP verifier and the market bazaar hold no access key, each lock tx a DeleteKey on itself", ["node", "scripts/keyless-check.mjs"], "scripts/keyless-check.mjs"],
   ["testnet", "coalition version 4: a member admitted on a Jolt proof the locked verifier checked, one with a proof of another graph refused", ["node", "scripts/coalition-jolt-check.mjs"], "scripts/coalition-jolt-check.mjs"],
   ["testnet", "the Jolt smith: every registered program's proof, authorship and registry entry, the registry and job C re-read", ["node", "scripts/smith-check.mjs", "--live"], "scripts/smith-check.mjs"],
   ["testnet", "the economy anchor: every hourly root recomputed from the source contracts' txs and compared with the anchor", ["node", "scripts/econ/anchor.mjs", "check"], "scripts/econ/anchor.mjs"],

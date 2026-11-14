@@ -99,8 +99,8 @@ checkable (`make verify-live`; `make audit` names the removal for a verdict that
 
 - **Our arbiter key stays registered.** The audited wasm has no `remove_arbiter`. Our
   `testnet arbiter` key (`b5df0fa0…698b`) is the only other arbiter. The threshold is 2, so every
-  dispute needs the OutLayer arbiter's signature and ours. We can still add an arbiter key after
-  a public 5-minute timelock, or publish a new project version, so we are not yet excluded.
+  dispute needs the OutLayer arbiter's signature and ours. With `bookerbob.testnet` locked, no one can add an
+  arbiter key or publish a new project version on testnet.
 - **A challenged standing update stays unresolved.** `resolve_graph_challenge` needs two arbiter
   signatures, and the OutLayer module does not sign graph resolutions yet (a next module
   version). Anyone can challenge a pending update with a 0.1 NEAR bond, and a new update is
@@ -113,8 +113,8 @@ checkable (`make verify-live`; `make audit` names the removal for a verdict that
 - **The issuers map is shared.** Our `REP Eval issuer` key (`4e338d29…340b`) is the one issuer
   key left on testnet, registered for eval certificates; `submit_verdict` accepts any registered
   issuer key, so it could still sign a verdict. It stays while `submit_eval_certificate` needs it.
-- **The OutLayer projects' owners are bazaar accounts** with one full-access key we hold. Either
-  can publish a new version, and the host keys are bound to the project and kept across versions,
+- **The mainnet OutLayer project's owner is the mainnet bazaar account**, with one full-access key
+  we hold. It can publish a new version, and the host keys are bound to the project and kept across versions,
   so a new version would sign with the same keys. `outlayer.testnet` does allow a two-step
   transfer (`accept_project_transfer` by the new owner, then `transfer_project`).
 - **The evaluator still sees the facts.** A NEAR AI verdict needs the evaluator's signature on
@@ -122,9 +122,11 @@ checkable (`make verify-live`; `make audit` names the removal for a verdict that
   sealing them to the model key (`scripts/model-buy.mjs`, `issue`). Moving it into the OutLayer
   module needs a third host key and an outbound call to NEAR AI from the TEE (network access and
   an API key as an OutLayer secret); the v1 manifest has neither. Not done today.
-- **Locking `bookerbob.testnet`** (deleting its full-access key) would freeze, with no way back:
-  the OutLayer project (no new version, ever, including a fix), `set_graph_program` and every
-  other owner method (trust anchors, rounds, fees, `remove_issuer`), and `cancel_anchor`.
-  Standing updates by bonded workers keep running. This is the founder's decision, after judging.
+- **`bookerbob.testnet` is locked** (DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ), 2026-11-14): it holds no access key, so
+  the testnet OutLayer project gets no new version, and `set_graph_program`, every other owner
+  method (trust anchors, rounds, fees, `remove_issuer`) and `cancel_anchor` are frozen. Standing
+  updates by bonded workers keep running. Check: `node scripts/keyless-check.mjs`.
+- **Mainnet runs the same bazaar code**; we keep its key for now so the storage deposit can be
+  reclaimed after judging.
 
 What else does not hold yet (real money beyond dust amounts, outside merchants beyond the public rounds, privacy from our evaluator until it runs in the TEE, a collusion effect beyond direction only): [docs/details.md](details.md#known-limits).
