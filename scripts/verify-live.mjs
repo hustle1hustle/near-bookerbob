@@ -355,7 +355,10 @@ await attempt("every spent nullifier is listed: spent_count on chain equals the 
   const extra = [...named].filter((x) => !listed.has(x)).sort();
   const spentExtra = (await Promise.all(extra.map((x) => view(m.bazaar, "verdict", { nullifier: x })))).filter((v) => v?.spent).length;
   const n = await view(m.bazaar, "spent_count", {});
-  return [n === rows.length + swarm.size + spentExtra && twice === 0, `spent_count ${n}; the manifest lists ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded), ${runs.length} swarm runs list ${swarm.size}, the coalition and bucketed records ${spentExtra} spent`];
+  // The bazaar stays open: a purchase made after this manifest raises spent_count. Fewer spent than
+  // listed fails; more is reported as later purchases, not failed.
+  const want = rows.length + swarm.size + spentExtra;
+  return [n >= want && twice === 0, `spent_count ${n}${n > want ? ` (${n - want} spent after this manifest)` : ""}; the manifest lists ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded), ${runs.length} swarm runs list ${swarm.size}, the coalition and bucketed records ${spentExtra} spent`];
 });
 for (const t of m.testers.filter((x) => x.voprf)) {
   await attempt(`a VOPRF nullifier on testnet: ${t.tester.split(".")[0]} bought with ${t.nullifier.slice(0, 12)}.., the record's key is the bazaar's voprf_key (the proof itself: make verify)`, async () => {

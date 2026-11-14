@@ -38,7 +38,11 @@
   a.go { background: var(--blue); color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 15px; }
   a.go:hover { filter: brightness(1.15); }
   .cmd { color: var(--dim); font-size: 12px; }
-  .cmd code { color: var(--fg); background: var(--panel); border: 1px solid var(--line); padding: 3px 6px; border-radius: 4px; }
+  .cmd code { color: var(--fg); background: var(--panel); border: 1px solid var(--line); padding: 3px 6px; border-radius: 4px; word-break: break-all; }
+  .acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 4px 0 14px; }
+  .acts a { background: var(--blue); color: #fff; text-decoration: none; padding: 12px 14px; border-radius: 6px; font-weight: 600; font-size: 14px; text-align: center; }
+  .acts a:hover { filter: brightness(1.15); }
+  @media (max-width: 560px) { .acts { grid-template-columns: 1fr; } }
   .live { color: var(--dim); font-size: 12px; margin: 12px 0 0; }
   .live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; }
   .live a, .honest a, .more a { color: var(--dim); }
@@ -73,7 +77,12 @@
     <div class="one" style="margin-top:0">of shopping could run through agents by 2030.</div>
     <div class="src">McKinsey, The agentic commerce opportunity, 2025 (goods only, a forecast)</div>
     <div class="one">BookerBob is intent matching for the agentic economy, fixing coordination between agents that meet as strangers, built on zero-knowledge proofs: give a proof, get the price. When agents buy and sell for people, three things break that human markets quietly rely on; BookerBob fixes all three, adds standing for agents that meet as strangers, and anyone can check the run.</div>
-    <div class="series"><b>On NEAR mainnet:</b> three purchases in USDC (<a href="https://nearblocks.io/txns/6V7RHkgzkAyZVweT5J2E6WEfz6ZV4kg8Py8pwAJpNu84">6V7RHkgz&hellip;</a>; one on real data where the model refused an unbacked discount: <a href="https://nearblocks.io/txns/GwLCRE5c41gvhZPryEprGtqmWwiN3bbnKatUF8aAeSj">GwLCRE5c&hellip;</a>; one under the OutLayer referee's receipt: <a href="https://nearblocks.io/txns/DisKLZ1zfgJC3kvww4DrRePKitvjW1gNN7n4Ebn9zPas">DisKLZ1z&hellip;</a>), one sealed round (<a href="https://nearblocks.io/txns/6btt5Yce1QoZm92XT2JS4TUomPNLgwB1nLWo4kbVzGJs">open</a>, <a href="https://nearblocks.io/txns/9sK7nHeHnDHpnZqpRkRwAW6Fyfy9WDepDUTr89BphTwJ">reveal</a>) and one agent-to-agent NEAR Intents settlement (<a href="https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz">42TLj4c7&hellip;</a>). <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/mainnet.md">docs/mainnet.md</a></div>
+    <div class="acts">
+      <a href="swarm.html">watch one buyer agent shop</a>
+      <a id="video-link" href="https://x.com/zeroxcholy/status/2121348926762827923">watch the 2 min video</a>
+      <a href="verify.html">verify everything</a>
+    </div>
+    <div class="series"><b>On NEAR mainnet:</b> a NEAR contract verified a Jolt proof (<a href="https://nearblocks.io/txns/DzzyBuE8CRTSiQtr4JGfrHZ4GbkG2eWLhy9nHXft31rg">DzzyBuE8&hellip;</a>), three USDC purchases, sealed rounds, an Intents settlement. <a href="mainnet.html">mainnet.html</a></div>
     <div class="series"><b>Verify in your browser:</b> <a href="prove.html">prove.html</a> (a Jolt proof), <a href="mainnet.html">mainnet.html</a> (every mainnet tx and both verdict signatures), the zk gallery kit (<a href="https://github.com/hustle1hustle/near-bookerbob/tree/main/tools/zk-gallery-verify">tools/zk-gallery-verify</a>).</div>
     <div class="breaks">
       <div class="brk"><b>Agents leak you.</b> To get a better price, a shopping agent tells sellers who you are and your history.<div class="fix">Your agent proves a few facts in a signed verdict (for the swarm buyers, from a NEAR AI model under E2EE); sellers price the verdict, code sets the price, the history stays with you, and a claim the proofs do not back is refused.</div><div class="chk">check: priced by code against proven facts, public rate 510.00, the proven buyer pays 408.00, <a href="https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6">9Esa4qik&hellip;</a></div></div>
@@ -88,7 +97,6 @@
       <img src="media/swarm-setup.svg" alt="The swarm setup: buyer agents, merchant agents, model merchants, adversarial agents and outside people bidding into the bazaar contract on NEAR testnet">
     </div>
     <div class="series">The outside test: on Nov 13 a public series of 4 sealed rounds let anyone bid from a phone, on their own testnet key, against our five model agents; each sealed bid carries its own time-locked reveal, opened after the deadline. The point is that this experiment is now possible at all: people and AI agents bid sealed in one market, and every bid and margin can be checked on chain. All 4 rounds closed: 55 sealed bids, all 55 opened (16, 14, 13, 12). In every round the scored sale was our agent-1 (cost 20.00, the floor) at +0.05, +0.01, +0.01, +0.01, and the lowest price on chain was an outside bid far below its own cost, which scored nothing. What strategies the market finds next, adaptation or tricks, is the open part. <a href="https://hustle1hustle.github.io/bookerbob-round/">the rounds</a></div>
-    <div class="series" id="video"><a id="video-link" href="https://x.com/zeroxcholy/status/2121348926762827923">watch the 2 min video</a></div>
     <div class="series"><a href="https://github.com/hustle1hustle/near-bookerbob#where-this-goes">Where this goes</a>: REP's mission, coordinating minds, and what continues after this build.</div>
     <div class="src">The swarm runs on NEAR testnet over reproducible fixture facts and dUSDC, a test token; the real-data path ran on mainnet (the founder's GitHub proof) and in the REP Proofs extension (the QFEX Jolt floor).</div>
   </section>

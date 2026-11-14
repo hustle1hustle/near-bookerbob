@@ -46,7 +46,7 @@ const WATCHER_ALLOWANCE = 100n * MILLI;
 // The buyer's budget: what it holds in USDC. Our agents bid inside it, so whoever wins, the price
 // is at most our agents' lowest bid and the buyer can pay it.
 const MAX_PRICE = 0.23;
-const RELAYER_FUND = 50n * MILLI;
+const RELAYER_FUND = 50n * MILLI, RELAYER_TOPUP = 60n * MILLI;
 const BUYER_FLOOR = 400n * MILLI;
 // At most this many approvals, and only for accounts that already registered with USDC (so a
 // winner can be paid, and slots cost the filler a storage deposit).
@@ -164,6 +164,20 @@ async function watch(c) {
     const r = await tx(c, "fund relayer", buyer.pub, buyer, relayer.pub, [{ type: "Transfer", deposit: RELAYER_FUND }]);
     if (!r.ok) throw new Error("fund relayer failed");
   }
+  // Mainnet charges a delegate's gas up front at the pessimistic price (~0.072 NEAR for a 50 TGas
+  // reveal), more than RELAYER_FUND; one top-up of RELAYER_TOPUP lifts it over that, refunded after.
+  // Each relayed reveal also takes the reveal's 0.02 NEAR deposit from the relayer (NEP-366), so
+  // after the deadline it is topped up to 0.08 NEAR per pending reveal; what is left goes back to the buyer.
+  if (Date.now() >= rec.commit_until_ms) {
+    const pending = process.env.PENDING_RELAYS ? Number(process.env.PENDING_RELAYS) : Object.keys(rec.approved ?? {}).filter((a) => !rec.reveals[a] && !Object.values(BZ.merchants).some((m) => m.account === a)).length;
+    const have = BigInt((await c.account(relayer.pub)).amount), want = 75n * MILLI + 25n * MILLI * BigInt(pending);
+    const name = ["top up relayer", "top up relayer 2", "top up relayer 3"].find((n) => !rec.txs[n]);
+    if (pending && have < want && name) {
+      const amount = want - have, held = BigInt((await c.account(buyer.pub)).amount);
+      if (held - amount < BUYER_FLOOR) throw new Error(`the buyer holds ${held}, a relayer top-up would leave less than the ${BUYER_FLOOR} floor`);
+      if (!(await tx(c, name, buyer.pub, buyer, relayer.pub, [{ type: "Transfer", deposit: amount }])).ok) throw new Error(`${name} failed`);
+    }
+  }
   const tries = new Map();
   const RETRY = /too early|429|Too Many|fetch failed|ECONN|ETIMEDOUT|timed out|socket hang up|RPC kept failing|aborted/i;
   const require = createRequire(import.meta.url);
@@ -269,9 +283,16 @@ async function settle(c) {
   }
   const live = join(DIR, `live-${ROUND}`);
   mkdirSync(live, { recursive: true, mode: 0o700 });
-  rec.buy.nullifier ??= cli(["sign-tester", KEYS, A, win.who, `bookerbob-${ROUND}`, live]);
+  // The fixture nullifier is per buyer only, and this buyer spent it in the first mainnet purchase;
+  // this purchase gets its own, labelled by the round (synthetic, like the facts).
+  if (!rec.buy.nullifier || rec.buy.nullifier === JSON.parse(readFileSync("fixtures/mainnet/buy.json", "utf8")).nullifier) delete rec.buy.nullifier;
+  const n = createHash("sha256").update(`demo-tester|${A}|bookerbob-${ROUND}`).digest("hex");
+  rec.buy.nullifier ??= execFileSync("cargo", ["run", "-q", "-p", "bookerbob-cli", "--", "sign-tester", KEYS, A, win.who, `bookerbob-${ROUND}`, live], { encoding: "utf8", env: { ...process.env, BOOKERBOB_NULLIFIER: n } }).trim();
+  if (rec.buy.nullifier !== n) throw new Error("sign-tester did not take the round nullifier");
   save();
   if (!rec.txs.verdict) {
+    // The model key registered on the mainnet bazaar (scripts/mainnet-buy.mjs, the same default).
+    process.env.MODEL_BUY_MODEL ??= "deepseek-ai/DeepSeek-V4.1-Flash-1017";
     const { issue } = await import("./model-buy.mjs");
     const base = JSON.parse(readFileSync(join(live, "verdict.json"), "utf8")).envelope;
     base.predicates = base.predicates.filter((p) => p !== "world_id_human");
@@ -377,7 +398,7 @@ async function check(c) {
   const perm = keys?.permission?.FunctionCall;
   if (!perm || perm.receiver_id !== B || JSON.stringify([...perm.method_names].sort()) !== JSON.stringify(["approve_merchant", "open_round"])) fails.push("the watcher key is not limited to open_round and approve_merchant");
   for (const [name, h] of Object.entries(rec.txs)) {
-    const signer = name.startsWith("relay reveal ") ? rec.relayer : name === "fund relayer" ? JSON.parse(readFileSync("fixtures/mainnet/buy.json", "utf8")).buyer : name.startsWith("commit ") || name.startsWith("reveal ") ? BZ.merchants[name.split(" ")[1]].account : ["add watcher key", "open_round"].includes(name) || name.startsWith("approve ") ? B : rec.buy?.buyer ?? B;
+    const signer = name.startsWith("relay reveal ") ? rec.relayer : name === "fund relayer" || name.startsWith("top up relayer") ? JSON.parse(readFileSync("fixtures/mainnet/buy.json", "utf8")).buyer : name.startsWith("commit ") || name.startsWith("reveal ") ? BZ.merchants[name.split(" ")[1]].account : ["add watcher key", "open_round"].includes(name) || name.startsWith("approve ") ? B : rec.buy?.buyer ?? B;
     const r = (await c.rpc("tx", { tx_hash: h, sender_account_id: signer, wait_until: "FINAL" })).result;
     const bad = !r || [r.transaction_outcome, ...r.receipts_outcome].some((o) => o.outcome.status.Failure) || r.status.Failure;
     if (bad) fails.push(`tx ${name} ${h.slice(0, 8)}.. did not succeed`);

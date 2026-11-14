@@ -18,19 +18,30 @@
   },
   "agents": {
     "merchant-a": {
-      "account": "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5"
+      "account": "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5",
+      "price": 0.17
     },
     "merchant-b": {
-      "account": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0"
+      "account": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+      "price": 0.15
     }
   },
   "approved": {
     "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "7K36642sRoEdLVMrDv9gy39DUS1NuM6uKZdWkwLtEnX2",
     "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "3CXdUEzZJ6CbxquHD9EQfwawVuSXKNk9xkG2ZJt8fTgY",
     "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "G2gVfSgDaQDwbmy88SasvLREG6zQCQGeNjSBwG2r44Kd",
-    "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC"
+    "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC",
+    "ed5c39e82837c708b5d824f1277179dacbeceb2cbcc6a53753c5b736976761d8": "Dfm4eqNTbNN4YSCNw5GmJanRTFdXFA5zXcYNksWWH9VZ",
+    "63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264": "FtAeg54qEtFSXRSWvZkTKVwx4PZu7jnxNyaivuHLQXX9",
+    "0a83ff7895128072ff6d055f3ee62b8b271342a36f9cf282d0bcf7f3acc11dd3": "47SJh251uXbmLS5k2JgemNDTrFxQ7Yay46aaUEHGiNDj"
   },
-  "reveals": {},
+  "reveals": {
+    "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "hxvus9CyRV2jhnvWUw8tbayQx1Tu3nEUiPueBHrK9nD",
+    "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "4abbuegh6nKE6sw759JYDkd7QKZUFDrpFLpWCgeFuP7h",
+    "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "B3zNrraPjvFhMQFV4PdKZQroVm1TLLgdF7qMm4B9vXA6",
+    "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "67KwTTkJ1tMdsD9wSmijTSZbDvrX1mpaN5KFvkbzD8aq",
+    "63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264": "2VbScasnuL8P3SPxwcFn6xasBaS8DPri5UrkePFE5XJ9"
+  },
   "txs": {
     "add watcher key": "Cyb5LpvzoECDfDCw4u8PoKpgpTgfUK4ifWGv3zX2s1fa",
     "open_round": "EZmS7q5Ew1B8yawcZyNj3iPJyMUzgkBt5GJtJaqsGkg3",
@@ -40,7 +51,23 @@
     "fund relayer": "HSUtCzbxdXTCnqgydVr4shMvyjBtZhCeCxJq579pibgg",
     "approve 365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "3CXdUEzZJ6CbxquHD9EQfwawVuSXKNk9xkG2ZJt8fTgY",
     "approve 6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "G2gVfSgDaQDwbmy88SasvLREG6zQCQGeNjSBwG2r44Kd",
-    "approve 776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC"
+    "approve 776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC",
+    "approve ed5c39e82837c708b5d824f1277179dacbeceb2cbcc6a53753c5b736976761d8": "Dfm4eqNTbNN4YSCNw5GmJanRTFdXFA5zXcYNksWWH9VZ",
+    "approve 63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264": "FtAeg54qEtFSXRSWvZkTKVwx4PZu7jnxNyaivuHLQXX9",
+    "approve 0a83ff7895128072ff6d055f3ee62b8b271342a36f9cf282d0bcf7f3acc11dd3": "47SJh251uXbmLS5k2JgemNDTrFxQ7Yay46aaUEHGiNDj",
+    "reveal merchant-a": "6yT477Jigp8h4oorZ7o6fjdrqAZqEH4MoSvpJNtiBmN1",
+    "reveal merchant-b": "GtyPyM35Jr6VHXyPjkKApK96TbPpXdgZCGMZqpTV5GR1",
+    "top up relayer": "52d9psS5Yu3Pj8V2SiCtH6KVKuRrx7uoRqU5kyPLqrM9",
+    "relay reveal 3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "hxvus9CyRV2jhnvWUw8tbayQx1Tu3nEUiPueBHrK9nD",
+    "relay reveal 365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "4abbuegh6nKE6sw759JYDkd7QKZUFDrpFLpWCgeFuP7h",
+    "top up relayer 2": "C4uWV8CYZyVd1Zd3kxgJxDXzMhY8gVMqqB6Q8vewoSrX",
+    "relay reveal 6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "B3zNrraPjvFhMQFV4PdKZQroVm1TLLgdF7qMm4B9vXA6",
+    "relay reveal 776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "67KwTTkJ1tMdsD9wSmijTSZbDvrX1mpaN5KFvkbzD8aq",
+    "relay reveal 63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264": "2VbScasnuL8P3SPxwcFn6xasBaS8DPri5UrkePFE5XJ9",
+    "verdict": "FLdRXuaCEw4GWN2yzt2c7Fs9i1fQcXMomHN4VYPdczdQ",
+    "receipt": "9uuyu5NEuFbzR6cWmyxG5rqCH8TDr9WpS9zvzS2wkYv5",
+    "escrow": "CaSotxmaSPdsrvSGYcZFCVn9r6aNg4pspBvo8jLvhkhQ",
+    "settle": "9oA7YeCgyZS4wn9cqPFtHVZgpAG319j1yqN9MQyiYhtS"
   },
   "page_test": {
     "note": "our own test of the round page flow (the page code, round-tx.js, run from Node): a fresh key, funded by our buyer, bids 0.23 USDC. Marked ours.",
@@ -55,5 +82,66 @@
       "commit": "FD9uph94qHRDZbCVF37inYxov6nn4y4mSeYGipfnASra"
     }
   },
-  "relayer": "77c85b991ff2e8a17c0a31d10c24c27b675bcaff207e0b7967bf17ab8b8a8323"
+  "relayer": "77c85b991ff2e8a17c0a31d10c24c27b675bcaff207e0b7967bf17ab8b8a8323",
+  "result": {
+    "sealed": 7,
+    "revealed": 7,
+    "winner": "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5",
+    "winner_is_ours": false,
+    "price": "50000",
+    "bids": [
+      {
+        "who": "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5",
+        "price": "50000",
+        "ours": false
+      },
+      {
+        "who": "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05",
+        "price": "70000",
+        "ours": false
+      },
+      {
+        "who": "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35",
+        "price": "110000",
+        "ours": false
+      },
+      {
+        "who": "63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264",
+        "price": "140000",
+        "ours": false
+      },
+      {
+        "who": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+        "price": "150000",
+        "ours": true
+      },
+      {
+        "who": "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5",
+        "price": "170000",
+        "ours": true
+      },
+      {
+        "who": "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070",
+        "price": "230000",
+        "ours": true
+      }
+    ],
+    "settle_tx": "9oA7YeCgyZS4wn9cqPFtHVZgpAG319j1yqN9MQyiYhtS"
+  },
+  "buy": {
+    "buyer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+    "near_ai": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+      "chat_id": "chatcmpl-e3d99309-173b-4680-b628-eb849c37c4e6",
+      "request_sha256": "dc7037fc83d352adfc89ff6f5313fb10939f7d7956a38282f280a4150acee764",
+      "response_sha256": "5fc724475ad68a1765171e772df47e373dc0db723c109397eb05dfb10db7d039",
+      "attested": [
+        "airbnb_frequent",
+        "claude_spender"
+      ]
+    },
+    "nullifier": "eeed984f5ca3e63fe72c3c0f41a99778b940b0073ce1c0751abdbd5d07b405ce",
+    "checkout_ref": "mainnet-open-1-1794695599630"
+  }
 }

@@ -16,7 +16,7 @@ creates the account. NEAR asks a transaction to hold more than it spends; biddin
 about 0.01 NEAR (USDC storage so a winner can be paid, the merchant record, the sealed bid), and
 the rest stays on the account ("show my key" exports it). The reveal is signed in the page as a
 NEP-366 delegate and time-locked with drand to the bid deadline, inside the commit's arguments;
-after the deadline `scripts/round-mainnet.mjs watch` opens it and relays it once, from a small relayer account of ours (0.05 NEAR, funded from the buyer only while the buyer keeps 0.4 NEAR for the settle), paying the gas. It
+after the deadline `scripts/round-mainnet.mjs watch` opens it and relays it, from a small relayer account of ours (funded from the buyer only while the buyer keeps 0.4 NEAR for the settle), paying the gas and the reveal's 0.02 NEAR deposit. Mainnet charges a delegate's gas up front (about 0.072 NEAR), so the first 0.05 NEAR fund failed the first relays at 21:30; two top-ups (0.06 and 0.083 NEAR) relayed all of them by 21:33; after the settle 0.074 NEAR went back to the buyer (`G4LJDuJywEaincrxFBCGGN45avytxMyk8oKZ8yoTTZtC`). It
 checks that the opened delegate is exactly one `reveal_bid` on this round signed by the bidder's
 own key, so it cannot change a price.
 
@@ -72,3 +72,7 @@ yet, one per IP per 10 minutes, ten in all; the faucet's balance alone also allo
 entries were sponsored by BookerBob; the bids on them are still each bidder's own, on a key made in
 their browser. Funding and every payout: `fixtures/mainnet/faucet.json` (`node scripts/round-mainnet.mjs faucet`
 re-reads it from chain), checked by `node scripts/round-mainnet.mjs check`.
+
+## Result
+
+7 sealed bids, 7 revealed. The lowest was an outside account, `6f69cd2e…b152f5`, at 0.05 USDC (its first NEAR came from the faucet; the key and the price were its own). The other outside bids: 0.07, 0.11, 0.14; ours: 0.15, 0.17, 0.23. The buyer paid 0.05 USDC by `settle` (`9oA7YeCgyZS4wn9cqPFtHVZgpAG319j1yqN9MQyiYhtS`), against a NEAR AI verdict and a referee receipt. This purchase uses its own fixture nullifier (the buyer's first one was spent by the first mainnet purchase).

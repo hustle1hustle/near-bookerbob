@@ -13,5 +13,49 @@
     "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "test"
   },
   "open_tx": "EZmS7q5Ew1B8yawcZyNj3iPJyMUzgkBt5GJtJaqsGkg3",
-  "result": null
+  "result": {
+    "sealed": 7,
+    "revealed": 7,
+    "winner": "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5",
+    "winner_is_ours": false,
+    "price": "50000",
+    "bids": [
+      {
+        "who": "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5",
+        "price": "50000",
+        "ours": false
+      },
+      {
+        "who": "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05",
+        "price": "70000",
+        "ours": false
+      },
+      {
+        "who": "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35",
+        "price": "110000",
+        "ours": false
+      },
+      {
+        "who": "63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264",
+        "price": "140000",
+        "ours": false
+      },
+      {
+        "who": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+        "price": "150000",
+        "ours": true
+      },
+      {
+        "who": "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5",
+        "price": "170000",
+        "ours": true
+      },
+      {
+        "who": "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070",
+        "price": "230000",
+        "ours": true
+      }
+    ],
+    "settle_tx": "9oA7YeCgyZS4wn9cqPFtHVZgpAG319j1yqN9MQyiYhtS"
+  }
 }

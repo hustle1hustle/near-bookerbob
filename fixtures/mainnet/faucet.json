@@ -6,5 +6,30 @@
     "6bFbGJK5zZRwobvqqApDLy4YsXjLf4mdL7MvSnET1pdn"
   ],
   "payout_yocto": "70000000000000000000000",
-  "payouts": []
+  "payouts": [
+    {
+      "to": "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05",
+      "tx": "4rk5Ypr9kgrHJC7TxncZa4RwXio74jFPZZxdase5uZK1"
+    },
+    {
+      "to": "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5",
+      "tx": "HLsQh2pBcAehWBYDYZ165HBLjYh5LgDoAMACoruPsqJi"
+    },
+    {
+      "to": "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35",
+      "tx": "Eu3Ua42entgVvDoK7utXi9gxJ4RS17DWFE1Lv8Q3Hx9R"
+    },
+    {
+      "to": "ed5c39e82837c708b5d824f1277179dacbeceb2cbcc6a53753c5b736976761d8",
+      "tx": "2jvZaghidwysaAvm6PrBEJ1h7GwFDXkp8UZmyucJNPLp"
+    },
+    {
+      "to": "63bc05e393cf498a5b80af2c6ae14a3c052fffcc138a1514d5d7763684456264",
+      "tx": "7ozeVzCkgW2GJ5AsBciVBPNxBRz5du8tYb5jLwaNBrJM"
+    },
+    {
+      "to": "0a83ff7895128072ff6d055f3ee62b8b271342a36f9cf282d0bcf7f3acc11dd3",
+      "tx": "GhsSkxY27eYUCjRKQ61LC6GJjrhprY1UUgTLrAqR2C28"
+    }
+  ]
 }
