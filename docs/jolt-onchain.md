@@ -67,6 +67,38 @@ Total 6.07 PGas, about 0.6 NEAR of gas at the testnet gas price. Storage: the 3.
 When the job ends those are removed and the deposit comes back minus the job record that stays
 (about 490 bytes, 0.005 NEAR), so ended jobs are paid for by their submitters.
 
+## The same verifier on NEAR mainnet
+
+The identical wasm (sha256 `29ae5c01..`, code hash `3ohvMhiFS2PUuKkBPMU1BFbXcSAFbMYkEsg1RUpRpqEh`,
+the locked testnet verifier's) runs on mainnet at the implicit account
+`bf54e11d3abe7fa8a440ccf1534759ca7e96a91930504aa095a0f65808e02be3`. It was deployed on
+2026-11-14 on the founder's word, funded with 41.85 NEAR.
+
+Check it without keys: `make jolt-onchain-mainnet-check` (`node scripts/jolt-onchain-check.mjs
+--mainnet`, 26 checks with a local build, 25 without, ends `PASS  jolt-onchain-check`). It checks:
+
+- The mainnet code hash equals the locked testnet verifier's, and the embedded program is
+  `c780ceab..`, the hash `bookerbob.testnet` registers.
+- The staged deploy: the loader, 6 `put` txs that reassemble to exactly the recorded wasm, and
+  `deploy(sha256)`.
+- Both jobs as on testnet: every tx bound to its job, the statement re-derived, the events matched.
+
+| step | tx |
+|---|---|
+| loader, 6 chunks, deploy | [86oSc8s6..](https://nearblocks.io/txns/86oSc8s64nFu6ZQtE3PKzL4zawVrvfhqusB591Nz2Ex9), ..., [8g1awM7g..](https://nearblocks.io/txns/8g1awM7gg6WzScxU4DXFXj3NcGePPBnYUN3Byw1Epcqy) |
+| job 1: the live standing proof (the proof behind the bazaar's tree, as testnet job 4): `verified`, 8 txs, 6.44 PGas | submit [GSm6sFUS..](https://nearblocks.io/txns/GSm6sFUSoa8pEUp7QxmnEBXYWJwP5cxK3cedKumUb4rd), last [DzzyBuE8..](https://nearblocks.io/txns/DzzyBuE8CRTSiQtr4JGfrHZ4GbkG2eWLhy9nHXft31rg) |
+| job 2: the Dory forgery (as testnet job 2): `refused at unit 56: dory final: InvalidProof`, 8 txs | submit [E9vNuYoo..](https://nearblocks.io/txns/E9vNuYooUmWQiruqpLbZSVhZoQBu1ufsoj59M64eEBba), last [4ZCrg8cq..](https://nearblocks.io/txns/4ZCrg8cqN1B4G4CWefM398ak8cvrCxv46qGqTfuRNrXk) |
+
+Cost: 1.32 NEAR left the account (41.848 to 40.528). Of that, about 1.31 is gas: 0.08 for the
+deploy and about 1.23 for the two jobs. The other 0.011 is the two ended job records. About 36.3
+NEAR stays as code storage.
+
+Unlike the testnet copy, the mainnet account keeps its full-access key, so the ~36 NEAR of code
+storage can be reclaimed after judging. Until then the key's holder (REP) could redeploy the
+code. The keyless check prints the key count; the permanence claim belongs to the testnet copy.
+The runner is `zk/onchain/scripts/mainnet.mjs`: it refuses without `--mainnet` and
+`BOOKERBOB_MAINNET_GO=<today>`, and records every tx in `zk/onchain/onchain-run-mainnet.json`.
+
 ## A contract that acts on it: coalition version 4
 
 `coalition-v4.bookerbob-demo.testnet` (source `coalition/v4/`, wasm sha256 `47e3fa11..`, created

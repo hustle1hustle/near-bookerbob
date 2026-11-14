@@ -1,0 +1,60 @@
+{
+  "network": "mainnet",
+  "contract": "bf54e11d3abe7fa8a440ccf1534759ca7e96a91930504aa095a0f65808e02be3",
+  "signer": "bf54e11d3abe7fa8a440ccf1534759ca7e96a91930504aa095a0f65808e02be3",
+  "wasm_sha256": "29ae5c01c1b95c572f2df3383e889761896cc9322ec2b26779effd98ca5533d2",
+  "key": "kept: the storage (about 36 NEAR) is reclaimed after judging",
+  "txs": {
+    "loader": "86oSc8s64nFu6ZQtE3PKzL4zawVrvfhqusB591Nz2Ex9",
+    "chunks": [
+      "7NTTGNmBWVTgkQhQAdEu6K7HcXFm68wJVjLchFpHg7vQ",
+      "9ULMsJAxGR4XFQHfysktvsFDZV3WoiowJGLaK8wTp378",
+      "AYKG4zJRQTyiMhFLG38duskvkQsTjGQcbkNRs8Z7PPEa",
+      "J9FfDNEphVQTfDKvcjfbamogEJDSeJQ2Vy4uZA53z6bT",
+      "F2XEKS7kT1DDbPhfZPeqKAupJyP6hRr2XTLBB4bvfWsv",
+      "9LgAvdGmANxU1EZVnLj6iJeUjwYKsfzfSUydsT4h7JZ1"
+    ],
+    "deploy": "8g1awM7gg6WzScxU4DXFXj3NcGePPBnYUN3Byw1Epcqy"
+  },
+  "jobs": [
+    {
+      "which": "honest",
+      "proof": "zk/onchain/live/proof.bin",
+      "io": "zk/onchain/live/io_device.bin",
+      "expect": "verified",
+      "what": "the live standing proof behind the bazaar's standing tree",
+      "result": "zk/onchain/live/result.json",
+      "id": 1,
+      "txs": [
+        "GSm6sFUSoa8pEUp7QxmnEBXYWJwP5cxK3cedKumUb4rd",
+        "ESXEYDJk5LbHQD1JGjvrXnr72MeEJ1yz2T4BHFEb5aMe",
+        "ByHkgLwUYt5of4gUeG36zEMPMiTGMyHr2n1Z9Gw5Ekan",
+        "Dvrx9JZCXtqHH5KVJWTpN7ygRH1sCqyztzhFLx57xWRv",
+        "Bzy8JpeLFACQQjhvUer7opF5Wcfm3R4ShUQBh3rNJmyF",
+        "DXf7LMaYzzpr8HZFSX8S7XL2nZBTWsdAssKxvYBwtasj",
+        "7ibcNvozxDAxHGUqvCT3hhqyMDLyF5KCmk93KgHXiLBM",
+        "DzzyBuE8CRTSiQtr4JGfrHZ4GbkG2eWLhy9nHXft31rg"
+      ],
+      "status": "verified"
+    },
+    {
+      "which": "forged",
+      "proof": "zk/onchain/forged/forged-dory.bin",
+      "io": "zk/out/standing-testnet-3/io_device.bin",
+      "expect": "refused at unit 56: dory final: InvalidProof",
+      "what": "the standing-testnet-3 proof with the final Dory message's E1 moved by the G1 generator (a valid point), the same forgery as testnet job 2",
+      "id": 2,
+      "txs": [
+        "E9vNuYooUmWQiruqpLbZSVhZoQBu1ufsoj59M64eEBba",
+        "EKQLsMzVTNLp4WiT1uRGwJDzzCNidzNaMqyUeNtMsiET",
+        "BxZSCerMB9vtQjk8afj37GpQER67adaha3eXJ7BxREbP",
+        "HAyizF2XXUfBeWd4fBF5TxD89czSc4Md9YzDXuaFgsz",
+        "HKoa6wQazLrfVCSF4KVJTXAF5boDvH6DcV95hT7itAzS",
+        "b2T1QVAP2b9pn5oHvNoSiLU8geN8eP9GmbxFUNCHq3q",
+        "4T6VjDvELzUTLBDtCPq1TK49khiTcdkHszgmx44bykuj",
+        "4ZCrg8cqN1B4G4CWefM398ak8cvrCxv46qGqTfuRNrXk"
+      ],
+      "status": "refused at unit 56: dory final: InvalidProof"
+    }
+  ]
+}

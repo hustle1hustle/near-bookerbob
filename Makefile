@@ -191,6 +191,9 @@ jolt-onchain-check:
 coalition-jolt-check:
 	node scripts/coalition-jolt-check.mjs
 
+jolt-onchain-mainnet-check:
+	node scripts/jolt-onchain-check.mjs --mainnet
+
 jolt-onchain-test:
 	cd coalition/v4 && cargo test --release
 
@@ -394,7 +397,7 @@ anchor-open-wasm:
 # runs with no network from fixtures/live/anchor/). The crate is outside the workspace, with its own lock.
 .PHONY: arc-anchor-rebuild arc-anchor-verify arc-anchor-test arc-anchor-wasm
 .PHONY: dory-urs zk-prove
-.PHONY: jolt-onchain-check coalition-jolt-check jolt-onchain-test keyless-check
+.PHONY: jolt-onchain-check coalition-jolt-check jolt-onchain-test keyless-check jolt-onchain-mainnet-check
 ANCHOR_FLAGS ?=
 arc-anchor-rebuild:
 	node scripts/anchor.mjs rebuild $(ANCHOR_FLAGS)

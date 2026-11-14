@@ -1,22 +1,22 @@
 {
-  "ran_at": "2026-11-14T19:13:22.607Z",
-  "only": "keyless-check",
-  "seconds": 2,
+  "ran_at": "2026-11-14T19:17:23.868Z",
+  "only": "mainnet-check",
+  "seconds": 17,
   "quick": false,
   "results": [
     {
       "section": "mainnet",
-      "what": "the bazaar's code and sealed round, the USDC purchase under a NEAR AI verdict, the refused real-data discount, the NEAR Intents settlement, the model's TDX quote verified on chain (DCAP) and its key registered against it, the OutLayer referee and the open round mainnet-open-1",
+      "what": "the bazaar's code and sealed round, the USDC purchase under a NEAR AI verdict, the refused real-data discount, the NEAR Intents settlement, the model's TDX quote verified on chain (DCAP) and its key registered against it, the OutLayer referee, the open round mainnet-open-1 and the Jolt verifier on mainnet",
       "command": "node scripts/mainnet-check.mjs",
-      "ran_at": "2026-11-14T18:55:57.252Z",
+      "ran_at": "2026-11-14T19:17:23.863Z",
       "mode": "live",
       "ok": true,
-      "live_pass": 8,
+      "live_pass": 9,
       "live_fail": [],
       "timed_out": false,
       "replay": null,
-      "seconds": 8,
-      "line": "PASS  mainnet-check: 7 of 7 mainnet records re-read over public RPC, no keys"
+      "seconds": 17,
+      "line": "PASS  mainnet-check: 8 of 8 mainnet records re-read over public RPC, no keys"
     },
     {
       "section": "mainnet",

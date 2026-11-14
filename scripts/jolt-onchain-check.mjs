@@ -7,15 +7,19 @@
 // Usage: node scripts/jolt-onchain-check.mjs   (NEAR_RPC=<url> to choose the RPC)
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-const RPCS = process.env.NEAR_RPC ? [process.env.NEAR_RPC] : ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org", "https://archival-rpc.testnet.fastnear.com"];
-const run = JSON.parse(readFileSync(new URL("../zk/onchain/onchain-run.json", import.meta.url)));
+// --mainnet: the same wasm on NEAR mainnet (zk/onchain/onchain-run-mainnet.json), its key kept.
+const MAINNET = process.argv.includes("--mainnet");
+const TESTNET_RPCS = ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org", "https://archival-rpc.testnet.fastnear.com"];
+const MAINNET_RPCS = ["https://rpc.mainnet.fastnear.com", "https://rpc.mainnet.near.org", "https://archival-rpc.mainnet.fastnear.com"];
+const RPCS = process.env.NEAR_RPC ? [process.env.NEAR_RPC] : MAINNET ? MAINNET_RPCS : TESTNET_RPCS;
+const run = JSON.parse(readFileSync(new URL(MAINNET ? "../zk/onchain/onchain-run-mainnet.json" : "../zk/onchain/onchain-run.json", import.meta.url)));
 const root = new URL("..", import.meta.url).pathname;
 const sha = (b) => createHash("sha256").update(b).digest();
 let fails = 0;
 const ok = (c, m) => { console.log(`${c ? "PASS" : "FAIL"}  ${m}`); if (!c) fails++; };
-async function rpc(method, params) {
+async function rpc(method, params, urls = RPCS) {
   for (let i = 0; i < 12; i++) {
-    const url = RPCS[i % RPCS.length];
+    const url = urls[i % urls.length];
     try {
       const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
       if (r.status === 429 || r.status >= 500) { await new Promise((s) => setTimeout(s, 1500)); continue; }
@@ -26,8 +30,8 @@ async function rpc(method, params) {
     } catch (e) { if (i === 11) throw e; await new Promise((s) => setTimeout(s, 1000)); }
   }
 }
-const view = async (acct, method, args = {}) => {
-  const r = await rpc("query", { request_type: "call_function", finality: "final", account_id: acct, method_name: method, args_base64: Buffer.from(JSON.stringify(args)).toString("base64") });
+const view = async (acct, method, args = {}, urls = RPCS) => {
+  const r = await rpc("query", { request_type: "call_function", finality: "final", account_id: acct, method_name: method, args_base64: Buffer.from(JSON.stringify(args)).toString("base64") }, urls);
   return JSON.parse(Buffer.from(r.result).toString());
 };
 // the statement formula, as in zk/onchain/src/contract.rs
@@ -48,10 +52,10 @@ function readIo(b) {
 }
 const PROGRAM = "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5";
 const C = run.contract;
-console.log(`on-chain Jolt verifier ${C} (testnet), public RPC, no keys`);
+console.log(`on-chain Jolt verifier ${C} (${MAINNET ? "mainnet" : "testnet"}), public RPC, no keys`);
 const ph = await view(C, "program_hash");
 ok(ph === PROGRAM, `verifier's embedded program hash ${ph.slice(0, 16)}.. is the standing program`);
-const reg = await view("bookerbob.testnet", "graph_program");
+const reg = await view("bookerbob.testnet", "graph_program", {}, TESTNET_RPCS);
 ok(reg === ph, `the bazaar's registered graph_program (bookerbob.testnet) is the same hash`);
 const acc = await rpc("query", { request_type: "view_account", finality: "final", account_id: C });
 const b58 = (buf) => { const A = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"; let n = BigInt("0x" + buf.toString("hex")), o = ""; while (n > 0n) { o = A[Number(n % 58n)] + o; n /= 58n; } return o; };
@@ -62,7 +66,31 @@ try {
 } catch { console.log("      (no local build at zk/onchain/target/jolt_onchain.wasm: `zk/onchain/scripts/build.sh` makes one)"); }
 const keys = await rpc("query", { request_type: "view_access_key_list", finality: "final", account_id: C });
 const full = keys.keys.filter((k) => k.access_key.permission === "FullAccess").length;
-if (run.lock_tx) ok(keys.keys.length === 0, `${C} has no access keys (deleted in ${run.lock_tx.slice(0, 8)}..): the code is permanent`);
+if (MAINNET) {
+  const tv = await rpc("query", { request_type: "view_account", finality: "final", account_id: "verifier.bookerbob-jolt-a.testnet" }, TESTNET_RPCS);
+  ok(acc.code_hash === tv.code_hash, `the mainnet code hash is the locked testnet verifier's (verifier.bookerbob-jolt-a.testnet, ${tv.code_hash.slice(0, 8)}..)`);
+  ok(C === Buffer.from(C, "hex").toString("hex") && C.length === 64, `${C.slice(0, 12)}.. is an implicit account (its id is its ed25519 public key)`);
+  // the staged deploy: the loader, the code in chunks that reassemble to the recorded wasm, deploy(sha256)
+  const T = (h) => rpc("EXPERIMENTAL_tx_status", { tx_hash: h, sender_account_id: C, wait_until: "NONE" });
+  const tl = await T(run.txs.loader);
+  const lact = tl.transaction.actions[0];
+  ok(tl.transaction.receiver_id === C && tl.transaction.actions.length === 1 && lact.DeployContract && "SuccessValue" in tl.status, `the loader deployed onto ${C.slice(0, 8)}.. (${run.txs.loader.slice(0, 8)}.., code sha256 ${sha(Buffer.from(lact.DeployContract.code, "base64")).toString("hex").slice(0, 12)}..)`);
+  const parts = [];
+  let chunksOk = true;
+  for (const h of run.txs.chunks) {
+    const t = await T(h);
+    const f = t.transaction.actions[0]?.FunctionCall;
+    chunksOk &&= t.transaction.receiver_id === C && t.transaction.actions.length === 1 && f?.method_name === "put" && "SuccessValue" in t.status;
+    parts.push(Buffer.from(f.args, "base64"));
+  }
+  const whole = Buffer.concat(parts);
+  ok(chunksOk && sha(whole).toString("hex") === run.wasm_sha256, `${run.txs.chunks.length} put txs carried ${whole.length} bytes whose sha256 is the recorded wasm ${run.wasm_sha256.slice(0, 12)}..`);
+  const td = await T(run.txs.deploy);
+  const df = td.transaction.actions[0]?.FunctionCall;
+  const deployed = td.receipts_outcome.some((r) => r.outcome.executor_id === C && r.outcome.logs.some((l) => l === `deploying ${whole.length} bytes`));
+  ok(td.transaction.receiver_id === C && df?.method_name === "deploy" && Buffer.from(df.args, "base64").toString("hex") === run.wasm_sha256 && deployed && "SuccessValue" in td.status, `deploy(${run.wasm_sha256.slice(0, 12)}..): the loader checked the sha256 and deployed ${whole.length} bytes onto itself (${run.txs.deploy.slice(0, 8)}..)`);
+  console.log(`      access keys: ${keys.keys.length} (${full} full-access, kept on purpose: the ~36 NEAR of code storage is reclaimed after judging; the testnet copy is the locked one)`);
+} else if (run.lock_tx) ok(keys.keys.length === 0, `${C} has no access keys (deleted in ${run.lock_tx.slice(0, 8)}..): the code is permanent`);
 else console.log(`      access keys on ${C}: ${keys.keys.length} (${full} full-access: the holder can redeploy the code)`);
 console.log(`      pin: ${await view(C, "jolt_pin")}`);
 const events = (logs) => logs.filter((l) => l.startsWith("EVENT_JSON:")).map((l) => JSON.parse(l.slice(11)));

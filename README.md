@@ -3,13 +3,15 @@
 [![ci](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml)
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)
 
-**A locked NEAR testnet contract runs a16z's Jolt verifier on a full proof: stages 1 to 7 and the
-Dory opening, about 6 PGas over 8 transactions.** A forged Dory proof and a one-byte claim change
-are refused on chain. `verifier.bookerbob-jolt-a.testnet` holds no access key (lock tx
+**The same NEAR contract runs a16z's Jolt verifier on a full proof on mainnet and on testnet:
+stages 1 to 7 and the Dory opening, about 6 PGas over 8 transactions.** On mainnet it verified the
+live agent-reputation proof ([DzzyBuE8…](https://nearblocks.io/txns/DzzyBuE8CRTSiQtr4JGfrHZ4GbkG2eWLhy9nHXft31rg)).
+A forged Dory proof is refused on both networks and a one-byte claim change on testnet, and the
+testnet copy, `verifier.bookerbob-jolt-a.testnet`, holds no access key (lock tx
 [EVRobx8K…](https://testnet.nearblocks.io/txns/EVRobx8K5h4H145c7tCUU1KmTiJx3Bke17sqmJPaMaFQ)).
-Re-check it in under 30 s: `node scripts/jolt-onchain-check.mjs`.
+Re-check it in under 30 s: `node scripts/jolt-onchain-check.mjs`, `make jolt-onchain-mainnet-check`.
 
-A keyless coalition admits merchant agents only when that verifier proves the bazaar's live
+A keyless coalition admits merchant agents only when the testnet verifier proves the bazaar's live
 reputation root, so agent reputation is closed on chain for coalition admission: the bazaar, the
 verifier and the coalition hold no keys (`make coalition-jolt-check`, `node scripts/keyless-check.mjs`).
 

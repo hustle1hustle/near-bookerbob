@@ -19,7 +19,7 @@ const NETERR = /fetch failed|ETIMEDOUT|ECONNRESET|ENOTFOUND|EAI_AGAIN|429|Too Ma
 
 // [section, what it shows, command, script it needs (absent: listed as not in this tree), fixture fallback env]
 const CHECKS = [
-  ["mainnet", "the bazaar's code and sealed round, the USDC purchase under a NEAR AI verdict, the refused real-data discount, the NEAR Intents settlement, the model's TDX quote verified on chain (DCAP) and its key registered against it, the OutLayer referee and the open round mainnet-open-1", ["node", "scripts/mainnet-check.mjs"], "scripts/mainnet-check.mjs"],
+  ["mainnet", "the bazaar's code and sealed round, the USDC purchase under a NEAR AI verdict, the refused real-data discount, the NEAR Intents settlement, the model's TDX quote verified on chain (DCAP) and its key registered against it, the OutLayer referee, the open round mainnet-open-1 and the Jolt verifier on mainnet", ["node", "scripts/mainnet-check.mjs"], "scripts/mainnet-check.mjs"],
   ["mainnet", "the OutLayer referee on outlayer.near: project, TEE key registered on the mainnet bazaar, one purchase settled under its receipt", ["node", "scripts/mainnet-outlayer.mjs", "check"], "scripts/mainnet-outlayer.mjs"],
   ["both", "OutLayer TDX attestation of five runs (the referee's purchase, cheat and dispute and the Jolt verifier on testnet; the referee purchase on mainnet): record = tx, task hash = the quote's report_data, the quote verified by our DCAP verifier, measurements approved on chain", ["node", "scripts/outlayer-attest.mjs", "verify"], "scripts/outlayer-attest.mjs"],
   ["testnet", "the OutLayer referee: a purchase settled under its signed receipt, a cheat refused and its settle blocked", ["node", "scripts/outlayer-buy.mjs", "verify"], "scripts/outlayer-buy.mjs"],
