@@ -27,9 +27,14 @@ verifier and the coalition hold no keys (`make coalition-jolt-check`; `node scri
 New Jolt checks come from the swarm: on an agent's request, a TEE-attested NEAR AI model writes the
 guest from a fixed skeleton, and a testnet registry records its program hash ([docs/smith.md](docs/smith.md)).
 
+<a name="lean"></a>*AI writes the rules. A second AI must read them the same way. Lean proves the code does it, a TEE checks the proof, and Jolt proves every run.*
+
+On the first rule, the second AI caught a zero-price case the code paid out on; Lean proved the gap with a counterexample, and the rule was rewritten.
+
 **Lean proofs for smith programs (two agents, checked in a TEE).** For coalition-split v2 (spec sha256 `141a68aed288f1c4…`), a writer agent wrote the check's Lean model and spec, and a reviewer agent wrote an independent spec from the request text alone; Lean proves `Smith.S_141a68aed288f1c4.check_ok_iff_spec` and `spec_a_iff_spec_b` (no `sorry`; axioms propext, Quot.sound, Classical.choice), and the first version's one reading mismatch (a delivered seat priced 0) is itself a theorem with a counterexample, a case v2 refuses.
 In OutLayer run [8WzYepEo…](https://testnet.nearblocks.io/txns/8WzYepEoar7nHA4xC2pMzLnrSvxT9YMo1qysfuKXuBbx) (request 48842), the nanoda Lean kernel, inside an attested TDX run of the published worker build ([near-lean-attest v0](https://github.com/hustle1hustle/near-lean-attest/releases/tag/v0), wasm sha256 `150d7ea1…`), fetched coalition-split-v2.delta, confirmed its sha256 `a1dc658b…`, and accepted check_ok_iff_spec and spec_a_iff_spec_b over the sealed base `59ad6e66…`; our dcap-qvl verifies the TDX quote.
 The delta rebuilds byte for byte from the Lean sources (specs A and B readable) in the same release, and anyone can re-check the proofs locally from base plus delta.
+The audited v1 worker ([near-lean-attest v1](https://github.com/hustle1hustle/near-lean-attest/releases/tag/v1), wasm `27416395…`) checked the smith's registered coalition-split request live ([8t2dN9P4…](https://testnet.nearblocks.io/txns/8t2dN9P4ez2dgZ7LPCy1ZmMrx3qwJMvNAo5SHU79JjY), program `dc65a0f0…`): its signed statement carries the kernel-checked counterexample at a zero price, the reading mismatch that the request's v2 resolves; our dcap-qvl verifies the quote.
 
 Verify everything: [agents/verify.html](https://hustle1hustle.github.io/near-bookerbob/verify.html), `make verify-all` (about 15 min; `QUICK=1` for about 3 min).
 
