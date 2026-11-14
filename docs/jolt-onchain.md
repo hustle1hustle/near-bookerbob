@@ -99,8 +99,10 @@ no verifier job.
 
 Limits:
 
-- The coalition trusts the bazaar's views (`in_top`, `merchant`, `standing_root`), and the bazaar
-  account holds a full-access key.
+- The coalition trusts the bazaar's views (`in_top`, `merchant`, `standing_root`). The bazaar
+  account holds no access key since 2026-11-14 (DeleteKey
+  [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)), so
+  its code cannot change.
 - The bazaar's root still comes from a worker-signed update with a challenge window. Only this
   coalition consumes the on-chain verdict.
 - `in_top` and `standing_root` are separate view receipts of one join. If a bazaar standing update
@@ -108,8 +110,8 @@ Limits:
   bazaar's `in_top` requires the TopProof's n to equal the live tree's n. The coalition does not
   compare the TopProof's n to `standing_root`'s n itself (its code is locked; a later version
   would). The keyless check confirms both were 3 here.
-- Job 0 uses min_top_pct 100: any member with a leaf in the proven tree qualifies on rank. - A verified proof of the
-graph the bazaar holds says the scores are the program's output over those graph events. It
+- Job 0 uses min_top_pct 100: any member with a leaf in the proven tree qualifies on rank.
+- A verified proof of the graph the bazaar holds says the scores are the program's output over those graph events. It
 says nothing about whether the events are honest (that is the bazaar's paid-review rule). The
 coalition reads the verifier through a cross-contract view; a verifier job never expires once
 verified, and it is valid exactly while the bazaar's root is the one it proves.
@@ -208,10 +210,11 @@ unit (`zk/onchain/src/bin/audit.rs`). The fixes from both rounds are in the depl
 - One program per deployment: the contract embeds the standing program's preprocessing. Another
   guest needs its own build, or the preprocessing in state (about 42 NEAR of storage uncompressed).
 - Classical security only (BN254); Jolt's `zk` feature is off at this pin, as in `zk/`.
-- Testnet only. The bazaar does not read this verdict yet: `submit_graph_scores` still trusts the
-  referee's signature over an off-chain verify. Wiring it is a cross-contract read of
+- Testnet only. The bazaar does not read this verdict yet: `submit_graph_scores` still takes a bonded
+  worker's signed update, which anyone can challenge and an arbiter key re-checks by rerunning the
+  verifier off chain. Wiring it is a cross-contract read of
   `status(id)`, checking that `statement` matches the update.
-- The staged deploy needs a loader (`zk/onchain/loader`), because the 3.58 MB contract is larger
+- The staged deploy needs a loader (`zk/onchain/loader`), because the 3.63 MB contract is larger
   than one transaction (1.5 MiB). The code is uploaded in 700 KB chunks, checked by sha256, and
   deployed by the account onto itself.
 

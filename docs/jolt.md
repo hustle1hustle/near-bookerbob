@@ -231,6 +231,11 @@ referral row, and outputs floors only:
 | notary key | key 1, `0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32`, valid 2026-11-11 to 2026-12-11 |
 | bundle | `tools/zk-gallery-verify/qfex-gallery-bundle.json` (the same bytes as `fixtures/live/qfex/referral-zk-bundle.json`) |
 
+Which Jolt protocol: we do not claim this proof is zero-knowledge. Its pin `248aefd` is REP's
+build on a private fork of Jolt, so anyone can verify the proof with the verifier below, but no
+one outside can rebuild the guest or confirm from public source whether Jolt's zk feature was on.
+`zk_mode: 1` in the bundle is the gallery's public mode (no account tag), not Jolt's zk feature.
+
 Check it offline (a verifier only: 1.8 MB of Jolt verifier wasm and the guest's verifier data):
 
 ```
@@ -309,5 +314,9 @@ registered on chain still counts it in its `standing` list, which does not rank 
   are committed by hash).
 - Upstream says Jolt "is in alpha and is not suitable for production use" and "has not been
   audited". Treat a Jolt proof here as strong engineering evidence, not an audited guarantee.
-- The contract does not verify the proof itself: a bonded worker key signs the update, anyone
-  can challenge it, and an arbiter key reruns the verifier (see above).
+- The bazaar does not verify the proof itself: a bonded worker key signs the update, anyone
+  can challenge it, and an arbiter key reruns the verifier (see above). A separate locked
+  contract does: `verifier.bookerbob-jolt-a.testnet` verifies the standing proof in full on chain
+  (stages 1 to 7 and the Dory opening, 8 transactions, [jolt-onchain.md](jolt-onchain.md)), and
+  coalition version 4 admits a member only against that verified proof
+  ([coalitions.md](coalitions.md)).

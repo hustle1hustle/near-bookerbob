@@ -101,12 +101,13 @@ checkable (`make verify-live`; `make audit` names the removal for a verdict that
   `testnet arbiter` key (`b5df0fa0…698b`) is the only other arbiter. The threshold is 2, so every
   dispute needs the OutLayer arbiter's signature and ours. With `bookerbob.testnet` locked, no one can add an
   arbiter key or publish a new project version on testnet.
-- **A challenged standing update stays unresolved.** `resolve_graph_challenge` needs two arbiter
-  signatures, and the OutLayer module does not sign graph resolutions yet (a next module
-  version). Anyone can challenge a pending update with a 0.1 NEAR bond, and a new update is
-  refused while one is pending, so one challenge stops every later standing update on
-  `bookerbob.testnet`. An unchallenged update finalizes as before, and `in_top` reads the last
-  finalized tree (`proven_standing`), so admission keeps working on the last one.
+- **One challenge freezes standing updates on the locked bazaar, for good.**
+  `resolve_graph_challenge` needs two arbiter signatures, and the OutLayer module does not sign
+  graph resolutions. Since `bookerbob.testnet` is locked, no new module version can be published
+  and no arbiter can be added, so a challenged update can never be resolved. Anyone can challenge
+  a pending update with a 0.1 NEAR bond, and a new update is refused while one is pending: one
+  challenge stops every later standing update on `bookerbob.testnet`. The last finalized tree
+  (`proven_standing`) stays, `in_top` keeps reading it, and admission keeps working on it.
 - **Our referee keys stay registered.** The audited wasm has no `remove_referee`, so
   `2f99e90f…3751` on testnet and `f6fea996…1b70` on mainnet can still sign a receipt. What
   catches a false one on testnet is the dispute above.
