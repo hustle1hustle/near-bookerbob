@@ -1,0 +1,17 @@
+{
+  "network": "mainnet",
+  "round": "mainnet-open-1",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "usdc": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+  "category": "mainnet-rooms",
+  "commit_until_ms": 1794691800000,
+  "reveal_until_ms": 1794695400000,
+  "max_price_usdc": 0.23,
+  "ours": {
+    "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5": "ours",
+    "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0": "ours",
+    "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "test"
+  },
+  "open_tx": "EZmS7q5Ew1B8yawcZyNj3iPJyMUzgkBt5GJtJaqsGkg3",
+  "result": null
+}

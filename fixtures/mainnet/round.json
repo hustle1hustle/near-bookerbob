@@ -1,0 +1,59 @@
+{
+  "note": "The open round on NEAR mainnet: anyone bids with their own account and key. Accounts register in the round's category and BookerBob's watcher approves each one (a function-call key on the bazaar limited to open_round and approve_merchant); the 10 USDC bond lane of the open category stays on testnet. Sealed bids, revealed after the deadline, the lowest price wins, and our buyer pays it in Circle USDC. Check: node scripts/round-mainnet.mjs check",
+  "network": "mainnet",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "usdc": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+  "round": "mainnet-open-1",
+  "category": "mainnet-rooms",
+  "commit_until_ms": 1794691800000,
+  "reveal_until_ms": 1794695400000,
+  "bids_close": "2026-11-14 21:30",
+  "reveals_close": "2026-11-14 22:30",
+  "max_price_usdc": 0.23,
+  "watcher_key": "ed25519:FRSd1jBvwDhfA6BUCLHKbnejhE7QAHCJn1tbvuz4MpcT",
+  "ours": {
+    "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5": "ours",
+    "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0": "ours",
+    "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "ours"
+  },
+  "agents": {
+    "merchant-a": {
+      "account": "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5"
+    },
+    "merchant-b": {
+      "account": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0"
+    }
+  },
+  "approved": {
+    "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "7K36642sRoEdLVMrDv9gy39DUS1NuM6uKZdWkwLtEnX2",
+    "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "3CXdUEzZJ6CbxquHD9EQfwawVuSXKNk9xkG2ZJt8fTgY",
+    "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "G2gVfSgDaQDwbmy88SasvLREG6zQCQGeNjSBwG2r44Kd",
+    "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC"
+  },
+  "reveals": {},
+  "txs": {
+    "add watcher key": "Cyb5LpvzoECDfDCw4u8PoKpgpTgfUK4ifWGv3zX2s1fa",
+    "open_round": "EZmS7q5Ew1B8yawcZyNj3iPJyMUzgkBt5GJtJaqsGkg3",
+    "commit merchant-a": "6YXmSngHpCnuLtrq5JVk3dJmYR41zN2bbyr2oTP9Hmm6",
+    "commit merchant-b": "5TX1nbJgt8bAy5PHNoVaBQYCh3Ctneai8yqU2zxj5chh",
+    "approve 3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "7K36642sRoEdLVMrDv9gy39DUS1NuM6uKZdWkwLtEnX2",
+    "fund relayer": "HSUtCzbxdXTCnqgydVr4shMvyjBtZhCeCxJq579pibgg",
+    "approve 365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "3CXdUEzZJ6CbxquHD9EQfwawVuSXKNk9xkG2ZJt8fTgY",
+    "approve 6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "G2gVfSgDaQDwbmy88SasvLREG6zQCQGeNjSBwG2r44Kd",
+    "approve 776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC"
+  },
+  "page_test": {
+    "note": "our own test of the round page flow (the page code, round-tx.js, run from Node): a fresh key, funded by our buyer, bids 0.23 USDC. Marked ours.",
+    "account": "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070",
+    "txs": {
+      "fund": [
+        "4uEzNcRzgWo3A9bbigzwK9U5W4MvCgXow45VPkcn1bqa",
+        "9USgLZUb5G125ZTxb9avYpDzZUyeRa961smvC1yCj3zf"
+      ],
+      "usdc": "7q34KGCJTwh6Lp4PAj4EcAsWeWozHPUsHfJ76ZD72BCT",
+      "register": "6VHeXyuaVeJv995XnxX5GK8opctF2Cen3fKfp4d4tHWR",
+      "commit": "FD9uph94qHRDZbCVF37inYxov6nn4y4mSeYGipfnASra"
+    }
+  },
+  "relayer": "77c85b991ff2e8a17c0a31d10c24c27b675bcaff207e0b7967bf17ab8b8a8323"
+}
