@@ -1,0 +1,24 @@
+# Staged deploy for a contract larger than one transaction (1.5 MiB): `put` appends raw chunks
+# to state, `deploy` reassembles them, checks their sha256 against the argument, removes the
+# chunks and deploys the code onto this same account.
+[package]
+name = "jolt-onchain-loader"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+near-sdk = "=5.29.1"
+
+[workspace]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

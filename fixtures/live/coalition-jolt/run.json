@@ -1,0 +1,64 @@
+{
+  "coalition": "coalition-v4.bookerbob-demo.testnet",
+  "treasury": "bookerbob-demo.testnet",
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "verifier": "verifier.bookerbob-jolt-a.testnet",
+  "lead": "cl-lead-1df7.bookerbob-demo.testnet",
+  "m01": "m01.bookerbob.testnet",
+  "h05": "h05.bookerbob.testnet",
+  "live_job": 4,
+  "old_job": 1,
+  "txs": {
+    "create_deploy": {
+      "hash": "FxSuj7HsiH4HywmUW2fpgA3nHpuowkfgGzTrfFK4bdvD",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "dusdc_storage": {
+      "hash": "DuwyH37moGCHTr8oXkc1NvGicVrw2w3rkZFS6XyEwGjg",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "open": {
+      "hash": "3Mt3TQwcDTyggH3rKgfPUQWuQUdy7Cszvijjer9ULmZb",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "fund": {
+      "hash": "8f324e3Hij86EMA8uQ7e1wizMhxHbamuU2AnzJt3bPnB",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "join_h05_old_root": {
+      "hash": "FZaJwtKoPc1ihU8JrBP3cim9UxtSBUeoNsgvTRn6z7hY",
+      "signer": "h05.bookerbob.testnet",
+      "expect": "refused"
+    },
+    "join_m01_live": {
+      "hash": "DsHD55CMwoyp4oox5hfLUcq9H8JHF274Dp8qPTqa2du2",
+      "signer": "m01.bookerbob.testnet",
+      "expect": "joined"
+    },
+    "finalize": {
+      "hash": "uxVh2YBPG2Rghddq1gTZB1nPJhJbXCbPy7fusveUi4d",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    }
+  },
+  "wasm_sha256": "47e3fa11ff54526d46fd25617d0cf536279a1c01af79dcd753cb0f40868db0a5",
+  "standing_root": [
+    "3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01",
+    3,
+    "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d",
+    "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530"
+  ],
+  "deadline_ms": 1794680838096,
+  "job": 0,
+  "live_job_txs": [
+    "7uevS7dLbBSX9YWGrp7LfxyjfoSvm5YWMTdDJa93iWe8",
+    "CJrXNtr1eJuVJY8mEpmcagXc9S9UDzsxczUvy8F264TB",
+    "J1Lz8r9K5YARHGcGbxfrnaEknsixfmqrQ9ebXFmxiVNa",
+    "C88bCkyEmL9oWi7BEFLowkRX1xMYZrY2p2uF1346Qw8z",
+    "8rA29X7A3v91jFgrHqafoZfySSRjnZsmmxDMMdYV1j4v",
+    "27bZH3t1L9UTnDHSv6TjMAyqopXK38jsgZwS7ihnCDTQ",
+    "ZX1t9VLYMJQUmwjteHFd3dhLUZDJQzMSuFkKVTgpFh6",
+    "AhKSKWACn3BhW2vDQEpdCGtrzbH7zDJpYJzpwosSVZPM"
+  ],
+  "live_job_signer": "bookerbob-jolt-a.testnet"
+}

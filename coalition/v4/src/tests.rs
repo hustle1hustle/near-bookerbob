@@ -1,0 +1,807 @@
+use super::*;
+use near_sdk::test_utils::{get_logs, VMContextBuilder};
+use near_sdk::{testing_env, PromiseResult};
+
+const NOW_MS: u64 = 1_794_000_000_000;
+const DEADLINE: u64 = NOW_MS + 3_600_000;
+const BOND: u128 = 5_000_000;
+const BUDGET: u128 = 30_000_000;
+const AGENT: &str = "buyer-agent.testnet";
+const TREASURY: &str = "treasury.testnet";
+
+fn acc(s: &str) -> AccountId {
+    s.parse().unwrap()
+}
+
+fn ctx(who: &str, at_ms: u64, deposit: NearToken) -> VMContextBuilder {
+    let mut b = VMContextBuilder::new();
+    b.current_account_id(acc("coalition.testnet")).predecessor_account_id(acc(who)).block_timestamp(at_ms * 1_000_000).attached_deposit(deposit);
+    b
+}
+
+fn as_caller(who: &str) {
+    testing_env!(ctx(who, NOW_MS, NearToken::from_yoctonear(0)).build());
+}
+
+fn at(who: &str, at_ms: u64) {
+    testing_env!(ctx(who, at_ms, NearToken::from_yoctonear(0)).build());
+}
+
+/// A callback, run by the contract itself, with the given promise results.
+fn callback_at(at_ms: u64, results: Vec<PromiseResult>) {
+    testing_env!(
+        ctx("coalition.testnet", at_ms, NearToken::from_yoctonear(0)).build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        results
+    );
+}
+
+fn callback(results: Vec<PromiseResult>) {
+    callback_at(NOW_MS, results)
+}
+
+fn ok(v: Value) -> PromiseResult {
+    PromiseResult::Successful(v.to_string().into_bytes())
+}
+
+fn refused(f: impl FnOnce() + std::panic::UnwindSafe, why: &str) {
+    let err = std::panic::catch_unwind(f).expect_err("the call should be refused");
+    let text = err.downcast_ref::<String>().cloned().or_else(|| err.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default();
+    assert!(text.contains(why), "expected `{why}`, got `{text}`");
+}
+
+fn legs() -> Vec<Leg> {
+    vec![
+        Leg { category: "hoodie".into(), max_price: U128(48_000_000) },
+        Leg { category: "hotel-lisbon".into(), max_price: U128(450_000_000) },
+        Leg { category: "hoodie".into(), max_price: U128(48_000_000) },
+    ]
+}
+
+fn category_of(member: &str) -> &'static str {
+    if member.starts_with('h') {
+        "hotel-lisbon"
+    } else {
+        "hoodie"
+    }
+}
+
+fn merchant_rec(member: &str) -> Value {
+    json!({ "payout": member, "category": category_of(member), "approved": true, "schedule": {} })
+}
+
+fn proof(merchant: &str) -> Value {
+    json!({ "merchant": merchant, "rank": 1, "n": 2, "score_commit": "00", "path": [] })
+}
+
+fn fresh() -> Coalition {
+    as_caller("deployer.testnet");
+    Coalition::new(acc("dusdc.testnet"), acc("bazaar.testnet"), acc(TREASURY), acc("verifier.testnet"))
+}
+
+/// A contract with job 0 open and funded by buyer.testnet, its buyer agent buyer-agent.testnet.
+fn funded() -> Coalition {
+    let mut c = fresh();
+    testing_env!(ctx("buyer.testnet", NOW_MS, OPEN_DEPOSIT).build());
+    assert_eq!(c.open_job(legs(), U128(BOND), U128(BUDGET), 100, DEADLINE, Some(vec![acc(AGENT)])), 0);
+    as_caller("dusdc.testnet");
+    assert!(matches!(c.ft_on_transfer(acc("buyer.testnet"), U128(BUDGET), json!({ "fund": 0 }).to_string()), PromiseOrValue::Value(U128(0))));
+    c
+}
+
+fn join_msg(leg: u32, price: u128, proof: Option<Value>) -> String {
+    json!({ "join": { "job": 0, "leg": leg, "price": price.to_string(), "proof": proof, "standing_job": 4, "standing_inputs": Base64VecU8(LIVE_INPUTS.to_vec()) } }).to_string()
+}
+
+// The live standing proof as it ran on testnet: its public inputs, the bazaar's standing_root
+// view (tree root, n, scores hash, graph root) and the verifier's status(4) record.
+const LIVE_INPUTS: &[u8] = include_bytes!("standing-live-inputs.bin");
+const LIVE_STATEMENT: &str = "61effb836ca75597e55278891b931ce7b08a4bf7d025338e2b22754e43581d2c";
+const LIVE_PROOF_SHA: &str = "5619f62dcf9d94b41c74cd67b9b0e8cf5fffc0583eb8bb7ed4acb9c1b59454d1";
+
+fn live_root() -> Value {
+    json!(["3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01", 3, "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d", "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530"])
+}
+
+fn live_status() -> Value {
+    json!({ "status": "verified", "panic": false, "statement": LIVE_STATEMENT, "proof_sha256": LIVE_PROOF_SHA, "phase": 3 })
+}
+
+/// The bond's ft_on_transfer: None when the join went to the bazaar, Some(refund) when refused at once.
+fn send_bond(c: &mut Coalition, member: &str, leg: u32, price: u128, p: Option<Value>, amount: u128) -> Option<u128> {
+    as_caller("dusdc.testnet");
+    match c.ft_on_transfer(acc(member), U128(amount), join_msg(leg, price, p)) {
+        PromiseOrValue::Value(v) => Some(v.0),
+        PromiseOrValue::Promise(_) => None,
+    }
+}
+
+fn admit(c: &mut Coalition, member: &str, leg: u32, price: u128) {
+    assert_eq!(send_bond(c, member, leg, price, Some(proof(member)), BOND), None);
+    callback(vec![ok(json!(true)), ok(merchant_rec(member)), ok(live_root()), ok(live_status())]);
+    assert_eq!(c.on_admit(0, leg, acc(member), U128(BOND)), U128(0));
+}
+
+fn record(agent: &str, member: &str, price: u128, spent: bool) -> Value {
+    json!({ "agent": agent, "spent": spent, "paid": spent, "disputed": false, "receipt": { "merchant": member, "price": price.to_string() } })
+}
+
+fn announce(c: &mut Coalition, leg: u32, nullifier: &str, rec: Value) -> bool {
+    announce_as(c, AGENT, 0, leg, nullifier, rec)
+}
+
+/// `who` announces `nullifier` for `leg` of `job`; the bazaar answers `rec`.
+fn announce_as(c: &mut Coalition, who: &str, job: u64, leg: u32, nullifier: &str, rec: Value) -> bool {
+    as_caller(who);
+    let _ = c.announce(job, leg, nullifier.into());
+    callback(vec![ok(rec)]);
+    c.on_announce(job, leg, nullifier.into(), acc(who))
+}
+
+fn deliver(c: &mut Coalition, leg: u32, nullifier: &str, rec: Value) -> bool {
+    as_caller("anyone.testnet");
+    let _ = c.deliver(0, leg, nullifier.into());
+    callback(vec![ok(rec)]);
+    c.on_verdict(0, leg, nullifier.into())
+}
+
+/// Announce while unspent, then deliver once spent: the normal path.
+fn buy_and_deliver(c: &mut Coalition, member: &str, leg: u32, nullifier: &str, price: u128) {
+    assert!(announce(c, leg, nullifier, record(AGENT, member, price, false)));
+    assert!(deliver(c, leg, nullifier, record(AGENT, member, price, true)));
+}
+
+fn finalized(c: &mut Coalition, at_ms: u64) -> Value {
+    at("anyone.testnet", at_ms);
+    let _ = c.finalize(0);
+    let ev = get_logs().into_iter().find(|l| l.contains("job_finalized")).unwrap();
+    let v: Value = serde_json::from_str(&ev["EVENT_JSON:".len()..]).unwrap();
+    assert_eq!(v["standard"], STANDARD);
+    assert_eq!(v["version"], VERSION);
+    v["data"][0].clone()
+}
+
+#[test]
+fn three_members_join_two_deliver_one_is_slashed() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    admit(&mut c, "h05.testnet", 1, 400_000_000);
+    admit(&mut c, "m02.testnet", 2, 40_000_000);
+    buy_and_deliver(&mut c, "m01.testnet", 0, "n1", 36_000_000);
+    buy_and_deliver(&mut c, "h05.testnet", 1, "n2", 400_000_000);
+    // A purchase from m02 was announced and never delivered: m02 is a no-show.
+    assert!(announce(&mut c, 2, "n3", record(AGENT, "m02.testnet", 40_000_000, false)));
+    let d = finalized(&mut c, DEADLINE);
+    assert_eq!(d["status"], "failed");
+    // P = 480; the budget: m01 30*40/480 = 2.5, h05 30*400/480 = 25, the buyer 2.5 (m02's share).
+    // m02's bond (5): 2.5 to the buyer, 2.5 to the treasury; the deliverers get none of it.
+    assert_eq!(d["delivered"][0]["share"], "2500000");
+    assert_eq!(d["delivered"][1]["share"], "25000000");
+    assert!(d["delivered"][0].get("from_slashed").is_none());
+    assert_eq!(d["slashed"][0]["member"], "m02.testnet");
+    assert_eq!(d["to_buyer"], (2_500_000u128 + 2_500_000).to_string());
+    assert_eq!(d["to_treasury"], "2500000");
+    assert_eq!(d["treasury"], TREASURY);
+    assert_eq!(c.member(acc("m02.testnet")), MemberRecord { joined: 1, completed: 0, slashed: 1, released: 0, earned: U128(0), lost: U128(BOND) });
+    assert_eq!(c.member(acc("m01.testnet")).completed, 1);
+    assert_eq!(c.member(acc("h05.testnet")).earned, U128(25_000_000));
+    assert_eq!(c.job(0).unwrap().status, "failed");
+    refused(
+        move || {
+            let _ = c.finalize(0);
+        },
+        "already finalized",
+    );
+}
+
+#[test]
+fn a_leg_the_buyer_never_bought_is_released_not_slashed() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    admit(&mut c, "h05.testnet", 1, 400_000_000);
+    buy_and_deliver(&mut c, "m01.testnet", 0, "n1", 36_000_000);
+    let d = finalized(&mut c, DEADLINE);
+    assert!(d["slashed"].as_array().unwrap().is_empty());
+    assert_eq!(d["released"][0]["member"], "h05.testnet");
+    assert_eq!(d["released"][0]["bond_back"], BOND.to_string());
+    // P = 440: m01 30*40/440, the rest of the budget back to the buyer; no bond to the buyer.
+    let share = BUDGET * 40 / 440;
+    assert_eq!(d["delivered"][0]["share"], share.to_string());
+    assert_eq!(d["to_buyer"], (BUDGET - share).to_string());
+    assert_eq!(c.member(acc("h05.testnet")), MemberRecord { joined: 1, released: 1, ..Default::default() });
+}
+
+#[test]
+fn every_leg_delivered_is_complete_and_pays_the_whole_budget() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    admit(&mut c, "h05.testnet", 1, 400_000_000);
+    admit(&mut c, "m02.testnet", 2, 40_000_000);
+    for (m, l, n) in [("m01.testnet", 0, "n1"), ("h05.testnet", 1, "n2"), ("m02.testnet", 2, "n3")] {
+        buy_and_deliver(&mut c, m, l, n, 1);
+    }
+    at("anyone.testnet", DEADLINE);
+    assert_eq!(c.finalize(0), "complete");
+}
+
+#[test]
+fn the_split_conserves_the_money() {
+    use Outcome::*;
+    let m = |s: &str| acc(s);
+    for (budget, bond, seats) in [
+        (30_000_000u128, 5_000_000u128, vec![(m("a.t"), 40_000_000u128, Delivered), (m("b.t"), 400_000_000, Delivered), (m("c.t"), 40_000_000, NoShow)]),
+        (7, 3, vec![(m("a.t"), 1, Delivered), (m("b.t"), 2, Delivered), (m("c.t"), 4, Delivered)]),
+        (10, 5, vec![(m("a.t"), 3, NoShow), (m("b.t"), 3, Unoffered)]),
+        (10, 5, vec![]),
+        (1_000_001, 999, vec![(m("a.t"), 7, Delivered), (m("b.t"), 11, NoShow), (m("c.t"), 13, Unoffered), (m("d.t"), 17, NoShow)]),
+        (MAX_AMOUNT, MAX_AMOUNT, vec![(m("a.t"), MAX_AMOUNT, Delivered), (m("b.t"), MAX_AMOUNT, NoShow)]),
+    ] {
+        let s = settle(budget, bond, &seats);
+        let out: u128 = s.buyer + s.treasury + s.delivered.iter().map(|d| d.1 + d.2).sum::<u128>() + s.released.iter().map(|r| r.1).sum::<u128>();
+        assert_eq!(out, budget + bond * seats.len() as u128, "conserved");
+        assert_eq!(s.slashed.len(), seats.iter().filter(|x| x.2 == NoShow).count());
+    }
+    // Two no-shows: the buyer takes the budget and half of each bond, the treasury the rest.
+    let s = settle(10, 5, &[(m("a.t"), 3, NoShow), (m("b.t"), 3, NoShow)]);
+    assert_eq!((s.buyer, s.treasury), (15, 5));
+    // A released seat never pays the buyer a bond.
+    assert_eq!(settle(10, 5, &[(m("a.t"), 3, Unoffered)]).buyer, 10);
+    assert_eq!(settle(10, 5, &[]).buyer, 10);
+}
+
+#[test]
+fn a_purchase_by_an_agent_the_job_does_not_allow_is_refused() {
+    // HIGH 1: a member buying from itself (or any account the buyer did not name) cannot deliver.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    refused(
+        move || {
+            let _ = announce(&mut c, 0, "n1", record("m01.testnet", "m01.testnet", 36_000_000, false));
+        },
+        REFUSE_BUYER,
+    );
+    // The default buyer set is the caller alone.
+    let mut c2 = fresh();
+    testing_env!(ctx("buyer.testnet", NOW_MS, OPEN_DEPOSIT).build());
+    c2.open_job(legs(), U128(BOND), U128(BUDGET), 100, DEADLINE, None);
+    assert_eq!(c2.job(0).unwrap().buyers, vec![acc("buyer.testnet")]);
+}
+
+#[test]
+fn a_purchase_spent_before_it_was_announced_is_refused() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    refused(
+        move || {
+            let _ = announce(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, true));
+        },
+        REFUSE_SPENT,
+    );
+}
+
+#[test]
+fn only_the_jobs_buyer_agents_announce() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    as_caller("m01.testnet");
+    refused(
+        move || {
+            let _ = c.announce(0, 0, "n1".into());
+        },
+        REFUSE_ANNOUNCER,
+    );
+}
+
+#[test]
+fn deliver_needs_the_announced_purchase() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    as_caller("m01.testnet");
+    refused(
+        {
+            let mut c = funded();
+            admit(&mut c, "m01.testnet", 0, 40_000_000);
+            as_caller("m01.testnet");
+            move || {
+                let _ = c.deliver(0, 0, "n1".into());
+            }
+        },
+        REFUSE_NOT_ANNOUNCED,
+    );
+    assert!(announce(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, false)));
+    as_caller("m01.testnet");
+    refused(
+        move || {
+            let _ = c.deliver(0, 0, "n2".into());
+        },
+        REFUSE_NOT_ANNOUNCED,
+    );
+}
+
+#[test]
+fn a_member_in_another_category_is_refused_by_the_merchant_record() {
+    let mut c = funded();
+    // h05 sells hotel-lisbon; leg 0 is hoodie.
+    assert_eq!(send_bond(&mut c, "h05.testnet", 0, 40_000_000, Some(proof("h05.testnet")), BOND), None);
+    callback(vec![ok(json!(true)), ok(merchant_rec("h05.testnet")), ok(live_root()), ok(live_status())]);
+    assert_eq!(c.on_admit(0, 0, acc("h05.testnet"), U128(BOND)), U128(BOND));
+    assert!(get_logs().iter().any(|l| l.contains(REFUSE_CATEGORY)));
+    assert!(c.job(0).unwrap().seats[0].is_none());
+    // An unapproved merchant or no merchant record at all: refused too.
+    for rec in [json!({ "category": "hoodie", "approved": false }), Value::Null] {
+        assert_eq!(send_bond(&mut c, "m09.testnet", 0, 40_000_000, Some(proof("m09.testnet")), BOND), None);
+        callback(vec![ok(json!(true)), ok(rec), ok(live_root()), ok(live_status())]);
+        assert_eq!(c.on_admit(0, 0, acc("m09.testnet"), U128(BOND)), U128(BOND));
+    }
+}
+
+#[test]
+fn the_buyer_and_its_agents_cannot_join() {
+    let mut c = funded();
+    for who in ["buyer.testnet", AGENT] {
+        assert_eq!(send_bond(&mut c, who, 0, 40_000_000, Some(proof(who)), BOND), Some(BOND));
+        assert!(get_logs().iter().any(|l| l.contains(REFUSE_OWN_JOB)));
+    }
+}
+
+#[test]
+fn a_stranger_without_a_proof_is_refused_and_refunded() {
+    let mut c = funded();
+    assert_eq!(send_bond(&mut c, "stranger.testnet", 0, 40_000_000, None, BOND), Some(BOND));
+    assert!(get_logs().iter().any(|l| l.contains("join_refused") && l.contains(REFUSE_NO_PROOF)));
+    assert!(c.job(0).unwrap().seats[0].is_none());
+}
+
+#[test]
+fn a_proof_for_another_leaf_is_refused() {
+    let mut c = funded();
+    assert_eq!(send_bond(&mut c, "stranger.testnet", 0, 40_000_000, Some(proof("m01.testnet")), BOND), Some(BOND));
+    assert!(get_logs().iter().any(|l| l.contains(REFUSE_LEAF)));
+}
+
+#[test]
+fn low_standing_is_refused_by_the_bazaar_and_the_seat_freed() {
+    let mut c = funded();
+    assert_eq!(send_bond(&mut c, "h05.testnet", 1, 400_000_000, Some(proof("h05.testnet")), BOND), None);
+    assert!(c.job(0).unwrap().seats[1].as_ref().unwrap().pending);
+    callback(vec![ok(json!(false)), ok(merchant_rec("h05.testnet")), ok(live_root()), ok(live_status())]);
+    assert_eq!(c.on_admit(0, 1, acc("h05.testnet"), U128(BOND)), U128(BOND));
+    assert!(get_logs().iter().any(|l| l.contains("join_refused") && l.contains(REFUSE_LOW)));
+    assert!(c.job(0).unwrap().seats[1].is_none());
+    // A failed bazaar call refunds too.
+    assert_eq!(send_bond(&mut c, "h05.testnet", 1, 400_000_000, Some(proof("h05.testnet")), BOND), None);
+    callback(vec![PromiseResult::Failed, PromiseResult::Failed, PromiseResult::Failed, PromiseResult::Failed]);
+    assert_eq!(c.on_admit(0, 1, acc("h05.testnet"), U128(BOND)), U128(BOND));
+    assert_eq!(c.member(acc("h05.testnet")).joined, 0);
+}
+
+#[test]
+fn a_join_still_pending_after_the_grace_period_counts_as_refused() {
+    // M3: the seat cannot hold the job open forever.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    buy_and_deliver(&mut c, "m01.testnet", 0, "n1", 36_000_000);
+    assert_eq!(send_bond(&mut c, "h05.testnet", 1, 400_000_000, Some(proof("h05.testnet")), BOND), None);
+    at("anyone.testnet", DEADLINE + GRACE_MS - 1);
+    refused(
+        {
+            let mut c = funded();
+            assert_eq!(send_bond(&mut c, "h05.testnet", 1, 400_000_000, Some(proof("h05.testnet")), BOND), None);
+            at("anyone.testnet", DEADLINE + GRACE_MS - 1);
+            move || {
+                let _ = c.finalize(0);
+            }
+        },
+        "a join is still in flight",
+    );
+    let d = finalized(&mut c, DEADLINE + GRACE_MS);
+    assert!(get_logs().iter().any(|l| l.contains("join_lapsed")));
+    // The lapsed seat is in no payout: P = 40 alone, m01 takes the whole budget.
+    assert_eq!(d["delivered"][0]["share"], BUDGET.to_string());
+    assert!(d["slashed"].as_array().unwrap().is_empty() && d["released"].as_array().unwrap().is_empty());
+    // A late bazaar answer refunds the bond through the token and seats nobody.
+    callback_at(DEADLINE + GRACE_MS, vec![ok(json!(true)), ok(merchant_rec("h05.testnet")), ok(live_root()), ok(live_status())]);
+    assert_eq!(c.on_admit(0, 1, acc("h05.testnet"), U128(BOND)), U128(BOND));
+    assert_eq!(c.member(acc("h05.testnet")).joined, 0);
+}
+
+#[test]
+fn a_refused_payout_becomes_claimable() {
+    // M4.
+    let mut c = funded();
+    callback(vec![PromiseResult::Failed]);
+    assert!(!c.on_payout(acc("m01.testnet"), U128(7)));
+    assert_eq!(c.claimable_of(acc("m01.testnet")), U128(7));
+    callback(vec![ok(json!(null))]);
+    assert!(c.on_payout(acc("m01.testnet"), U128(9)));
+    assert_eq!(c.claimable_of(acc("m01.testnet")), U128(7));
+    as_caller("m01.testnet");
+    let _ = c.claim();
+    assert_eq!(c.claimable_of(acc("m01.testnet")), U128(0));
+    // The claim's own transfer refused: credited again.
+    callback(vec![PromiseResult::Failed]);
+    c.on_payout(acc("m01.testnet"), U128(7));
+    assert_eq!(c.claimable_of(acc("m01.testnet")), U128(7));
+    as_caller("m02.testnet");
+    refused(
+        move || {
+            let _ = c.claim();
+        },
+        "nothing to claim",
+    );
+}
+
+#[test]
+fn double_join_taken_leg_wrong_bond_and_over_max_are_refused() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    assert_eq!(send_bond(&mut c, "m01.testnet", 2, 40_000_000, Some(proof("m01.testnet")), BOND), Some(BOND));
+    assert!(get_logs().iter().any(|l| l.contains("already a member of this job")));
+    assert_eq!(send_bond(&mut c, "m02.testnet", 0, 40_000_000, Some(proof("m02.testnet")), BOND), Some(BOND));
+    assert!(get_logs().iter().any(|l| l.contains("leg taken")));
+    assert_eq!(send_bond(&mut c, "m02.testnet", 2, 40_000_000, Some(proof("m02.testnet")), BOND - 1), Some(BOND - 1));
+    assert_eq!(send_bond(&mut c, "m02.testnet", 2, 48_000_001, Some(proof("m02.testnet")), BOND), Some(BOND));
+    assert!(get_logs().iter().any(|l| l.contains("price above the leg's max")));
+}
+
+#[test]
+fn an_unfunded_job_takes_no_joins_and_only_its_buyer_funds_it() {
+    let mut c = fresh();
+    testing_env!(ctx("buyer.testnet", NOW_MS, OPEN_DEPOSIT).build());
+    c.open_job(legs(), U128(BOND), U128(BUDGET), 50, DEADLINE, None);
+    assert_eq!(send_bond(&mut c, "m01.testnet", 0, 1, Some(proof("m01.testnet")), BOND), Some(BOND));
+    as_caller("dusdc.testnet");
+    refused(
+        move || {
+            let _ = c.ft_on_transfer(acc("other.testnet"), U128(BUDGET), json!({ "fund": 0 }).to_string());
+        },
+        "only the job's buyer",
+    );
+}
+
+#[test]
+fn only_the_token_calls_the_receiver() {
+    let mut c = funded();
+    as_caller("fake-token.testnet");
+    refused(
+        move || {
+            let _ = c.ft_on_transfer(acc("buyer.testnet"), U128(1), json!({ "fund": 0 }).to_string());
+        },
+        "only the job token",
+    );
+}
+
+#[test]
+fn deliver_refusals() {
+    // Each case its own nullifier: the mocked storage outlives a refused call.
+    let base = |n: &'static str, rec: Value, why: &'static str| {
+        let mut c = funded();
+        admit(&mut c, "m01.testnet", 0, 40_000_000);
+        assert!(announce(&mut c, 0, n, record(AGENT, "m01.testnet", 36_000_000, false)));
+        refused(
+            move || {
+                let _ = deliver(&mut c, 0, n, rec);
+            },
+            why,
+        );
+    };
+    base("d1", record(AGENT, "m01.testnet", 36_000_000, false), "purchase not settled");
+    base("d2", record(AGENT, "m07.testnet", 36_000_000, true), "the receipt names another merchant");
+    base("d3", record(AGENT, "m01.testnet", 40_000_001, true), "above the member's quote");
+    base("d4", record("other.testnet", "m01.testnet", 36_000_000, true), REFUSE_BUYER);
+    base("d5", Value::Null, "unknown nullifier");
+    // One purchase announces one leg.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    admit(&mut c, "m02.testnet", 2, 40_000_000);
+    buy_and_deliver(&mut c, "m01.testnet", 0, "n1", 1);
+    as_caller(AGENT);
+    refused(
+        move || {
+            let _ = c.announce(0, 2, "n1".into());
+        },
+        "purchase already announced in this job",
+    );
+}
+
+#[test]
+fn finalize_before_the_deadline_is_refused() {
+    let mut c = funded();
+    at("anyone.testnet", DEADLINE - 1);
+    refused(
+        move || {
+            let _ = c.finalize(0);
+        },
+        "deadline not reached",
+    );
+}
+
+#[test]
+fn no_join_announce_or_delivery_after_the_deadline() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    let mut c2 = funded();
+    at("dusdc.testnet", DEADLINE);
+    let r = c2.ft_on_transfer(acc("m02.testnet"), U128(BOND), join_msg(2, 1, Some(proof("m02.testnet"))));
+    assert!(matches!(r, PromiseOrValue::Value(U128(BOND))));
+    at(AGENT, DEADLINE);
+    refused(
+        move || {
+            let _ = c.announce(0, 0, "n1".into());
+        },
+        "job closed",
+    );
+}
+
+#[test]
+fn open_job_checks_its_arguments() {
+    let open = |legs: Vec<Leg>, amounts: (u128, u128), pct: u8, deadline: u64, deposit: NearToken, buyers: Option<Vec<AccountId>>, why: &'static str| {
+        let mut c = fresh();
+        testing_env!(ctx("buyer.testnet", NOW_MS, deposit).build());
+        refused(
+            move || {
+                let _ = c.open_job(legs, U128(amounts.0), U128(amounts.1), pct, deadline, buyers);
+            },
+            why,
+        );
+    };
+    let a = (BOND, BUDGET);
+    open(legs(), a, 100, DEADLINE, NearToken::from_yoctonear(0), None, "attach 0.02 NEAR");
+    open(vec![], a, 100, DEADLINE, OPEN_DEPOSIT, None, "1 to 8 legs");
+    open(legs(), a, 0, DEADLINE, OPEN_DEPOSIT, None, "min_top_pct");
+    open(legs(), a, 100, NOW_MS - 1, OPEN_DEPOSIT, None, "at least 10 minutes");
+    open(legs(), a, 100, NOW_MS + MIN_DURATION_MS - 1, OPEN_DEPOSIT, None, "at least 10 minutes");
+    open(legs(), (BOND, MAX_AMOUNT + 1), 100, DEADLINE, OPEN_DEPOSIT, None, "at most 10^15");
+    open(vec![Leg { category: "hoodie".into(), max_price: U128(MAX_AMOUNT + 1) }], a, 100, DEADLINE, OPEN_DEPOSIT, None, "max price is 1 to 10^15");
+    open(legs(), a, 100, DEADLINE, OPEN_DEPOSIT, Some(vec![]), "1 to 8 buyer agents");
+    open(legs(), a, 100, DEADLINE, OPEN_DEPOSIT, Some(vec![acc(AGENT), acc(AGENT)]), "listed twice");
+}
+
+#[test]
+fn poc_replace_after_settle_slashes_a_member_that_delivered() {
+    // v2: a second announce replaced the first, so a settled first purchase could not deliver.
+    // v3 keeps both: the member delivers with the one that settled.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    assert!(announce(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, false)));
+    assert!(announce(&mut c, 0, "n2", record(AGENT, "m01.testnet", 36_000_000, false)));
+    assert_eq!(c.job(0).unwrap().seats[0].as_ref().unwrap().announced, vec!["n1".to_string(), "n2".to_string()]);
+    assert!(deliver(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, true)));
+    let d = finalized(&mut c, DEADLINE);
+    assert_eq!(d["delivered"][0]["member"], "m01.testnet");
+    assert!(d["slashed"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn poc_replace_then_finalize_slash() {
+    // v2: announce n1, announce n2, settle n1, finalize: m01 slashed though paid on the bazaar.
+    // v3: the later announce delivers as well; m01 completes, and the unused n1 stays harmless.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    assert!(announce(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, false)));
+    assert!(announce(&mut c, 0, "n2", record(AGENT, "m01.testnet", 36_000_000, false)));
+    assert!(deliver(&mut c, 0, "n2", record(AGENT, "m01.testnet", 36_000_000, true)));
+    let d = finalized(&mut c, DEADLINE);
+    assert!(d["slashed"].as_array().unwrap().is_empty());
+    assert_eq!(c.member(acc("m01.testnet")).completed, 1);
+}
+
+#[test]
+fn a_leg_holds_at_most_four_announced_purchases() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    for n in ["a1", "a2", "a3", "a4"] {
+        assert!(announce(&mut c, 0, n, record(AGENT, "m01.testnet", 1, false)));
+    }
+    as_caller(AGENT);
+    refused(
+        move || {
+            let _ = c.announce(0, 0, "a5".into());
+        },
+        "holds the most announced purchases",
+    );
+}
+
+/// Job 1, opened and funded by attacker.testnet naming `buyers`; m01 holds its leg 0.
+fn attacker_job(c: &mut Coalition, buyers: Vec<AccountId>) {
+    testing_env!(ctx("attacker.testnet", NOW_MS, OPEN_DEPOSIT).build());
+    assert_eq!(c.open_job(legs(), U128(BOND), U128(1), 100, DEADLINE, Some(buyers)), 1);
+    as_caller("dusdc.testnet");
+    let _ = c.ft_on_transfer(acc("attacker.testnet"), U128(1), json!({ "fund": 1 }).to_string());
+    as_caller("dusdc.testnet");
+    let _ = c.ft_on_transfer(
+        acc("m01.testnet"),
+        U128(BOND),
+        json!({ "join": { "job": 1, "leg": 0, "price": "40000000", "proof": proof("m01.testnet"), "standing_job": 4, "standing_inputs": Base64VecU8(LIVE_INPUTS.to_vec()) } }).to_string(),
+    );
+    callback(vec![ok(json!(true)), ok(merchant_rec("m01.testnet")), ok(live_root()), ok(live_status())]);
+    assert_eq!(c.on_admit(1, 0, acc("m01.testnet"), U128(BOND)), U128(0));
+}
+
+#[test]
+fn poc_other_job_hijacks_a_nullifier() {
+    // v2: a job naming the victim's buyer agent without its consent announced the victim's
+    // purchase first, and the global set locked job 0 out. v3: only the purchase's own agent
+    // announces it, and announces are scoped to their job.
+    let rec = record(AGENT, "m01.testnet", 36_000_000, false);
+    // Not one of job 1's agents? Refused at once. One of them, but not the purchase's agent: refused.
+    refused(
+        {
+            let mut c2 = funded();
+            admit(&mut c2, "m01.testnet", 0, 40_000_000);
+            attacker_job(&mut c2, vec![acc(AGENT)]);
+            as_caller("attacker.testnet");
+            move || {
+                let _ = c2.announce(1, 0, "h1".into());
+            }
+        },
+        REFUSE_ANNOUNCER,
+    );
+    let r2 = rec.clone();
+    refused(
+        {
+            let mut c3 = funded();
+            admit(&mut c3, "m01.testnet", 0, 40_000_000);
+            attacker_job(&mut c3, vec![acc(AGENT), acc("attacker.testnet")]);
+            move || {
+                let _ = announce_as(&mut c3, "attacker.testnet", 1, 0, "h2", r2);
+            }
+        },
+        REFUSE_NOT_AGENT,
+    );
+    // Even the agent's own announce in job 1 does not lock job 0 out.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    attacker_job(&mut c, vec![acc(AGENT), acc("attacker.testnet")]);
+    assert!(announce_as(&mut c, AGENT, 1, 0, "n1", rec.clone()));
+    assert!(announce(&mut c, 0, "n1", rec));
+    assert!(deliver(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, true)));
+    // One purchase delivers one leg: job 1 cannot use it again.
+    refused(
+        move || {
+            let _ = deliver(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, true));
+        },
+        "already delivered",
+    );
+}
+
+#[test]
+fn a_purchase_delivers_one_leg_across_jobs() {
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    attacker_job(&mut c, vec![acc(AGENT)]);
+    let rec = record(AGENT, "m01.testnet", 36_000_000, false);
+    assert!(announce_as(&mut c, AGENT, 1, 0, "n1", rec.clone()));
+    assert!(announce(&mut c, 0, "n1", rec));
+    assert!(deliver(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, true)));
+    as_caller("anyone.testnet");
+    refused(
+        move || {
+            let _ = c.deliver(1, 0, "n1".into());
+        },
+        "already used for a delivery",
+    );
+}
+
+#[test]
+fn a_buyer_with_a_member_of_its_own_gets_half_a_slashed_bond_at_most() {
+    // MED 2: the buyer's own member (sock.testnet) delivers; the buyer announces a purchase from
+    // m01 and never settles it. v2 gave the buyer half the bond and the sock the other half.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    admit(&mut c, "sock.testnet", 2, 40_000_000);
+    assert!(announce(&mut c, 0, "n1", record(AGENT, "m01.testnet", 36_000_000, false)));
+    buy_and_deliver(&mut c, "sock.testnet", 2, "n2", 40_000_000);
+    let d = finalized(&mut c, DEADLINE);
+    assert_eq!(d["slashed"][0]["member"], "m01.testnet");
+    assert_eq!(d["to_treasury"], (BOND - BOND / 2).to_string());
+    assert_eq!(c.member(acc("sock.testnet")).earned, U128(BUDGET / 2));
+    assert_eq!(d["to_buyer"], (BUDGET / 2 + BOND / 2).to_string());
+}
+
+#[test]
+fn an_announce_whose_answer_lands_after_the_deadline_is_refused() {
+    // L3: the deadline is checked again in the callback.
+    let mut c = funded();
+    admit(&mut c, "m01.testnet", 0, 40_000_000);
+    as_caller(AGENT);
+    let _ = c.announce(0, 0, "n1".into());
+    callback_at(DEADLINE, vec![ok(record(AGENT, "m01.testnet", 1, false))]);
+    refused(
+        move || {
+            let _ = c.on_announce(0, 0, "n1".into(), acc(AGENT));
+        },
+        "job closed",
+    );
+}
+
+
+// ---------- version 4: admission bound to a Jolt proof verified on chain ----------
+
+#[test]
+fn v4_statement_matches_the_verifier_on_testnet() {
+    // job 4 on verifier.bookerbob-jolt-a.testnet: the live standing proof, verified on chain
+    let outputs = [hex_bytes("7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530"), hex_bytes("121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d")].concat();
+    let st = standing_statement(LIVE_INPUTS, &outputs, false, &hex_bytes(LIVE_PROOF_SHA));
+    assert_eq!(hex_of(&st), LIVE_STATEMENT);
+    assert!(standing_proven(&live_status(), &live_root(), LIVE_INPUTS));
+}
+
+fn hex_bytes(s: &str) -> Vec<u8> {
+    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap()).collect()
+}
+fn hex_of(b: &[u8]) -> String {
+    b.iter().map(|x| format!("{x:02x}")).collect()
+}
+
+fn admit_with(c: &mut Coalition, member: &str, leg: u32, root: Value, status: Value) -> u128 {
+    assert_eq!(send_bond(c, member, leg, 40_000_000, Some(proof(member)), BOND), None);
+    callback(vec![ok(json!(true)), ok(merchant_rec(member)), ok(root), ok(status)]);
+    c.on_admit(0, leg, acc(member), U128(BOND)).0
+}
+
+fn refused_jolt() -> bool {
+    get_logs().iter().any(|l| l.contains("join_refused") && l.contains(REFUSE_JOLT))
+}
+
+#[test]
+fn v4_admits_only_a_verified_proof_of_the_live_root() {
+    let mut c = funded();
+    assert_eq!(admit_with(&mut c, "m01.testnet", 0, live_root(), live_status()), 0);
+    assert!(get_logs().iter().any(|l| l.contains("\"joined\"") && l.contains(LIVE_STATEMENT)));
+}
+
+#[test]
+fn v4_refuses_an_older_root() {
+    let mut c = funded();
+    // the bazaar's root moved on: the verifier's job proves another graph
+    let mut root = live_root();
+    root[3] = json!("00".repeat(31) + "01");
+    assert_eq!(admit_with(&mut c, "m01.testnet", 0, root, live_status()), BOND);
+    assert!(refused_jolt());
+    assert!(c.job(0).unwrap().seats[0].is_none());
+}
+
+#[test]
+fn v4_refuses_unverified_panicked_or_other_statements() {
+    for (k, v) in [("status", json!("running")), ("status", json!("refused at unit 56: dory final: InvalidProof")), ("panic", json!(true)), ("statement", json!("00".repeat(32))), ("proof_sha256", json!("00".repeat(32)))] {
+        let mut c = funded();
+        let mut st = live_status();
+        st[k] = v;
+        assert_eq!(admit_with(&mut c, "m01.testnet", 0, live_root(), st), BOND, "{k}");
+        assert!(refused_jolt(), "{k}");
+    }
+    // a verifier answer that failed or is no record at all
+    let mut c = funded();
+    assert_eq!(send_bond(&mut c, "m01.testnet", 0, 40_000_000, Some(proof("m01.testnet")), BOND), None);
+    callback(vec![ok(json!(true)), ok(merchant_rec("m01.testnet")), ok(live_root()), PromiseResult::Failed]);
+    assert_eq!(c.on_admit(0, 0, acc("m01.testnet"), U128(BOND)).0, BOND);
+    let mut c = funded();
+    assert_eq!(send_bond(&mut c, "m01.testnet", 0, 40_000_000, Some(proof("m01.testnet")), BOND), None);
+    callback(vec![ok(json!(true)), ok(merchant_rec("m01.testnet")), ok(live_root()), ok(Value::Null)]);
+    assert_eq!(c.on_admit(0, 0, acc("m01.testnet"), U128(BOND)).0, BOND);
+}
+
+#[test]
+fn v4_refuses_other_inputs() {
+    let mut c = funded();
+    as_caller("dusdc.testnet");
+    let mut other = LIVE_INPUTS.to_vec();
+    other[0] ^= 1;
+    let msg = json!({ "join": { "job": 0, "leg": 0, "price": "40000000", "proof": proof("m01.testnet"), "standing_job": 4, "standing_inputs": Base64VecU8(other) } }).to_string();
+    assert!(matches!(c.ft_on_transfer(acc("m01.testnet"), U128(BOND), msg), PromiseOrValue::Promise(_)));
+    callback(vec![ok(json!(true)), ok(merchant_rec("m01.testnet")), ok(live_root()), ok(live_status())]);
+    assert_eq!(c.on_admit(0, 0, acc("m01.testnet"), U128(BOND)).0, BOND);
+    assert!(refused_jolt());
+}
+
+#[test]
+fn v4_refuses_a_join_naming_no_verifier_job() {
+    let mut c = funded();
+    as_caller("dusdc.testnet");
+    let msg = json!({ "join": { "job": 0, "leg": 0, "price": "40000000", "proof": proof("m01.testnet") } }).to_string();
+    assert!(matches!(c.ft_on_transfer(acc("m01.testnet"), U128(BOND), msg), PromiseOrValue::Value(U128(BOND))));
+    assert!(get_logs().iter().any(|l| l.contains(REFUSE_NO_JOLT)));
+}
