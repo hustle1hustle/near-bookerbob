@@ -1,4 +1,4 @@
-// NEAR testnet transactions from a browser, for round.html: an ed25519 key made on this page,
+// NEAR testnet (round.html) and mainnet (round-mainnet.html) transactions from a browser: an ed25519 key made on this page,
 // borsh by hand, sha256 from WebCrypto. The same bytes as relayer/near.mjs and the same bid
 // commitment as sdk/merchant.mjs (scripts/round-tx.test.mjs holds them equal).
 import { getPublicKeyAsync, signAsync } from "./vendor/noble-ed25519.js";
@@ -53,7 +53,9 @@ export const flatSchedule = (price) => {
 export const bidCommitment = async (account, schedule, saltHex) =>
   hex(await sha256(cat(enc.encode("bookerbob/bid/v0"), u8(0), enc.encode(account), u8(0), enc.encode(JSON.stringify(schedule)), unhex(saltHex))));
 
-const RPCS = ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org"];
+let RPCS = ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org"];
+/** The mainnet round page (round-mainnet.html) switches every call to mainnet RPC. */
+export function useMainnet() { RPCS = ["https://rpc.mainnet.fastnear.com", "https://rpc.mainnet.near.org"]; }
 export async function rpc(method, params) {
   let err;
   for (const url of RPCS) {

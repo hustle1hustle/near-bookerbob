@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bookerbob: the mainnet round</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ground: #f3f0e9; --surface: #eae6dd; --ink: #0a0a0b; --muted: rgba(10,10,11,.62); --faint: rgba(10,10,11,.42); --line: rgba(10,10,11,.16); --accent: #3b5bff; --accent-text: #2f49d6; --on-accent: #f6f3ec; --green: #1f9d63; --red: #c8332b; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 17px/1.5 "Archivo", -apple-system, "Segoe UI", sans-serif; }
+  a { color: inherit; }
+  main { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+  .hero { position: relative; margin: 0 -24px; padding: 0 24px 44px; background-image: radial-gradient(rgba(10,10,11,.13) 1px, transparent 1.2px); background-size: 14px 14px; }
+  nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 22px 0 6px; }
+  nav b { font-size: 20px; font-weight: 800; font-stretch: 112%; letter-spacing: -.01em; }
+  .tag { font: 600 11px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 56px 0 18px; font-size: clamp(46px, 9vw, 96px); line-height: .95; font-weight: 800; font-stretch: 112%; letter-spacing: -.03em; text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lead { font-size: clamp(19px, 2.6vw, 23px); line-height: 1.35; font-weight: 500; max-width: 620px; margin: 0; }
+  .tldr { margin: 34px 0 0; padding: 18px 20px; background: var(--ground); border-left: 3px solid var(--accent); max-width: 680px; }
+  .tldr .tag { color: var(--accent-text); display: block; margin-bottom: 8px; }
+  .tldr p { margin: 0 0 6px; font-size: 18px; line-height: 1.4; }
+  .tldr p:last-child { margin: 0; }
+  p { margin: 0 0 12px; }
+  .small { font: 13px/1.6 var(--mono); color: var(--muted); }
+  .play { margin: 36px 0 0; padding: 26px 22px 24px; background: var(--surface); }
+  .play h2 { margin: 0 0 6px; font-size: clamp(26px, 4vw, 34px); line-height: 1.04; font-weight: 800; font-stretch: 110%; letter-spacing: -.025em; }
+  label { display: block; margin: 18px 0 6px; font: 600 11px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  input { width: 100%; padding: 13px 14px; font: 17px var(--mono); color: var(--ink); background: var(--ground); border: 1px solid var(--line); border-radius: 0; }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  input.big { font: 700 44px/1.1 var(--mono); padding: 12px 16px; letter-spacing: -.02em; }
+  input[type=range] { padding: 0; border: 0; background: none; height: 34px; margin-top: 10px; accent-color: var(--accent); }
+  input[type=range].untouched { opacity: .35; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } }
+  button { margin-top: 22px; padding: 18px 24px; font: 800 17px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 0; cursor: pointer; }
+  button.wide { width: 100%; }
+  button.ghost { background: none; border: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 12px; padding: 9px 12px; text-transform: none; letter-spacing: 0; }
+  button:disabled { opacity: .4; cursor: default; }
+  #choice { margin-top: 10px; }
+  #steps { list-style: none; padding: 0; margin: 16px 0 0; font: 13px/1.7 var(--mono); overflow-wrap: anywhere; }
+  #steps li.ok::before { content: "ok  "; color: var(--green); } #steps li.run::before { content: "..  "; color: var(--faint); } #steps li.bad::before { content: "no  "; color: var(--red); }
+  .mine { margin-top: 14px; font: 14px/1.6 var(--mono); overflow-wrap: anywhere; }
+  .warn { color: var(--red); }
+  pre { background: var(--ground); border: 1px solid var(--line); padding: 14px 16px; overflow-x: auto; font: 13px/1.6 var(--mono); }
+  .board { margin-top: 40px; }
+  .board h3 { margin: 0 0 12px; font-size: 26px; font-weight: 800; font-stretch: 110%; letter-spacing: -.02em; }
+  .status { padding: 14px 16px; border: 1px solid var(--line); font: 13px/1.55 var(--mono); overflow-wrap: anywhere; }
+  .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+  .status .dot.off { background: var(--faint); }
+  table { width: 100%; border-collapse: collapse; font: 14px var(--mono); margin-top: 6px; }
+  td, th { text-align: left; padding: 11px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child { word-break: break-all; }
+  th { color: var(--muted); font: 600 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+  td.p, th.p { text-align: right; white-space: nowrap; } tr.win td { background: rgba(59,91,255,.12); }
+  #foot { margin-top: 10px; overflow-wrap: anywhere; }
+  details.how { margin-top: 40px; border-top: 1px solid var(--ink); padding-top: 16px; }
+  details.how summary { cursor: pointer; font: 700 13px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+  details.how p { font-size: 16px; margin-top: 12px; max-width: 680px; }
+  .kicker { margin: 40px 0 10px; color: var(--accent-text); }
+  h1 { margin: 0 0 22px; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+  .tile { width: 56px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--ink); color: var(--on-accent); font: 700 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .tile i { font-style: normal; font-size: 20px; line-height: 1; }
+  .tile.them { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+  .tile.you { background: var(--accent); color: var(--on-accent); animation: pulse 1.6s ease-in-out infinite; }
+  .tile.open { background: transparent; color: var(--ink); border: 1px dashed var(--ink); }
+  @keyframes pulse { 50% { transform: translateY(-3px); } }
+  .clock { display: flex; align-items: baseline; gap: 12px; margin: 0 0 22px; }
+  #clock { font: 800 34px var(--mono); letter-spacing: -.02em; }
+  .steps3 { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 0 0 22px; padding: 0; border-top: 1px solid var(--ink); }
+  .steps3 li { padding: 10px 8px 0 0; display: flex; flex-direction: column; gap: 2px; }
+  .steps3 b { font: 700 12px var(--mono); color: var(--accent-text); }
+  .steps3 span { font-size: 15px; font-weight: 600; line-height: 1.2; }
+  .cta { display: inline-block; padding: 16px 26px; background: var(--accent); color: var(--on-accent); font: 800 16px var(--mono); letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+  section.tldr { margin: 36px 0 0; padding: 18px 20px; border-left: 3px solid var(--accent); max-width: 680px; }
+  section.tldr .tag { color: var(--accent-text); display: block; margin-bottom: 8px; }
+  section.tldr p { margin: 0 0 6px; font-size: 18px; line-height: 1.4; }
+  @media (max-width: 480px) { .kicker { margin-top: 22px; } h1 { font-size: 44px; margin-bottom: 18px; } .tile { width: 48px; height: 56px; font-size: 8px; letter-spacing: .04em; } #clock { font-size: 28px; } .steps3 span { font-size: 14px; } }
+  .cost { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 14px 0 0; font: 600 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .cost b { font: 800 28px var(--mono); letter-spacing: -.01em; color: var(--ink); text-transform: none; }
+  .cost .small { text-transform: none; letter-spacing: 0; }
+  .loss { color: var(--red); font-weight: 700; } .gain { color: var(--green); font-weight: 700; }
+  .rrow { margin-top: 16px; padding: 14px 14px 12px; background: var(--ground); border: 1px solid var(--line); }
+  .rrow.closed { opacity: .45; }
+  .rrow .rh { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font: 700 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+  .rrow .buyer { font-size: 15px; margin: 4px 0 8px; }
+  .rrow .rc { font: 13px var(--mono); color: var(--muted); }
+  .rrow .rc b { font: 800 20px var(--mono); color: var(--ink); }
+  .rrow input.p { font: 700 28px var(--mono); padding: 8px 12px; margin-top: 8px; }
+  .rrow input.i { font-size: 14px; padding: 9px 12px; margin-top: 6px; }
+  .rrow .done { font: 13px var(--mono); color: var(--green); margin-top: 8px; }
+  .tablewrap { overflow-x: auto; }
+  .lead { margin-top: 0; }
+  [hidden] { display: none !important; }
+  @media (max-width: 480px) { main { padding: 0 16px 60px; } .hero { margin: 0 -16px; padding: 0 16px 32px; } h1 { margin-top: 36px; } input.big { font-size: 36px; } td, th { padding: 9px 5px; font-size: 12px; } .play { padding: 22px 16px; } }
+  .addr { margin-top: 8px; padding: 12px 14px; background: var(--ground); border: 1px solid var(--line); font: 700 14px/1.5 var(--mono); word-break: break-all; }
+  .fund { font: 13px/1.6 var(--mono); margin-top: 8px; }
+  .fund b { color: var(--green); }
+</style>
+</head>
+<body>
+<main>
+<div class="hero">
+<nav><b>bookerbob</b><span class="tag">NEAR mainnet · sealed-bid round</span></nav>
+<p class="kicker tag">you are a seller · one round · real USDC</p>
+<h1>beat <em id="hook-n">our agents</em> on price. get paid in real USDC.</h1>
+<p class="lead">one buyer agent wants a room. sellers bid sealed on NEAR mainnet. the lowest price wins, and the buyer pays it.</p>
+<div class="tiles" id="tiles" aria-label="sealed bids in this round"></div>
+<div class="clock"><span class="tag" id="clock-label">bids close in</span><span id="clock">--:--:--</span></div>
+<ol class="steps3">
+  <li><b>01</b><span>send 0.1 NEAR to a key made in this page</span></li>
+  <li><b>02</b><span>seal one price in USDC</span></li>
+  <li><b>03</b><span>lowest revealed price is paid by the buyer</span></li>
+</ol>
+<a class="cta" href="#play">place my bid</a>
+</div>
+
+<section class="play" id="play">
+  <h2 id="play-title">seal one bid</h2>
+  <div id="keyed" hidden>
+    <label>your account on NEAR mainnet (an implicit account: its name is its public key)</label>
+    <div class="addr" id="addr"></div>
+    <p><button class="ghost" id="copy">copy the address</button></p>
+    <p class="fund" id="fund"></p>
+  </div>
+  <button id="mkkey" class="wide">make my key</button>
+  <div id="form" hidden>
+    <label for="price">your price, in USDC (0.01 to <span id="maxp">0.23</span>)</label>
+    <input id="price" class="big" inputmode="decimal" autocomplete="off" placeholder="0.00">
+    <label for="instr">a line for your agent (optional; only its hash goes on chain)</label>
+    <input id="instr" autocomplete="off" maxlength="140">
+    <button id="bid" class="wide" disabled>seal my bid</button>
+  </div>
+  <div class="mine" id="mine" hidden></div>
+  <button id="reveal" hidden>reveal my bid now</button>
+  <ul id="steps"></ul>
+  <p class="small warn" id="note" hidden></p>
+  <p><button class="ghost" id="export" hidden>show my key</button></p>
+  <pre id="keybox" hidden></pre>
+</section>
+
+<section class="tldr">
+  <span class="tag">tl;dr</span>
+  <p>BookerBob is a market where agents shop for you.</p>
+  <p>Sellers' agents compete with sealed bids. Lowest price wins.</p>
+  <p>This round runs on NEAR mainnet: your own key, real NEAR for gas, a real USDC payout.</p>
+</section>
+
+<section class="board"><h3>the round</h3>
+<div class="status" id="status"><span class="dot off"></span>reading the round over public mainnet RPC</div>
+<div class="tablewrap"><table id="bids"><thead><tr><th>account</th><th>who</th><th class="p">price</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="foot"></p>
+</section>
+
+<details class="how">
+  <summary>how it works</summary>
+  <p>you are a seller with one room to sell. your price goes on chain as a hash, so nobody can read it before the deadline, us included. after the deadline every bid is revealed and the contract pins it. the lowest revealed price wins, and our buyer agent pays it in Circle USDC on NEAR, against a NEAR AI verdict and a referee receipt.</p>
+  <p>the page makes an ed25519 key in this browser. its public key in hex is your NEAR account name (an implicit account). send it about 0.1 NEAR from any wallet or exchange; that creates the account. NEAR asks a transaction to hold more than it spends (unused gas and storage deposits come back), and bidding ends up using about 0.01 NEAR. the rest stays on your account, and "show my key" lets you take it with you.</p>
+  <p>BookerBob's watcher approves every account that registers in this round's category and has registered with USDC, usually within a minute or two, up to 60 accounts. it holds a key on the bazaar limited to open_round and approve_merchant, with a gas allowance NEAR enforces. the permissionless lane (a 10 USDC bond, no approval) stays on testnet, so nothing of yours is locked here.</p>
+  <p>one visit is enough. your reveal is signed in this page and time-locked with <a href="https://drand.love">drand</a> until the bid deadline; after it our relayer opens it and sends it, paying the gas. it cannot change your price. you can also come back after the deadline and press reveal.</p>
+  <p class="small">the buyer's facts are synthetic fixture facts and the buyer is our own agent; the payment is real. one bid per account. a bid never revealed bars the account from new rounds for 24 hours. prices above 0.23 USDC are refused by this page (the buyer's budget). the buyer holds enough USDC to pay any allowed price; we settle after reveals close.</p>
+  <p class="small">terminal, own account: <code>JOIN_ACCOUNT=you.near JOIN_KEY_FILE=key.json node scripts/round-mainnet.mjs bid 0.15</code> in <a href="https://github.com/hustle1hustle/near-bookerbob">the repo</a>. the bazaar: <a id="acct" href="#">on nearblocks</a>.</p>
+</details>
+</main>
+<script type="module">
+import * as tx from "./round-tx.js";
+tx.useMainnet();
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const utc = (ms) => new Date(ms).toISOString().slice(11, 16) + " UTC";
+const KEY = "bookerbob-mainnet-v1";
+const store = { get() { try { return JSON.parse(localStorage.getItem(KEY) ?? "null"); } catch { return null; } }, set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); return true; } catch { return false; } } };
+const NB = "https://nearblocks.io";
+const link = (h) => '<a href="' + NB + "/txns/" + esc(h) + '">' + esc(h.slice(0, 8)) + "..</a>";
+const short = (a) => a.length > 24 ? a.slice(0, 8) + ".." + a.slice(-6) : a;
+function step(text) { const li = document.createElement("li"); li.className = "run"; li.textContent = text; $("steps").appendChild(li); return { ok(h) { li.className = "ok"; if (h) li.innerHTML = esc(text) + "  " + link(h); }, bad(e) { li.className = "bad"; li.textContent = text + ": " + e; } }; }
+async function sent(text, p) { const s = step(text); const r = await p; if (!r.ok) { s.bad(r.error); throw new Error(text + " failed"); } s.ok(r.hash); return r.hash; }
+const hexOf = (u8) => Array.from(u8, (x) => x.toString(16).padStart(2, "0")).join("");
+const MILLI = 10n ** 21n;
+
+let cfg = null, round = null, balance = 0n;
+const ours = (w) => Boolean(cfg?.ours?.[w]);
+async function load() {
+  cfg ??= await (await fetch("round-mainnet.json", { cache: "no-store" })).json();
+  $("acct").href = NB + "/address/" + cfg.bazaar;
+  $("maxp").textContent = cfg.max_price_usdc;
+  round = await tx.view(cfg.bazaar, "round", { round_id: cfg.round });
+}
+const bidsOpen = () => round && Date.now() < round.commit_until_ms - 15000;
+
+let clockTo = null, clockLabel = "bids close in";
+setInterval(() => {
+  $("clock-label").textContent = clockLabel;
+  if (!clockTo) { $("clock").textContent = ""; return; }
+  const s = Math.max(0, Math.floor((clockTo - Date.now()) / 1000));
+  $("clock").textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((x) => String(x).padStart(2, "0")).join(":");
+}, 1000);
+
+async function readBalance(id) {
+  try { return BigInt((await tx.rpc("query", { request_type: "view_account", finality: "final", account_id: id })).amount); } catch { return 0n; }
+}
+async function paintPlay() {
+  const st = store.get();
+  const committed = st && round.commits.some(([w]) => w === st.account);
+  $("mkkey").hidden = Boolean(st) || !bidsOpen();
+  $("keyed").hidden = !st;
+  $("export").hidden = !st;
+  if (st) {
+    $("addr").textContent = st.account;
+    balance = await readBalance(st.account);
+    const near = Number(balance / 10n ** 20n) / 1e4;
+    $("fund").innerHTML = balance >= 60n * MILLI ? "<b>funded:</b> " + near.toFixed(4) + " NEAR" : balance > 0n ? "holds " + near.toFixed(4) + " NEAR: send at least 0.06 NEAR in all, 0.1 is comfortable" : "save your key before you send NEAR (show my key, below): clearing this site's data loses it. then send about 0.1 NEAR to this address from any wallet or exchange. this page checks every few seconds.";
+  }
+  $("form").hidden = !st || committed || !bidsOpen();
+  $("bid").disabled = !(balance >= 60n * MILLI) || !(Number($("price").value) > 0);
+  $("play-title").textContent = committed ? "your bid is sealed" : bidsOpen() ? "seal one bid" : Date.now() < round.reveal_until_ms ? "bids are closed: reveals are open" : "the round is closed";
+  const due = st && committed && !round.revealed.includes(st.account) && Date.now() >= round.commit_until_ms && Date.now() < round.reveal_until_ms;
+  $("reveal").hidden = !due;
+  $("mine").hidden = !committed;
+  if (committed) $("mine").innerHTML = "sealed" + (st.price ? " at " + esc(st.price) + " USDC" : "") + (round.revealed.includes(st.account) ? ", revealed" : st.auto_reveal ? ". nothing else to do: it opens by itself after " + esc(utc(round.commit_until_ms)) + ". pressing reveal after that is optional." : ". come back between " + esc(utc(round.commit_until_ms)) + " and " + esc(utc(round.reveal_until_ms)) + " and press reveal.");
+}
+$("price").oninput = () => { $("bid").disabled = !(balance >= 60n * MILLI) || !(Number($("price").value) > 0); };
+
+async function draw() {
+  try {
+    await load();
+    const st = store.get();
+    const now = Date.now();
+    const nOurs = round.commits.filter(([w]) => cfg.ours[w] === "ours").length;
+    if (nOurs) $("hook-n").textContent = nOurs + " of our agents";
+    const t = round.commits.map(([w]) => w === st?.account ? '<div class="tile you"><i>&#9679;</i>you</div>' : ours(w) ? '<div class="tile"><i>&#9679;</i>ours</div>' : '<div class="tile them"><i>&#9679;</i>them</div>');
+    if (bidsOpen() && !round.commits.some(([w]) => w === st?.account)) t.push('<div class="tile open"><i>?</i>you</div>');
+    $("tiles").innerHTML = t.join("");
+    clockTo = now < round.commit_until_ms ? round.commit_until_ms : now < round.reveal_until_ms ? round.reveal_until_ms : null;
+    clockLabel = now < round.commit_until_ms ? "bids close in" : clockTo ? "reveals close in" : "the round is closed";
+    await paintPlay();
+    const prices = {};
+    for (const w of round.revealed) prices[w] = Number((await tx.view(cfg.bazaar, "round_bid", { round_id: cfg.round, merchant: w })).base_price) / 1e6;
+    const closed = now >= round.reveal_until_ms;
+    const rows = round.commits.map(([w]) => ({ w, p: prices[w] ?? null })).sort((a, b) => (a.p ?? Infinity) - (b.p ?? Infinity));
+    const win = closed && rows[0]?.p != null ? rows[0].w : null;
+    $("bids").querySelector("tbody").innerHTML = rows.map((r) => '<tr class="' + (r.w === win ? "win" : "") + '"><td><a href="' + NB + "/address/" + esc(r.w) + '">' + esc(short(r.w)) + "</a></td><td>" + (ours(r.w) ? (cfg.ours[r.w] === "ours" ? "ours" : "ours, a test of this page") : r.w === st?.account ? "you, own key" : "outside account, own key") + '</td><td class="p">' + (r.p != null ? r.p.toFixed(2) + " USDC" : closed ? "never opened" : "sealed") + "</td></tr>").join("") || '<tr><td colspan="3">no bids yet</td></tr>';
+    const res = cfg.result;
+    $("status").innerHTML = '<span class="dot' + (closed ? " off" : "") + '"></span>' + esc(round.commits.length + " sealed, " + round.revealed.length + " revealed. " + (now < round.commit_until_ms ? "bids close " + utc(round.commit_until_ms) + ", reveals close " + utc(round.reveal_until_ms) + "." : !closed ? "reveals close " + utc(round.reveal_until_ms) + "." : win ? "closed: the lowest price is " + short(win) + " at " + prices[win].toFixed(2) + " USDC." : "closed.")) + (res?.settle_tx ? " paid: " + link(res.settle_tx) : "") + "<br>read live from NEAR mainnet.";
+    $("foot").textContent = "ours are BookerBob's two merchant agents, each on its own key, and one test account that ran this page's flow; every other account holds its own key. prices are what the contract pinned at reveal.";
+  } catch (e) { $("status").innerHTML = '<span class="dot off"></span>could not read the round: ' + esc(e.message); }
+}
+
+$("mkkey").onclick = async () => {
+  if (store.get()) return;
+  const seed = tx.randomHex();
+  const pub = await tx.publicKeyHex(seed);
+  if (!store.set({ account: pub, seed, pub, txs: {} })) { $("note").hidden = false; $("note").textContent = "this browser blocks page storage (private mode?). open the page in a normal tab"; return; }
+  draw();
+};
+$("copy").onclick = () => navigator.clipboard?.writeText(store.get()?.account ?? "");
+
+$("bid").onclick = async () => {
+  const btn = $("bid"); btn.disabled = true; $("steps").innerHTML = ""; $("note").hidden = true;
+  try {
+    await load();
+    const st = store.get();
+    const price = $("price").value.trim();
+    if (!(Number(price) >= 0.01 && Number(price) <= cfg.max_price_usdc)) throw new Error("price: a number of USDC from 0.01 to " + cfg.max_price_usdc);
+    if (!bidsOpen()) throw new Error("bids are closed");
+    const schedule = tx.flatSchedule(price);
+    const me = (receiver_id, actions) => tx.send({ signer_id: st.account, seedHex: st.seed, pubHex: st.pub, receiver_id, actions });
+    if (!(await tx.view(cfg.usdc, "storage_balance_of", { account_id: st.account }))) st.txs.usdc = await sent("register with USDC, so a winner can be paid", me(cfg.usdc, [tx.call("storage_deposit", { account_id: st.account, registration_only: true }, 1250n * 10n ** 18n, 30n)]));
+    store.set(st);
+    let m = await tx.view(cfg.bazaar, "merchant", { merchant: st.account });
+    if (!m) { st.txs.register = await sent("register as a seller in " + cfg.category, me(cfg.bazaar, [tx.call("register_merchant", { schedule: tx.flatSchedule(10000), category: cfg.category, payout: null }, 20n * MILLI, 15n)])); store.set(st); }
+    if (!m?.approved) {
+      const s = step("BookerBob's watcher approves the account (usually a minute or two)");
+      for (let i = 0; i < 40 && !(m = await tx.view(cfg.bazaar, "merchant", { merchant: st.account }))?.approved; i++) await new Promise((ok) => setTimeout(ok, 6000));
+      if (!m?.approved) { s.bad("not yet. press seal again in a few minutes"); throw new Error("waiting for approval"); }
+      s.ok();
+    }
+    const instr = $("instr").value.trim();
+    const ih = hexOf(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(instr)))).slice(0, 32);
+    st.price = price; st.schedule = schedule; st.instruction_hash = instr ? ih : null;
+    st.salt = st.salt ?? ((instr ? ih : "0".repeat(32)) + tx.randomHex(16));
+    store.set(st);
+    let sealed_reveal = null;
+    try {
+      const tl = await import("./vendor/tlock.min.js");
+      const client = tl.mainnetClient();
+      const info = await client.chain().info();
+      const w = await tx.delegateWindow(st.account, st.pub, round.reveal_until_ms);
+      const signedReveal = await tx.signDelegate({ sender_id: st.account, seedHex: st.seed, pubHex: st.pub, receiver_id: cfg.bazaar, actions: [tx.call("reveal_bid", { round_id: cfg.round, schedule, salt: st.salt }, 20n * MILLI, 50n)], nonce: w.nonce, max_block_height: w.max_block_height });
+      sealed_reveal = await tl.timelockEncrypt(tl.roundAt(round.commit_until_ms + 5000, info), tl.Buffer.from(JSON.stringify(signedReveal)), client);
+      st.auto_reveal = true;
+    } catch { st.auto_reveal = false; }
+    const commitArgs = { round_id: cfg.round, commitment: await tx.bidCommitment(st.account, schedule, st.salt), ...(sealed_reveal && { sealed_reveal }) };
+    st.txs.commit = await sent("sealed bid" + (sealed_reveal ? ", reveal time-locked" : ""), me(cfg.bazaar, [tx.call("commit_bid", commitArgs, 20n * MILLI, 30n)]));
+    store.set(st);
+  } catch (e) { $("note").hidden = false; $("note").textContent = e.message; }
+  btn.disabled = false; draw();
+};
+$("reveal").onclick = async () => {
+  const btn = $("reveal"); btn.disabled = true; $("steps").innerHTML = ""; $("note").hidden = true;
+  try {
+    const st = store.get(); await load();
+    st.txs.reveal = await sent("reveal", tx.send({ signer_id: st.account, seedHex: st.seed, pubHex: st.pub, receiver_id: cfg.bazaar, actions: [tx.call("reveal_bid", { round_id: cfg.round, schedule: st.schedule, salt: st.salt }, 20n * MILLI, 50n)] }));
+    store.set(st);
+  } catch (e) { $("note").hidden = false; $("note").textContent = e.message; }
+  btn.disabled = false; draw();
+};
+$("export").onclick = () => { const st = store.get(); const box = $("keybox"); box.hidden = !box.hidden; box.textContent = "your NEAR mainnet key. it controls the NEAR left on this account: keep it private.\n" + JSON.stringify({ account_id: st.account, public_key: tx.nearPublicKey(st.pub), private_key: tx.nearSecretKey(st.seed, st.pub) }, null, 2); };
+draw(); setInterval(draw, 8000);
+</script>
+</body>
+</html>

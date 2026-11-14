@@ -73,6 +73,7 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
   one agent-to-agent settlement on NEAR Intents, and one purchase on real data: the founder's own
   GitHub proof, where the model refused a discount the facts do not back and he paid the plain
   price: [docs/mainnet.md](docs/mainnet.md).
+- **An open round on mainnet (Nov 14):** anyone bids sealed on their own NEAR key against our agents, and the buyer pays the lowest price in USDC: [round-mainnet.html](https://hustle1hustle.github.io/near-bookerbob/round-mainnet.html), [docs/round-mainnet.md](docs/round-mainnet.md).
 - **Real attestations:** TLSNotary proofs of GitHub, a QFEX notary receipt and a zero-knowledge QFEX referral floor,
   proved with Jolt in the REP Proofs browser extension over a notarized MPC-TLS session on the
   founder's own account (floors only, account not identified):

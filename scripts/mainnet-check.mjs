@@ -11,6 +11,7 @@ const CHECKS = [
   ["the real-data purchase (the refused discount)", "scripts/mainnet-real.mjs"],
   ["the agent-to-agent NEAR Intents settlement", "scripts/intents-settle.mjs"],
   ["the model's TDX quote verified on chain on mainnet", "scripts/mainnet-dcap.mjs"],
+  ["the open round mainnet-open-1 (outside accounts on their own keys)", "scripts/round-mainnet.mjs"],
 ];
 const NET = /fetch failed|ETIMEDOUT|ECONNRESET|ENOTFOUND|EAI_AGAIN|429|Too Many Requests|timed out|socket hang up/i;
 let failed = 0, skipped = 0;
