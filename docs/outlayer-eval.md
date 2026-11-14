@@ -16,7 +16,13 @@ Two versions:
   **The v0 key is still a registered issuer on `bookerbob.testnet`, and that bazaar is locked, so
   the key cannot be revoked: verdicts in the CRIT 1 shape (another account's facts and nullifier)
   can still be submitted there.** Sources kept in `worker/outlayer-eval/v0/`.
-- **v1, in code with tests, not deployed.** It fixes those issues (`worker/outlayer-eval/src`,
+- **v1: audited, all named tests pass (22/22), wasm 4d2c4a3b; not deployed, since the testnet
+  bazaar is locked and new issuers need its deleted owner key.** An independent review of the
+  fixes (2026-11-14) found no CRIT or HIGH. It found open items for a v2: the hidden range starts in
+  the `Authorization` value but may run on into further hidden headers, and request headers such as
+  `Host` are not checked. The binding uses only public inputs, so GitHub can link the account to the
+  `cnf`. Bare-LF line ends are not counted. Transcript sizes are not capped before decoding.
+  v1 fixes the audit issues below (`worker/outlayer-eval/src`,
   sha256 `4d2c4a3b…f107` at the fixed build path). `bookerbob.testnet` is locked (no full-access
   key), and it owns both the OutLayer project and the bazaar's trust anchors. So v1 cannot be
   published as a version of that project, and no new issuer can be registered on that bazaar.

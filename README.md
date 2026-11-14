@@ -27,7 +27,7 @@ verifier and the coalition hold no keys (`make coalition-jolt-check`; `node scri
 New Jolt checks come from the swarm: on an agent's request, a TEE-attested NEAR AI model writes the
 guest from a fixed skeleton, and a testnet registry records its program hash ([docs/smith.md](docs/smith.md)).
 
-Verify everything: [agents/verify.html](https://hustle1hustle.github.io/near-bookerbob/verify.html), `make verify-all`.
+Verify everything: [agents/verify.html](https://hustle1hustle.github.io/near-bookerbob/verify.html), `make verify-all` (about 15 min; `QUICK=1` for about 3 min).
 
 [![prove 3 facts, pay 408: a buyer agent in Lisbon proves three facts and pays 408.00 against a public 510.00 while 8 seller agents bid sealed](docs/media/hook.gif)](https://hustle1hustle.github.io/near-bookerbob/)
 
@@ -39,8 +39,8 @@ From a clone, no keys:
 
 | command | needs | time | ends with |
 |---|---|---|---|
-| `make judge` | Node 22, offline | about 40 s | `PASS  make judge` (the testnet checks replay a saved RPC snapshot, and say so) |
-| `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try`: 5 merchant agents bid sealed, 6 buyers settle on the contract's own code |
+| `make judge` | Node 22, offline | about 40 s | `PASS  make judge` (the testnet checks replay a saved RPC snapshot, and say so; `JUDGE_LIVE=1` also reads mainnet live) |
+| `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try in 2.4 s`: 5 merchant agents bid sealed, 6 buyers settle on the contract's own code |
 | `make verify-live` | public NEAR testnet RPC | 5 to 20 min | `PASS  verify-live`: every testnet claim re-derived live |
 
 Also: `make adversarial` (3,724 attacks, all refused) and

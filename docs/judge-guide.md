@@ -42,7 +42,7 @@ chain, offline.
 make judge     # Node 22 only, about 40 s, no network, no keys: ends `PASS  make judge`
 ```
 
-It replays a recorded snapshot of the testnet reads (103 checks), runs the JS suites, the
+It replays a recorded snapshot of the testnet reads (123 checks), runs the JS suites, the
 referee, the Jolt verifier and the page's wasm verifier. Then open one live transaction, the
 hotel purchase at 408 dUSDC:
 [9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6).
@@ -68,6 +68,10 @@ make judge           # Node 22 only, offline, about 40 s (JUDGE_LIVE=1 make judg
 make verify          # Rust 1.93+; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
+
+`make verify-all` (about 15 min; `QUICK=1` for about 3 min) runs every keyless check, mainnet and
+testnet, and rewrites `agents/verify.json`, a tracked file, with your run's results;
+`git checkout agents/verify.json` restores the committed copy.
 
 What each block of PASS lines proves:
 
