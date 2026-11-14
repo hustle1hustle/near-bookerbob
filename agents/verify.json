@@ -1,0 +1,128 @@
+{
+  "ran_at": "2026-11-14T17:47:24.956Z",
+  "only": "anchor.mjs",
+  "seconds": 8,
+  "quick": false,
+  "results": [
+    {
+      "section": "mainnet",
+      "what": "the bazaar's code and sealed round, the USDC purchase under a NEAR AI verdict, the refused real-data discount, the NEAR Intents settlement, the model's TDX quote verified on chain (DCAP) and its key registered against it",
+      "command": "node scripts/mainnet-check.mjs",
+      "mode": "live",
+      "ok": true,
+      "live_pass": 6,
+      "live_fail": [],
+      "timed_out": false,
+      "replay": null,
+      "seconds": 4,
+      "line": "PASS  mainnet-check: 5 of 5 mainnet records re-read over public RPC, no keys"
+    },
+    {
+      "section": "mainnet",
+      "what": "the OutLayer referee on outlayer.near: project, TEE key registered on the mainnet bazaar, one purchase settled under its receipt",
+      "command": "node scripts/mainnet-outlayer.mjs check",
+      "mode": "absent",
+      "ok": null,
+      "line": "scripts/mainnet-outlayer.mjs is not in this tree"
+    },
+    {
+      "section": "both",
+      "what": "OutLayer TDX attestation of five runs (the referee's purchase, cheat and dispute and the Jolt verifier on testnet; the referee purchase on mainnet): record = tx, task hash = the quote's report_data, the quote verified by our DCAP verifier, measurements approved on chain",
+      "command": "node scripts/outlayer-attest.mjs verify",
+      "mode": "live",
+      "ok": true,
+      "live_pass": 6,
+      "live_fail": [],
+      "timed_out": false,
+      "replay": null,
+      "seconds": 19,
+      "line": "PASS  MAINNET referee, the purchase on outlayer.near: OutLayer request 3598, wasm 6fca1eaa.., 3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7/bookerbob-referee; input and output hashes match the tx; task hash b8272cc1b3fb.."
+    },
+    {
+      "section": "testnet",
+      "what": "the OutLayer referee: a purchase settled under its signed receipt, a cheat refused and its settle blocked",
+      "command": "node scripts/outlayer-buy.mjs verify",
+      "mode": "live",
+      "ok": true,
+      "live_pass": 5,
+      "live_fail": [],
+      "timed_out": false,
+      "replay": null,
+      "seconds": 9,
+      "line": "PASS  cheat: OutLayer's referee refused it (F9 not in proof set; callback), no receipt stored, settle_demo refused (no referee receipt)"
+    },
+    {
+      "section": "testnet",
+      "what": "the Jolt verifier on OutLayer: the standing proof behind the bazaar's root, signed accept; a forged proof, signed reject; a registry admits only the accept",
+      "command": "node scripts/outlayer-jolt.mjs verify",
+      "mode": "live",
+      "ok": true,
+      "live_pass": 5,
+      "live_fail": [],
+      "timed_out": false,
+      "replay": null,
+      "seconds": 27,
+      "line": "PASS  consumer: smith-reg.bookerbob-demo.testnet attest_use took the signed accept for standing-graph and refused the signed reject of the forged proof"
+    },
+    {
+      "section": "testnet",
+      "what": "the proven standing tree v2 against the bazaar's root",
+      "command": "node scripts/standing-v2.mjs verify",
+      "mode": "absent",
+      "ok": null,
+      "line": "scripts/standing-v2.mjs is not in this tree"
+    },
+    {
+      "section": "testnet",
+      "what": "the coalition jobs on testnet",
+      "command": "node scripts/coalition-live.mjs verify",
+      "mode": "absent",
+      "ok": null,
+      "line": "scripts/coalition-live.mjs is not in this tree"
+    },
+    {
+      "section": "testnet",
+      "what": "the transparency anchor",
+      "command": "node scripts/anchor.mjs verify",
+      "ran_at": "2026-11-14T17:47:24.954Z",
+      "mode": "live",
+      "ok": true,
+      "live_pass": 7,
+      "live_fail": [],
+      "timed_out": false,
+      "replay": null,
+      "seconds": 8,
+      "line": "PASS  anchor verify: eip155:5042002:0xcfbbe8aa3c231f3345afa7798f65b03e2738d56f on bookerbob-anchor.testnet"
+    },
+    {
+      "section": "testnet",
+      "what": "every other testnet claim in the manifest (purchases, rounds, reviews, standing, gates)",
+      "command": "node scripts/verify-live.mjs",
+      "mode": "fixture",
+      "ok": true,
+      "live_pass": 63,
+      "live_fail": [],
+      "timed_out": true,
+      "replay": {
+        "ok": true,
+        "pass": 113,
+        "fail": 0
+      },
+      "seconds": 1200,
+      "line": "PASS  02551d03754f7394b3ccff9d6f7efbb16d457ebc641a7767229211db48a38f50: the same nullifier from another account was refused  (nullifier spent)"
+    },
+    {
+      "section": "offline",
+      "what": "the committed Jolt proofs, with the committed prebuilt verifier",
+      "command": "sh scripts/zk-verify-prebuilt.sh",
+      "mode": "live",
+      "ok": true,
+      "live_pass": 1,
+      "live_fail": [],
+      "timed_out": false,
+      "replay": null,
+      "seconds": 2,
+      "line": "PASS  zk-verify-prebuilt: 7 Jolt proofs verify with the committed aarch64-apple-darwin verifier (sha256 62d80a5f827a..)"
+    }
+  ]
+}

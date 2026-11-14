@@ -24,8 +24,10 @@ const DAO = "bookerbob-gov.sputnikv2.testnet";
 const OPS = "bookerbob-dao-ops.testnet";
 const OUTLAYER = "outlayer.testnet";
 const API = "https://testnet-api.outlayer.ai";
-const REPO = "hustle1hustle/bookerbob-near";
-const TAG = "outlayer-referee-v0";
+const REPO = "hustle1hustle/near-bookerbob";
+// v0 (2026-11-14 13:05) built in the checkout, so its hash depends on the checkout path; v1 is the
+// same code built at a fixed path by worker/outlayer/build.sh. `--tag` names the release a step uses.
+const TAG = process.argv.includes("--tag") ? process.argv[process.argv.indexOf("--tag") + 1] : "outlayer-referee-v1";
 const NAME = "bookerbob-referee";
 const PROJECT = `${SIGNER}/${NAME}`;
 const ASSET = "bookerbob-referee-outlayer.wasm";
@@ -116,6 +118,7 @@ const steps = [
   { id: "release", kind: "SENDS", what: "publish the wasm as a release asset of the public repo (GitHub)", cmds: [["gh", "release", "create", TAG, WASM, "--repo", REPO, "--title", "BookerBob referee, OutLayer component", "--notes", `wasm32-wasip2 component of worker/outlayer. sha256 ${SHA}`]], note: `the URL create_project will name: ${URL}` },
   { id: "release-check", kind: "reads", what: "the public URL serves exactly the built bytes", sh: `test "$(curl -sL ${URL} | shasum -a 256 | cut -d' ' -f1)" = ${SHA} && echo same` },
   { id: "project", kind: "SENDS", what: `create the project ${PROJECT} on ${OUTLAYER} (storage deposit, the excess is refunded; undo: delete_project)`, cmds: [call(OUTLAYER, "create_project", { name: NAME, source: { WasmUrl: { url: URL, hash: SHA, build_target: "wasm32-wasip2" } } }, "0.1 NEAR")] },
+  { id: "add-version", kind: "SENDS", what: `add the release ${TAG} as a new version of ${PROJECT} and make it active (same project, so the same keys)`, cmds: [call(OUTLAYER, "add_version", { project_name: NAME, source: { WasmUrl: { url: URL, hash: SHA, build_target: "wasm32-wasip2" } }, set_active: true }, "0.1 NEAR")] },
   { id: "project-check", kind: "reads", what: "the project exists; its active version is the hash; note its uuid (the keys belong to it)", cmds: [view(OUTLAYER, "get_project", { project_id: PROJECT })] },
   { id: "pubkey", kind: "SENDS", what: "one run with {\"cmd\":\"pubkey\"}: the tx result names referee_key, arbiter_key and the seal key, signed by referee_key", cmds: [run({ cmd: "pubkey" })], note: "0.05 NEAR attached, the excess over the run's cost comes back; estimate: 0.0070001 NEAR (fixtures/live/views.json)" },
   { id: "sealkey", kind: "SENDS", what: "one run with {\"cmd\":\"sealkey\"}: the pq1: key (X25519 + ML-KEM-768) a buyer seals to, for calls OutLayer receives from bookerbob.testnet", cmds: [run({ cmd: "sealkey" })] },
@@ -165,7 +168,7 @@ if (placeholder || (step.id === "request" && SEAL.startsWith("<"))) {
   console.error(`refusing: step ${step.id} needs a value from an earlier step (${placeholder?.[0] ?? "--seal-key"}); pass it by flag`);
   process.exit(2);
 }
-if (step.id === "project") {
+if (step.id === "project" || step.id === "add-version") {
   // The hash put on chain must be the hash of what the URL serves.
   const got = createHash("sha256").update(Buffer.from(await (await fetch(URL)).arrayBuffer())).digest("hex");
   if (got !== sha) {

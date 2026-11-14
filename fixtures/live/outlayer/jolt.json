@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-14",
+  "project_id": "bookerbob.testnet/bookerbob-jolt-verify",
+  "contract": "outlayer.testnet",
+  "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/jolt-verify-v0/bookerbob-jolt-verify-outlayer.wasm",
+  "wasm_sha256": "cad8d2e12500315b9bef983b6983489d46b958f6be2784f18af1229c839fbb65",
+  "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+  "source": {
+    "bazaar": "bookerbob.testnet",
+    "tx": "8AmCe4FNKXafMqZpeohNEK51bAtDDTm27pPDS8rSWBDD",
+    "signer": "bookerbob-demo.testnet"
+  },
+  "txs": {
+    "create_project": "CdEiShbpK6Cm1jfLSmskfxrH9yN8oUp9b9BKDBNNWwN8",
+    "pubkey": "AZkVdDGms2HtmCDxrDw1xC9tQ7T8CakfQJFGUovsRw8U",
+    "pubkey_resolve": "9FVqb3A72XnLTZem7HYUoGmDa8t6KGMw4H6srQVTNFZF",
+    "forged": "EP1BATKsqhtFMhyP1P5AdksYz7yt8uLL1jNGcQuAsFvk",
+    "forged_resolve": "G7CwEL7eEZAkL9YLbcZCfW8Yo9tdZaZMvSf4fcWJgLsz",
+    "attest_reject": "HtErk3AmcHxPbMUs9kr34r5qjEAPdntKEBtgWARn1Erg",
+    "honest": "D7yPc1vuqoqznbs2smmLiZN9pJrpLHKSTSusNGAFFvFW",
+    "attest_use": "BKL3fsBzKmtWcHX5V7bHDTLMiXMiEMi78fzJJiJLs2h8"
+  },
+  "via": {
+    "pubkey": "resolve",
+    "forged": "resolve",
+    "honest": "callback"
+  },
+  "request_ids": {
+    "pubkey": 46402,
+    "forged": 46427
+  },
+  "key": "954d224e5db702d95f267cbb3bcafe649ec6aa61f3c179a21b9100bf3eb09464",
+  "registry": {
+    "account": "smith-reg.bookerbob-demo.testnet",
+    "verifier": "outlayer-jolt-997c",
+    "request_id": "standing-graph"
+  },
+  "history": [
+    {
+      "note": "the 8-event update before the current root, verified first (same project, same key)",
+      "source": {
+        "bazaar": "bookerbob.testnet",
+        "tx": "5jgLWwxzwZEAegQkLfsfMcnifjbvKwTHCeNQpvUyeY61",
+        "signer": "bookerbob-demo.testnet"
+      },
+      "proof": "fixtures/live/outlayer/jolt/standing-coalition/",
+      "txs": {
+        "honest": "2ckdmHPoE5qakAEBELyCYttumxtUMHzbdvzBFBmVYjw3",
+        "honest_resolve": "2gkYZhZvNbGdnrXU4nGPGZvKahaSECEdpD5wZ8SJuoJb",
+        "attest_use": "DZfSmqd74t9s4VXspo2adEaoXcJe9i5z2iRKhAYtAV64"
+      },
+      "request_id": 46413,
+      "via": "resolve"
+    }
+  ]
+}

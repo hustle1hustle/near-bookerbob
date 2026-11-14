@@ -1,0 +1,7 @@
+// The OutLayer host interface the Jolt verifier imports. wit/deps/signing-keys.wit is a verbatim
+// copy of fastnear/near-outlayer worker/wit/deps/ at commit e954d4a90702edcaeb290f7bade7c5283913ad74.
+package bookerbob:jolt-verify;
+
+world jolt-verify {
+    import outlayer:signing-keys/api@0.1.0;
+}

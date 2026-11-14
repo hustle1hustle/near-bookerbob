@@ -1,0 +1,7 @@
+{
+  "display": { "name": "BookerBob Jolt verifier" },
+  "capabilities": { "network": [] },
+  "signing_keys": [
+    { "path": "jolt-verify", "type": "ed25519", "caller": "none" }
+  ]
+}

@@ -446,8 +446,60 @@ fn checks(wasm_path: &str, fixture_input: &str, fixture_cheat: &str) -> Result<u
     Ok(n.0)
 }
 
+// ---------- the Jolt verifier component (worker/outlayer-jolt) ----------
+
+const JOLT_MANIFEST: &str = include_str!("../../outlayer-jolt/manifest.json");
+
+/// `jolt <component.wasm> <case.json>...`: each case is {"name", "input", "expect"} with expect
+/// "accept", "reject" or "pubkey"; the run's statement must carry that verdict under a valid
+/// mock-key signature over "bookerbob/jolt-verify/v0\0" || json(statement).
+fn jolt(wasm: &str, cases: &[String]) -> Result<usize, String> {
+    let mut r = Runner::new(&std::fs::read(wasm).map_err(|e| format!("read {wasm}: {e}"))?).map_err(|e| format!("{e:#}"))?;
+    r.manifest = serde_json::from_str(JOLT_MANIFEST).map_err(|e| e.to_string())?;
+    let key = mock_signing_key("jolt-verify").verifying_key();
+    let mut n = Checks(0);
+    for c in cases {
+        let case: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(c).map_err(|e| format!("read {c}: {e}"))?).map_err(|e| e.to_string())?;
+        let name = case["name"].as_str().unwrap_or(c);
+        let t = std::time::Instant::now();
+        let out = r.ok(&case["input"].to_string(), "caller.testnet");
+        let out: serde_json::Value = serde_json::from_str(&out?).map_err(|e| format!("{name}: output is not JSON: {e}"))?;
+        let ms = t.elapsed().as_millis();
+        let bytes = out.to_string().len();
+        ensure(bytes <= 1024, || format!("{name}: output {bytes} bytes, over OutLayer's 1024"))?;
+        let sig_hex = out["signature"].as_str().ok_or(format!("{name}: no signature"))?;
+        let sig = Signature::from_slice(&hex::decode(sig_hex).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+        if case["expect"] == "pubkey" {
+            let mut m = b"bookerbob/jolt-verify-keys/v0\x00".to_vec();
+            m.extend(serde_json::to_vec(&out["keys"]).map_err(|e| e.to_string())?);
+            ensure(out["keys"]["jolt_verify_key"] == hex::encode(key.to_bytes()) && key.verify(&m, &sig).is_ok(), || format!("{name}: pubkey statement"))?;
+            n.pass(name, format!("key {}.., programs {}, {bytes} bytes, {ms} ms", &hex::encode(key.to_bytes())[..12], out["keys"]["programs"]));
+            continue;
+        }
+        let mut m = b"bookerbob/jolt-verify/v0\x00".to_vec();
+        m.extend(serde_json::to_vec(&out["statement"]).map_err(|e| e.to_string())?);
+        ensure(key.verify(&m, &sig).is_ok(), || format!("{name}: signature does not verify over the statement"))?;
+        ensure(out["statement"]["verdict"] == case["expect"], || format!("{name}: verdict {} (expected {}), reason {}", out["statement"]["verdict"], case["expect"], out["reason"]))?;
+        n.pass(name, format!("signed {}{}, {bytes} bytes, {ms} ms", out["statement"]["verdict"].as_str().unwrap_or(""), out["reason"].as_str().filter(|r| !r.is_empty()).map(|r| format!(" ({r})")).unwrap_or_default()));
+    }
+    Ok(n.0)
+}
+
 fn main() -> std::process::ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.first().map(String::as_str) == Some("jolt") && args.len() >= 3 {
+        println!("outlayer-local jolt: the Jolt verifier component in wasmtime; the signing host is a MOCK (fixed test key, no TEE, no OutLayer)\n");
+        return match jolt(&args[1], &args[2..]) {
+            Ok(n) => {
+                println!("\nPASS  outlayer-local jolt: {n} checks. The host key is a MOCK; nothing was sent to OutLayer or to a chain.");
+                std::process::ExitCode::SUCCESS
+            }
+            Err(e) => {
+                println!("\nFAIL  outlayer-local jolt: {e}");
+                std::process::ExitCode::FAILURE
+            }
+        };
+    }
     let [wasm, input, cheat] = args.as_slice() else {
         eprintln!("usage: bookerbob-outlayer-host <component.wasm> <worker-input.json> <claims-cheat.json>");
         return std::process::ExitCode::from(2);

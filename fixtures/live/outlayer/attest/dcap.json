@@ -1,0 +1,95 @@
+{
+  "spike": "spike.bookerbob.testnet",
+  "collateral_source": "worker.outlayer.testnet get_collaterals",
+  "runs": {
+    "Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv": {
+      "label": "referee v1, honest purchase",
+      "id": "29aaef0410fd3c7ba869a5f7c4a762a181d15a0c85a7ac979c22d5a26125b4ef",
+      "collateral_index": 1,
+      "collateral_sha256": "2e80992e78a9e76e5726db22b7399c553439574e6fe512a3b311ae4c3d559140",
+      "txs": [
+        "Fwx3nnpaYamcCNzriZZSHKfhr6AYkm4k96GvWtJL5vSb",
+        "AyYwLB9YwydcYxVtWsGXcKNaR838jEiS8dswJgSeycrm",
+        "CnmQYxAiqWWEhUf1gCY3xVwdCigHJFyFq1QD6sHkDzqY",
+        "7cCdHU7Jhnkx1KEkLTefWZ71YXgGWgtNEyuuZch8Qzb",
+        "2WEjLWNtB7rq3o26h7ndHJpbpo8mXBwi2aYsfvnmNkom"
+      ],
+      "verification": [
+        "verified",
+        "UpToDate 39144d55abb99bef9b147588bc47b155c358ecd816bd3b0e9cc32071d48d0a250000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    "3FbtcCH8Y9ZA7hwzCrkTS76Fy4PDioDwhavw6U2nQGJ6": {
+      "label": "referee v1, cheat refused",
+      "id": "6830eaf83288a1a03d40729a0f9721b0a047ed963f584d55f8ecc4f547fac84c",
+      "collateral_index": 1,
+      "collateral_sha256": "2e80992e78a9e76e5726db22b7399c553439574e6fe512a3b311ae4c3d559140",
+      "txs": [
+        "GtRheRRokVmhwjdNgeL7NLKxURhepVUKajs5GGhJvmvg",
+        "HXPx7mTQaFa1YYWp1EA1LnA8a95pKEWSTUV1Cb6nV3Jx",
+        "3saFmEWN8fVWxaRKkP4fsFq2oYEwMyqqdJj8MNv3sPtZ",
+        "H8pPrAho2JucvCacpFism2btXEdZvF7vns91t4NUbgJV",
+        "79UvRTnoGeqaBAA9szr9vyK2YoFHsMFjC4PwQBnE1NwF"
+      ],
+      "verification": [
+        "verified",
+        "UpToDate c66f32f71fa4c171c9d21bdb399129ff137c7c713fb4a78ab5b70c0940d26dbd0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    "D7yPc1vuqoqznbs2smmLiZN9pJrpLHKSTSusNGAFFvFW": {
+      "label": "Jolt verifier, the standing proof behind the live root",
+      "id": "d8ab2cf654dcfec2d75718c4fd0d5cdd8d0db03da4cde045db2d4b8295709572",
+      "collateral_index": 1,
+      "collateral_sha256": "2e80992e78a9e76e5726db22b7399c553439574e6fe512a3b311ae4c3d559140",
+      "txs": [
+        "98qqCeQ95BuTSfv7MMx4WbHCpUGPShdWE52peaM8ERLs",
+        "8iMMnY1QXJ4Moph7fdKL7R1NjQzACMeXATpp7BFna7TX",
+        "AwHXtauhN6N48rSCUgkRA6s73EV25zEkMkyo8LPnvKRd",
+        "Esjkx3cG8WHn3xA5nukX5P6kUNsc4LuR45snjFPpncua",
+        "FWvKoscs4vWuN7ppSppLd9519DgMYkSm2WZb5SQBCmk1"
+      ],
+      "verification": [
+        "verified",
+        "UpToDate 1cfd5072fff3f0d86b3488ddc4fa769dab145e778e81c008d15f0dd93e3c48a30000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    "AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V": {
+      "label": "MAINNET referee, the purchase on outlayer.near",
+      "network": "mainnet",
+      "collateral_source": "worker.outlayer.near get_collaterals",
+      "id": "f297f37510162350d9c26907182ffce786df99cd53dbfa7c3a733926263ab4f8",
+      "collateral_index": 1,
+      "collateral_sha256": "2e80992e78a9e76e5726db22b7399c553439574e6fe512a3b311ae4c3d559140",
+      "txs": [
+        "DDVZjDbcEwA3wG3JD4mayhYDot7xCBics8UxFihEbFyX",
+        "CHhPxDFzgm5ZMceVghyaiXLq2oPpb69EmdUvxM3pt1i5",
+        "3G1kVRcC4SZPNU6WbuM3y3PLmzqjQBna55PKS5TtHMcc",
+        "6FHySMysgkfautANy8WoFXHLYrRv4UM2hhNQUL1Z12XL",
+        "Eq7Hw2qLv82rNJ8ZoBjziTxiR1N4gtjR73KHUaUV2gxP"
+      ],
+      "verification": [
+        "verified",
+        "UpToDate b8272cc1b3fb5c5e615574ab009de698db77d6ad35fe918bf19fba8d845c03b30000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    "AjfwNan6WZ5vSgrfw8FSSnrLebzTnUba6vGYP34xKwXh": {
+      "label": "referee v1, a dispute decided by the arbiter key",
+      "network": "testnet",
+      "collateral_source": "worker.outlayer.testnet get_collaterals",
+      "id": "6d1e12d164e4e958b6943f2bb1cdb766e7ebbbc90714d149290000056381c370",
+      "collateral_index": 1,
+      "collateral_sha256": "2e80992e78a9e76e5726db22b7399c553439574e6fe512a3b311ae4c3d559140",
+      "txs": [
+        "HGxy9ps4A3TkQUZumyN2mDTEknrrZk6nU9c9wH7Lbqbw",
+        "4Ktycvj5AHapszx2nUrxsZzdjjdv5Ynr1vfH3XV4tHAU",
+        "CrTvhm5mMupRJvksmVNX3zPGBfWMJaVa5PTPNb1PPQrw",
+        "DqdKgBWHwuJNVb2oMfd29Ych9ZSnnWaxnH43732Mkfdf",
+        "75pxq6i2E39LoXSmqGb31oUY6qCW6FKKqp6CFxRnowuu"
+      ],
+      "verification": [
+        "verified",
+        "UpToDate 9ed114882575d2bc1ff458cd9e7463f09a9ff57dd94f454ab10b9fe030b1ea9c0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    }
+  }
+}

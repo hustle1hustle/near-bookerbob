@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vCip08lQ7KbaLerR8AKrkoyndw9x0Qz8z0n6/zfbN3c='; style-src 'unsafe-inline'; connect-src 'self' https://rpc.mainnet.fastnear.com https://archival-rpc.mainnet.fastnear.com https://test.rpc.fastnear.com https://archival-rpc.testnet.fastnear.com; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Verify BookerBob</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg: #0A0A0F; --panel: #10101A; --fg: #E6E6EF; --dim: #7C7C94; --faint: #3A3A4E; --line: #1C1C2A; --blue: #3B5BFF; --red: #FF4D5E; --green: #5BE3A0; --amber: #E3C25B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 28px 0 8px; }
+  a { color: var(--blue); }
+  .sub { color: var(--dim); margin-bottom: 16px; max-width: 900px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+  tr:last-child td { border-bottom: 0; }
+  th { color: var(--dim); font-weight: normal; font-size: 12px; }
+  .ok { color: var(--green); }
+  .bad { color: var(--red); }
+  .fx { color: var(--amber); }
+  .wait { color: var(--faint); }
+  .ev { display: block; font-size: 12px; color: var(--dim); }
+  code { color: var(--fg); }
+  .cmd { padding: 10px 14px; }
+  footer { color: var(--dim); font-size: 12px; margin-top: 24px; max-width: 900px; }
+  footer p { margin: 0 0 8px; }
+  col.c-claim { width: 34%; } col.c-live { width: 40%; } col.c-term { width: 26%; }
+  @media (max-width: 760px) {
+    table, tbody, tr, td { display: block; width: 100%; }
+    thead { display: none; }
+    tr { border-bottom: 1px solid var(--line); padding: 6px 0; }
+    tr:last-child { border-bottom: 0; }
+    td { border: 0; padding: 2px 12px; }
+    td[data-l]::before { content: attr(data-l) " "; color: var(--faint); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>verify bookerbob yourself</h1>
+  <div class="sub">one page for every claim that can be checked without keys. six rows are read and checked now in your browser, from public NEAR RPC (mainnet and testnet): signatures with WebCrypto ed25519, hashes with SHA-256. the others link to the page or command that checks them. the right column is the last terminal run of the same checks (<code>make verify-all</code>), with its date: recorded, not re-checked here; a row marked <span class="fx">FIXTURE</span> there is one whose live run timed out or could not reach public RPC, and the committed snapshot stood in.</div>
+  <div class="panel cmd">from a clone, no keys: <code>make verify-all</code> (everything, 10 to 25 min) or <code>QUICK=1 make verify-all</code> (without the full testnet sweep, about 3 min). <code>make judge</code> is the offline path: committed snapshot and committed Jolt proofs.</div>
+  <div class="sub" id="term" style="margin-top:10px"></div>
+
+  <h2>mainnet</h2>
+  <div class="panel"><table><colgroup><col class="c-claim"><col class="c-live"><col class="c-term"></colgroup>
+    <thead><tr><th>claim</th><th>read now</th><th>the terminal check that covers it (recorded, not re-checked here)</th></tr></thead><tbody id="mainnet"></tbody></table></div>
+
+  <h2>testnet</h2>
+  <div class="panel"><table><colgroup><col class="c-claim"><col class="c-live"><col class="c-term"></colgroup>
+    <thead><tr><th>claim</th><th>read now</th><th>the terminal check that covers it (recorded, not re-checked here)</th></tr></thead><tbody id="testnet"></tbody></table></div>
+
+  <h2>offline</h2>
+  <div class="panel"><table><colgroup><col class="c-claim"><col class="c-live"><col class="c-term"></colgroup>
+    <thead><tr><th>claim</th><th>read now</th><th>the terminal check that covers it (recorded, not re-checked here)</th></tr></thead><tbody id="offline"></tbody></table></div>
+
+  <footer>
+    <p>reads: <code>rpc.mainnet.fastnear.com</code> and <code>test.rpc.fastnear.com</code>, then their archival nodes for older transactions. nothing here goes through a BookerBob server.</p>
+    <p>deeper pages: <a href="mainnet.html">mainnet</a> (every mainnet tx, the verdict signature), <a href="standing.html">standing</a> (the proven standing tree), <a href="round.html">round</a>, <a href="receipts.html">receipts</a>, <a href="board.html">board</a>, <a href="prove.html">prove</a> (a Jolt proof made and verified in your browser). the trust model and what is still trusted: README "Trust model", <code>docs/outlayer.md</code> ("Attestation").</p>
+  </footer>
+</main>
+<script>
+const NETS = {
+  mainnet: ["https://rpc.mainnet.fastnear.com", "https://archival-rpc.mainnet.fastnear.com"],
+  testnet: ["https://test.rpc.fastnear.com", "https://archival-rpc.testnet.fastnear.com"],
+};
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const short = (h) => (h ? `${esc(String(h).slice(0, 8))}…` : "?");
+/** JSON with keys sorted at every level (how serde_json writes a json! object). */
+const sortedJson = (v) => (Array.isArray(v) ? `[${v.map(sortedJson).join(",")}]` : v && typeof v === "object" ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${sortedJson(v[k])}`).join(",")}}` : JSON.stringify(v));
+const txLink = (net, h) => `<a href="https://${net === "mainnet" ? "" : "testnet."}nearblocks.io/txns/${h}" target="_blank" rel="noopener">${short(h)}</a>`;
+const hex = (b) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
+const unhex = (h) => new Uint8Array(h.match(/../g).map((x) => parseInt(x, 16)));
+const sha256 = async (bytes) => hex(await crypto.subtle.digest("SHA-256", bytes));
+const enc = (s) => new TextEncoder().encode(s);
+
+async function rpc(net, method, params) {
+  let last;
+  for (const url of NETS[net]) {
+    for (let i = 0; i < 3; i++) {
+      try {
+        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+        if (r.status === 429) { await new Promise((ok) => setTimeout(ok, 1200 * (i + 1))); continue; }
+        const j = await r.json();
+        if (j.result) return j.result;
+        last = j.error;
+        break;
+      } catch (e) { last = e; }
+    }
+  }
+  throw new Error(JSON.stringify(last ?? "unreachable").slice(0, 120));
+}
+const tx = (net, h, s) => rpc(net, "tx", { tx_hash: h, sender_account_id: s, wait_until: "FINAL" });
+async function view(net, account, method, args = {}) {
+  const r = await rpc(net, "query", { request_type: "call_function", finality: "final", account_id: account, method_name: method, args_base64: btoa(JSON.stringify(args)) });
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(r.result)) || "null");
+}
+const failOf = (t) => [t.transaction_outcome, ...t.receipts_outcome].map((o) => o.outcome.status.Failure).find(Boolean) ?? t.status.Failure;
+const logsOf = (t) => [t.transaction_outcome, ...t.receipts_outcome].flatMap((o) => o.outcome.logs);
+const ret = (t) => { try { return JSON.parse(atob(t.status.SuccessValue ?? "") || "null"); } catch { return null; } };
+async function ed25519(keyHex, msg, sigHex) {
+  try {
+    const k = await crypto.subtle.importKey("raw", unhex(keyHex), { name: "Ed25519" }, false, ["verify"]);
+    return await crypto.subtle.verify({ name: "Ed25519" }, k, unhex(sigHex), enc(msg));
+  } catch { return null; }
+}
+
+// Each row: [section, id, claim, deeper link, check()] where check returns [ok, text].
+const BAZAAR = "bookerbob.testnet";
+const JOLT = { project: "bookerbob.testnet/bookerbob-jolt-verify", key: "954d224e5db702d95f267cbb3bcafe649ec6aa61f3c179a21b9100bf3eb09464", honest: "D7yPc1vuqoqznbs2smmLiZN9pJrpLHKSTSusNGAFFvFW", submit: "8AmCe4FNKXafMqZpeohNEK51bAtDDTm27pPDS8rSWBDD", accept: "BKL3fsBzKmtWcHX5V7bHDTLMiXMiEMi78fzJJiJLs2h8", refuse: "HtErk3AmcHxPbMUs9kr34r5qjEAPdntKEBtgWARn1Erg", forged: "EP1BATKsqhtFMhyP1P5AdksYz7yt8uLL1jNGcQuAsFvk", honestResolve: null, program: "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5" };
+const ROWS = [
+  ["mainnet", "mainnet-check", "the bazaar on mainnet: the model's TDX quote verified on chain (DCAP), its key the only verdict signer, the sealed round, the USDC purchase, the NEAR Intents settlement", "mainnet.html",
+    async () => [null, `read and checked on <a href="mainnet.html">mainnet.html</a> (every mainnet tx, the verdict signature in your browser)`]],
+  ["mainnet", "mainnet-outlayer", "the OutLayer referee on mainnet: its request ran on outlayer.near and the purchase settled under the receipt", "../docs/outlayer.md",
+    async () => {
+      const buyer = "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042";
+      const [req, settle] = await Promise.all([tx("mainnet", "AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V", buyer), tx("mainnet", "DisKLZ1zfgJC3kvww4DrRePKitvjW1gNN7n4Ebn9zPas", buyer)]);
+      const receipt = logsOf(req).some((l) => l.includes('"referee_receipt"'));
+      const ran = logsOf(req).some((l) => l.includes("6fca1eaa09b2c1ca583a6914bdff7256d73a3d9f4469bd55f1eb00446be8dbb6"));
+      return [receipt && ran && !failOf(settle), `request_referee ${txLink("mainnet", "AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V")}: wasm 6fca1eaa ran ${ran ? "yes" : "no"}, referee_receipt ${receipt ? "logged" : "missing"}; settle ${txLink("mainnet", "DisKLZ1zfgJC3kvww4DrRePKitvjW1gNN7n4Ebn9zPas")} ${failOf(settle) ? "failed" : "succeeded"}`];
+    }],
+  ["mainnet", "attest-mainnet", "the TDX quote of that mainnet run: verified by our DCAP verifier (on testnet, no mainnet spend), its report_data the hash of that run", "../docs/outlayer.md",
+    async () => dcapRow("AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V")],
+  ["testnet", "outlayer-buy", "the OutLayer referee on testnet: a purchase settled under its signed receipt; a cheat claim refused, its settle blocked", "../docs/outlayer.md",
+    async () => {
+      const [h, k] = await Promise.all([tx("testnet", "Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv", "bookerbob-demo.testnet"), tx("testnet", "C9iWCT5cYctsjCTGw4u4GigsfpEQQp7TsWh23y6XJSAU", "bookerbob-demo.testnet")]);
+      const rcpt = logsOf(h).some((l) => l.includes('"referee_receipt"'));
+      const blocked = JSON.stringify(failOf(k) ?? "").includes("no referee receipt");
+      return [rcpt && blocked, `receipt through the callback ${txLink("testnet", "Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv")}: ${rcpt ? "yes" : "no"}; the cheat's settle ${txLink("testnet", "C9iWCT5cYctsjCTGw4u4GigsfpEQQp7TsWh23y6XJSAU")}: ${blocked ? "refused, no referee receipt" : "not refused"}`];
+    }],
+  ["testnet", "outlayer-jolt", "the standing proof behind the bazaar's root, verified inside OutLayer's TEE: the signed accept's output is the root that submit posted", "standing.html",
+    async () => {
+      const [h, s, root, prog] = await Promise.all([tx("testnet", JOLT.honest, "bookerbob.testnet"), tx("testnet", JOLT.submit, "bookerbob-demo.testnet"), view("testnet", BAZAAR, "standing_root"), view("testnet", BAZAAR, "graph_program")]);
+      // The run's output: the callback's return value, or the Json output OutLayer's worker posted
+      // in its resolve tx for the same request (JOLT.honestResolve, when the callback timed out).
+      let out = ret(h);
+      if (!out && JOLT.honestResolve) {
+        const res = await tx("testnet", JOLT.honestResolve, "worker.outlayer.testnet");
+        const ra = JSON.parse(atob(res.transaction.actions[0].FunctionCall.args));
+        out = res.transaction.receiver_id === "outlayer.testnet" && ra.response?.success ? ra.response.output?.Json ?? null : null;
+      }
+      const st = out?.statement;
+      const sig = st ? await ed25519(JOLT.key, "bookerbob/jolt-verify/v0\0" + sortedJson(st), out.signature) : false;
+      const sa = JSON.parse(atob(s.transaction.actions[0].FunctionCall?.args ?? s.transaction.actions[0].Delegate?.delegate_action.actions[0].NonDelegateAction?.FunctionCall.args ?? ""));
+      const req = JSON.parse(JSON.parse(atob(h.transaction.actions[0].FunctionCall.args)).input_data);
+      const io = unhex(req.io);
+      const rootBytes = unhex(sa.root);
+      let at = -1;
+      for (let i = 0; i + 32 <= io.length && at < 0; i++) if (rootBytes.every((b, j) => io[i + j] === b)) at = i;
+      const outOk = at >= 0 && st?.output_sha256 === (await sha256(io.slice(at, at + 64)));
+      const proofOk = st?.proof_sha256 === (await sha256(Uint8Array.from(atob(req.proof), (c) => c.charCodeAt(0)))) && st.proof_sha256 === sa.proof_sha256;
+      const current = root?.[3] === sa.root;
+      const pinOk = st?.program_hash === JOLT.program && sa.program_hash === JOLT.program;
+      const txsOk = !failOf(h) && !failOf(s);
+      if (sig === null) return [null, `SKIP: this browser has no WebCrypto Ed25519, so the signature of ${txLink("testnet", JOLT.honest)} is not checked here (make verify-all checks it)`];
+      return [Boolean(sig && st.verdict === "accept" && st.panic === false && pinOk && outOk && proofOk && txsOk), `signed accept ${txLink("testnet", JOLT.honest)}: ed25519 ${sig ? "valid" : "INVALID"}, panic ${esc(st?.panic)}, program ${short(st?.program_hash)} (pinned c780ceab: ${pinOk}); its output is submit ${txLink("testnet", JOLT.submit)}'s root ${short(sa.root)}: ${outOk}; proof sha matches the submit: ${proofOk}. the bazaar's graph root now: ${short(root?.[3])}${current ? " (the same)" : " (moved on since this run)"}, program ${short(prog)}`];
+    }],
+  ["testnet", "jolt-consumer", "a registry contract admits the OutLayer-signed accept and refuses the signed reject of a forged proof", "../docs/outlayer.md",
+    async () => {
+      const [a, r] = await Promise.all([tx("testnet", JOLT.accept, "bookerbob.testnet"), tx("testnet", JOLT.refuse, "bookerbob.testnet")]);
+      const why = JSON.stringify(failOf(r) ?? "");
+      return [!failOf(a) && why.includes("not an accept"), `attest_use with the accept ${txLink("testnet", JOLT.accept)}: ${failOf(a) ? "failed" : "admitted"}; with the reject ${txLink("testnet", JOLT.refuse)}: ${why.includes("not an accept") ? "refused, not an accept" : "not refused"}`];
+    }],
+  ["testnet", "attest-testnet", "the TDX quotes of the testnet OutLayer runs (referee purchase, cheat, dispute, Jolt verifier): verified on chain by our DCAP verifier, report_data = the hash of each run's wasm, input and output", "../docs/outlayer.md",
+    async () => {
+      const rows = await Promise.all(["Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv", "3FbtcCH8Y9ZA7hwzCrkTS76Fy4PDioDwhavw6U2nQGJ6", "AjfwNan6WZ5vSgrfw8FSSnrLebzTnUba6vGYP34xKwXh", "D7yPc1vuqoqznbs2smmLiZN9pJrpLHKSTSusNGAFFvFW"].map(dcapRow));
+      return [rows.every(([ok]) => ok), rows.map(([, t]) => t).join("<br>")];
+    }],
+  ["testnet", "standing", "the proven standing tree against the bazaar's root", "standing.html",
+    async () => [null, `read and checked on <a href="standing.html">standing.html</a>`]],
+  ["testnet", "anchor", "the transparency anchor", "../docs/details.md", async () => [null, "terminal check: <code>make anchor-verify</code>"]],
+  ["testnet", "verify-live", "every other testnet claim in the manifest: purchases, rounds, sealed reviews, gates, standing", "receipts.html",
+    async () => [null, `terminal: <code>make verify-live</code> (the right column); pages: <a href="receipts.html">receipts</a>, <a href="round.html">round</a>, <a href="board.html">board</a>`]],
+  ["offline", "zk", "the committed Jolt proofs verify with the committed prebuilt verifier; a proof made in your browser verifies in your browser", "prove.html",
+    async () => [null, `terminal: <code>make zk-verify-prebuilt</code>; in the browser: <a href="prove.html#check">prove.html#check</a>`]],
+];
+// Which verify-all check feeds which row's right column.
+const TERM = { "mainnet-check": "scripts/mainnet-check.mjs", "mainnet-outlayer": "scripts/mainnet-outlayer.mjs", "attest-mainnet": "scripts/outlayer-attest.mjs", "outlayer-buy": "scripts/outlayer-buy.mjs", "outlayer-jolt": "scripts/outlayer-jolt.mjs", "jolt-consumer": "scripts/outlayer-jolt.mjs", "attest-testnet": "scripts/outlayer-attest.mjs", standing: "scripts/standing-v2.mjs", anchor: "scripts/anchor.mjs", "verify-live": "scripts/verify-live.mjs", zk: "scripts/zk-verify-prebuilt.sh" };
+
+// The four DCAP verifications of the OutLayer runs (fixtures/live/outlayer/attest/dcap.json): their ids,
+// start txs and the report_data each verified; the terminal check (scripts/outlayer-attest.mjs) also
+// re-derives that report_data from the run and ties the start tx to the exact quote.
+const DCAP = {"spike":"spike.bookerbob.testnet","runs":{"Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv":{"label":"referee v1, honest purchase","id":"29aaef0410fd3c7ba869a5f7c4a762a181d15a0c85a7ac979c22d5a26125b4ef","start":"Fwx3nnpaYamcCNzriZZSHKfhr6AYkm4k96GvWtJL5vSb","report_data":"39144d55abb99bef9b147588bc47b155c358ecd816bd3b0e9cc32071d48d0a250000000000000000000000000000000000000000000000000000000000000000"},"3FbtcCH8Y9ZA7hwzCrkTS76Fy4PDioDwhavw6U2nQGJ6":{"label":"referee v1, cheat refused","id":"6830eaf83288a1a03d40729a0f9721b0a047ed963f584d55f8ecc4f547fac84c","start":"GtRheRRokVmhwjdNgeL7NLKxURhepVUKajs5GGhJvmvg","report_data":"c66f32f71fa4c171c9d21bdb399129ff137c7c713fb4a78ab5b70c0940d26dbd0000000000000000000000000000000000000000000000000000000000000000"},"D7yPc1vuqoqznbs2smmLiZN9pJrpLHKSTSusNGAFFvFW":{"label":"Jolt verifier, the standing proof behind the live root","id":"d8ab2cf654dcfec2d75718c4fd0d5cdd8d0db03da4cde045db2d4b8295709572","start":"98qqCeQ95BuTSfv7MMx4WbHCpUGPShdWE52peaM8ERLs","report_data":"1cfd5072fff3f0d86b3488ddc4fa769dab145e778e81c008d15f0dd93e3c48a30000000000000000000000000000000000000000000000000000000000000000"},"AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V":{"label":"MAINNET referee, the purchase on outlayer.near","id":"f297f37510162350d9c26907182ffce786df99cd53dbfa7c3a733926263ab4f8","start":"DDVZjDbcEwA3wG3JD4mayhYDot7xCBics8UxFihEbFyX","report_data":"b8272cc1b3fb5c5e615574ab009de698db77d6ad35fe918bf19fba8d845c03b30000000000000000000000000000000000000000000000000000000000000000"},"AjfwNan6WZ5vSgrfw8FSSnrLebzTnUba6vGYP34xKwXh":{"label":"referee v1, a dispute decided by the arbiter key","id":"6d1e12d164e4e958b6943f2bb1cdb766e7ebbbc90714d149290000056381c370","start":"HGxy9ps4A3TkQUZumyN2mDTEknrrZk6nU9c9wH7Lbqbw","report_data":"9ed114882575d2bc1ff458cd9e7463f09a9ff57dd94f454ab10b9fe030b1ea9c0000000000000000000000000000000000000000000000000000000000000000"}}};
+// The verifier is pinned: this code hash and no access keys (it cannot be replaced).
+const SPIKE_CODE_HASH = "7ZabqCJbiNVMiXxyv2YNDm6LxP951LcuhysKHvFC5oaR";
+let spikePin = null;
+async function spikePinned() {
+  spikePin ??= (async () => {
+    const [acc, keys] = await Promise.all([rpc("testnet", "query", { request_type: "view_account", finality: "final", account_id: DCAP.spike }), rpc("testnet", "query", { request_type: "view_access_key_list", finality: "final", account_id: DCAP.spike })]);
+    return acc.code_hash === SPIKE_CODE_HASH && keys.keys.length === 0;
+  })();
+  return spikePin;
+}
+async function dcapRow(txh) {
+  const d = DCAP?.runs?.[txh];
+  if (!d) return [false, `${short(txh)}: no DCAP record`];
+  // The verification read here is the one this start tx opened (to the verifier, method start).
+  const [v, st, pinned] = await Promise.all([view("testnet", DCAP.spike, "verification", { id: d.id }), tx("testnet", d.start, "bookerbob-demo.testnet"), spikePinned()]);
+  const fc = st.transaction.actions.find((a) => a.FunctionCall)?.FunctionCall;
+  const startOk = st.transaction.receiver_id === DCAP.spike && fc?.method_name === "start" && ret(st) === d.id;
+  const [tcb, rd] = String(v?.[1] ?? "").split(" ");
+  const ok = v?.[0] === "verified" && tcb === "UpToDate" && d.report_data === rd && startOk && pinned;
+  return [ok, `${esc(d.label)}: ${esc(v?.[0] ?? "?")} on ${esc(DCAP.spike)} (pinned code, no keys: ${pinned}), ${esc(tcb || "?")}, report_data ${short(rd)}, opened by ${txLink("testnet", d.start)}. the binding of the quote to its run is checked by <code>make verify-all</code>`];
+}
+
+function render() {
+  for (const [sec, id, claim, deeper] of ROWS) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td data-l="claim">${claim}<span class="ev"><a href="${deeper}">more</a></span></td><td data-l="now" id="now-${id}" class="wait">reading…</td><td data-l="terminal" id="term-${id}" class="wait">no terminal run recorded</td>`;
+    document.getElementById(sec).appendChild(tr);
+  }
+}
+async function main() {
+  render();
+  const vj = await fetch("verify.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (vj) {
+    document.getElementById("term").innerHTML = `last terminal run: <code>make verify-all${vj.quick ? " (QUICK=1)" : ""}</code> at ${esc(vj.ran_at)}, ${esc(vj.seconds)} s`;
+    for (const [id, script] of Object.entries(TERM)) {
+      const r = vj.results.find((x) => x.command.includes(script));
+      const el = document.getElementById(`term-${id}`);
+      if (!r || !el) continue;
+      el.className = r.ok === true ? (r.mode === "fixture" ? "fx" : "ok") : r.ok === false ? "bad" : "wait";
+      const n = Number(r.live_pass ?? r.pass ?? 0);
+      const f = Array.isArray(r.live_fail ?? r.fail) ? (r.live_fail ?? r.fail).length : 0;
+      el.textContent = r.mode === "absent" ? "not in this build" : r.mode === "skipped" ? "skipped (QUICK=1)" : `${r.ok ? "PASS" : r.ok === false ? "FAIL" : "SKIP"}${r.mode === "fixture" ? " FIXTURE (snapshot)" : ""}: live ${n} checks passed${f ? `, ${f} failed` : ""}${r.timed_out ? ", timed out" : ""}${r.replay ? `; snapshot replay ${Number(r.replay.pass)} passed, ${Number(r.replay.fail)} failed` : ""}`;
+    }
+  }
+  for (const [, id, , , check] of ROWS) {
+    const el = document.getElementById(`now-${id}`);
+    check().then(([ok, text]) => {
+      el.className = ok === true ? "ok" : ok === false ? "bad" : "";
+      el.innerHTML = `${ok === true ? "PASS " : ok === false ? "FAIL " : ""}${text}`; // text: constants, tx links and esc()-ed values only
+    }, (e) => {
+      el.className = "fx";
+      el.innerHTML = `public RPC unreachable (${esc(String(e.message).slice(0, 80))}); see the terminal column`;
+    });
+  }
+}
+main();
+</script>
+</body>
+</html>
