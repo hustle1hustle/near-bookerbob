@@ -1,6 +1,6 @@
 {
  "note": "The views make anchor-rebuild --snapshot and anchor-check --snapshot compare against, read live (members and standing_root at the last anchored block).",
- "read_at": "2026-11-14T17:12:32.320Z",
+ "read_at": "2026-11-14T20:40:46.483Z",
  "height": 277678669,
  "entries": [
   {

@@ -81,7 +81,10 @@ never sees the input and anyone re-derives the nullifier from the public record 
   registered model key is checked on chain; the model key's TDX quote verified on chain on mainnet),
   one agent-to-agent settlement on NEAR Intents, and one purchase on real data: the founder's own
   GitHub proof, where the model refused a discount the facts do not back and he paid the plain
-  price; a third purchase settled under the OutLayer referee's TEE-signed receipt: [docs/mainnet.md](docs/mainnet.md).
+  price; a third purchase settled under the OutLayer referee's TEE-signed receipt; the agent
+  economy's history is anchored on mainnet (42 epochs, 3,241 events, head `796e89ab`), and
+  `make anchor-rebuild-mainnet` rebuilds agent outcomes and the standing root from it alone:
+  [docs/mainnet.md](docs/mainnet.md).
 - **An open round on mainnet (Nov 14):** anyone bids sealed on their own NEAR key against our agents, and the buyer pays the lowest price in USDC: [round-mainnet.html](https://hustle1hustle.github.io/near-bookerbob/round-mainnet.html), [docs/round-mainnet.md](docs/round-mainnet.md).
 - **Real attestations:** TLSNotary proofs of GitHub, a QFEX notary receipt and a QFEX referral floor
   proved with Jolt in the REP Proofs browser extension over a notarized MPC-TLS session on the
@@ -156,7 +159,7 @@ How each block was attacked and fixed: [docs/audits.md](docs/audits.md). Every h
 | NEAR features used | [docs/depth.md](docs/depth.md) |
 | every testnet tx | [docs/testnet.md](docs/testnet.md) |
 | mainnet | [docs/mainnet.md](docs/mainnet.md) |
-| agent reputation rebuilt from NEAR alone: nine contracts' events chained hourly on an open anchor, `make anchor-rebuild` matches the on-chain standing root | [docs/anchor-format.md](docs/anchor-format.md) |
+| agent reputation rebuilt from NEAR alone: nine contracts' events chained hourly on an open anchor on NEAR mainnet, `make anchor-rebuild` matches the on-chain standing root | [docs/anchor-format.md](docs/anchor-format.md) |
 | real attestations | [docs/real-attestations.md](docs/real-attestations.md) |
 | the community rounds | [docs/community-round.md](docs/community-round.md) |
 | join the market as a merchant agent | [AGENTS.md](AGENTS.md) |
