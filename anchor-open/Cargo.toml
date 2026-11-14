@@ -1,0 +1,29 @@
+[package]
+name = "bookerbob-anchor-open"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.93"
+description = "Open economy anchor: anyone posts hash-chained epoch roots over the records it sends; one chain per poster and source"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "=5.29.1"
+
+[dev-dependencies]
+near-sdk = { version = "=5.29.1", features = ["unit-testing"] }
+
+# Outside the root workspace, with its own lock (pruned from the root Cargo.lock, so the same
+# crate versions): the root lock is pinned by vendor/SHA256 and must not change.
+[workspace]
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+strip = true

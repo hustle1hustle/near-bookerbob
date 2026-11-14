@@ -94,13 +94,13 @@ contexts with 51 members, 476 nullifiers, 23 buying groups (all closed), 89 revi
 
 ## What is checked, and what is not
 
-`make anchor-rebuild` reads the anchors from NEAR and the logs from Arc's public RPC, then for
+`make arc-anchor-rebuild` reads the anchors from NEAR and the logs from Arc's public RPC, then for
 every round: NEAR's entry must chain from NEAR's previous head by the hash above, name the
 same round, and hold the events hash, state hash, root and head that the rebuild computed. One
 `PASS` line per round, then, when all pass, the live Semaphore root of every group on Arc
 against the root rebuilt from the logs, then one final `PASS` or `FAIL`.
 
-`ANCHOR_FLAGS=--tamper make anchor-rebuild` flips one bit of one Arc log locally (nothing on
+`ANCHOR_FLAGS=--tamper make arc-anchor-rebuild` flips one bit of one Arc log locally (nothing on
 either chain changes) and must fail first at that log's round; every later round fails too,
 since its head no longer chains. `--tamper=<round>` picks the round.
 
@@ -143,9 +143,9 @@ by the testnet faucet, so the bazaar's storage balance is not touched).
 - deploy, `new(poster)` and the post-only key in one transaction: [EgM9jNbF…](https://testnet.nearblocks.io/txns/EgM9jNbFidNRciT8DUdCi9TJM8oNUYmii6PuVrGU84qf)
 - 55 rounds of the Arc market (`eip155:5042002:0xcfbbe8aa3c231f3345afa7798f65b03e2738d56f`), one transaction each, from seq 0 [6KG4tUKu…](https://testnet.nearblocks.io/txns/6KG4tUKu4HVCg9khC4zuwXdovhu7tLdgzL6pKzZSDpYg) to seq 54 [2SFiDqBr…](https://testnet.nearblocks.io/txns/2SFiDqBrquceKjfEbmVrocHttwPHsPtrg65FBVuzfW8B); every hash is in `fixtures/live/anchor/run.json`
 - head after seq 54: `b4e5ca0b131f9878878b616f194cbd5490b7da47e68efdba43c046773dcfa9d1`
-- `make anchor-rebuild`, read live from Arc and from NEAR: `PASS  rebuild: 55 rounds, 1255 Arc logs, head b4e5ca0b…`; rebuilt state: 58 groups with 339 members, 6 contexts with 51 members, 476 nullifiers, 20 lists, 262 payments
-- `ANCHOR_FLAGS=--tamper make anchor-rebuild`: one log changed locally, `FAIL  rebuild: first failing round 5979973`, the round that holds the changed log
-- `make anchor-verify` (no keys): the committed record equals the contract's views
+- `make arc-anchor-rebuild`, read live from Arc and from NEAR: `PASS  rebuild: 55 rounds, 1255 Arc logs, head b4e5ca0b…`; rebuilt state: 58 groups with 339 members, 6 contexts with 51 members, 476 nullifiers, 20 lists, 262 payments
+- `ANCHOR_FLAGS=--tamper make arc-anchor-rebuild`: one log changed locally, `FAIL  rebuild: first failing round 5979973`, the round that holds the changed log
+- `make arc-anchor-verify` (no keys): the committed record equals the contract's views
 
 Account and contract: `https://testnet.nearblocks.io/address/bookerbob-anchor.testnet`.
 
@@ -161,15 +161,14 @@ contract, the script, the byte format and the tests are this repo's own. These i
 - Nullifiers appear in no event: read them from the calldata of the `join`, `review` and `proveReturn` calls, found by selector through any wrapper.
 - Rebuild the market state by replaying logs in order: contexts, members and replacements, receipt groups, join queues and their closing, reviews, mints, lists.
 - Use the Semaphore group roots as a check that members were inserted in the same order.
-- One documented byte format that the poster and the rebuild both follow, and a `make anchor-rebuild` that checks one against the other.
+- One documented byte format that the poster and the rebuild both follow, and a `make arc-anchor-rebuild` that checks one against the other.
 
 What is different here: NEAR holds roots and a state hash, not the event bytes; the contract
 itself enforces the sequence, the previous head and the poster (there, any account could post
 and a reader filtered by poster); sha256 in place of keccak for the chain.
 
-## The bazaar's own rounds, later (not built)
+## The bazaar's own economy
 
-The BookerBob bazaar on NEAR could post to the same contract under a second `source`
-(`near:testnet:bookerbob.testnet`), one root per commit-reveal round over its NEP-297 events.
-The chain would then show a NEAR market and an Arc market side by side, each with its own head.
-That needs a poster that reads the bazaar's events and a root definition for them; neither exists yet.
+Built since 2026-11-14 on a second, open contract: `docs/anchor-format.md` (`anchor-open/`,
+`bookerbob-outcomes.testnet`, `make anchor-check`, `make anchor-rebuild`). Its records cover the
+bazaar and its two copies, the gate, both coalition contracts, dUSDC and the smith registries, hour by hour.

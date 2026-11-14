@@ -49,7 +49,7 @@ build kept its history on Ethereum Sepolia, here NEAR holds it):
 - Nullifiers appear in no event: read them from the calldata of the `join`, `review` and `proveReturn` calls, found by selector through any wrapper.
 - Rebuild the market state by replaying logs in order: contexts, members and replacements, receipt groups, join queues and their closing, reviews, mints, lists.
 - Use the Semaphore group roots as a check that members were inserted in the same order.
-- One documented byte format that the poster and the rebuild both follow, and a `make anchor-rebuild` that checks one against the other.
+- One documented byte format that the poster and the rebuild both follow, and a `make arc-anchor-rebuild` that checks one against the other.
 
 ## Prior REP work, used only as named services or dependencies
 
