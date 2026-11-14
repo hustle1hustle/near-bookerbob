@@ -1,0 +1,5 @@
+# gap-aeneas: the dialect body of coalition-k-of-n, and a runner that executes the dialect and
+# the original body.rs side by side (the original is read from tools/vecgate, not copied).
+[workspace]
+resolver = "2"
+members = ["coalition-k-of-n", "runner"]

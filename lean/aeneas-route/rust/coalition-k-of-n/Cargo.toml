@@ -1,0 +1,17 @@
+[package]
+name = "dialect-coalition-k-of-n"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = false
+
+[lib]
+name = "dialect_coalition_k_of_n"
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[dependencies]
+serde = { version = "1", default-features = false, features = ["alloc", "derive"] }
+postcard = { version = "1", default-features = false, features = ["alloc"] }
+sha2 = { version = "0.10", default-features = false }

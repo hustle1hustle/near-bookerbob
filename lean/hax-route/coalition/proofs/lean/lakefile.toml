@@ -1,0 +1,62 @@
+name = "hax_coalition"
+version = "0.1.0"
+defaultTargets = ["HaxCoalition"]
+
+[[lean_lib]]
+name = "HaxCoalition"
+
+# gap-hax: every dependency by path, so nothing is fetched. Aeneas + Mathlib slice are the one
+# shared copy built by gap-aeneas (lean-smith-70); hax-lean v0.3.41 is our own clone.
+[[require]]
+name = "aeneas"
+path = "../../../../gap-aeneas/aeneas-lean"
+
+[[require]]
+name = "hax"
+path = "../../../deps/hax-lean"
+
+[[require]]
+name = "mathlib"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/mathlib"
+
+[[require]]
+name = "plausible"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/plausible"
+
+[[require]]
+name = "LeanSearchClient"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/LeanSearchClient"
+
+[[require]]
+name = "importGraph"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/importGraph"
+
+[[require]]
+name = "proofwidgets"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/proofwidgets"
+
+[[require]]
+name = "aesop"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/aesop"
+
+[[require]]
+name = "Qq"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/Qq"
+
+[[require]]
+name = "batteries"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/batteries"
+
+[[require]]
+name = "Cli"
+path = "../../../../gap-aeneas/aeneas-lean/.lake/packages/Cli"
+
+# Byte-identical copies of the existing hand-written Spec (lean-smith/SmithLean), so the theorem
+# below is about THAT Spec. sha256 pinned in gap-hax/FINDINGS-hax.md.
+[[lean_lib]]
+name = "GapHaxSpec"
+roots = ["GapHaxSpec.Commit", "GapHaxSpec.CoalitionKofN"]
+
+[[lean_lib]]
+name = "GapHax"
+roots = ["GapHax.Refines"]
