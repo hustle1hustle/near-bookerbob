@@ -212,3 +212,16 @@ New in this repo: the `decide` guest over BookerBob's price rule and board data,
 crate for the statement's bytes, the trace and prove steps split so the page shows the measured
 cycle count, a fresh verifier instance per check, gzip with in-page gunzip, the `#check` mode,
 and the byte-identical native and browser proofs.
+
+## The standing page (`agents/standing.html`)
+
+A second guest in this folder, `standing-guest/`, has the same function body as the on-chain
+standing program (`zk/guests/standing`): graph events in, the hash-chained root and the standing
+hash out, both from `bookerbob-graph`. `standing-host build` re-proves the live testnet graph's
+log (`fixtures/zk/standing-testnet-3-input.json`) at this folder's Jolt pin and writes
+`agents/standing/` (statement, proof, verifier preprocessing, guest ELF);
+`verify-standing-wasm/` is the wasm verifier for it. The program hash differs from the on-chain
+one (another pin); the page says so, and `make standing-negatives` checks the on-chain proof.
+`build.sh` step 7 rebuilds all of it (`STANDING=0` skips it); `node check-standing.mjs` checks the
+pinned sha256 of `verifier.bin` and `guest.elf`, the honest proof, 7 changed statements and a
+flipped proof bit.

@@ -13,6 +13,8 @@
 //! through nearcore's VM logic. No network, no keys.
 
 mod adversarial;
+mod coalition_sim;
+mod coalition_sim_v2;
 #[cfg(test)]
 mod e2e_tests;
 mod evals;
@@ -309,6 +311,8 @@ fn main() -> ExitCode {
         Some("zk-inputs") if args.len() >= 2 => zk_inputs::run(Path::new(&args[1]), args.iter().any(|a| a == "--check")),
         Some("scenario") if args.len() >= 2 => scenario::run(Path::new(&args[1])),
         Some("swarm-try") => swarm_try::run(),
+        Some("coalition-sim") if args.iter().any(|a| a == "--v2" || a == "--v3" || a == "--v4") => coalition_sim_v2::run(&args[1..]),
+        Some("coalition-sim") => coalition_sim::run(&args[1..]),
         // adversarial <out.json>: thousands of attacks on the contract and the referee, each refused (docs/adversarial.md).
         Some("adversarial") if args.len() >= 2 => adversarial::run(Path::new(&args[1])),
         Some("reviews") if args.len() >= 2 => {
@@ -355,7 +359,7 @@ fn main() -> ExitCode {
                         .expect("event")
                 })
                 .collect();
-            let sc = bookerbob_graph::compute(&ev);
+            let sc = match std::env::var("BOOKERBOB_STANDING_V2").as_deref() { Ok("1") => bookerbob_standing_v2::compute(&ev), Ok("3") => bookerbob_standing_v2::compute_v3(&ev), _ => bookerbob_graph::compute(&ev) };
             let (root, proofs) = bookerbob_core::standing::graph(&sc.root, &sc.merchants);
             println!(
                 "{}",

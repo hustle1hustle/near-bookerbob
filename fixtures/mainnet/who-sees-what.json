@@ -1,0 +1,130 @@
+{
+ "network": "mainnet",
+ "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+ "txs": {
+  "near_deposit": {
+   "hash": "D7bYByor5DweFjmHTxSJVY9DdGrAUrjkTyzau36ebXqD",
+   "signer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "receiver": "wrap.near",
+   "actions": [
+    {
+     "method": "near_deposit",
+     "args": "{}"
+    }
+   ],
+   "logs": [
+    "Deposit 250000000000000000000000 NEAR to a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042"
+   ],
+   "ok": true
+  },
+  "swap to USDC": {
+   "hash": "9omkmguSqi1UoCY5u9dkHnRXXzzxkZryD2o4c6BbN8M2",
+   "signer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "receiver": "wrap.near",
+   "actions": [
+    {
+     "method": "ft_transfer_call",
+     "args": "{\"receiver_id\":\"v2.ref-finance.near\",\"amount\":\"250000000000000000000000\",\"msg\":\"{\\\"force\\\":0,\\\"actions\\\":[{\\\"pool_id\\\":4512,\\\"token_in\\\":\\\"wrap.near\\\",\\\"token_out\\\":\\\"17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1\\\",\\\"amount_in\\\":\\\"250000000000000000000000\\\",\\\"min_amount_out\\\":\\\"846309\\\"}]}\"}"
+    }
+   ],
+   "logs": [
+    "Transfer 250000000000000000000000 from a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042 to v2.ref-finance.near",
+    "Swapped 250000000000000000000000 wrap.near for 872484 17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+    "Exchange v2.ref-finance.near got 26071268904600183853 shares, No referral fee",
+    "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"v2.ref-finance.near\",\"new_owner_id\":\"a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042\",\"amount\":\"872484\"}]}"
+   ],
+   "ok": true
+  },
+  "verdict": {
+   "hash": "9E6copWnJBPDPGm5wro7ncYkUzBaSSyvmTtmNhVKgB4u",
+   "signer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "receiver": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+   "actions": [
+    {
+     "method": "submit_near_ai_verdict",
+     "args": "{\"envelope\":{\"v\":0,\"context\":\"bookerbob:v0:demo-hoodie\",\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"commitment\":\"b7532a0574cb1292e55b56def14d03f2fbb9aa58d954ecfdc777f073522732e5\",\"proof_hash\":\"cec641038b06e2bdc65aee00255833514848fc618647790ad48435c2726135f4\",\"predicates\":[],\"tier\":\"none\",\"attestation\":{\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash-1017\",\"tcb_status\":\"UpToDate\",\"report_hash\":\"6a535979028020d109532db096d59bd662306830595161be4f2d7df30ca113e3\"},\"cnf\":\"a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042\",\"max_spend\":\"45000000\",\"issued_at_ms\":1794590165771,\"expires_at_ms\":1795194965771},\"proof\":{\"chat_id\":\"chatcmpl-5883a5ee-fa41-4745-9007-d2783c4d97cc\",\"signing_key\":\"236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c\",\"nonce\":\"567fb974e58e09ed705dbbca39271568c26d7278b3e4b0d35da37684c3146abc\",\"request_sha256\":\"c7927cffd51d2753d81b2b1fcf9317fb6df1dfe7626d5fa2892f6a896acb697f\",\"response\":\"{\\\"id\\\":\\\"chatcmpl-5883a5ee-fa41-4745-9007-d2783c4d97cc\\\",\\\"object\\\":\\\"chat.completion\\\",\\\"choices\\\":[{\\\"index\\\":0,\\\"message\\\":{\\\"role\\\":\\\"assistant\\\",\\\"content\\\":\\\"febf75cc8973e5506d04c84e1d5eb79dbc04246947664f8238ad9ba68739d37ae7726a348300fa3a0c39e095edc88f55b43ece0ea872dff806bda7ca2f2269f025876e96995d359716baa9523ae4dcef69ae3ce67ae58c25fa1541f248f0c1482e80b131b6a042724f40fb7cc57b5084f5ce3477a29764eb9eca6ae8390a32d2316cf02a4233b70c34a9c3a72f38fffe27281f5a1611d1f7a103a2eba48febafb32c6c\\\",\\\"reasoning_content\\\":\\\"fb934ade5a7b9d35e5546e38acf76be875f351208d747744ca019da06f889d17e7ba4a504e1664287d8962e40ebd7d82e553258a38f40905d259ad5078ef6d79de6bd25a56a01355d36dffc148301bee91b071c0428103264805a74567b43893b16c432c048c1bb3e99f90b7c70f3c52f168d22add9c0b8e563eb3213fee99ec3bd2c6273f503f7ae77e8790edbb5e712c6afca39080e46beabc7e48a84c5358fab625b166759c2b09aa67456a20e32d5789b808a596fe85bd0597e1a7c472b3ef1fe0a10e9c380a5a1a3d8ca6c46d16d7ab99179a3b4c53441b14b38b6b8e98cf936d31ab5577a4803abb81ab3ef5caacf452dd29fdd5cefd7df971b05de26f02e63070e537dcab55371ee58535\\\"},\\\"finish_reason\\\":\\\"stop\\\",\\\"logprobs\\\":null}],\\\"model\\\":\\\"deepseek-ai/DeepSeek-V4.1-Flash-1017\\\",\\\"created\\\":1794590233,\\\"usage\\\":{\\\"prompt_tokens\\\":188,\\\"total_tokens\\\":279,\\\"completion_tokens\\\":91,\\\"prompt_tokens_details\\\":{\\\"cached_tokens\\\":0,\\\"created_cache_tokens\\\":128},\\\"completion_tokens_details\\\":{\\\"reasoning_tokens\\\":44}},\\\"system_fingerprint\\\":\\\"vllm-0.33.0-dp8-ep-630ec158\\\"}\",\"response_key\":\"5b64f35e0d4fd319843a18f0b695d5fbca8bdaf3bf3d88353e60bfa692dc2590\",\"signature\":\"209b7cd8e41b978ee2e578b60ee49ecff1fb2c6f49157289f5bf61c6b541150b892bac6b49437a7589094a39f0e4081a700f076670c4b276b25c87abb718e008\",\"evaluator_sig\":\"8a7dd40a9cca99f8d82a98a8d9acf966f9a17ec0b6288f37c6c1891a3360ca0193e89f10399663692db475ad1c7f16b619ce5101c8580ff99401e528aca69a0a\"}}"
+    }
+   ],
+   "logs": [
+    "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"verdict_submitted\",\"data\":[{\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"commitment\":\"b7532a0574cb1292e55b56def14d03f2fbb9aa58d954ecfdc777f073522732e5\",\"predicates\":[],\"tcb_status\":\"UpToDate\",\"disclosure\":null}]}",
+    "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"near_ai_verdict\",\"data\":[{\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"chat_id\":\"chatcmpl-5883a5ee-fa41-4745-9007-d2783c4d97cc\",\"signing_key\":\"236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c\"}]}"
+   ],
+   "ok": true
+  },
+  "receipt": {
+   "hash": "HzytNczRieBmKKnk2PVjLAUgYBxJJP6xZ6vqYNyfuNev",
+   "signer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "receiver": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+   "actions": [
+    {
+     "method": "submit_referee_result",
+     "args": "{\"result\":{\"body\":{\"v\":0,\"verdict_digest\":\"f266aa7021821746ac9c1988c1a334bd6f93ac0f31ab896429aaf83eb962e10c\",\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"merchant\":\"5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0\",\"claims_sha256\":\"e403d8d6fae422798d74aea0f7e0f3700489469cd4de75228863e08b14d1b8f5\",\"price\":\"950000\",\"outcome\":\"receipt\",\"detail\":\"e43571c9c592d6cb5fc9bb2f4d42a4f4d599e30cada934a1c88c2cb145a9c912\"},\"worker_key\":\"f6fea996eb2a99eb2e74e7a169a43adf23ea1680a603b7643b8f9ee40f7b1b70\",\"signature\":\"84686e9c268f8ec52ecdda251cab7c828a19cde468710c9e8083a50a228f213738d7acf641f39a8da5d5778cea54f4fec58b68ae2a7ddabcf2b5d9def6aade07\"}}"
+    }
+   ],
+   "logs": [
+    "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"referee_receipt\",\"data\":[{\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"merchant\":\"5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0\",\"receipt_hash\":\"e43571c9c592d6cb5fc9bb2f4d42a4f4d599e30cada934a1c88c2cb145a9c912\"}]}"
+   ],
+   "ok": true
+  },
+  "escrow": {
+   "hash": "9Q6J6hzKhj9fszTeDeNNHDB76RXKFDLMX4E5YsjWBVCK",
+   "signer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "receiver": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+   "actions": [
+    {
+     "method": "ft_transfer_call",
+     "args": "{\"receiver_id\":\"3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7\",\"amount\":\"950000\",\"msg\":\"\"}"
+    }
+   ],
+   "logs": [
+    "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042\",\"new_owner_id\":\"3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7\",\"amount\":\"950000\"}]}",
+    "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"escrow_deposit\",\"data\":[{\"account\":\"a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042\",\"amount\":\"950000\"}]}"
+   ],
+   "ok": true
+  },
+  "settle": {
+   "hash": "GwLCRE5c41gvhZPryEprGtqmWwiN3bbnKatUF8aAeSj",
+   "signer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "receiver": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+   "actions": [
+    {
+     "method": "settle",
+     "args": "{\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"merchant\":\"5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0\",\"checkout_ref\":\"mainnet-real-1794590252292\",\"amount\":\"950000\"}"
+    }
+   ],
+   "logs": [
+    "EVENT_JSON:{\"standard\":\"bookerbob\",\"version\":\"0.1.0\",\"event\":\"settled\",\"data\":[{\"nullifier\":\"6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0\",\"merchant\":\"5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0\",\"payout\":\"5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0\",\"amount\":\"950000\",\"checkout_ref\":\"mainnet-real-1794590252292\",\"path\":\"near\",\"token\":\"usdc\",\"liability\":\"a91dd050d7a6647fea21728dac817b769c2efec5043c0d3b11a1cab9c9c86aa1\",\"fee\":\"0\",\"mandate\":null}]}",
+    "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7\",\"new_owner_id\":\"5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0\",\"amount\":\"950000\",\"memo\":\"bookerbob:mainnet-real-1794590252292\"}]}"
+   ],
+   "ok": true
+  }
+ },
+ "views": {
+  "verdict": {
+   "agent": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+   "context": "bookerbob:v0:demo-hoodie",
+   "predicates": [],
+   "commitment": "b7532a0574cb1292e55b56def14d03f2fbb9aa58d954ecfdc777f073522732e5",
+   "proof_hash": "cec641038b06e2bdc65aee00255833514848fc618647790ad48435c2726135f4",
+   "tier": "none",
+   "tcb_status": "UpToDate",
+   "issuer": "near-ai:236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+   "max_spend": "45000000",
+   "expires_at_ms": 1795194965771,
+   "spent": true,
+   "checkout_ref": "mainnet-real-1794590252292",
+   "digest": "f266aa7021821746ac9c1988c1a334bd6f93ac0f31ab896429aaf83eb962e10c",
+   "receipt": {
+    "merchant": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+    "price": "950000",
+    "receipt_hash": "e43571c9c592d6cb5fc9bb2f4d42a4f4d599e30cada934a1c88c2cb145a9c912",
+    "referee": "f6fea996eb2a99eb2e74e7a169a43adf23ea1680a603b7643b8f9ee40f7b1b70",
+    "result_sha256": "481c5a295ca84785db1a904fa41adc75bb7f3450eeae1e77e157c99432a08b68"
+   },
+   "disputed": false,
+   "storage_reserve": 273,
+   "review_joined": false,
+   "paid": true
+  }
+ }
+}

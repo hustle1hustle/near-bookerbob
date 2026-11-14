@@ -1,0 +1,37 @@
+{
+  "merchants": [
+    [
+      "h05.bookerbob.testnet",
+      6,
+      381
+    ],
+    [
+      "m01.bookerbob.testnet",
+      12,
+      400
+    ],
+    [
+      "m02.bookerbob.testnet",
+      5,
+      340
+    ],
+    [
+      "m03.bookerbob.testnet",
+      0,
+      350
+    ]
+  ],
+  "program_hash": "2692da444a0761571f708c9d7c928ac9ee40be4232e5ab837020979d46538388",
+  "root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530",
+  "scores_hash": "fac1de91742be1410ec0036b0dd360321ef0ab9161472c360d7158ca443e14a5",
+  "standing": [
+    [
+      "m02.bookerbob.testnet",
+      "9666658"
+    ],
+    [
+      "m03.bookerbob.testnet",
+      "7333324"
+    ]
+  ]
+}

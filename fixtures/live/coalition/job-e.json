@@ -1,0 +1,221 @@
+{
+  "coalition": "coalition-v3.bookerbob-demo.testnet",
+  "treasury": "bookerbob-demo.testnet",
+  "relayer": "bookerbob-demo.testnet",
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "lead": "cl-lead-1df7.bookerbob-demo.testnet",
+  "members": {
+    "m01": "m01.bookerbob.testnet",
+    "h05": "h05.bookerbob.testnet"
+  },
+  "buyers": {
+    "m01a": "e0d3f8d6ab0557e03ff6915e6fc3f4dfc02d2a381b95055d866203c6c857f8a1",
+    "m01b": "253760ed3e3322554d0f1932954924adb3df86f65631bb4f1b5e35570d0cae5f",
+    "h05": "ae86673b970a368ed313c21a40d1d9618fdf93d294db7cdc7bd29f69a5898021"
+  },
+  "txs": {
+    "coalition_account": {
+      "hash": "Cn7MRj84NWfuknUGjZhR6JjjHzQQcDYaVaX9z29aDzZE",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "deploy": {
+      "hash": "J5xNPWjVLucc7dBZheu1DYH3BFkJBtn9g8KhZsYF1JC8",
+      "signer": "coalition-v3.bookerbob-demo.testnet"
+    },
+    "coalition_dusdc_storage": {
+      "hash": "69vhzo6j4nZwtSFSr3UWgABUpJp1a7GZyquWyQxs6mmi",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "open": {
+      "hash": "BE9R8p9fjAABizF3jkeNvQLtwzcTHHpCWKr9MqUg8DG2",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "fund": {
+      "hash": "4HZ6oPc9yT3cwgymHDvqoeuxECtWP54ZokunoAnopZRr",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "join_m01": {
+      "hash": "gWKdbVfRxJ24DiCLAq7S2fNb3ujfD7EvjYfoCbLZsEH",
+      "signer": "m01.bookerbob.testnet"
+    },
+    "join_h05": {
+      "hash": "Ck5ADjx5FyfHbAewdkRotduXofTrc8nkVQaF34YyYAxU",
+      "signer": "h05.bookerbob.testnet"
+    },
+    "announce_a": {
+      "hash": "6QxPPoqh2ydBDDRUtZmZjw8nDRb1BxpZdqjdoV7dAX7M",
+      "signer": "e0d3f8d6ab0557e03ff6915e6fc3f4dfc02d2a381b95055d866203c6c857f8a1"
+    },
+    "dup_b": {
+      "hash": "4g5MZSp7JhSQsBASWBMQ144zHuU3DkqgYH3VCK9GYacT",
+      "signer": "253760ed3e3322554d0f1932954924adb3df86f65631bb4f1b5e35570d0cae5f",
+      "refused": "purchase already announced in this job"
+    },
+    "hijack_b": {
+      "hash": "3PiCUHH1DW8Bn4GRxytpAHxv7xvUCtcvG3E1Gh7UrVwE",
+      "signer": "253760ed3e3322554d0f1932954924adb3df86f65631bb4f1b5e35570d0cae5f",
+      "refused": "the announcer is not the purchase's buyer agent"
+    },
+    "announce_b": {
+      "hash": "7RDWGvpGLbqUo5FtHLLfYGLr9ZY77bVAsFmDzHdAfd6Q",
+      "signer": "253760ed3e3322554d0f1932954924adb3df86f65631bb4f1b5e35570d0cae5f"
+    },
+    "topup_a": {
+      "hash": "Fn8MSYfKKKSikufdpL4FSbyygK5cRWmgxN4ukHdVXLj2",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "announce_h05": {
+      "hash": "C5N4c7hDh4TD1SMAHQnYbaNH1kHns3Ev1fLDxWhsJ5MV",
+      "signer": "ae86673b970a368ed313c21a40d1d9618fdf93d294db7cdc7bd29f69a5898021"
+    },
+    "deliver_m01": {
+      "hash": "6kuNyhKLRjWN4fYELhGN4KuGpXYcygDkY1qK48iCXH88",
+      "signer": "m01.bookerbob.testnet"
+    },
+    "finalize": {
+      "hash": "EXa1pwtgyE2QTcwTR2d9s2xSeHmELcL7WEBhHNpQCC4t",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    }
+  },
+  "purchases": {
+    "m01a": {
+      "tester": "e0d3f8d6ab0557e03ff6915e6fc3f4dfc02d2a381b95055d866203c6c857f8a1",
+      "nullifier": "b2cf791c8eea5c978145092acb44d3666aa693f96b667b154f9f95d3c592bdc0",
+      "price": "36000000",
+      "settled": true,
+      "txs": {
+        "account": "2paNKejrrBWxDEK42YeThvF2MNMcVWTfjDjt2xwiaR1R",
+        "escrow_entry": "C8WQccXYCGTWGT3Shtihp1Ug7eWk5oCC5sHHeELeTmxN",
+        "dusdc_storage": "9UP9UstTHHUWyooyvPiekxY3zV2Y1rB5tVaz6LPdGsPh",
+        "mint": "FU7jxvSLXt2S98YBwc7kSBprB6DsVC6BdtqSeWCFdkGv",
+        "world": "89JoDyeqBodHWkmCTyewSNooofWiGqRkddhgo2rgTdir",
+        "verdict": "CmVptFfWw419d5PqQ81XVAK7H9qH38QoKJaiUeTpqmH2",
+        "receipt": "HKwyjYL65rWUxNKjUhqaYVvV5nWDstMMnRUwUJr6D5pp",
+        "escrow": "BJPPbypjsAz9UncKm8WJ5W7Ro3sizrvadBKG1hd2YEjR",
+        "settle": "8BCeAbbZAoVnT4AMp1fZuhX5gTYVzffWfu673zYoWCU9"
+      },
+      "verdict_path": "near-ai",
+      "checkout_ref": "coal-e-fb0d87",
+      "settle_signer": "e0d3f8d6ab0557e03ff6915e6fc3f4dfc02d2a381b95055d866203c6c857f8a1"
+    },
+    "m01b": {
+      "tester": "253760ed3e3322554d0f1932954924adb3df86f65631bb4f1b5e35570d0cae5f",
+      "nullifier": "d3505ec0fdc2259423f696a5946478c7017617c5421d7b7f20e7f27ff5658132",
+      "price": "36000000",
+      "settled": false,
+      "verdict_path": "near-ai",
+      "txs": {
+        "account": "G2cQtRVye3G8cdpYYoDVGAXSBR3UJfyMCRq7Gktj9fA2",
+        "escrow_entry": "AGTxirXwqxrZDczVubEPpZvUbPCAra2hSJwTkuGexRCz",
+        "dusdc_storage": "BDh4n24W3ZabjPAbw2ofVjamy7X876JgVUaRrp2soWSs",
+        "mint": "5tJMvdZFunbwxwBKXDuKz6prEFiBMkUHpVKAZf9o12XR",
+        "world": "2i3YsDMysjHykhU8Zr9v1FS3FsQqJzaw2i6MgirSpLxT",
+        "verdict": "2neHdMx8S2RTEwPYNEHLrdZgg7JAdJ7oxoRfpakH754H",
+        "receipt": "72rbhsariDQZqQZgFwZz7vcyUvYeKpNVu4ARXx8WPJog",
+        "escrow": "A4zM3rphH5TvJMf7S3PLr8VCP5AJUmWbGspdTYaYg43e"
+      }
+    }
+  },
+  "balances": {
+    "before": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "55172480",
+      "m01.bookerbob.testnet": "1977546592",
+      "h05.bookerbob.testnet": "25225000000",
+      "bookerbob-demo.testnet": "996",
+      "coalition-v3.bookerbob-demo.testnet": "50000000"
+    },
+    "after_finalize": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "95744770",
+      "m01.bookerbob.testnet": "2020114302",
+      "h05.bookerbob.testnet": "25225000000",
+      "bookerbob-demo.testnet": "2500996",
+      "coalition-v3.bookerbob-demo.testnet": "0"
+    }
+  },
+  "wasm_sha256": "b5c4986fceeeaef96cfcfa0cbb388013bdd265bbebb56bf55414626c5713708b",
+  "h05_purchase": {
+    "nullifier": "7721af713836ea6b0d4641c3e798f3e01946f99199b5bcaa5265753c135598c9",
+    "from": "job D",
+    "announced_in_d": "7bzCmyW7bPzY1AU2JvC7ZPjMsuNVYPK7a6dmBSdvnRbq"
+  },
+  "budget": "20000000",
+  "abandoned": [
+    {
+      "job": 0,
+      "deadline_ms": 1794675998395,
+      "txs": {
+        "open": {
+          "hash": "2ZtRT96Zo6azG1vv1Ugr2JuMzv3M4Tyzt3VkHaDjwQwR",
+          "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+        },
+        "fund": {
+          "hash": "BtoVChRAVWe4uehKNvFuFgpJYjGKsmvrXkxHzdwiiRqB",
+          "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+        },
+        "join_m01": {
+          "hash": "62W7xmQYCfVHW3naZPZDSBosjYjxeP8Rgd2i1sGMJnYD",
+          "signer": "m01.bookerbob.testnet"
+        },
+        "join_h05": {
+          "hash": "GXAvaeAuo9EWdroiecnfdNUfian9ZpyprvyXzHrDE7TT",
+          "signer": "h05.bookerbob.testnet"
+        },
+        "finalize": {
+          "hash": "GFLWyHiAiXz9MitUFFN3dkexxvdxqvQJt2PHoKcSdjc9",
+          "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+        }
+      },
+      "buyers": {
+        "m01a": "0e15159a782138d11348a269ac841304af6ae04c2596f67f28554236502ac6a2",
+        "m01b": "0c425549e94efb411f9b8295426d98c83d000b4f3eb38abb5abcd339d8dccedb",
+        "h05": "ae86673b970a368ed313c21a40d1d9618fdf93d294db7cdc7bd29f69a5898021"
+      },
+      "why": "its first purchase failed at submit_verdict: the bazaar's operator issuer was removed by design; the purchases go through the NEAR AI verdict path"
+    }
+  ],
+  "round": 2,
+  "standing": [
+    "3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01",
+    3,
+    "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d",
+    "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530"
+  ],
+  "openings": [
+    {
+      "merchant": "m01.bookerbob.testnet",
+      "rank": 1,
+      "n": 3,
+      "score_commit": "10fbe820f94f5cd64a9a9cf69ad62fbfe8dfd37a58c75a20f883aa4c29086926",
+      "path": [
+        [
+          "fdbea6a8fc3d39fa9feeabdaba10f76028afa92dd2657eca3e425655856db532",
+          false
+        ],
+        [
+          "755cac4df8c97bbb2a9884efcee8189a0f491a405d4a70074984866c46e3e55d",
+          false
+        ]
+      ]
+    },
+    {
+      "merchant": "h05.bookerbob.testnet",
+      "rank": 2,
+      "n": 3,
+      "score_commit": "fca4567351b8bbc506b3221cfdf3714c00eafbdb6a590efa6dee97ddec5b4fee",
+      "path": [
+        [
+          "5441511a4d04c07909529ca70624788e58c3dd2434f0872053e22f8175bde640",
+          true
+        ],
+        [
+          "755cac4df8c97bbb2a9884efcee8189a0f491a405d4a70074984866c46e3e55d",
+          false
+        ]
+      ]
+    }
+  ],
+  "deadline_ms": 1794676593641,
+  "job": 1,
+  "date": "2026-11-14"
+}

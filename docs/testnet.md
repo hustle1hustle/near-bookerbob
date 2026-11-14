@@ -421,7 +421,7 @@ registrations. Raising the floor and `remove_issuer` stay immediate (they only n
 Tests: `an_owner_cannot_register_a_model_key_at_once` and 4 more. Redeployed, state kept:
 `bookerbob.testnet` [9F351xx3…](https://testnet.nearblocks.io/txns/9F351xx3p2XsAvxUSSdyBYkNJbuF6C7y1kmTjrkLBUbk),
 `bookerbob-dao-bazaar.testnet` [CyWxcH5H…](https://testnet.nearblocks.io/txns/CyWxcH5Hv8zHCkh1TftNvhGWLdBWA8hfQ7fHv2AWp6ZN).
-The live bazaar's delay is still 0, and its one full-access key (REP's) can redeploy the code;
+The live bazaar's delay is still 0, and its one full-access key, held by us (the BookerBob operator), can redeploy the code;
 README "Trust anchors" says so.
 
 ## A hotel stay bought on testnet: h05 at 408 dUSDC (2026-11-05)
@@ -495,7 +495,7 @@ not that the buyer holds it. The run on your own `/user` is the same command wit
 
 ## market.bookerbob.testnet: a bazaar the DAO owns from block one (2026-11-05)
 
-Locked on 2026-11-14: its only full-access key deleted ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)); `make no-owner` shows no full-access key and a redeploy refused (InvalidAccessKeyError).
+Locked on 2026-11-14: its only full-access key deleted ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)); `make no-owner` shows no full-access key and a redeploy refused (InvalidAccessKeyError). The quote verifier `spike.bookerbob.testnet` was locked the same day ([7pgUUjnb…](https://testnet.nearblocks.io/txns/7pgUUjnb6qiAwqVF8gZdKXXGysjbtmXymbVfkoJY4Wcv)).
 
 Decided on 2026-11-05 by the coordinating session on the founder's delegation ("think which is the
 stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.mjs`,
@@ -508,8 +508,8 @@ stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.m
   anchor and the anchor delay to 5 minutes.
 - One live purchase on it: `t-fb06d2` paid 38.40 dUSDC to m01, replay refused, Shopify #1065.
 - **Not done yet: deleting the temporary full-access key**, the last, irreversible step. Until
-  it is deleted, `make no-owner` shows one full-access key, REP's; after it, none.
-  `bookerbob.testnet` stays as the "before" exhibit with its single REP key.
+  it is deleted, `make no-owner` shows one full-access key, ours; after it, none.
+  `bookerbob.testnet` stays as the "before" exhibit with its single operator key.
 
 ## A second merchant with standing, and the proven standing tree (2026-11-05)
 
@@ -559,7 +559,7 @@ code is final: no key can replace it.
 
 The nullifier is now `sha256(TAG || F_k(x))`, an RFC 9497 VOPRF (ristretto255) output of a fresh
 input `x = context || 32 random bytes` the buyer blinds (`cli/src/voprf.rs`, the `voprf` crate,
-PRIOR_WORK.md). REP's evaluator sees the requester and a blinded element, evaluates once per
+PRIOR_WORK.md). Our evaluator sees the requester and a blinded element, evaluates once per
 (requester, context), and the buyer checks its DLEQ proof under the bazaar's `voprf_key`.
 
 - `set_voprf_key(de0c0be1…)` on `bookerbob.testnet` [2xt5QE1Q…](https://testnet.nearblocks.io/txns/2xt5QE1QfBRXjUhY697E1DuxvwpwFSdmxAfJmDeKGxy3)
@@ -571,7 +571,7 @@ PRIOR_WORK.md). REP's evaluator sees the requester and a blinded element, evalua
   `41f94901…`, 36 dUSDC, the replay refused. Its public redemption record
   (`fixtures/live/voprf/run.json`: x, a fresh blind, the evaluation and proof) re-derives the
   nullifier in `make verify`; `make verify-live` checks the key on chain and the spent verdict.
-- What it does not change: REP holds the one evaluator key (an enclave and a committee are
+- What it does not change: the operator holds the one evaluator key (an enclave and a committee are
   decided, not built); the evaluator sees who asked in which context and when (a lone request
   just before a purchase is a timing link); purchases before this one used an HMAC or a fixture
   placeholder, which stay recomputable.

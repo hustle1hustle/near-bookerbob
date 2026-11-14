@@ -1,0 +1,12 @@
+{
+  "note": "The bazaar's graph program was set to the first standing v2 program by the timelock (queued, an early execute refused, executed), and set back to v1 by the same timelock after the pre-registered v2, v3 and v4 runs each missed their rule; no update was proven under v2. docs/coalitions.md, Every registered attempt.",
+  "bazaar": "bookerbob.testnet",
+  "txs": {
+    "execute_graph_program": "2Nfjs5XhwAfjYahWm5VXuJsuk3S3ggYDepnAj3UZVgrX",
+    "queue_graph_program": "BgNkNhMvNzR5ttGjpASqcMJGz186pNhaiSxPCWr7XGGV",
+    "execute_early_refused": "EJ6eo5HLg9RdUBSdcDEHJwRV5rA4nBGNpRLhrKxxEFhd",
+    "queue_revert_to_v1": "B5Y3D7gqE5X43gwVnJbVftavPVpJ25qAx6JwXMza2Amu",
+    "execute_revert_to_v1": "5stztux5RbvgaxMMq2YWiQej4EvqBxfDRiddXptMbVD1"
+  },
+  "graph_program": "62bf56ebc9f70ff8423da31a2d448ab02784358ea3c66aca2ba7b2fda976d0f9"
+}

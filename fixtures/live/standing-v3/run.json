@@ -1,0 +1,34 @@
+{
+  "note": "Standing v2 on bookerbob.testnet: the graph program set to the v2 guest (own seed plus conferred standing ranks the in_top tree), the live graph proved with it and finalized. Check: node scripts/standing-v2.mjs verify",
+  "bazaar": "bookerbob.testnet",
+  "txs": {},
+  "graph_root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530",
+  "events": 10,
+  "input": "fixtures/zk/standing-live-input.json",
+  "program_hash": "2692da444a0761571f708c9d7c928ac9ee40be4232e5ab837020979d46538388",
+  "scores_hash": "fac1de91742be1410ec0036b0dd360321ef0ab9161472c360d7158ca443e14a5",
+  "merchants": [
+    [
+      "h05.bookerbob.testnet",
+      6,
+      381
+    ],
+    [
+      "m01.bookerbob.testnet",
+      12,
+      400
+    ],
+    [
+      "m02.bookerbob.testnet",
+      5,
+      340
+    ],
+    [
+      "m03.bookerbob.testnet",
+      0,
+      350
+    ]
+  ],
+  "proof_sha256": "8cfe54c5161770d0b84eb582f75d0c592a53f1070d99f7c9c4032595bc7ae50a",
+  "guest_elf_sha256": "43ab1ac89fa166f9c5f13f957bb249b700e2b51bd1f4d26a411ddded5bf0eb40"
+}

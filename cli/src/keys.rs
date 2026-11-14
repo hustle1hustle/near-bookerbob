@@ -85,7 +85,9 @@ pub fn graph_sign_with_proof(dir: &Path, program_hash: &str, input: &Path, out: 
             bookerbob_graph::Event::from_bytes(&b).ok_or_else(|| "bad event".to_string())
         })
         .collect::<Result<_, _>>()?;
-    let s = bookerbob_graph::compute(&ev);
+    // BOOKERBOB_STANDING_V2=1: the v2 list (own seed plus conferred standing), the program the
+    // bazaar's graph program is set to since 2026-11-14 (standing-v2/).
+    let s = match std::env::var("BOOKERBOB_STANDING_V2").as_deref() { Ok("1") => bookerbob_standing_v2::compute(&ev), Ok("3") => bookerbob_standing_v2::compute_v3(&ev), _ => bookerbob_graph::compute(&ev) };
     let ph: [u8; 32] = hex::decode(program_hash).ok().and_then(|b| b.try_into().ok()).ok_or("bad program hash")?;
     let mut msg = bookerbob_bazaar::GRAPH_UPDATE_TAG.to_vec();
     msg.extend(ph);
