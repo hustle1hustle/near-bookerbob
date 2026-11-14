@@ -200,7 +200,7 @@ pub enum Cut {
 
 /// The largest pct with rank cut `floor((pct * n + 99) / 100) <= k` (the `in_top` rule).
 pub fn pct_for(n: u32, k: u32) -> u8 {
-    (0..=100u8).rev().find(|&p| (p as u64 * n as u64 + 99) / 100 <= k as u64).unwrap_or(0)
+    (0..=100u8).rev().find(|&p| (p as u64 * n as u64).div_ceil(100) <= k as u64).unwrap_or(0)
 }
 
 pub fn admission(rule: Rule, cut: Cut, events: &[Event], agents: &[Agent]) -> Admission {
@@ -280,7 +280,32 @@ pub struct Stats {
 
 macro_rules! fields {
     ($m:ident) => {
-        $m!(jobs, unserved, filled, failed_bundles, no_show_legs, paid_filled, paid_failed, slashed, admitted, unreliable_admitted, newcomers_admitted, reliable_newcomers_admitted, newcomer_legs, newcomer_delivered_legs, trials, trials_delivered, ring_attempts, ring_admissions, ring_leaves, hired_leaf, hired_admitted, hired_legs, legs_to_sybils, unreliable_legs)
+        $m!(
+            jobs,
+            unserved,
+            filled,
+            failed_bundles,
+            no_show_legs,
+            paid_filled,
+            paid_failed,
+            slashed,
+            admitted,
+            unreliable_admitted,
+            newcomers_admitted,
+            reliable_newcomers_admitted,
+            newcomer_legs,
+            newcomer_delivered_legs,
+            trials,
+            trials_delivered,
+            ring_attempts,
+            ring_admissions,
+            ring_leaves,
+            hired_leaf,
+            hired_admitted,
+            hired_legs,
+            legs_to_sybils,
+            unreliable_legs
+        )
     };
 }
 
@@ -362,7 +387,8 @@ pub struct ArmRun {
 
 pub fn coalition_arm(seed: u64, agents: &[Agent], kinds: &[Kind], rule: Rule, cut: Cut, ledger: &mut Ledger) -> ArmRun {
     let mut events = initial_events(seed, agents, kinds);
-    let mut ratings: BTreeMap<String, (u64, u64)> = agents.iter().zip(kinds).filter(|(_, k)| **k == Kind::Honest).map(|(a, _)| (a.id.clone(), history(seed, a))).collect();
+    let mut ratings: BTreeMap<String, (u64, u64)> =
+        agents.iter().zip(kinds).filter(|(_, k)| **k == Kind::Honest).map(|(a, _)| (a.id.clone(), history(seed, a))).collect();
     let mut edges: BTreeSet<(String, String)> = BTreeSet::new();
     let ring: Vec<&Agent> = agents.iter().zip(kinds).filter(|(_, k)| **k == Kind::Ring).map(|(a, _)| a).collect();
     let newcomers: Vec<usize> = (0..agents.len()).filter(|&i| kinds[i] == Kind::Newcomer).collect();
@@ -415,7 +441,11 @@ pub fn coalition_arm(seed: u64, agents: &[Agent], kinds: &[Kind], rule: Rule, cu
         for budget in jobs(seed, e) {
             s.jobs += 1;
             let legs: Option<Vec<usize>> = (0..CATS.len())
-                .map(|c| (0..agents.len()).filter(|&i| agents[i].cat == c && used[i] < CAPACITY && adm.admitted[i]).min_by(|&a, &b| (agents[a].price, &agents[a].id).cmp(&(agents[b].price, &agents[b].id))))
+                .map(|c| {
+                    (0..agents.len())
+                        .filter(|&i| agents[i].cat == c && used[i] < CAPACITY && adm.admitted[i])
+                        .min_by(|&a, &b| (agents[a].price, &agents[a].id).cmp(&(agents[b].price, &agents[b].id)))
+                })
                 .collect();
             let Some(legs) = legs.filter(|l| l.iter().map(|&i| price(agents[i].price)).sum::<u64>() <= budget) else {
                 s.unserved += 1;
@@ -529,7 +559,14 @@ pub fn run_seed(m: &Mode, seed: u64) -> SeedRun {
     let (agents, kinds) = population_v2(seed);
     let clean: Vec<Stats> = v1::singles(seed, &agents, false).iter().map(Stats::from_v1).collect();
     let reliable = |set: &BTreeSet<String>| set.iter().filter(|id| agents.iter().any(|a| &a.id == *id && !a.unreliable)).count();
-    let mut r = SeedRun { seed, arms: [clean, vec![], vec![], vec![]], newcomers_ever: [0; 3], reliable_newcomers_ever: [0; 3], roots: [[0; 32]; 3], ledger_sums: [0; 3] };
+    let mut r = SeedRun {
+        seed,
+        arms: [clean, vec![], vec![], vec![]],
+        newcomers_ever: [0; 3],
+        reliable_newcomers_ever: [0; 3],
+        roots: [[0; 32]; 3],
+        ledger_sums: [0; 3],
+    };
     for (k, (rule, cut)) in m.rules.iter().enumerate() {
         let mut l = Ledger::default();
         let a = coalition_arm(seed, &agents, &kinds, *rule, *cut, &mut l);
@@ -658,9 +695,14 @@ pub fn result_json(m: &Mode, runs: &[SeedRun], prereg: Option<String>) -> Value 
             let mut arms = serde_json::Map::new();
             for (k, arm) in m.arms.iter().enumerate() {
                 let t = total(&r.arms[k]);
-                arms.insert(arm.to_string(), json!({ "total": t.json(), "metrics": metric(&t), "epochs": r.arms[k].iter().map(Stats::json).collect::<Vec<_>>() }));
+                arms.insert(
+                    arm.to_string(),
+                    json!({ "total": t.json(), "metrics": metric(&t), "epochs": r.arms[k].iter().map(Stats::json).collect::<Vec<_>>() }),
+                );
             }
-            let per = |f: &dyn Fn(usize) -> Value| -> Value { m.arms[1..].iter().enumerate().map(|(k, arm)| (arm.to_string(), f(k))).collect::<serde_json::Map<_, _>>().into() };
+            let per = |f: &dyn Fn(usize) -> Value| -> Value {
+                m.arms[1..].iter().enumerate().map(|(k, arm)| (arm.to_string(), f(k))).collect::<serde_json::Map<_, _>>().into()
+            };
             json!({
                 "seed": r.seed,
                 "newcomers_ever": per(&|k| json!(r.newcomers_ever[k])),
@@ -672,7 +714,9 @@ pub fn result_json(m: &Mode, runs: &[SeedRun], prereg: Option<String>) -> Value 
         })
         .collect();
     let tot: Vec<Vec<Stats>> = (0..m.arms.len()).map(|k| runs.iter().map(|r| total(&r.arms[k])).collect()).collect();
-    let per = |f: &dyn Fn(usize) -> Value| -> Value { m.arms[1..].iter().enumerate().map(|(k, arm)| (arm.to_string(), f(k))).collect::<serde_json::Map<_, _>>().into() };
+    let per = |f: &dyn Fn(usize) -> Value| -> Value {
+        m.arms[1..].iter().enumerate().map(|(k, arm)| (arm.to_string(), f(k))).collect::<serde_json::Map<_, _>>().into()
+    };
     let sum = |k: usize, f: &dyn Fn(&Stats) -> u64| json!(tot[k + 1].iter().map(f).sum::<u64>());
     let mut pass_rule = serde_json::Map::new();
     for (k, x) in [
@@ -779,7 +823,13 @@ pub fn summary(m: &Mode, v: &Value) -> String {
 }
 
 pub fn run(args: &[String]) -> ExitCode {
-    let m = if args.iter().any(|a| a == "--v4") { &V4 } else if args.iter().any(|a| a == "--v3") { &V3 } else { &V2 };
+    let m = if args.iter().any(|a| a == "--v4") {
+        &V4
+    } else if args.iter().any(|a| a == "--v3") {
+        &V3
+    } else {
+        &V2
+    };
     let opt = |k: &str| args.iter().position(|a| a == k).and_then(|i| args.get(i + 1)).cloned();
     let repo = Path::new(".");
     if let Some(s) = opt("--seed") {
@@ -918,7 +968,7 @@ mod tests {
     fn the_count_cut_admits_exactly_25() {
         for n in 25..=100u32 {
             let p = pct_for(n, V1_ADMITTED);
-            assert_eq!((p as u64 * n as u64 + 99) / 100, V1_ADMITTED as u64, "n {n} pct {p}");
+            assert_eq!((p as u64 * n as u64).div_ceil(100), V1_ADMITTED as u64, "n {n} pct {p}");
         }
     }
 

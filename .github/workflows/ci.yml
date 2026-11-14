@@ -19,10 +19,16 @@ jobs:
         # numbers, so reformatting it changes the wasm and breaks make wasm-parity. It is
         # formatted with the next deploy; every other file must be formatted.
         run: |
-          left=$(cargo fmt --all -- --check -l | grep -v '/contract/src/lib.rs$' || true)
+          # standing-v2/src/lib.rs is compiled into the v2 Jolt guest whose program hash (62bf56eb) was set
+          # on chain: reformatting moves its panic locations and changes that hash, so it stays as built.
+          left=$(cargo fmt --all -- --check -l | grep -v -e '/contract/src/lib.rs$' -e '/standing-v2/src/lib.rs$' || true)
           if [ -n "$left" ]; then echo "not formatted:"; echo "$left"; cargo fmt --all -- --check; exit 1; fi
       - name: clippy
-        run: cargo clippy --workspace --all-targets -j 4 -- -D warnings
+        # standing-v2/src/lib.rs is hashed into the pre-registered v3 and v4 results (e8c43d02) and built
+        # into the v2 guest, so it stays as run: its library is linted, its test target is not.
+        run: |
+          cargo clippy --workspace --exclude bookerbob-standing-v2 --all-targets -j 4 -- -D warnings
+          cargo clippy -p bookerbob-standing-v2 --lib -j 4 -- -D warnings
       - name: unit tests
         run: make test JOBS=4
       - name: fixtures are reproducible

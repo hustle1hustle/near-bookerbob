@@ -13,7 +13,7 @@ Facts and pointers, nothing else.
   re-read live over public RPC. `NEAR_AI_KEY=<yours>` adds 6 live NEAR AI verdicts under E2EE
   with their TEE signatures checked (about $0.006 on that key).
 - Four commands, with measured times:
-  - `make judge`: Node 22, offline, no keys, about 25 s (2026-11-11, a warm macOS arm64
+  - `make judge`: Node 22, offline, no keys, about 40 s (2026-11-14, a warm macOS arm64
     laptop). Ends `PASS  make judge`. It replays a committed snapshot of the testnet reads and
     verifies the committed Jolt proofs; it makes no proof.
   - `make verify`: Rust 1.93+, the contract on near-sdk's mocked chain, about 11 s warm and

@@ -359,7 +359,11 @@ fn main() -> ExitCode {
                         .expect("event")
                 })
                 .collect();
-            let sc = match std::env::var("BOOKERBOB_STANDING_V2").as_deref() { Ok("1") => bookerbob_standing_v2::compute(&ev), Ok("3") => bookerbob_standing_v2::compute_v3(&ev), _ => bookerbob_graph::compute(&ev) };
+            let sc = match std::env::var("BOOKERBOB_STANDING_V2").as_deref() {
+                Ok("1") => bookerbob_standing_v2::compute(&ev),
+                Ok("3") => bookerbob_standing_v2::compute_v3(&ev),
+                _ => bookerbob_graph::compute(&ev),
+            };
             let (root, proofs) = bookerbob_core::standing::graph(&sc.root, &sc.merchants);
             println!(
                 "{}",

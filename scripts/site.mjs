@@ -23,6 +23,10 @@ const walk = (d) => readdirSync(join("agents", d), { withFileTypes: true }).flat
 if (existsSync("agents/prove.html")) FILES.push(...walk("prove"), "coi-prove-sw.js");
 // The standing page: the Jolt proof of the live standing graph, verified in the tab (zk/browser/check-standing.mjs).
 if (existsSync("agents/standing.html")) FILES.push("standing.html", ...walk("standing"));
+// The verify page: agents/verify.json from make verify-all, beside the page's own live reads.
+if (existsSync("agents/verify.html")) FILES.push("verify.html", "verify.json");
+// The smith page: every registered program's proof checked in the tab by the generic wasm verifier.
+if (existsSync("agents/smith.html")) FILES.push("smith.html", ...walk("smith"));
 mkdirSync("site/out", { recursive: true });
 for (const f of FILES) {
   mkdirSync(dirname(join("site", f)), { recursive: true });

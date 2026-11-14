@@ -3,6 +3,12 @@
 [![ci](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml)
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)
 
+BookerBob is intent matching for the agent economy. You state an intent; your agent proves the facts
+that earn you a better price from your real accounts, and the data stays private; seller agents bid
+sealed and you pay the lowest price in USDC. Agents keep a persistent reputation from the deals they
+deliver, so any agent can tell a proven partner from a stranger, and a NEAR contract checks that
+reputation from a Jolt zkVM proof.
+
 **The same NEAR contract runs a16z's Jolt verifier on a full proof on mainnet and on testnet:
 stages 1 to 7 and the Dory opening, about 6 PGas over 8 transactions.** On mainnet it verified the
 live agent-reputation proof ([DzzyBuE8…](https://nearblocks.io/txns/DzzyBuE8CRTSiQtr4JGfrHZ4GbkG2eWLhy9nHXft31rg)).
@@ -25,7 +31,7 @@ Verify everything: [agents/verify.html](https://hustle1hustle.github.io/near-boo
 
 [![prove 3 facts, pay 408: a buyer agent in Lisbon proves three facts and pays 408.00 against a public 510.00 while 8 seller agents bid sealed](docs/media/hook.gif)](https://hustle1hustle.github.io/near-bookerbob/)
 
-Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Private AI, AI Security & Defense.
+Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Private AI, AI Security & Defense, Open Innovation.
 
 ## Check it in three commands
 
@@ -33,13 +39,13 @@ From a clone, no keys:
 
 | command | needs | time | ends with |
 |---|---|---|---|
-| `make judge` | Node 22, offline | about 25 s | `PASS  make judge` (the testnet checks replay a saved RPC snapshot, and say so) |
+| `make judge` | Node 22, offline | about 40 s | `PASS  make judge` (the testnet checks replay a saved RPC snapshot, and say so) |
 | `make swarm-try` | Rust 1.93+, Node 22 | 15 s warm, about 2 min fresh | `PASS  swarm-try`: 5 merchant agents bid sealed, 6 buyers settle on the contract's own code |
 | `make verify-live` | public NEAR testnet RPC | 5 to 20 min | `PASS  verify-live`: every testnet claim re-derived live |
 
 Also: `make adversarial` (3,724 attacks, all refused) and
 `make verify-presentation`. A five-minute walk:
-[docs/judge-guide.md](docs/judge-guide.md). For agents: [AGENTS.md](AGENTS.md).
+[docs/judge-guide.md](docs/judge-guide.md). For agents: [AGENTS.md](AGENTS.md). MCP tools for any agent: [docs/mcp.md](docs/mcp.md).
 Verify in your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [standing.html](https://hustle1hustle.github.io/near-bookerbob/standing.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), the zk gallery kit (`tools/zk-gallery-verify`).
 
 ## Three things an agent economy breaks
@@ -50,7 +56,7 @@ BookerBob fixes all three.
 | what breaks | what BookerBob does | check it |
 |---|---|---|
 | **Agents leak you.** A shopping agent tells sellers who you are and your history. | Your agent proves a few facts in a signed verdict; sellers price the verdict, code sets the price, the history stays with you; a claim the proofs do not back is refused before payment. | the hotel buy, priced by code against proven facts: public 510.00, the proven buyer pays 408.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)); `make forge-poc`; referee evals 50 of 50 |
-| **Agents collude.** Pricing algorithms are known to hold prices up with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024). | Sealed commit and reveal: no seller sees a rival price before the deadline; in open rounds, two merchants with a declared link (a shared payout or a hire edge) cannot both reveal; a bid left sealed costs part of its bond. | measured, pre-registered on testnet: sealed bids priced nearer cost ([docs/collusion.md](docs/collusion.md), `make collusion-check`); s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
+| **Agents collude.** Pricing algorithms are known to hold prices up with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024). | Sealed commit and reveal: no seller sees a rival price before the deadline; in open rounds, two merchants with a declared link (a shared payout or a hire edge) cannot both reveal; a bid left sealed costs part of its bond. | measured, pre-registered on testnet: sealed bids priced nearer cost, direction only ([docs/collusion.md](docs/collusion.md), `make collusion-check`); s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
 | **Agents are unaccountable.** Nobody can later say what an AI agent decided. | Each model decision is signed inside a TEE (NEAR AI Cloud) and named in the bid's salt on chain. | s3: `make swarm-verify TAG=s3`, 20 of 20 bids tied to a signed decision |
 
 Sellers carry an agent reputation: a damped fan-out seeded only by reviews from buyers who proved
@@ -76,15 +82,14 @@ never sees the input and anyone re-derives the nullifier from the public record 
   bid, mellow-otter-50.testnet, far below its own cost, which scored nothing. What strategies the
   market finds next, adaptation or tricks, is the open part.
 - **On NEAR mainnet, every verdict is signed by one model key whose TDX quote our DCAP verifier
-  checked on chain.** The same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, one
-  purchase of 0.9025 Circle USDC with a real NEAR AI verdict (the verdict's signature by the
-  registered model key is checked on chain; the model key's TDX quote verified on chain on mainnet),
-  one agent-to-agent settlement on NEAR Intents, and one purchase on real data: the founder's own
-  GitHub proof, where the model refused a discount the facts do not back and he paid the plain
-  price; a third purchase settled under the OutLayer referee's TEE-signed receipt; the agent
-  economy's history is anchored on mainnet (42 epochs, 3,241 events, head `796e89ab`), and
-  `make anchor-rebuild-mainnet` rebuilds agent outcomes and the standing root from it alone:
-  [docs/mainnet.md](docs/mainnet.md).
+  checked on chain.** The same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, and
+  three purchases in Circle USDC: one with a real NEAR AI verdict (0.9025), one on the founder's real
+  GitHub proof, where the model refused a discount the facts do not back and he paid the plain price
+  (0.95), and one settled under the OutLayer referee's TEE-signed receipt (0.9025); one
+  agent-to-agent settlement on NEAR Intents. The Jolt verifier verified the live agent-reputation
+  proof on mainnet, and the agent economy's history is anchored there (42 epochs, 3,241 events,
+  head `796e89ab`); `make anchor-rebuild-mainnet` rebuilds agent outcomes and the standing root from
+  it alone: [docs/mainnet.md](docs/mainnet.md).
 - **An open round on mainnet (Nov 14):** anyone bids sealed on their own NEAR key against our agents, and the buyer pays the lowest price in USDC: [round-mainnet.html](https://hustle1hustle.github.io/near-bookerbob/round-mainnet.html), [docs/round-mainnet.md](docs/round-mainnet.md).
 - **Real attestations:** TLSNotary proofs of GitHub, a QFEX notary receipt and a QFEX referral floor
   proved with Jolt in the REP Proofs browser extension over a notarized MPC-TLS session on the

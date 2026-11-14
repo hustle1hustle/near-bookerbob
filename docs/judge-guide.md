@@ -39,7 +39,7 @@ chain, offline.
 ## The first minute: one command, one transaction
 
 ```sh
-make judge     # Node 22 only, about 25 s, no network, no keys: ends `PASS  make judge`
+make judge     # Node 22 only, about 40 s, no network, no keys: ends `PASS  make judge`
 ```
 
 It replays a recorded snapshot of the testnet reads (103 checks), runs the JS suites, the
@@ -64,7 +64,7 @@ then 6 of the 96 testnet purchases read live; `NEAR_AI_KEY=<yours>` adds live mo
 ## Minutes 2 and 3: run
 
 ```sh
-make judge           # Node 22 only, offline, about 25 s (JUDGE_LIVE=1 make judge reads the live chain: 5 to 20 minutes, old txs come from a rate-limited public archive)
+make judge           # Node 22 only, offline, about 40 s (JUDGE_LIVE=1 make judge reads the live chain: 5 to 20 minutes, old txs come from a rate-limited public archive)
 make verify          # Rust 1.93+; no keys; about 11 s warm (a fresh clone adds the cargo build)
 make scenario        # every feature in one run on one chain: one PASS line per stage
 ```
