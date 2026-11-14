@@ -224,7 +224,8 @@ unit (`zk/onchain/src/bin/audit.rs`). The fixes from both rounds are in the depl
 - The verdict trusts the NEAR validators' execution, Jolt's soundness at the pin, and the
   contract code. The code on chain is the local build: wasm sha256 `29ae5c01..`, code hash
   `3ohvMhiFS2PUuKkBPMU1BFbXcSAFbMYkEsg1RUpRpqEh`, from `zk/onchain/scripts/build.sh`.
-  Byte-for-byte reproducibility on another machine is not shown.
+  A second checkout at another path on the same machine rebuilt it byte for byte (2026-11-14,
+  `scripts/build.sh`, 3,626,218 bytes, sha256 `29ae5c01..`); another machine is not shown.
 - No key, no owner power: after the final audit the only full-access key of
   `verifier.bookerbob-jolt-a.testnet` was deleted on the founder's OK (tx `EVRobx8K..`). The
   account has no access keys, so its code is permanent; `submit`, `advance`, `expire` and the

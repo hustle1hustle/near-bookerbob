@@ -10,10 +10,13 @@ A forged Dory proof is refused on both networks and a one-byte claim change on t
 testnet copy, `verifier.bookerbob-jolt-a.testnet`, holds no access key (lock tx
 [EVRobx8K…](https://testnet.nearblocks.io/txns/EVRobx8K5h4H145c7tCUU1KmTiJx3Bke17sqmJPaMaFQ)).
 Re-check it in under 30 s: `node scripts/jolt-onchain-check.mjs`, `make jolt-onchain-mainnet-check`.
+Both networks run code hash `3ohvMhiF…` (wasm sha256 `29ae5c01…`); `cd zk/onchain && scripts/build.sh`
+rebuilt it byte for byte from a second checkout.
 
 A keyless coalition admits merchant agents only when the testnet verifier proves the bazaar's live
 reputation root, so agent reputation is closed on chain for coalition admission: the bazaar, the
-verifier and the coalition hold no keys (`make coalition-jolt-check`, `node scripts/keyless-check.mjs`).
+verifier and the coalition hold no keys (`make coalition-jolt-check`; `node scripts/keyless-check.mjs` ends
+`PASS  keyless-check: 5 accounts, none holds an access key`).
 
 New Jolt checks come from the swarm: on an agent's request, a TEE-attested NEAR AI model writes the
 guest from a fixed skeleton, and a testnet registry records its program hash ([docs/smith.md](docs/smith.md)).
