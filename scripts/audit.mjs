@@ -42,8 +42,12 @@ if (!v) {
 }
 const issuers = (await client.view(bazaar, "issuers")).map(([k]) => k);
 const status = await client.view(bazaar, "nullifier_status", { nullifier });
-const registered = issuers.includes(v.issuer) || (v.issuer.startsWith("near-ai:") && Boolean(await client.view(bazaar, "model_attestation", { signing_key: v.issuer.slice(8) })));
-line(registered && status === "Spent" && v.spent, `verdict on ${bazaar}: issued by a registered ${v.issuer.startsWith("near-ai:") ? "NEAR AI model key" : "key"}, spent`, `agent ${v.agent.split(".")[0]}, tier ${v.tier}, ${v.predicates.length ? v.predicates.join(", ") : "sealed: no predicate on chain"}`);
+// An issuer key removed later (remove_issuer) was registered when the contract accepted the verdict:
+// the contract stores no verdict from an unregistered key. Each removal is named with its tx.
+const REMOVED = { "ed25519:89a1f5d35e29a7e8d0b45bb28d7bbe7b73613eabd7b0201e85582786afc0f612": "testnet issuer, removed 2026-11-14 in 842vjgRQztzSre82v4kEJLmLFXJw4USUSK2AZETDKnmM" };
+const removed = !issuers.includes(v.issuer) && REMOVED[v.issuer];
+const registered = issuers.includes(v.issuer) || Boolean(removed) || (v.issuer.startsWith("near-ai:") && Boolean(await client.view(bazaar, "model_attestation", { signing_key: v.issuer.slice(8) })));
+line(registered && status === "Spent" && v.spent, `verdict on ${bazaar}: issued by a ${removed ? `key registered then (${removed})` : `registered ${v.issuer.startsWith("near-ai:") ? "NEAR AI model key" : "key"}`}, spent`, `agent ${v.agent.split(".")[0]}, tier ${v.tier}, ${v.predicates.length ? v.predicates.join(", ") : "sealed: no predicate on chain"}`);
 // 1b. A model-issued verdict: the model key, its TDX quote verified on chain, the TEE signature
 // re-checked from the submit tx's own args, and the model's eval score.
 if (v.issuer.startsWith("near-ai:")) {

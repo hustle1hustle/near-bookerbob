@@ -1,0 +1,58 @@
+{
+  "note": "The OutLayer referee on the mainnet bazaar: a project on outlayer.near from the same public wasm as testnet v1, its TEE-derived referee key registered on the bazaar, and one purchase whose receipt that key signed. Check: node scripts/mainnet-outlayer.mjs check",
+  "network": "mainnet",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "buyer": "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042",
+  "contract": "outlayer.near",
+  "project_id": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7/bookerbob-referee",
+  "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/outlayer-referee-v1/bookerbob-referee-outlayer.wasm",
+  "wasm_sha256": "6fca1eaa09b2c1ca583a6914bdff7256d73a3d9f4469bd55f1eb00446be8dbb6",
+  "txs": {
+    "create_project": "FKiPwaw5kYJQrnXdf8qNSrDmPKsn3ELvxgoXNJRU6jZ9",
+    "pubkey": "9iJzLrLD7CqwhQLbN3qHh2ftcvcZQfRfSBysJDZpt4DB",
+    "set_outlayer": "2zowALXRamMDsSV1rfNYxHSSUzAxfpbSyunb7MBsgnDK",
+    "register_referee": "6ewTqkDfd9RYgfz2QpwpMBZDJfc8SmnAJBcM6gvVWX7x",
+    "verdict": "74z2gTayPjFenqEdmWG9ysMxx8TxBDNxnijNkM7bz6sE",
+    "near_deposit": "9Rz29RusJcKrmuf48VLUqtUVbMQsbe6dvX2knbrbK8JJ",
+    "swap to USDC": "88JyJvcTfY7ftHSNfDHRr9jFi6NYbr4i91eDoFnJAfwJ",
+    "request_referee": "AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V",
+    "escrow": "9xMvnx8MhfZEDTcToDptgE1JKq2J71DyScsVCLdAKgwb",
+    "settle": "DisKLZ1zfgJC3kvww4DrRePKitvjW1gNN7n4Ebn9zPas"
+  },
+  "start_balance": "10430642725514397899999993",
+  "project_uuid": "p000000000000006a",
+  "keys": {
+    "arbiter_key": "adb3d15858b3fcd17f0dbfe1ad2a64c676ce834c2e1f8d1cf326f4d5174b6917",
+    "referee_key": "8b9b3286eb6bace7707e503098faa8b49d70ef4b15780ef2c75d82079b853037",
+    "seal_for": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+    "seal_pq1_sha256": "5c92b940f58a49411d460d9320377833644652c0ec49b5eab1b3ff77f0e98b91",
+    "seal_x25519": "a0616a66e380c9f760b7534576d646a8c1a75875da518e6460f83cfc11c38a45"
+  },
+  "keys_signature": "a04283d66aa9d069172177448b390db32d1ea5f91679be9f006a57dccd28fb521196737379a7a4c135b17122680787612dc882a6da54d9df2a4e6b0f05c1bc0a",
+  "merchant": "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0",
+  "nullifier": "fa2f02d08511d4c98aed3150979beb5dca10b6b8ed58be6bac058fbff5f10499",
+  "near_ai": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "signing_key": "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c",
+    "chat_id": "chatcmpl-fb386626-db36-4946-bd10-f4e54f0661a4",
+    "request_sha256": "f8a888431ce11cefb3544b36827fdb48eb9ee72288fbc82e6428f003b1178619",
+    "response_sha256": "c3c3f1192fbf36290a38d62aa593cc7e311f7cad25770ca98af44d951b69bff1",
+    "attested": [
+      "airbnb_frequent",
+      "claude_spender"
+    ]
+  },
+  "sealed_input_sha256": "fd71fbb696a195bf6a93a3d07e176a086914c4416680ea756459be0b2c619a7d",
+  "via": "callback",
+  "price": "902500",
+  "result_sha256": "2b3a186c20f3244cfe16b6bda05dd27017d2a51b6d7db8bb40a18cafcc0bb1cb",
+  "checkout_ref": "mainnet-outlayer-1794671260069",
+  "spent_near": "0.320589",
+  "spent_yocto": "320588658584429500000003",
+  "spent_note": "bazaar + buyer balance at block 224534785 (before create_project) minus at block 224534953 (after settle); 0.30 NEAR of it is the swap to USDC.",
+  "spent_blocks": [
+    224534785,
+    224534953
+  ],
+  "usdc": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1"
+}

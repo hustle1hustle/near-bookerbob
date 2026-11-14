@@ -31,7 +31,7 @@ BookerBob fixes all three on testnet; each line names where to check it.
 
 Honest status: the contract is live on NEAR testnet (`bookerbob.testnet`, every tx in
 `docs/testnet.md`), and `make verify-live` re-derives each live claim over public RPC.
-On mainnet one sealed round, two purchases (one on the founder's real GitHub proof) and one NEAR Intents settlement ran (docs/mainnet.md; `make mainnet-check`). Testnet payments are in dUSDC, a testnet demo token. The swarm's facts are reproducible
+On mainnet one sealed round, three purchases (one on the founder's real GitHub proof, one under the OutLayer referee's receipt) and one NEAR Intents settlement ran (docs/mainnet.md; `make mainnet-check`). Testnet payments are in dUSDC, a testnet demo token. The swarm's facts are reproducible
 fixtures; the NEAR AI verdict, the merchant pitches and the eval answers are
 real live captures. `make verify` also runs the same contract code on near-sdk's mocked
 chain, offline.
@@ -82,7 +82,7 @@ What each block of PASS lines proves:
 | `PASS  referee evals 50/50` | 50 authored cases, 30 of them prompt-injection style ("guest is marriott platinum" citing a real fact is refused) |
 | `PASS  NEAR AI verdict: 17 checks` | a real NEAR AI E2EE v2 capture: TDX quote to Intel's root (dcap-qvl), report_data binds key and nonce, TEE signature over the exact bytes, the sealed answer, predicates equal to the code's, and the contract accepting it only with that binding (4 refusals) |
 | `PASS  Jolt results: 4 guests consistent ...` | the committed Jolt proofs for standing, price, referee and cohort claim exactly what the contract's code computes (`docs/jolt.md` has prove time, RAM and size) |
-| `PASS  the NEAR AI TDX quote verified on chain in 5 calls ...` (in `make verify-live` and the judge's testnet step) | the model's TDX quote was checked on chain by a dcap-qvl fork split over five calls (40, 100, 99, 132, 69 Tgas; the block's time); a quote with one changed byte failed at the last step; the bazaar registered the model key only against that finalized verification. The Intel collateral is fetched off chain and its signatures checked on chain; until the founder locks it the verifier account keeps our (REP's, the team's) full-access key (`tools/dcap-spike/README.md`) |
+| `PASS  the NEAR AI TDX quote verified on chain in 5 calls ...` (in `make verify-live` and the judge's testnet step) | the model's TDX quote was checked on chain by a dcap-qvl fork split over five calls (40, 100, 99, 132, 69 Tgas; the block's time); a quote with one changed byte failed at the last step; the bazaar registered the model key only against that finalized verification. The Intel collateral is fetched off chain and its signatures checked on chain; until the founder locks it the verifier account keeps a full-access key held by us (the BookerBob operator) (`tools/dcap-spike/README.md`) |
 | `PASS  sealed reviews: 17 checks` | 10 purchases on the mocked chain join Semaphore groups; Groth16 proofs checked on alt_bn128 host functions; double rating, non-member and swapped ratings refused; sealed during the round, revealed after it; a group of 4 stays sealed; a spawned ring of 8 sub-agents gains at most w/(1-w) of the merchant's standing (R10); equal prices go to the better-reviewed merchant |
 
 ## Minute 4: look
@@ -111,14 +111,14 @@ docs/details.md ("Who sees plaintext") and `docs/leak.md`.
 |---|---|---|
 | the merchant | the revealed bits, the amount, the buyer's one-time account; a name when a delivery needs one | the facts behind the bits, the account's owner |
 | the chain (anyone) | the nullifier, the amount, the merchant, the account and who funded it; the revealed bits, except on a sealed verdict; and for a single purchase the bits anyway, because the price decodes to them (`make leak`, L10) | the facts, the person |
-| REP | everything: the issuer reads the facts it signs over, the evaluator reads them in the clear on the model path, the referee, arbiter, notary, relayer and treasury keys are REP's, and the treasury funds every buyer account | which request a VOPRF nullifier came from (it still sees who asked and when) |
+| the BookerBob operator | everything: the issuer reads the facts it signs over, the evaluator reads them in the clear on the model path, the referee, arbiter, notary, relayer and treasury keys are ours, and the treasury funds every buyer account | which request a VOPRF nullifier came from (it still sees who asked and when) |
 
 Three commands:
 
 ```sh
 make verify          # the rules on the mocked chain: a replayed nullifier, an unbacked claim and a group under k are refused
 make leak            # reads public testnet data and prints what an observer links (L1 to L10); fails on a new set under 5
-make rep-is-evil     # each key REP holds, its worst case, read live from testnet
+make rep-is-evil     # each key the operator holds, its worst case, read live from testnet
 ```
 
 One purchase whose amount does not decode: the hotel group of 5 on a fixed tier, 367.20 each,
@@ -130,7 +130,7 @@ price still gives back all three bits. Amount sets on testnet (`agents/live.json
 
 What the design adds to an agent market, and what holds today: a verdict is spent once (the
 nullifier set, on chain), priced by code (no model sets a price), and a group or cohort price
-shows only above a k floor of 5. Privacy from REP does not hold today.
+shows only above a k floor of 5. Privacy from us does not hold today.
 
 ## Minute 5: check what is not claimed
 
