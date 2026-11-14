@@ -12,11 +12,17 @@
 //
 //   BAZAAR_ACCOUNT_ID=bookerbob.testnet node mcp/rep-read.mjs
 //
-// Env: BAZAAR_ACCOUNT_ID (required), NEAR_RPC (default testnet RPC).
+// Six more tools give any agent agent reputation through the same door (mcp/reputation.mjs,
+// docs/mcp.md): get_standing, verify_standing (the Jolt proof in a wasm verifier, the live
+// roots, the contract's in_top), commission_check (a spec for the Jolt smith, the registry's
+// status), coalition_open_jobs, coalition_job and coalition_member. Testnet views only.
+//
+// Env: BAZAAR_ACCOUNT_ID (required for the bazaar views), NEAR_RPC (default testnet RPC).
 import { createInterface } from "node:readline";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { action, DEMO_REVEALED, parseAsk, plan } from "../sdk/buy.mjs";
+import { REPUTATION_TOOLS } from "./reputation.mjs";
 
 const RPC = process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com";
 const BAZAAR = process.env.BAZAAR_ACCOUNT_ID ?? "";
@@ -97,6 +103,23 @@ async function view(method_name, args) {
   return { block_height: r.result.block_height, value: JSON.parse(Buffer.from(r.result.result).toString() || "null") };
 }
 
+/** The tool's inputSchema applied before it runs: an object, required keys, no unknown keys, types, bounds, patterns. */
+export function checkArgs(schema, args) {
+  if (typeof args !== "object" || args === null || Array.isArray(args)) return "arguments must be an object";
+  for (const k of schema.required ?? []) if (args[k] === undefined) return `${k} is required`;
+  for (const [k, v] of Object.entries(args)) {
+    const s = schema.properties?.[k];
+    if (!s) return `unknown argument: ${k}`;
+    if (v === null || v === undefined) continue;
+    const t = s.type === "integer" ? Number.isInteger(v) : s.type === "object" ? typeof v === "object" && !Array.isArray(v) : typeof v === s.type;
+    if (!t) return `${k} must be ${s.type === "integer" ? "an integer" : `a${s.type === "object" ? "n" : ""} ${s.type}`}`;
+    if (s.minimum !== undefined && v < s.minimum) return `${k} must be at least ${s.minimum}`;
+    if (s.maximum !== undefined && v > s.maximum) return `${k} must be at most ${s.maximum}`;
+    if (s.pattern && !new RegExp(s.pattern).test(v)) return `${k} does not match ${s.pattern}`;
+  }
+  return null;
+}
+
 function reply(id, result) {
   process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id, result }) + "\n");
 }
@@ -112,11 +135,22 @@ async function handle(msg) {
       protocolVersion: params?.protocolVersion ?? "2025-06-18",
       capabilities: { tools: {} },
       serverInfo: { name: "rep-read", version: "0.1.0" },
-      instructions: `Read-only views of the BookerBob bazaar contract ${BAZAAR || "(BAZAAR_ACCOUNT_ID unset)"} on ${RPC}.`,
+      instructions: `Read-only views of the BookerBob bazaar contract ${BAZAAR || "(BAZAAR_ACCOUNT_ID unset)"} on ${RPC}. Agent reputation: get_standing, then verify_standing before trusting a rank; commission_check to ask the Jolt smith for a new zk check; coalition_open_jobs for work that needs standing.`,
     });
   }
   if (method === "ping") return reply(id, {});
-  if (method === "tools/list") return reply(id, { tools: [...TOOLS.map(({ view: _v, ...t }) => t), BUY_TOOL] });
+  if (method === "tools/list") return reply(id, { tools: [...TOOLS.map(({ view: _v, ...t }) => t), BUY_TOOL, ...REPUTATION_TOOLS.map(({ run: _r, ...t }) => t)] });
+  const rep = method === "tools/call" && REPUTATION_TOOLS.find((t) => t.name === params?.name);
+  if (rep) {
+    const bad = checkArgs(rep.inputSchema, params.arguments ?? {});
+    if (bad) return reply(id, { content: [{ type: "text", text: `error: ${bad}` }], isError: true });
+    try {
+      const out = await rep.run(params.arguments ?? {});
+      return reply(id, { content: [{ type: "text", text: JSON.stringify(out) }], isError: false });
+    } catch (e) {
+      return reply(id, { content: [{ type: "text", text: `error: ${e.message}` }], isError: true });
+    }
+  }
   if (method === "tools/call" && params?.name === "buy") {
     try {
       const out = await buy(params.arguments ?? {});

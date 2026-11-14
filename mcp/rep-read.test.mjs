@@ -51,7 +51,7 @@ test("initialize, list tools, call nullifier_status", async () => {
     const init = await c.call("initialize", { protocolVersion: "2025-06-18" });
     assert.equal(init.result.serverInfo.name, "rep-read");
     const list = await c.call("tools/list", {});
-    assert.deepEqual(list.result.tools.map((t) => t.name), ["nullifier_status", "verdict", "quote", "best_quote", "merchants", "buy"]);
+    assert.deepEqual(list.result.tools.map((t) => t.name), ["nullifier_status", "verdict", "quote", "best_quote", "merchants", "buy", "get_standing", "verify_standing", "commission_check", "coalition_open_jobs", "coalition_job", "coalition_member"]);
     const n = "1e".repeat(32);
     const r = await c.call("tools/call", { name: "nullifier_status", arguments: { nullifier: n } });
     assert.equal(r.result.isError, false);

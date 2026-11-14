@@ -1,0 +1,56 @@
+{
+  "id": "coalition-k-of-n",
+  "version": 1,
+  "requester": { "account": "cl-lead-1df7.bookerbob-demo.testnet", "role": "coalition lead of job C" },
+  "ask": "Prove that at least k_min of the coalition's seats delivered, against a commitment to the seat records, and reveal only how many delivered and how many seats there are. Do not reveal which members delivered.",
+  "types": {
+    "Seat": [["leg", "u32"], ["member", "string"], ["price", "u128"], ["delivered", "option<string>"]]
+  },
+  "public": [["coalition", "string"], ["job", "u64"], ["seats_root", "bytes32"], ["k_min", "u32"]],
+  "private": [["seats", "vec<Seat>"]],
+  "output": [["delivered", "u32"], ["seats", "u32"]],
+  "rules": [
+    "seats_root must equal commit(\"bookerbob/smith/coalition-seats/v0\", &s.seats); otherwise refuse.",
+    "There must be between 1 and 8 seats; otherwise refuse.",
+    "The seat legs must be 0, 1, 2, ... in order (seat i has leg i); otherwise refuse.",
+    "No member may appear twice; otherwise refuse.",
+    "A seat delivered when `delivered` is Some(n); n must then be exactly 64 lowercase hex characters, otherwise refuse.",
+    "delivered = the number of delivered seats, seats = the number of seats.",
+    "If delivered < k_min, refuse. k_min = 0 is allowed.",
+    "Output only the two counts."
+  ],
+  "vectors": [
+    {
+      "label": "job C as on chain (coalition.bookerbob-demo.testnet job 2), k_min 2",
+      "prove": true,
+      "public": { "coalition": "coalition.bookerbob-demo.testnet", "job": 2, "seats_root": { "commit": "bookerbob/smith/coalition-seats/v0", "of": "private.seats" }, "k_min": 2 },
+      "private": { "seats": [
+        { "leg": 0, "member": "m01.bookerbob.testnet", "price": "48000000", "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd" },
+        { "leg": 1, "member": "h05.bookerbob.testnet", "price": "450000000", "delivered": null },
+        { "leg": 2, "member": "m02.bookerbob.testnet", "price": "45000000", "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a" }
+      ] },
+      "expect": { "delivered": 2, "seats": 3 }
+    },
+    {
+      "label": "job C, k_min 3: only 2 delivered, refused",
+      "public": { "coalition": "coalition.bookerbob-demo.testnet", "job": 2, "seats_root": { "commit": "bookerbob/smith/coalition-seats/v0", "of": "private.seats" }, "k_min": 3 },
+      "private": { "seats": [
+        { "leg": 0, "member": "m01.bookerbob.testnet", "price": "48000000", "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd" },
+        { "leg": 1, "member": "h05.bookerbob.testnet", "price": "450000000", "delivered": null },
+        { "leg": 2, "member": "m02.bookerbob.testnet", "price": "45000000", "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a" }
+      ] },
+      "expect": "refuse"
+    },
+    {
+      "label": "h05 claims delivery against job C's real root: refused",
+      "public": { "coalition": "coalition.bookerbob-demo.testnet", "job": 2, "seats_root": { "hex_of_vector": 0, "field": "seats_root" }, "k_min": 3 },
+      "private": { "seats": [
+        { "leg": 0, "member": "m01.bookerbob.testnet", "price": "48000000", "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd" },
+        { "leg": 1, "member": "h05.bookerbob.testnet", "price": "450000000", "delivered": "0000000000000000000000000000000000000000000000000000000000000000" },
+        { "leg": 2, "member": "m02.bookerbob.testnet", "price": "45000000", "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a" }
+      ] },
+      "expect": "refuse"
+    }
+  ],
+  "limits": { "heap": 262144, "max_input": 1024, "max_private": 4096, "max_output": 256, "max_trace": 1048576 }
+}
