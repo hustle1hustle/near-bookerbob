@@ -59,7 +59,7 @@
     "delete_key_tx": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41",
     "full_access_keys": 0,
     "redeploy": "refused (InvalidAccessKeyError)",
-    "note": "the temporary full-access key deleted; market.bookerbob.testnet holds no full-access key, so its code can change only through a call the contract itself allows. spike.bookerbob.testnet and bookerbob.testnet keep their keys."
+    "note": "the temporary full-access key deleted; market.bookerbob.testnet holds no full-access key, so its code can change only through a call the contract itself allows. At that step spike.bookerbob.testnet and bookerbob.testnet kept their keys; spike's were deleted later on 2026-11-14 (no access keys, code hash 7ZabqCJb…)."
   },
   "eval": {
     "issuer": {

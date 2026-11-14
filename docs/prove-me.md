@@ -26,7 +26,7 @@ account, so the fact is the judge's, not ours.
 1. `make leak` before.
 2. `tools/prove-me` notarizes the request through the REP notary on Fly (MPC-TLS): the notary
    co-runs TLS and sees ciphertext only, then signs. Its key is pinned
-   (`02114d7e…ab25ef`). **The notary is not TEE-attested**: it is one key REP holds. The
+   (`02114d7e…ab25ef`). **The notary is not TEE-attested**: it is one key held by us (the BookerBob operator). The
    Phala TDX notary is behind `PROVE_ME_NOTARY_URL` / `PROVE_ME_NOTARY_KEY`; it is not up
    today.
 3. `rep-verify` checks the signature against the pinned key; the reply must reveal those three
@@ -75,7 +75,7 @@ the testnet keys and the tlsn-extension checkout; a hosted lane for judges is no
 
 ## Not claimed
 
-- That the notary is attested (it is not), or that REP cannot sign a false presentation (it
-  holds the notary key).
+- That the notary is attested (it is not), or that we cannot sign a false presentation (we
+  hold the notary key).
 - That the rest of the proof set is real: F1 to F5 stay synthetic.
 - That a 3-year-old account is a builder in any deeper sense: the predicate is the rule.

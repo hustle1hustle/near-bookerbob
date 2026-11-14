@@ -11,8 +11,8 @@
 //   node scripts/standing-v2.mjs program                 execute the queued set_graph_program anchor
 //   node scripts/standing-v2.mjs submit                  graph-sign (v2) + submit_graph_scores
 //   node scripts/standing-v2.mjs finalize                after the challenge window; checks the tree
-//   node scripts/standing-v2.mjs verify                  keyless: the chain's graph program, proven
-//        tree and ranks equal the committed v2 proof's (fixtures/live/standing-v2/run.json)
+//   node scripts/standing-v2.mjs verify                  keyless: the published history (v2 set through
+//        the timelock, then set back to v1) and today's v1 program and proven tree
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -109,12 +109,30 @@ if (cmd === "input") {
   save();
   console.log(`proven standing (v2) root ${rec.standing_root[0].slice(0, 12)}.., n=${rec.standing_root[1]}: ${rec.ranks.map(([m, r]) => `${m.split(".")[0]}#${r}`).join(" ")}`);
 } else if (cmd === "verify") {
-  const [program, sr] = await Promise.all([client.view(BAZAAR, "graph_program", {}), client.view(BAZAAR, "standing_root", {})]);
-  const vbin = existsSync(join(OUT, "verifier.bin")) ? sha(readFileSync(join(OUT, "verifier.bin"))) : null;
+  // The published history, keyless: the bazaar's graph program was moved to the first v2 program
+  // through the timelock (queued, an early execute refused, executed) and moved back to v1
+  // (c780ceab..) the same way after the pre-registered v2 to v4 runs missed their rules. No update
+  // was proven under v2. Today the program is v1 and the proven tree is the v1 tree over the live
+  // graph (fixtures/live/coalition/reprove-live.json).
+  const h = JSON.parse(readFileSync("fixtures/live/standing-v2/run.json", "utf8"));
+  const live = JSON.parse(readFileSync("fixtures/live/coalition/reprove-live.json", "utf8"));
+  const V1 = "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5";
+  const owner = BAZAAR, anyone = TREASURY;
+  const txOf = async (hash, signer) => (await client.rpc("tx", { tx_hash: hash, sender_account_id: signer, wait_until: "FINAL" })).result;
+  const failed = (r) => [r.transaction_outcome, ...r.receipts_outcome].some((o) => o.outcome.status.Failure);
+  const queued = (r) => logsOf(r).find((e) => e.event === "anchor_queued")?.data?.[0];
+  const [q2, early, x2, q1, x1, program, sr] = await Promise.all([
+    txOf(h.txs.queue_graph_program, owner), txOf(h.txs.execute_early_refused, anyone), txOf(h.txs.execute_graph_program, anyone),
+    txOf(h.txs.queue_revert_to_v1, owner), txOf(h.txs.execute_revert_to_v1, anyone),
+    client.view(BAZAAR, "graph_program", {}), client.view(BAZAAR, "standing_root", {}),
+  ]);
   const lines = [
-    [program === rec.program_hash && vbin === program, `the bazaar's graph program ${String(program).slice(0, 12)}.. is sha256 of the committed v2 verifier preprocessing`],
-    [sr?.[2] === rec.scores_hash && sr?.[3] === rec.graph_root, `the proven tree was built from the v2 scores hash ${String(rec.scores_hash).slice(0, 12)}.. over graph root ${String(rec.graph_root).slice(0, 12)}..`],
-    [sr?.[0] === rec.standing_root?.[0] && sr?.[1] === rec.ranks?.length, `standing root ${String(sr?.[0]).slice(0, 12)}.., n=${sr?.[1]}: ${(rec.ranks ?? []).map(([m, r]) => `${m.split(".")[0]}#${r}`).join(" ")}`],
+    [queued(q2)?.kind === "graph_program" && queued(q2)?.args?.program_hash === h.graph_program, `v2 program ${h.graph_program.slice(0, 12)}.. queued behind the timelock (${h.txs.queue_graph_program.slice(0, 8)}..), anchor ${queued(q2)?.id}`],
+    [failed(early) && JSON.stringify(early).includes("timelock: not ready yet"), `an early execute was refused: timelock not ready (${h.txs.execute_early_refused.slice(0, 8)}..)`],
+    [!failed(x2), `executed after the delay (${h.txs.execute_graph_program.slice(0, 8)}..)`],
+    [queued(q1)?.args?.program_hash === V1 && !failed(x1), `set back to v1 ${V1.slice(0, 12)}.. the same way (${h.txs.queue_revert_to_v1.slice(0, 8)}.., ${h.txs.execute_revert_to_v1.slice(0, 8)}..)`],
+    [program === V1, `the bazaar's graph program today: ${String(program).slice(0, 12)}.. (v1)`],
+    [sr?.[0] === live.standing_root?.[0] && sr?.[3] === live.graph_root, `the proven tree today is the v1 tree over the live graph: root ${String(sr?.[0]).slice(0, 12)}.., n=${sr?.[1]}, graph ${String(sr?.[3]).slice(0, 12)}.. (no update was proven under v2)`],
   ];
   for (const [ok, t] of lines) console.log(`${ok ? "PASS" : "FAIL"}  ${t}`);
   process.exit(lines.every(([ok]) => ok) ? 0 : 1);

@@ -90,7 +90,7 @@ not by the bazaar owner. `eval_set(root)` names that account.
   how the models rank with a larger budget. A v3 that separates mistakes from budget would need
   a larger budget frozen in advance; that is not run.
 - **Cost:** about $0.11 of NEAR AI credit.
-- **Not done:** the set was still made by REP's machine; the owner account is separate from
+- **Not done:** the set was still made by us (the BookerBob operator), on our machine; the owner account is separate from
   the bazaar owner, but an outside set owner (a fresh Codex session, as the panel asked) is
   not: Codex is not installed here. `commit_eval_set` is what such an owner would call.
 

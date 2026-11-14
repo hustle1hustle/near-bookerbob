@@ -58,7 +58,7 @@ What they show and what they do not:
 - The public-profile ones prove what api.github.com returned for a public profile at that time;
   the endpoint needs no login, so they do not show the prover owns the account. The signed-in
   one does: `GET /user` answers only with the token's own account.
-- The notary is one key REP holds, not TEE-attested, so REP could sign a false presentation.
+- The notary is one key held by us (the BookerBob operator), not TEE-attested, so we could sign a false presentation.
 - The prover that made them is REP's (prior work) and is not in this repo; checking needs
   only the presentation and the notary key.
 

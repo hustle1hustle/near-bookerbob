@@ -36,11 +36,11 @@ rules, the role members, the gate role's permissions and the three refusals.
 
 ## Stated plainly
 
-- **Both DAOs are REP's.** Their council is `bookerbob-dao-ops.testnet`; they are separate
+- **Both DAOs belong to us (the BookerBob operator).** Their council is `bookerbob-dao-ops.testnet`; they are separate
   consumers of the gate, but not outside operators. An outside DAO needs only the policy role
   and its own `set_rule` proposal.
 - **The facts behind the verdicts are synthetic**, as for every demo buyer.
-- **The gate account keeps its full-access key** today (REP's), so its code could be replaced;
+- **The gate account keeps its full-access key** today (the operator's), so its code could be replaced;
   the same fix as the bazaar applies (docs: `make no-owner`).
 - A DAO that trusts the gate trusts the bazaar's verdicts, so it inherits the bazaar's trust
   anchors (README, "Who can lie").

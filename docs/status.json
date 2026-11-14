@@ -44,7 +44,7 @@
     "tracks": "security, privacy",
     "where": "`contract/src/lib.rs` `submit_near_ai_verdict`, `core/src/near_ai.rs`",
     "status": "live",
-    "detail": "`evaluator_key` anchored on both bazaars on 2026-11-10 (the market by a DAO vote and the 5 minute delay); one model verdict countersigned by it settled [HV8r4Uvw\u2026](https://testnet.nearblocks.io/txns/HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS); `cargo test -p bookerbob-bazaar evaluator`; one REP key, see Known limits",
+    "detail": "`evaluator_key` anchored on both bazaars on 2026-11-10 (the market by a DAO vote and the 5 minute delay); one model verdict countersigned by it settled [HV8r4Uvw\u2026](https://testnet.nearblocks.io/txns/HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS); `cargo test -p bookerbob-bazaar evaluator`; one key of the BookerBob operator, see Known limits",
     "evidence": [
       "model_buy.txs.settle"
     ]
@@ -103,7 +103,7 @@
     "tracks": "swarms",
     "where": "`contract/src/lib.rs`, `core/src/bid.rs`, `cli/src/swarm.rs`, `sdk/merchant.mjs`",
     "status": "live",
-    "detail": "30 merchant agents, all REP-run, each a static schedule from `agents/merchants.json`, bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests. On 2026-11-11 the swarm run added 7 rounds: 178 sealed bids committed and opened, 96 buyer agents bought from their round's winner (`make swarm-verify`, `docs/swarm-run.md`). A revealed bid is pinned for its round since that day's redeploy; rounds revealed before it have no pin (Known limits)",
+    "detail": "30 merchant agents, all run by the BookerBob operator, each a static schedule from `agents/merchants.json`, bid in two blind rounds on testnet (hoodie and hotel-lisbon), commit before the deadline, reveal after; 8 contract tests. On 2026-11-11 the swarm run added 7 rounds: 178 sealed bids committed and opened, 96 buyer agents bought from their round's winner (`make swarm-verify`, `docs/swarm-run.md`). A revealed bid is pinned for its round since that day's redeploy; rounds revealed before it have no pin (Known limits)",
     "evidence": [
       "blind_round"
     ]
@@ -160,17 +160,21 @@
     "feature": "OutLayer worker as referee: signed result (<= 900 bytes) checked by the contract with `ed25519_verify`; `settle` requires the receipt",
     "tracks": "security, privacy",
     "where": "`worker/`, `contract/src/lib.rs` (`submit_referee_result`, `request_referee`, `on_referee_result`), `docs/outlayer.md`",
-    "status": "built",
-    "detail": "in `make verify`; not deployed to OutLayer yet (the register step waits on a founder OK). Live `estimate_execution_cost` = 0.0070001 NEAR",
-    "evidence": []
+    "status": "live",
+    "detail": "testnet, 2026-11-14: the component runs on OutLayer as `bookerbob.testnet/bookerbob-referee` (active version `6fca1eaa`, rebuilt from public `1d39cd6` with the release's `build.sh` at any checkout path, on macOS arm64 with rustc 1.96.0), its TEE-derived key is a registered referee; one dUSDC purchase settled under the receipt `request_referee` brought back from OutLayer, one cheat claim refused by it with its settle blocked; `make verify-live` re-derives both. Inputs sealed X25519 only (the post-quantum key exceeds one OutLayer output); each run's TDX quote verified on chain by our DCAP verifier and bound to its wasm, input and output (`scripts/outlayer-attest.mjs`), OutLayer's keystore still trusted; the project's owner (the BookerBob operator) can publish a version that signs with the same key (`docs/outlayer.md`). Mainnet, 2026-11-14: the same wasm as a project owned by the mainnet bazaar, its key a registered referee beside ours, one 0.9025 USDC purchase settled under its receipt (`node scripts/mainnet-outlayer.mjs check`, `docs/keyless.md`)",
+    "evidence": [
+      "outlayer"
+    ]
   },
   {
     "feature": "dispute arbiter: re-checks citations and every signature, signs upheld or overturned; an overturned receipt is cleared and settle is blocked",
     "tracks": "security",
-    "where": "`worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md`",
-    "status": "built",
-    "detail": "`make verify` check 22; a threshold of distinct arbiter signatures (`set_arbiter_threshold`, `submit_dispute_decisions`, 4 contract tests) is built; the live bazaar runs at threshold 1 with one arbiter key, held by REP",
-    "evidence": []
+    "where": "`worker/src/lib.rs` `arbitrate`, `contract/src/lib.rs` `submit_dispute_decision`, `docs/outlayer.md`, `scripts/outlayer-dispute.mjs`, `docs/keyless.md`",
+    "status": "live",
+    "detail": "`make verify` check 22; live on testnet since 2026-11-14 on OutLayer: the project's arbiter host key (registered through the anchor timelock) overturned a receipt our referee key forged for a cheat, the receipt was cleared and settle refused (`node scripts/outlayer-dispute.mjs verify`). Since then the live bazaar runs at threshold 2: every decision needs our arbiter key and the OutLayer key (`set_arbiter_threshold`, `submit_dispute_decisions`, 4 contract tests)",
+    "evidence": [
+      "outlayer_dispute"
+    ]
   },
   {
     "feature": "World ID \"one person, one agent\": the contract checks a verifier's ed25519 attestation and binds one agent per World nullifier; `world_id_human` needs it",
@@ -320,7 +324,7 @@
     "tracks": "security",
     "where": "`contract/src/lib.rs`, `docs/jolt.md`",
     "status": "live",
-    "detail": "one live challenge on testnet (resolved valid); the proof is checked off chain by the arbiter, not by an on-chain verifier; live at threshold 1, one arbiter key, held by REP",
+    "detail": "one live challenge on testnet (resolved valid); the arbiter checks the proof off chain (no on-chain verifier); the live bazaar runs at threshold 2 since 2026-11-14 with our arbiter key and the OutLayer project's key, and only ours signs graph resolutions, so a new challenge stays unresolved (`docs/keyless.md`)",
     "evidence": [
       "standing.challenge"
     ]
@@ -341,7 +345,7 @@
     "tracks": "security, privacy",
     "where": "`core/src/envelope.rs` `tcb_meets`, `contract/src/lib.rs`",
     "status": "live",
-    "detail": "deployed; the testnet verdicts signed by REP's issuer seed carry the synthetic `fixture` status, which passes only on a `.testnet` bazaar; the model-issued ones carry `UpToDate`, taken from the on-chain quote check",
+    "detail": "deployed; the testnet verdicts signed by the BookerBob operator's issuer seed carry the synthetic `fixture` status, which passes only on a `.testnet` bazaar; the model-issued ones carry `UpToDate`, taken from the on-chain quote check",
     "evidence": [
       "testers"
     ]
@@ -391,7 +395,7 @@
     "tracks": "social, agents, privacy",
     "where": "`gate/src/lib.rs`, `scripts/gate-demo.mjs`, `docs/gate.md`",
     "status": "live",
-    "detail": "`gate.bookerbob.testnet` with two consumer DAOs (`lisbon-travellers`: airbnb_frequent, `one-human`: world_id_human), one member admitted to each; refused on chain: another agent's verdict, a reused verdict, a sealed verdict; both DAOs' council is REP's; 3 unit tests, `make verify-live`",
+    "detail": "`gate.bookerbob.testnet` with two consumer DAOs (`lisbon-travellers`: airbnb_frequent, `one-human`: world_id_human), one member admitted to each; refused on chain: another agent's verdict, a reused verdict, a sealed verdict; both DAOs' council belongs to the BookerBob operator; 3 unit tests, `make verify-live`",
     "evidence": [
       "gate"
     ]
@@ -433,7 +437,7 @@
     "tracks": "security, privacy, agents",
     "where": "`tools/dcap-spike/`, `contract/src/lib.rs` (`set_quote_verifier`, `register_model_attestation_verified`)",
     "status": "live",
-    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account keeps REP's key; the GPU evidence is checked off chain (NRAS); on mainnet since 2026-11-14: the same verifier (byte-identical wasm) verified the model's quote in five calls and the mainnet bazaar registered its model key through it (docs/mainnet.md, `node scripts/mainnet-dcap.mjs check`)",
+    "detail": "five calls of 40, 100, 99, 132 and 69 Tgas; a quote with one changed byte fails at finalize; the bazaar's model key registered through it; the same verification for another key refused; the old off-chain path closed; the verifier account is locked (no access keys since 2026-11-14, code hash `7ZabqCJb…`); the GPU evidence is checked off chain (NRAS); on mainnet since 2026-11-14: the same verifier (byte-identical wasm) verified the model's quote in five calls and the mainnet bazaar registered its model key through it (docs/mainnet.md, `node scripts/mainnet-dcap.mjs check`)",
     "evidence": [
       "quote_verification"
     ]
@@ -455,7 +459,7 @@
     "tracks": "security",
     "where": "`contract/src/lib.rs` (`set_anchor_delay`, `queue_anchor`, `execute_anchor`, `cancel_anchor`), `scripts/dao-bazaar.mjs`, `docs/testnet.md`",
     "status": "live",
-    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. `market.bookerbob.testnet`, the DAO-owned copy, holds no full-access key since 2026-11-14 (DeleteKey 8YPFUgnU\u2026, re-checked by `make verify-live`). The live `bookerbob.testnet` still has one owner key and its full-access key can redeploy the code",
+    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. `market.bookerbob.testnet`, the DAO-owned copy, holds no full-access key since 2026-11-14 (DeleteKey 8YPFUgnU\u2026); so does the quote verifier `spike.bookerbob.testnet` (DeleteKey 7pgUUjnb\u2026), both re-checked by `make verify-live`. The live `bookerbob.testnet` still has one owner key and its full-access key can redeploy the code",
     "evidence": [
       "dao",
       "dao.timelock"
@@ -537,8 +541,8 @@
     "evidence": []
   },
   {
-    "feature": "history anchor: NEAR as the history and backup layer for a market that runs on another chain. A contract stores hash-chained round roots from one pinned poster (next seq, previous head, no rewrite, no delete); `make anchor-rebuild` rebuilds the foreign market's groups, members, nullifiers and lists from its own events and checks every root and the chain against NEAR",
-    "short": "history anchor: hash-chained round roots of our Arc testnet market on NEAR; `make anchor-rebuild` checks that market against them",
+    "feature": "history anchor: NEAR as the history and backup layer for a market that runs on another chain. A contract stores hash-chained round roots from one pinned poster (next seq, previous head, no rewrite, no delete); `make arc-anchor-rebuild` rebuilds the foreign market's groups, members, nullifiers and lists from its own events and checks every root and the chain against NEAR",
+    "short": "history anchor: hash-chained round roots of our Arc testnet market on NEAR; `make arc-anchor-rebuild` checks that market against them",
     "tracks": "open, swarms, security",
     "where": "`anchor/`, `scripts/anchor.mjs`, `docs/anchor.md`, `fixtures/live/anchor/`",
     "status": "built",
@@ -552,6 +556,66 @@
     "where": "`docs/clearing.md`, `sdk/clearing.mjs`, `agents/clearing.html`, `fixtures/clearing.json`; the contract method and its tests are on the branch `clearing`",
     "status": "built",
     "detail": "not deployed and not on main's contract: a new money path does not go live before the submission. On the branch: 27 contract tests (Dan's three worked examples; refused: a price above the highest quote, a budget below the price, more seats than declared, a participant twice, before reveal closes, a worse proposal does not replace the standing one, replay) and a byte-for-byte check that the stored state layout is unchanged; the reference solver gives the same answers in Rust and JS",
+    "evidence": []
+  },
+  {
+    "feature": "bucketed schedules shrink the price leak (L10): the bits a sale's amount reveals, measured per merchant; one discount on every rule with the cap equal to it, so several bit sets pay one price",
+    "short": "bucketed schedules: several proven bit sets pay one price, so the amount reveals less (L10)",
+    "tracks": "privacy",
+    "where": "`scripts/leak-amount.mjs`, `agents/merchants-bucketed.json`, `docs/leak-amount.md`",
+    "status": "live",
+    "detail": "amount channel only: on the swarm's own sales, given the merchant, 1.00 bit per sale, 0.00 bucketed because every swarm set holds world_id_human, which those buckets price; mean over 30 schedules with every swarm set assumed at every merchant 1.03 to 0.41, none over 1 bit, 14 of the 16 zero-leak schedules resting on that same fact; merchant choice still tells about 1.5 bits in hoodie, untouched by bucketing; the worst-hit bit set pays up to 10.25% of base more against a group price (m01, k >= 5), 8.8% at k = 0; `make leak-amount` fails a bucketed merchant over its design bound; on testnet 5 buyers paid 40.92 dUSDC at `bkt-m01.bookerbob-demo.testnet`, their bit sets as we recorded them (sealed on chain), the equal price by construction (`make bucketed-check`, re-read by `make verify-live`)",
+    "evidence": [
+      "bucketed.txs.settle"
+    ]
+  },
+  {
+    "feature": "coalitions against single agents, pre-registered: members admitted by the bazaar's own `in_top` proof over the proven review-score tree, bonded, a no-show slashed; a sybil ring with fabricated hire edges has no leaf and is refused",
+    "short": "coalitions with proven standing and bonds against single agents (a pre-registered simulation)",
+    "tracks": "swarms, agents",
+    "where": "`cli/src/coalition_sim.rs`, `docs/coalition-prereg.md`, `docs/coalitions.md`",
+    "status": "built",
+    "detail": "pre-registration sha256 on testnet before the first seed ran (tx [4KZDqTwj\u2026](https://testnet.nearblocks.io/txns/4KZDqTwjUAT7Yq3pX2wXfTzawYGVQ6Mk35kEr1W289z5), `node scripts/prereg-anchor.mjs check`; the code was not anchored, its sha256 is in the result); 20 seeds: admission by the proven review-score tree fills 83.4% of bundles against 64.5% for single agents, failed legs per 100 bundles 17.3 against 40.8, wins 20, 19 and 20 of 20 seeds (rule: 18); the bonds cut net buyer loss by 21% of the gap to single agents with no filter (17 of 20 seeds cheaper all in, counting the 2% carry); exploratory, beyond the pre-registration: single agents applying the same filter with no bond fill 83.7%, so the fill gain is the standing filter, and with unreliable agents at 80% to 90% the fill gain is gone (79.5% each); sybils: 3 forgery types, each refused in all 160 epoch states; 4.9% dearer per filled bundle, 2 of those points the carry; a simulation with our parameters, `make coalition-check` re-runs it; the hire-edge fan-out is proven alongside and does not rank admission yet (standing v2 would)",
+    "evidence": []
+  },
+  {
+    "feature": "coalitions of merchant agents: a multi-leg job admits a member only on the bazaar's `in_top` proof of its proven standing, holds it by a dUSDC bond, and on finalize pays the deliverers pro rata and slashes a no-show to the buyer and the deliverers",
+    "short": "coalitions: members admitted by a proof of standing, bonded; a no-show slashed on chain",
+    "tracks": "swarms, agents",
+    "where": "`coalition/src/lib.rs` (v3, 29 tests; v1 and v2 as they ran in `coalition/v1/`, `coalition/v2/`), `scripts/coalition-live.mjs`, `docs/coalitions.md`",
+    "status": "live",
+    "detail": "on testnet. Coalition v3 (`coalition-v3.bookerbob-demo.testnet`): only the purchase's own named buyer agent can announce it, while unspent; a leg keeps up to 4 announced purchases and delivers with any of them that settled; a leg with no announced purchase is released; a no-show's bond goes half to the buyer, half to the treasury. In job E the treasury and the lead are both ours (the BookerBob operator), so we received the whole slash; the next deploy makes the Sputnik DAO the treasury and sends it the whole slash. Job E: two announces on one leg, the earlier one delivered, a cross-agent announce refused on chain, h05 slashed (finalize [EXa1pwtg\u2026](https://testnet.nearblocks.io/txns/EXa1pwtgyE2QTcwTR2d9s2xSeHmELcL7WEBhHNpQCC4t)). Jobs A to C ran on v1 (m02 had no opening in the n=2 tree, so it could present no proof and was refused; 5 paid sealed reviews seeded it, the graph was re-proved in Jolt, and it was admitted), D on v2; each version's gaps are in the doc. `make coalition-verify` 43 checks over public RPC, plus 29 contract tests; all accounts ours, dUSDC a test token, the three coalition accounts keep their deploy keys",
+    "evidence": [
+      "coalition.txs.finalize_e"
+    ]
+  },
+  {
+    "feature": "admission by the hire-edge fan-out (standing v2, v3, and v3 cut by count as v4): each ranking pre-registered on testnet before its run and measured against v1; every one missed its rule, and admission stays on v1",
+    "short": "admission by the hire-edge fan-out: three pre-registered attempts, each a published FAIL",
+    "tracks": "swarms, agents",
+    "where": "`standing-v2/`, `cli/src/coalition_sim_v2.rs`, `docs/coalition-prereg-v2.md` to `-v4.md`, `docs/coalitions.md`",
+    "status": "built",
+    "detail": "anchors [7stwAQ6Q\u2026](https://testnet.nearblocks.io/txns/7stwAQ6QJaZdf4aJD8ERngkvN8k3jkSqU3ecTAbijz3J), [kCHZBSZZ\u2026](https://testnet.nearblocks.io/txns/kCHZBSZZ1u89h4HKG9HV7RNjSHQwJ1Rbe7pj9KPfcoQ), [DwZPkVsi\u2026](https://testnet.nearblocks.io/txns/DwZPkVsiV2qkY1n4WpbV6S5oKUy6A2hjfAbvhhHsAQgX); v2: volume buys rank, failed legs 23.7 against 17.3; v3: newcomers in 20 of 20 seeds but the longer list lets unreliable agents past the cut, 21.6 against 17.3; v4 on fresh seeds 21 to 40: as safe as v1 (18.9 against 19.1 failed legs, fill 0.817 against 0.812) with 1.6 reliable newcomers per seed, short of the registered 18 of 20 seeds (16); sybil rings 0 in every attempt; `make coalition-v4-check`",
+    "evidence": []
+  },
+  {
+    "feature": "Jolt proofs verified inside OutLayer's TEE: a component pins programs by hash, verifies a proof with Jolt 997c1543's verifier and signs accept or reject; a registry contract admits only a signed accept",
+    "tracks": "security, agents",
+    "where": "`worker/outlayer-jolt/`, `scripts/outlayer-jolt.mjs`, `docs/outlayer.md` (\"Jolt verification on OutLayer\")",
+    "status": "live",
+    "detail": "testnet, 2026-11-14: project `bookerbob.testnet/bookerbob-jolt-verify` (wasm `cad8d2e1`, fixed-path build); the standing proof behind the bazaar's root (program `c780ceab`) got a signed accept whose output is that root, a forged proof a signed reject; `smith-reg.bookerbob-demo.testnet` took the accept and refused the reject; its TDX quote verified on chain by our DCAP verifier; OutLayer's keystore and the project owner still trusted",
+    "evidence": [
+      "outlayer_jolt"
+    ],
+    "short": "Jolt proofs verified inside OutLayer's TEE, a signed accept admitted by a registry contract"
+  },
+  {
+    "feature": "economy anchor: agent reputation as a public NEAR record. The public events of nine BookerBob testnet contracts (bazaar bids, verdicts, settles, referee and arbiter results, hires and review seeds, standing roots; coalition joins, deliveries, slashes and payouts; dUSDC transfers; smith registry programs) are cut into hourly epochs and posted to an open anchor contract: anyone posts, one chain per poster and source, the contract hashes the records itself and refuses out-of-order, duplicate, wrong-epoch or open-epoch records; `make anchor-check` compares the anchor with the watched contracts' txs and checks the graph and coalition job counters for gaps, `make anchor-rebuild` rebuilds agent outcomes and the proven standing from the anchor's posts alone",
+    "short": "economy anchor: nine contracts' events chained hourly on NEAR; `make anchor-rebuild` rebuilds outcomes and the standing root from it",
+    "tracks": "open, swarms, agents",
+    "where": "`anchor-open/`, `scripts/econ/`, `docs/anchor-format.md`, `fixtures/live/econ/`",
+    "status": "built",
+    "detail": "live on testnet at `bookerbob-outcomes.testnet` since 2026-11-14: 42 hourly epochs, 3,241 events, head `143a000d`; anchor-check PASS (graph events 1..10 equal the bazaar's graph_root at the last anchored block, coalition job ids complete there), a locally changed event fails at its epoch; anchor-rebuild PASS: 6 of 6 coalition (contract, member) records equal the contracts' member() views, and the standing rebuilt from the anchor's 10 graph events equals the bazaar's on-chain standing_root `3b5db5e9`; completeness is partial (counters cover graph events and coalition jobs only; discovery trusts the indexer); a first chain with rounded timestamps is superseded; the same 42 epochs on NEAR mainnet at the implicit account `a145dcce`, head `796e89ab`, with anchor-check and anchor-rebuild PASS against it (0.035 NEAR burnt, 1.557 NEAR storage); the poster and the account key are ours",
     "evidence": []
   }
 ]

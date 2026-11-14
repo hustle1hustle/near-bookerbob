@@ -30,6 +30,10 @@ const SNAP = new URL("../fixtures/live/rpc-snapshot/snapshot.json", import.meta.
 const recording = process.env.SNAPSHOT_RECORD === "1";
 const replaying = process.env.SNAPSHOT_REPLAY === "1";
 const snap = replaying ? JSON.parse(readFileSync(SNAP, "utf8")) : { taken_at: new Date().toISOString(), rpc: RPCS[0], responses: {} };
+// SNAPSHOT_MERGE=1 with SNAPSHOT_RECORD=1: keep the committed responses and add the new ones
+// (VL_ONLY=<text> runs only the checks whose title contains it), so one new check joins the
+// snapshot without re-reading every old tx from the rate-limited archive.
+if (recording && process.env.SNAPSHOT_MERGE === "1") Object.assign(snap, JSON.parse(readFileSync(SNAP, "utf8")), { merged_at: new Date().toISOString() });
 const keyOf = (method, params) => `${method} ${JSON.stringify(params)}`;
 process.on("exit", () => {
   if (!recording) return;
@@ -130,7 +134,10 @@ const out = (ok, what, detail = "") => {
   if (!ok) failed++;
   console.log(`${ok ? "PASS" : "FAIL"}  ${what}${detail ? `  (${detail})` : ""}`);
 };
+let skipped = 0;
+process.on("exit", () => { if (skipped) console.log(`NOTE  VL_ONLY=${JSON.stringify(process.env.VL_ONLY)}: ${skipped} checks skipped`); });
 const attempt = async (what, f) => {
+  if (process.env.VL_ONLY && !what.includes(process.env.VL_ONLY)) return void skipped++;
   try {
     const [ok, detail] = await f();
     out(ok, what, detail);
@@ -329,15 +336,26 @@ if (m.unrevealed) {
     return [ok, `round_bid holds ${Number(held?.base_price) / 1e6}, revealed ${Number(b.revealed) / 1e6}; the merchant's schedule today is ${Number(now.schedule.base_price) / 1e6} (two test accounts of ours)`];
   });
 }
-await attempt("every spent nullifier is listed: spent_count on chain equals the manifest's purchases (paid, plus the one refunded group pledge) plus the swarm runs' purchases (fixtures/live/swarm/, re-checked one by one by make swarm-verify)", async () => {
+await attempt("every spent nullifier is listed: spent_count on chain equals the manifest's purchases (paid, plus the one refunded group pledge), the swarm runs' purchases (fixtures/live/swarm/, re-checked one by one by make swarm-verify) and the spent purchases the coalition and bucketed records name", async () => {
   const { purchases } = await import("./live-snapshot.mjs");
   const rows = purchases(m);
   const dir = new URL("../fixtures/live/swarm/", import.meta.url);
   const runs = readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => JSON.parse(readFileSync(new URL(f, dir)))).filter((r) => r.bazaar === m.bazaar);
   const swarm = new Set(runs.flatMap((r) => r.purchases.map((p) => p.nullifier)));
   const twice = rows.filter((r) => swarm.has(r.nullifier)).length;
+  // The coalition runs and the bucketed buys keep their own records (fixtures/live/coalition/,
+  // fixtures/live/bucketed/): every 32-byte nullifier they name that the chain holds as spent counts.
+  const named = new Set();
+  const collect = (x) => { if (Array.isArray(x)) x.forEach(collect); else if (x && typeof x === "object") for (const [k, v] of Object.entries(x)) { if (/nullifier/i.test(k) && typeof v === "string" && /^[0-9a-f]{64}$/.test(v)) named.add(v); else collect(v); } };
+  for (const f of ["coalition", "bucketed", "outlayer"]) {
+    const d = new URL(`../fixtures/live/${f}/`, import.meta.url);
+    if (existsSync(d)) for (const x of readdirSync(d).filter((y) => y.endsWith(".json"))) collect(JSON.parse(readFileSync(new URL(x, d))));
+  }
+  const listed = new Set([...rows.map((r) => r.nullifier), ...swarm]);
+  const extra = [...named].filter((x) => !listed.has(x)).sort();
+  const spentExtra = (await Promise.all(extra.map((x) => view(m.bazaar, "verdict", { nullifier: x })))).filter((v) => v?.spent).length;
   const n = await view(m.bazaar, "spent_count", {});
-  return [n === rows.length + swarm.size && twice === 0, `spent_count ${n}; the manifest lists ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded), ${runs.length} swarm runs list ${swarm.size}`];
+  return [n === rows.length + swarm.size + spentExtra && twice === 0, `spent_count ${n}; the manifest lists ${rows.length} (${rows.filter((r) => r.kind === "refunded").length} refunded), ${runs.length} swarm runs list ${swarm.size}, the coalition and bucketed records ${spentExtra} spent`];
 });
 for (const t of m.testers.filter((x) => x.voprf)) {
   await attempt(`a VOPRF nullifier on testnet: ${t.tester.split(".")[0]} bought with ${t.nullifier.slice(0, 12)}.., the record's key is the bazaar's voprf_key (the proof itself: make verify)`, async () => {
@@ -425,8 +443,7 @@ if (existsSync(new URL("../fixtures/live/market/state.json", import.meta.url))) 
     return [ok, `code ${mk.code_hash.slice(0, 10)}.. on the market, ${main.code_hash.slice(0, 10)}.. on ${m.bazaar}; eval issuer registered; eval_passes at 70: ${scores.join(", ")}; voprf_key ${vk?.slice(0, 12)}.. on both`];
   });
 }
-if (m.market_lock) {
-  const L = m.market_lock;
+for (const L of [m.market_lock, m.spike_lock].filter(Boolean)) {
   await attempt(`${L.account} is locked: no full-access key, so no key can redeploy its code (the DeleteKey tx, ${L.date})`, async () => {
     const [keys, del] = await Promise.all([rpc("query", { request_type: "view_access_key_list", finality: "final", account_id: L.account }), tx(L.delete_key_tx, L.account)]);
     const full = (keys.result?.keys ?? []).filter((k) => k.access_key.permission === "FullAccess").length;
@@ -450,6 +467,32 @@ if (existsSync(new URL("../fixtures/live/model-buy/passing.json", import.meta.ur
     return [ok, `issuer ${v?.issuer?.slice(0, 20)}.., model key registered (${att?.tcb_status}), gate ${gate?.threshold}, eval_passes ${passes}, receipt from ${v?.receipt?.merchant?.split(".")[0]}`];
   });
 }
+if (m.bucketed) {
+  const runUrl = new URL("../fixtures/live/bucketed/run.json", import.meta.url);
+  const b = existsSync(runUrl) ? JSON.parse(readFileSync(runUrl)) : null;
+  if (!b) await attempt(`bucketed schedule: ${m.bucketed.merchant} is in the manifest, so fixtures/live/bucketed/run.json must exist`, async () => [false, "fixtures/live/bucketed/run.json is missing"]);
+  else {
+    await attempt(`bucketed schedule: ${b.merchant} on chain equals the record (one bps on every rule, cap equal to it, no cohort line)`, async () => {
+      const s = (await view(m.bazaar, "merchant", { merchant: b.merchant })).schedule;
+      const ok = b.merchant === m.bucketed.merchant && JSON.stringify(s.rules) === JSON.stringify(b.schedule.rules) && String(s.base_price) === String(b.schedule.base_price) && s.cap_bps === b.schedule.cap_bps && !s.cohort && new Set(s.rules.map((r) => r.bps)).size === 1 && s.cap_bps === s.rules[0].bps;
+      return [ok, `${s.rules.length} rules at ${s.cap_bps} bps, ${s.cohort ? "a cohort line" : "no cohort line"}`];
+    });
+    const sets = new Set(b.buys.map((x) => JSON.stringify([...x.revealed].sort())));
+    await attempt(`bucketed schedule: ${b.buys.length} buyers with ${sets.size} different bit sets (as recorded; sealed on chain) settled one amount, the schedule's quote, at ${b.merchant}`, async () => {
+      const { quote } = await import("../sdk/merchant.mjs");
+      if (b.buys.length < 2 || sets.size < 2) return [false, `${b.buys.length} buys, ${sets.size} distinct recorded sets; the claim needs at least 2 of each`];
+      const amounts = new Set();
+      for (const x of b.buys) {
+        const [t, v] = await Promise.all([tx(x.txs.settle, m.treasury), view(m.bazaar, "verdict", { nullifier: x.nullifier })]);
+        const e = events(t.logs).find((ev) => ev.event === "settled")?.data?.[0];
+        if (!t.ok || e?.nullifier !== x.nullifier || e?.merchant !== b.merchant || v.predicates.length || v.tier !== "sealed") return [false, `settle ${x.txs.settle.slice(0, 8)}`];
+        if (!/^[1-9][0-9]*$/.test(String(e.amount)) || String(e.amount) !== String(quote(b.schedule, x.revealed).price)) return [false, `settle ${x.txs.settle.slice(0, 8)} paid ${e.amount}, the schedule quotes ${quote(b.schedule, x.revealed).price}`];
+        amounts.add(e.amount);
+      }
+      return [amounts.size === 1, `amount ${[...amounts].map((a) => Number(a) / 1e6).join(", ")}, ${sets.size} recorded sets`];
+    });
+  }
+}
 if (existsSync(new URL("../fixtures/live/leash/run.json", import.meta.url))) {
   const { verifyRun } = await import("./leash.mjs");
   const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
@@ -458,11 +501,103 @@ if (existsSync(new URL("../fixtures/live/leash/run.json", import.meta.url))) {
     return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
   });
 }
+if (existsSync(new URL("../fixtures/live/coalition/run.json", import.meta.url))) {
+  const { verifyRun } = await import("./coalition-live.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  await attempt("coalitions (version 1, without the buyer and timing checks): two merchants admitted to a job by the bazaar's proven standing, a stranger and a low-ranked join refused and refunded, one member delivered through a bazaar purchase and was paid, the no-show's bond slashed, member records equal to the finalize events", async () => {
+    const lines = await verifyRun(view, raw);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+  const jc = new URL("../fixtures/live/coalition/job-c.json", import.meta.url);
+  if (existsSync(jc) && existsSync(new URL("../fixtures/live/coalition/reprove.json", import.meta.url)) && JSON.parse(readFileSync(jc)).txs?.finalize) {
+    const { verifyJobC } = await import("./coalition-live.mjs");
+    await attempt("coalitions, standing rises: m02 had no opening in the n=2 tree, so it could present no proof and was refused; it earned a seed from 5 paid sealed reviews, the graph was re-proved in Jolt, and m02 joined a 3-leg job with m01 and h05 by in_top; m01 and m02 delivered through bazaar purchases, h05 did not, and finalize paid the pro-rata split, slashed h05 and compensated the buyer", async () => {
+      const account = async (a) => (await rpc("query", { request_type: "view_account", finality: "final", account_id: a })).result;
+      const lines = await verifyJobC(view, raw, undefined, undefined, account);
+      return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+    });
+  }
+  const jd = new URL("../fixtures/live/coalition/job-d.json", import.meta.url);
+  if (existsSync(jd) && JSON.parse(readFileSync(jd)).txs?.finalize) {
+    const { verifyJobD } = await import("./coalition-live.mjs");
+    const blockMs = async (h) => Math.floor(Number((await rpc("block", { block_id: h })).result.header.timestamp) / 1e6);
+    const account = async (a) => (await rpc("query", { request_type: "view_account", finality: "final", account_id: a })).result;
+    await attempt("coalitions version 2 (job D): the job names its buyer agents; each delivering purchase was made by one of them and announced after the job opened and before it settled; a purchase by an account the job does not name was refused on chain, at announce and at deliver; the no-show was slashed", async () => {
+      const lines = await verifyJobD(view, raw, blockMs, undefined, account);
+      return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+    });
+  }
+  const je = new URL("../fixtures/live/coalition/job-e.json", import.meta.url);
+  if (existsSync(je) && JSON.parse(readFileSync(je)).txs?.finalize) {
+    const { verifyJobE } = await import("./coalition-live.mjs");
+    const blockMs = async (h) => Math.floor(Number((await rpc("block", { block_id: h })).result.header.timestamp) / 1e6);
+    const account = async (a) => (await rpc("query", { request_type: "view_account", finality: "final", account_id: a })).result;
+    await attempt("coalitions version 3 (job E): two announces on one leg, each by its own buyer agent; a named agent announcing another agent's purchase refused on chain; the earlier announce delivered after the later one; the no-show's bond split between the lead and the treasury", async () => {
+      const lines = await verifyJobE(view, raw, blockMs, account);
+      return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+    });
+  }
+}
 if (existsSync(new URL("../fixtures/live/buy-twice/run.json", import.meta.url))) {
   const { verifyRun } = await import("./buy-twice.mjs");
   const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
   await attempt("Buy Twice: a past buyer claimed from a fresh account and settled under the receipt price", async () => {
     const lines = await verifyRun(view, raw);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+}
+if (m.outlayer?.honest) {
+  const { verifyRun } = await import("./outlayer-buy.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  await attempt("OutLayer referee: the OutLayer project key signed the receipt one settle paid under, and refused a cheat claim whose settle was blocked", async () => {
+    const lines = await verifyRun(view, raw, m.outlayer);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+}
+if (m.outlayer_jolt?.txs?.honest) {
+  const { verifyRun } = await import("./outlayer-jolt.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  await attempt("OutLayer Jolt verifier: the TEE verified the standing proof behind the bazaar's root and signed accept; a forged proof got a signed reject", async () => {
+    const lines = await verifyRun(view, raw, m.outlayer_jolt);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+}
+if (existsSync(new URL("../fixtures/live/outlayer/attest/dcap.json", import.meta.url))) {
+  const { verifyRuns } = await import("./outlayer-attest.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  await attempt("OutLayer TDX attestation: each run's quote verified on chain by our DCAP verifier, its report_data the hash of that run's wasm, input and output, its measurements on OutLayer's approved list", async () => {
+    const spikeAccount = async () => {
+      const a = (await rpc("query", { request_type: "view_account", finality: "final", account_id: "spike.bookerbob.testnet" })).result;
+      const k = (await rpc("query", { request_type: "view_access_key_list", finality: "final", account_id: "spike.bookerbob.testnet" })).result;
+      return { code_hash: a.code_hash, keys: k.keys.length };
+    };
+    const lines = await verifyRuns(view, raw, undefined, undefined, null, spikeAccount);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+}
+{
+  // Our testnet verdict issuer key, removed 2026-11-14 (docs/keyless.md): the removal tx and the live issuer list.
+  const KEY = "ed25519:89a1f5d35e29a7e8d0b45bb28d7bbe7b73613eabd7b0201e85582786afc0f612", TX = "842vjgRQztzSre82v4kEJLmLFXJw4USUSK2AZETDKnmM";
+  await attempt("our testnet issuer key is removed: the remove_issuer tx, and the bazaar's issuer list today", async () => {
+    const [t, list] = await Promise.all([rpc("tx", { tx_hash: TX, sender_account_id: m.bazaar, wait_until: "FINAL" }), view(m.bazaar, "issuers", {})]);
+    const r = t.result;
+    const logs = r ? [r.transaction_outcome, ...r.receipts_outcome].flatMap((o) => o.outcome.logs) : [];
+    const call = r?.transaction?.actions?.[0]?.FunctionCall;
+    const ok = r?.transaction?.signer_id === m.bazaar && r.transaction.receiver_id === m.bazaar && call?.method_name === "remove_issuer" && logs.some((l) => l.includes('"issuer_removed"') && l.includes(KEY)) && !(list ?? []).some(([k]) => k === KEY);
+    return [ok, `remove_issuer ${TX.slice(0, 8)}.. by the owner; ${(list ?? []).length} issuer key left (${(list ?? []).map(([, l]) => l.split(" (")[0]).join(", ")})`];
+  });
+}
+if (existsSync(new URL("../fixtures/live/outlayer/dispute.json", import.meta.url))) {
+  const { verifyRun, verifyArbiters } = await import("./outlayer-dispute.mjs");
+  const raw = async (h, sender) => (await rpc("tx", { tx_hash: h, sender_account_id: sender, wait_until: "FINAL" })).result;
+  const rec = JSON.parse(readFileSync(new URL("../fixtures/live/outlayer/dispute.json", import.meta.url)));
+  await attempt("OutLayer arbiter: a receipt the operator's referee key signed for a cheat was overturned by the OutLayer project's arbiter key, the receipt cleared and settle blocked", async () => {
+    const height = async (h) => (await rpc("block", { block_id: h })).result.header.height;
+    const lines = await verifyRun(view, raw, rec, m.outlayer?.keys?.arbiter_key, height);
+    return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
+  });
+  await attempt("arbiter set and threshold: the operator's key and the OutLayer key, and the threshold recorded with the OutLayer arbiter run", async () => {
+    const lines = await verifyArbiters(view, raw, rec);
     return [lines.every(([ok]) => ok), lines.map(([, t]) => t).join("; ")];
   });
 }
@@ -538,5 +673,5 @@ if (m.rep_eval) {
     return [ok, rows.map(([x, score]) => `${x.subject.split("/").pop()} ${score}`).join(", ")];
   });
 }
-console.log(`\n${failed ? "FAIL" : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : "every testnet claim re-derived from public RPC"}`);
+console.log(`\n${failed ? "FAIL" : skipped ? `PASS (partial, ${skipped} skipped)` : "PASS"}  verify-live: ${failed ? `${failed} checks failed` : skipped ? `the checks matching VL_ONLY re-derived ${replaying ? "from the snapshot" : "from public RPC"}` : `every testnet claim re-derived ${replaying ? "from the committed RPC snapshot" : "from public RPC"}`}`);
 process.exit(failed ? 1 : 0);

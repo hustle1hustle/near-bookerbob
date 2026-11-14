@@ -126,3 +126,5 @@ checkable (`make verify-live`; `make audit` names the removal for a verdict that
   the OutLayer project (no new version, ever, including a fix), `set_graph_program` and every
   other owner method (trust anchors, rounds, fees, `remove_issuer`), and `cancel_anchor`.
   Standing updates by bonded workers keep running. This is the founder's decision, after judging.
+
+What else does not hold yet (real money beyond dust amounts, outside merchants beyond the public rounds, privacy from our evaluator until it runs in the TEE, a collusion effect beyond direction only): [docs/details.md](details.md#known-limits).
