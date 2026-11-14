@@ -1,0 +1,26 @@
+{
+  "note": "The NEAR AI model's TDX quote verified on chain on mainnet by the same dcap-qvl verifier as spike.bookerbob.testnet (byte-identical wasm), then the mainnet bazaar's quote verifier set to it and the model key registered against that verification. Check: node scripts/mainnet-dcap.mjs check",
+  "network": "mainnet",
+  "verifier": "e99f0afb347a1e5155cabb6c55489291794f89cdfb9457e4ba6a4a55882a4b02",
+  "bazaar": "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7",
+  "model_dir": "fixtures/live/near-ai/models/deepseek-ai_DeepSeek-V4.1-Flash-1017",
+  "balance_before": "10519460000000000000000000",
+  "txs": {
+    "deploy verifier": "92Bm1s3QpWgJzNuAofNSS5JaBoGXiEXDzbECH6x63xrJ",
+    "start": "5yendWfDf5JgDABUSzASDiaf8MZmvCEvXRQJ4Wz5k6nh",
+    "step tcb": "6fQQT1biUUJTJ6BPLaxftLWCN6qHpfWvGbvKzhkJ79io",
+    "step qe_identity": "DNSJmRMVUooNXvsRRhJ4KiwEpmPdsRotoEc8sueLzdFC",
+    "step pck": "EojErLNpqtZTmS2ZMEmeHRkkDXnphNKH36xUWLr1LUU1",
+    "step finalize": "GcfqrmXmXre9QF7icFxWFEyuugahWQuRjMaTrVaur6yt",
+    "set_quote_verifier": "BVuM5eyaMnnKTPyAo8bXbv1juGLoFY6GmgdLsfdpXNK",
+    "register_model_attestation_verified": "DuFaeAxwaM9HPPrbqai5W3gtf5QSR6J7S9bnFtLhV1g2"
+  },
+  "code_hash": "7ZabqCJbiNVMiXxyv2YNDm6LxP951LcuhysKHvFC5oaR",
+  "verification_id": "7a0286fc73c7937c767a60583e5f2bf4ca87a4026156b12a561e6d6595703282",
+  "verification": [
+    "verified",
+    "UpToDate 236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c567fb974e58e09ed705dbbca39271568c26d7278b3e4b0d35da37684c3146abc"
+  ],
+  "spent_near": "0.0489",
+  "balance_after": "10470598215812200200000000"
+}

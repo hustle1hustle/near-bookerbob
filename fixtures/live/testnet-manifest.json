@@ -1414,5 +1414,11 @@
         }
       ]
     }
-  ]
+  ],
+  "market_lock": {
+    "account": "market.bookerbob.testnet",
+    "delete_key_tx": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41",
+    "date": "2026-11-14",
+    "full_access_keys": 0
+  }
 }

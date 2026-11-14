@@ -495,6 +495,8 @@ not that the buyer holds it. The run on your own `/user` is the same command wit
 
 ## market.bookerbob.testnet: a bazaar the DAO owns from block one (2026-11-05)
 
+Locked on 2026-11-14: its only full-access key deleted ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)); `make no-owner` shows no full-access key and a redeploy refused (InvalidAccessKeyError).
+
 Decided on 2026-11-05 by the coordinating session on the founder's delegation ("think which is the
 stronger, more competitive choice"): testnet, no money. `scripts/market-bazaar.mjs`,
 `fixtures/live/market/state.json`.

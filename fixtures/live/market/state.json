@@ -17,7 +17,8 @@
     "redeploy_8": "7qYedWcyTGeBkcuM5DtvMbfHaasEnqtZoTkmEwYX64gs",
     "redeploy_9": "4HEkVJAgYvoYmmhnSC9vMuAbF4BY4KLdKyCeCs8sK5c7",
     "redeploy_10": "Cgc4TfB1b9XZ3MdqciN8bgAgJauRmJziH8mGAELV21Nd",
-    "redeploy_11": "Cg5rYDG6R7D8uV46BxuMGQZtgJDMwWf7SzrjGq9NVqWh"
+    "redeploy_11": "Cg5rYDG6R7D8uV46BxuMGQZtgJDMwWf7SzrjGq9NVqWh",
+    "delete_key": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41"
   },
   "anchors": {
     "proposal": 3,
@@ -53,7 +54,13 @@
     },
     "shopify_order": "#1065"
   },
-  "locked": false,
+  "locked": {
+    "date": "2026-11-14",
+    "delete_key_tx": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41",
+    "full_access_keys": 0,
+    "redeploy": "refused (InvalidAccessKeyError)",
+    "note": "the temporary full-access key deleted; market.bookerbob.testnet holds no full-access key, so its code can change only through a call the contract itself allows. spike.bookerbob.testnet and bookerbob.testnet keep their keys."
+  },
   "eval": {
     "issuer": {
       "proposal": 8,

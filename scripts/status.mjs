@@ -98,6 +98,16 @@ export function render(rs, exists) {
   const head = "| # | feature | track ids | status | evidence |\n|---|---|---|---|---|";
   return [BEGIN, head, ...rs.map((r, i) => `| [${i + 1}](docs/status.md#r${i + 1}) | ${name(r)} | ${r.tracks} | **${r.status}** | ${evidenceLink(r, exists)} |`), END].join("\n");
 }
+// The headline option (node scripts/status.mjs --headline): the README shows 12 rows, the three
+// strongest per entered track, and points to docs/status.md for all of them. --check reads which
+// form the README holds from the marker line and compares it to that form.
+export const HEADLINE = [1, 5, 11, 12, 16, 20, 36, 44, 45, 46, 47, 50];
+const HEADLINE_MARK = "<!-- status:headline -->";
+export function renderHeadline(rs, exists) {
+  const head = "| # | feature | track ids | status | evidence |\n|---|---|---|---|---|";
+  const pick = HEADLINE.filter((n) => n <= rs.length).map((n) => `| [${n}](docs/status.md#r${n}) | ${name(rs[n - 1])} | ${rs[n - 1].tracks} | **${rs[n - 1].status}** | ${evidenceLink(rs[n - 1], exists)} |`);
+  return [BEGIN, HEADLINE_MARK, head, ...pick, `| | every feature, ${rs.length} rows, with its full status | | | [docs/status.md](docs/status.md) |`, END].join("\n");
+}
 export function renderFull(rs) {
   const head = "| # | feature | track ids | where | status |\n|---|---|---|---|---|";
   return [FULL_BEGIN, head, ...rs.map((r, i) => `| <a id="r${i + 1}"></a>${i + 1} | ${r.feature} | ${r.tracks} | ${r.where} | **${r.status}**${r.detail ? `: ${r.detail}` : ""} |`), FULL_END].join("\n");
@@ -122,7 +132,11 @@ export function problems(readme, rs, m, docs, src = {}, n = null, sets = null) {
   const out = [];
   const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
   if (a < 0 || b < 0) out.push("README has no status markers");
-  else if (readme.slice(a, b + END.length) !== render(rs)) out.push("README feature table differs from docs/status.json (run node scripts/status.mjs)");
+  else {
+    const block = readme.slice(a, b + END.length);
+    const want = block.includes(HEADLINE_MARK) ? renderHeadline(rs) : render(rs);
+    if (block !== want) out.push("README feature table differs from docs/status.json (run node scripts/status.mjs, with --headline for the short form)");
+  }
   if ("docs/status.md" in docs && docs["docs/status.md"] !== fullDoc(rs)) out.push("docs/status.md differs from docs/status.json (run node scripts/status.mjs)");
   for (const r of rs) if (name(r).length > SHORT_MAX) out.push(`"${r.feature.slice(0, 40)}": the README name is ${name(r).length} characters, over ${SHORT_MAX}; give the row a "short"`);
   for (const r of rs) {
@@ -190,8 +204,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else {
     const a = readme.indexOf(BEGIN), b = readme.indexOf(END);
     if (a < 0) throw new Error("add the status markers around the feature table first");
-    writeFileSync(root + "README.md", readme.slice(0, a) + render(rows) + readme.slice(b + END.length));
+    const headline = process.argv.includes("--headline") || (readme.slice(a, b).includes(HEADLINE_MARK) && !process.argv.includes("--full"));
+    writeFileSync(root + "README.md", readme.slice(0, a) + (headline ? renderHeadline(rows) : render(rows)) + readme.slice(b + END.length));
     writeFileSync(root + "docs/status.md", fullDoc(rows));
-    console.log(`wrote the README feature table and docs/status.md: ${rows.length} rows`);
+    console.log(`wrote the README feature table (${headline ? `headline: ${HEADLINE.length} of ${rows.length} rows` : `${rows.length} rows`}) and docs/status.md`);
   }
 }

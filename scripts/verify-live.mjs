@@ -425,6 +425,14 @@ if (existsSync(new URL("../fixtures/live/market/state.json", import.meta.url))) 
     return [ok, `code ${mk.code_hash.slice(0, 10)}.. on the market, ${main.code_hash.slice(0, 10)}.. on ${m.bazaar}; eval issuer registered; eval_passes at 70: ${scores.join(", ")}; voprf_key ${vk?.slice(0, 12)}.. on both`];
   });
 }
+if (m.market_lock) {
+  const L = m.market_lock;
+  await attempt(`${L.account} is locked: no full-access key, so no key can redeploy its code (the DeleteKey tx, ${L.date})`, async () => {
+    const [keys, del] = await Promise.all([rpc("query", { request_type: "view_access_key_list", finality: "final", account_id: L.account }), tx(L.delete_key_tx, L.account)]);
+    const full = (keys.result?.keys ?? []).filter((k) => k.access_key.permission === "FullAccess").length;
+    return [full === 0 && del.ok, `${full} full-access keys; DeleteKey tx ${L.delete_key_tx.slice(0, 8)}.. ${del.ok ? "succeeded" : "not found"}`];
+  });
+}
 if (existsSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url))) {
   const p = JSON.parse(readFileSync(new URL("../fixtures/live/model-buy/run.json", import.meta.url)));
   await attempt(`a model-issued verdict bought on testnet: ${p.near_ai.model} issued it (submit_near_ai_verdict, not the issuer key), the eval-gated merchant refused it, m01 settled ${Number(p.price) / 1e6} dUSDC`, async () => {

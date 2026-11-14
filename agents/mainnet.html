@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BookerBob on mainnet</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg: #0A0A0F; --panel: #10101A; --fg: #E6E6EF; --dim: #7C7C94; --faint: #3A3A4E; --line: #1C1C2A; --blue: #3B5BFF; --red: #FF4D5E; --green: #5BE3A0; --amber: #E3C25B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 28px 0 4px; }
+  a { color: var(--blue); }
+  .sub { color: var(--dim); margin-bottom: 16px; max-width: 900px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+  tr:last-child td { border-bottom: 0; }
+  th { color: var(--dim); font-weight: normal; font-size: 12px; }
+  .h { color: var(--dim); }
+  .ok { color: var(--green); }
+  .bad { color: var(--red); }
+  .exp { color: var(--amber); }
+  .wait { color: var(--faint); }
+  .rec { color: var(--amber); }
+  .ev { display: block; font-size: 12px; color: var(--dim); }
+  .ev b { color: var(--fg); font-weight: normal; }
+  .live { color: var(--dim); font-size: 12px; margin: 8px 0 12px; }
+  .live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+  .live.off::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); margin-right: 8px; }
+  .kv { display: grid; grid-template-columns: 220px 1fr; gap: 0; }
+  .kv > div { padding: 7px 14px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+  .kv > div:nth-child(odd) { color: var(--dim); }
+  .kv > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .verdict { margin-bottom: 14px; }
+  .verdict .head { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .big { font-size: 14px; font-weight: 600; }
+  code { color: var(--fg); }
+  footer { color: var(--dim); font-size: 12px; margin-top: 24px; max-width: 900px; }
+  footer p { margin: 0 0 8px; }
+  col.c-step { width: 22%; } col.c-signer { width: 14%; } col.c-out { width: 36%; } col.c-tx { width: 12%; } col.c-call { width: 16%; }
+  @media (max-width: 760px) {
+    table, tbody, tr, td { display: block; width: 100%; }
+    thead, tr.hdr { display: none; }
+    tr { border-bottom: 1px solid var(--line); padding: 6px 0; }
+    tr:last-child { border-bottom: 0; }
+    td { border: 0; padding: 2px 12px; }
+    td[data-l]::before { content: attr(data-l) " "; color: var(--faint); }
+    .kv { grid-template-columns: 1fr; }
+    .kv > div { padding: 2px 12px; border: 0; }
+    .kv > div:nth-child(even) { padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>bookerbob on NEAR mainnet</h1>
+  <div class="sub">every mainnet transaction of this project, read by your browser from public NEAR RPC, with no BookerBob server in between. the NEAR AI verdict's ed25519 signature is checked here again, against the model key the mainnet bazaar holds. the money is real and small; the facts behind the first verdict are synthetic fixture facts, the second verdict ran on the founder's real GitHub proof. record: <code>docs/mainnet.md</code>.</div>
+  <div class="live" id="livebar">reading NEAR mainnet ...</div>
+
+  <h2>the NEAR AI verdict, re-checked in this browser</h2>
+  <div class="sub">for each <code>submit_near_ai_verdict</code> tx: its arguments are read from chain, the bazaar view <code>model_attestation</code> returns the registered model, and the page rebuilds the bytes the contract verifies (<code>core/src/near_ai.rs</code>, <code>signed_text</code>: <code>model:request_sha256:sha256(response)</code>, the model name from the registered attestation) and runs ed25519 verify on them with the registered key (noble-ed25519, vendored).</div>
+  <div id="sig"></div>
+
+  <h2>state now</h2>
+  <div class="panel"><div class="kv" id="state"><div>reading</div><div class="wait">...</div></div></div>
+
+  <h2>every transaction</h2>
+  <div class="sub">status is the outcome of the transaction and of every receipt it spawned. one is expected to fail: the replay of a spent verdict, refused by the contract.</div>
+  <div id="txs"></div>
+
+  <footer>
+    <p>what is not claimed: the mainnet trust keys (the model attestation registration, the evaluator, the referee) are REP's, set by the bazaar's owner, an account REP holds a full-access key for. the model's TDX quote was verified on chain on testnet (spike.bookerbob.testnet); mainnet has no quote verifier contract yet. there is no World verifier on mainnet, so the verdict reveals <code>airbnb_frequent</code> and <code>claude_spender</code> only.</p>
+    <p>reads: transactions from <code>archival-rpc.mainnet.fastnear.com</code> once the regular node has dropped them, views from <code>rpc.mainnet.fastnear.com</code>. a row marked "committed record, not read live" comes from <code>fixtures/mainnet/</code> in the repo and carries no check. keyless recheck from a terminal: <code>node scripts/mainnet-buy.mjs check</code>.</p>
+  </footer>
+</main>
+<script type="module">
+import { verifyAsync } from "./vendor/noble-ed25519.js";
+
+// From fixtures/mainnet/*.json (bazaar, buy, real-refusal, intents-settle). The signer of each tx
+// is only the RPC routing hint; every outcome below is read from chain.
+const BAZAAR = "3fd1e77f9edd2c840eabc6c1d17c5b1474f3c864e3bb666b1e9574b72e9064c7";
+const BUYER = "a361f2956eea3a29c0986c92173a9c2861065521d7ee07b7e6b0f576b7bc2042";
+const DCAP = "e99f0afb347a1e5155cabb6c55489291794f89cdfb9457e4ba6a4a55882a4b02";
+const USDC = "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1";
+const IM = "b20521b94e5ed0d18a422c23eb9fcab9d3dbb0282d8b89cd85e6c966f61899d8";
+const CODE_HASH = "Bt2rNwTLp1wyhL5rjJfyLUigiBiLXiSMt1BD1gAqysfn";
+const MODEL_KEY = "236f5a6b91dd47dc3b7b36e43d4eb531a042ffb8f8fbf3a1555b78cef4fdda4c";
+const NAMES = {
+  [BAZAAR]: "bazaar (owner)", [BUYER]: "buyer agent", [USDC]: "Circle USDC",
+  b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5: "merchant-a",
+  "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0": "merchant-b",
+  [IM]: "intents merchant", "wrap.near": "wrap.near", "v2.ref-finance.near": "Ref Finance", "intents.near": "intents.near",
+};
+// [label, what it was, hash, signer, expected failure substring or null]
+const GROUPS = [
+  { title: "the bazaar and round mainnet-1", file: "bazaar.json", txs: [
+    ["fund bazaar", "NEAR for the bazaar's implicit account", "6QgeBbEQBMcNhGMaHQdkVd2FviG7Z6XhjgW6VktA9dXj", BUYER],
+    ["fund merchant-a", "NEAR for merchant agent a", "CgmfiEDdc7f3FBiCqGdJDBjkCJLvx4wv4Bcxcor7bkme", BUYER],
+    ["fund merchant-b", "NEAR for merchant agent b", "FDnC1L4apkEeMoY5ZpCFR5p6dwmWC3CX7nDT3z6Yw4kn", BUYER],
+    ["deploy and init", "the audited wasm, deployed and initialized", "Dz4UugSeNPbZ2w4WYFQXTtYbzPNMJNkWeoozaqvKXbpd", BAZAAR],
+    ["register merchant-a", "merchant a joins mainnet-rooms", "FrMCaqcYRonNi873id6XVwmt8kYAkTm3GBRXfkTounLS", "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5"],
+    ["approve merchant-a", "the owner approves merchant a", "7U2Fci98YwndPVEHqYGF5xRRamVqneRZjc5LaWYsRTgb", BAZAAR],
+    ["register merchant-b", "merchant b joins mainnet-rooms", "GbnN6hC1iwK9dPpQDd5J8hNvuatRsqimjgYPDaqkd44u", "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0"],
+    ["approve merchant-b", "the owner approves merchant b", "6LCv74jtc5sVnYKucyxnzyfPfvYTjfUg7g82YARNu4ct", BAZAAR],
+    ["round open", "sealed round mainnet-1 opens", "6btt5Yce1QoZm92XT2JS4TUomPNLgwB1nLWo4kbVzGJs", BAZAAR],
+    ["commit merchant-a", "a sealed bid: only its hash is public", "8VcVUEYTyQEFqGh2nwGpc6x5oRLS24s3eSNU54uA3wL1", "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5"],
+    ["commit merchant-b", "a sealed bid: only its hash is public", "CDYZjvk9DahqA4ZX2R3614F7ArjBgj2Zq9orSXAhL4R9", "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0"],
+    ["reveal merchant-a", "the bid opened after the commit deadline", "gQ4XvFft7CaTGsD2FgJuaCJYa9cTBKFcUiSKPzskHjC", "b43d6dee874ba3cdc2bea2bbf26b9b26875d075eb7f9666b633f1c0d9997cbd5"],
+    ["reveal merchant-b", "the bid opened after the commit deadline", "9sK7nHeHnDHpnZqpRkRwAW6Fyfy9WDepDUTr89BphTwJ", "5e868301d0c73a7acf106a49fcec502644f6dc67e150120a9e6ed68475ac30f0"],
+  ] },
+  { title: "purchase 1: a NEAR AI verdict over synthetic facts", file: "buy.json", txs: [
+    ["model attestation", "the owner registers the NEAR AI model key and its attestation", "AR5ciRLBjcj48a25iqdGYAYrxoKrGJfWzeYmUkMWWixv", BAZAAR],
+    ["evaluator key", "the owner sets the evaluator key", "J2YxEzKmFmVHX799S3ECHu1dDizAh9zFcniCThTMhq62", BAZAAR],
+    ["referee key", "the owner registers a fresh mainnet referee key", "F4qpic6W9ncUmzQaC6opKjmU1nNdcbS12GtV5LEJtHdT", BAZAAR],
+    ["USDC storage, bazaar", "USDC account for the bazaar", "4XVUJeGoZ4y1U2oyRoWZd8RvhrKUhg1sZHcRufwmTRxH", BUYER],
+    ["USDC storage, merchant", "USDC account for the merchant", "DwAkEqtWoP7uTxaW9pbkHemiDQLrepnKxspiekgbfo8J", BUYER],
+    ["USDC storage, buyer", "USDC account for the buyer", "9rJnhfh2KczbYHJ3Pk11CRAbFAXmCpe5LUt4NyHjYeXs", BUYER],
+    ["Ref storage", "the buyer's Ref Finance account", "8fqPsJsoPPxRJ4iy1LZpmFA6NaNzuXBoRkKreDf7EsTX", BUYER],
+    ["wrap NEAR", "NEAR to wNEAR", "A8FXnEayxVWjP2mkGLn9UoC9daPDwjxVNh3G7kJjTAsB", BUYER],
+    ["swap", "wNEAR to Circle USDC on Ref, pool 4512", "6jcVS1yTK6pVoWpS8PHbiPBea8guPtDaw5V1s45pJ54x", BUYER],
+    ["bazaar storage", "the buyer's storage on the bazaar", "5oXemcx1n5dcueA1mu1644NcFv4NxcQ5qQQR9ZAphKxn", BUYER],
+    ["verdict", "the NEAR AI verdict: TEE signature checked on chain", "99A78KAXogT5N9tKWnMugMfHmw7pL6hpAfwtyQgAFUnV", BUYER],
+    ["receipt", "the referee's receipt for the round's lowest bidder", "46bSUqZ8JDc6hwHmEtioqYstgCKj9PFABw7tZwkF9U1W", BUYER],
+    ["escrow", "USDC into the bazaar's escrow", "H9NKhrjWCBfaEjcg4d7SRU3L4fTKcXHHuph5Aj8SbNA4", BUYER],
+    ["settle", "the bazaar pays the merchant in USDC", "6V7RHkgzkAyZVweT5J2E6WEfz6ZV4kg8Py8pwAJpNu84", BUYER],
+    ["replay refused", "the same verdict sent again", "BvZ9SerkAeVS1LJ5SuhkZfpzqpWwNN9uGM3ZQAP2gSec", BUYER, "nullifier spent"],
+  ] },
+  { title: "purchase 2: real data, the founder's GitHub proof", file: "real-refusal.json", txs: [
+    ["wrap NEAR", "NEAR to wNEAR", "D7bYByor5DweFjmHTxSJVY9DdGrAUrjkTyzau36ebXqD", BUYER],
+    ["swap", "wNEAR to Circle USDC on Ref", "9omkmguSqi1UoCY5u9dkHnRXXzzxkZryD2o4c6BbN8M2", BUYER],
+    ["real-data verdict", "the model refused github_builder; the verdict claims nothing", "9E6copWnJBPDPGm5wro7ncYkUzBaSSyvmTtmNhVKgB4u", BUYER],
+    ["receipt", "the referee's receipt at the plain price", "HzytNczRieBmKKnk2PVjLAUgYBxJJP6xZ6vqYNyfuNev", BUYER],
+    ["escrow", "USDC into the bazaar's escrow", "9Q6J6hzKhj9fszTeDeNNHDB76RXKFDLMX4E5YsjWBVCK", BUYER],
+    ["real-data settle", "the bazaar pays the merchant in USDC", "GwLCRE5c41gvhZPryEprGtqmWwiN3bbnKatUF8aAeSj", BUYER],
+  ] },
+  { title: "agent to agent on NEAR Intents", file: "intents-settle.json", txs: [
+    ["wNEAR storage", "the buyer's wNEAR account", "ExDSgC9pCmCPi61UNGD3hC6KeXYKeWdZAgtawo9Ey2a9", BUYER],
+    ["wrap NEAR", "NEAR to wNEAR", "Dum5MWnfv6sZVGe5KszEs55GxCFZVoFbvSes5y94uBij", BUYER],
+    ["deposit to intents", "0.1 wNEAR into intents.near", "Gx5mfiWq59yTAi8jtvuwVVJQdqy5JhtkCFmz7PM6CPzA", BUYER],
+    ["execute_intents", "the buyer agent's signed transfer intent, 0.1 wNEAR to the merchant agent", "42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz", BUYER],
+  ] },
+  { title: "the model's TDX quote verified on chain (Intel DCAP)", file: "dcap.json", txs: [
+    ["deploy verifier", "spike.bookerbob.testnet's dcap-qvl verifier, the same bytes", "92Bm1s3QpWgJzNuAofNSS5JaBoGXiEXDzbECH6x63xrJ", DCAP],
+    ["start", "the quote and Intel PCS collateral, root CA CRL checked", "5yendWfDf5JgDABUSzASDiaf8MZmvCEvXRQJ4Wz5k6nh", DCAP],
+    ["step tcb", "TCB info", "6fQQT1biUUJTJ6BPLaxftLWCN6qHpfWvGbvKzhkJ79io", DCAP],
+    ["step qe_identity", "the quoting enclave's identity", "DNSJmRMVUooNXvsRRhJ4KiwEpmPdsRotoEc8sueLzdFC", DCAP],
+    ["step pck", "the PCK certificate chain", "EojErLNpqtZTmS2ZMEmeHRkkDXnphNKH36xUWLr1LUU1", DCAP],
+    ["step finalize", "verified: UpToDate, report_data the model key", "GcfqrmXmXre9QF7icFxWFEyuugahWQuRjMaTrVaur6yt", DCAP],
+    ["set_quote_verifier", "the bazaar now requires this verifier for model keys", "BVuM5eyaMnnKTPyAo8bXbv1juGLoFY6GmgdLsfdpXNK", BAZAAR],
+    ["register_model_attestation_verified", "the model key registered against that verification", "DuFaeAxwaM9HPPrbqai5W3gtf5QSR6J7S9bnFtLhV1g2", BAZAAR],
+  ] },
+];
+// The two on-chain verdicts, and what the repo committed for each (shown only if a live read fails).
+const VERDICTS = [
+  { label: "purchase 1 verdict", tx: "99A78KAXogT5N9tKWnMugMfHmw7pL6hpAfwtyQgAFUnV", nullifier: "93cb1f5da1ad043bcb0a9010aa1f2801c811929dc3e211347c2d7909a5bb786c",
+    rec: { file: "fixtures/mainnet/buy.json", model: "deepseek-ai/DeepSeek-V4.1-Flash-1017", signing_key: MODEL_KEY, request_sha256: "89bbdecda821a70aef37d596c06295f9032f2746d96371cd3325b0e6032c66dc", response_sha256: "f1d39752390533baa30c13e1c8153453d08d824ac045a7df74ad98afd5db1cc2", attested: "airbnb_frequent, claude_spender" } },
+  { label: "purchase 2 verdict (real data)", tx: "9E6copWnJBPDPGm5wro7ncYkUzBaSSyvmTtmNhVKgB4u", nullifier: "6193a6e87a34396e7ebe44df00ec214aec6c5ce056579f664576857415c2aab0",
+    rec: { file: "fixtures/mainnet/real-refusal.json", model: "deepseek-ai/DeepSeek-V4.1-Flash-1017", signing_key: MODEL_KEY, request_sha256: "c7927cffd51d2753d81b2b1fcf9317fb6df1dfe7626d5fa2892f6a896acb697f", response_sha256: "217b6a8a0a641a0117a7896dbea4ad9db82a88ba50b09b4f2099bce7f416eff1", attested: "nothing" } },
+];
+
+const RPC = "https://rpc.mainnet.fastnear.com", ARCHIVAL = "https://archival-rpc.mainnet.fastnear.com";
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const short = (h) => (h && h.length > 20 ? `${h.slice(0, 8)}..${h.slice(-6)}` : h ?? "");
+const who = (a) => NAMES[a] ?? short(a);
+const nb = (h) => `<a href="https://nearblocks.io/txns/${esc(h)}" target="_blank" rel="noopener">${esc(short(h))}</a>`;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const enc = new TextEncoder();
+const hex = (u) => [...u].map((b) => b.toString(16).padStart(2, "0")).join("");
+const sha256hex = async (s) => hex(new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s))));
+const b64json = (b) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b), (c) => c.charCodeAt(0))));
+const amt = (v, d) => { if (!d) return String(v); const s = BigInt(v).toString().padStart(d + 1, "0"); const t = (s.slice(0, -d) + "." + s.slice(-d)).replace(/\.?0+$/, ""); return t; };
+
+// Public RPC limits bursts: one request at a time, a short gap, and backoff on 429 or a network error.
+let last = 0;
+async function call(url, method, params) {
+  let err;
+  for (let i = 0; i < 6; i++) {
+    const gap = 450 - (Date.now() - last);
+    if (gap > 0) await sleep(gap);
+    last = Date.now();
+    try {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+      const j = await res.json();
+      if (j.result !== undefined && !j.result?.error) return j.result;
+      if (j.error?.code === -429 || res.status === 429) { err = new Error("rate limited"); await sleep(2500 * (i + 1)); continue; }
+      const e = new Error(j.error?.cause?.name ?? j.result?.error ?? JSON.stringify(j.error ?? j).slice(0, 160));
+      e.fatal = true; throw e;
+    } catch (e) { if (e.fatal) throw e; err = e; await sleep(2500 * (i + 1)); }
+  }
+  throw err;
+}
+let txUrl = RPC;
+async function tx(hash, signer) {
+  try { return await call(txUrl, "tx", { tx_hash: hash, sender_account_id: signer, wait_until: "NONE" }); }
+  catch (e) {
+    if (txUrl === RPC && /UNKNOWN_TRANSACTION/.test(e.message)) { txUrl = ARCHIVAL; return call(ARCHIVAL, "tx", { tx_hash: hash, sender_account_id: signer, wait_until: "NONE" }); }
+    throw e;
+  }
+}
+async function view(account, method, args) {
+  const p = { request_type: "call_function", finality: "final", account_id: account, method_name: method, args_base64: btoa(JSON.stringify(args)) };
+  let r;
+  try { r = await call(RPC, "query", p); } catch { r = await call(ARCHIVAL, "query", p); }
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(r.result)));
+}
+
+// One tx's outcome: the tx and every receipt; the first failure's message.
+function outcome(r) {
+  const outs = [r.transaction_outcome, ...r.receipts_outcome];
+  const fail = outs.map((o) => o.outcome.status?.Failure).find(Boolean) ?? r.status?.Failure;
+  const msg = fail ? (JSON.stringify(fail).match(/"ExecutionError":"([^"]+)"/)?.[1] ?? JSON.stringify(fail).slice(0, 160)) : null;
+  return { ok: !fail, msg, receipts: r.receipts_outcome.length };
+}
+// The events worth a line: token transfers with their amounts, the bazaar's own events, Intents.
+function events(r) {
+  const lines = [];
+  for (const o of r.receipts_outcome) for (const l of o.outcome.logs) {
+    if (!l.startsWith("EVENT_JSON:")) { const m = l.match(/^Swapped (\d+) wrap\.near for (\d+) /); if (m) lines.push(`swapped <b>${amt(m[1], 24)} wNEAR</b> for <b>${amt(m[2], 6)} USDC</b>`); continue; }
+    let e; try { e = JSON.parse(l.slice(11)); } catch { continue; }
+    for (const d of e.data ?? [{}]) {
+      if (e.standard === "nep141" && e.event === "ft_transfer") {
+        const tok = o.outcome.executor_id === USDC ? ["USDC", 6] : o.outcome.executor_id === "wrap.near" ? ["wNEAR", 24] : [o.outcome.executor_id, 0];
+        lines.push(`ft_transfer <b>${amt(d.amount, tok[1])} ${esc(tok[0])}</b> ${esc(who(d.old_owner_id))} to ${esc(who(d.new_owner_id))}`);
+      } else if (e.standard === "bookerbob") {
+        const x = d.amount ? ` <b>${amt(d.amount, 6)} USDC</b>` : d.round ? ` ${esc(d.round)}` : "";
+        lines.push(`${esc(e.event)}${x}${d.merchant && e.event !== "settled" ? " " + esc(who(d.merchant)) : ""}${e.event === "settled" ? " to " + esc(who(d.payout)) : ""}`);
+      } else if (e.standard === "nep245") {
+        lines.push(`${esc(e.event)} <b>${amt(d.amounts?.[0] ?? "0", 24)} wNEAR</b>${d.old_owner_id ? " " + esc(who(d.old_owner_id)) + " to " + esc(who(d.new_owner_id)) : " to " + esc(who(d.owner_id))}`);
+      } else if (e.standard === "dip4") {
+        lines.push(`${esc(e.event)}${d.intent_hash ? " " + esc(short(d.intent_hash)) : ""}`);
+      }
+    }
+  }
+  return lines;
+}
+const method = (t) => t.actions.map((a) => (typeof a === "string" ? a : a.FunctionCall ? a.FunctionCall.method_name : Object.keys(a)[0])).join(" + ");
+
+const results = new Map();
+function renderTxs() {
+  document.getElementById("txs").innerHTML = GROUPS.map((g) => `<h2 style="font-size:14px;margin-top:18px">${esc(g.title)} <span class="h" style="font-weight:normal;font-size:12px">fixtures/mainnet/${esc(g.file)}</span></h2>
+    <div class="panel"><table><colgroup><col class="c-step"><col class="c-call"><col class="c-signer"><col class="c-out"><col class="c-tx"></colgroup>
+    <tr class="hdr"><th>step</th><th>call</th><th>signer</th><th>outcome, read live</th><th>nearblocks</th></tr>` +
+    g.txs.map(([label, what, h, signer, expectFail]) => {
+      const r = results.get(h);
+      let call = `<span class="wait">...</span>`, out = `<span class="wait">reading</span>`, sig = esc(who(signer));
+      if (r?.error) {
+        out = `<span class="rec">not read live (${esc(r.error)}). committed record, not read live: ${expectFail ? `refused, "${esc(expectFail)}"` : "success"}</span>`;
+        call = `<span class="h">?</span>`;
+      } else if (r) {
+        const o = outcome(r.raw);
+        call = `${esc(method(r.raw.transaction))} <span class="h">on ${esc(who(r.raw.transaction.receiver_id))}</span>`;
+        sig = esc(who(r.raw.transaction.signer_id));
+        if (expectFail) out = !o.ok && o.msg.includes(expectFail) ? `<span class="exp">refused as expected: "${esc(o.msg)}"</span>` : `<span class="bad">expected a refusal, got ${o.ok ? "success" : esc(o.msg)}</span>`;
+        else out = o.ok ? `<span class="ok">success</span> <span class="h">(${o.receipts} receipts)</span>` : `<span class="bad">failure: ${esc(o.msg)}</span>`;
+        out += events(r.raw).map((l) => `<span class="ev">${l}</span>`).join("");
+      }
+      return `<tr><td data-l="step"><span class="big" style="font-size:13px">${esc(label)}</span><span class="ev">${esc(what)}</span></td><td data-l="call">${call}</td><td data-l="signer">${sig}</td><td data-l="outcome">${out}</td><td data-l="tx">${nb(h)}</td></tr>`;
+    }).join("") + `</table></div>`).join("");
+}
+
+function kv(rows) { return rows.map(([k, v]) => `<div>${esc(k)}</div><div>${v}</div>`).join(""); }
+
+async function checkVerdict(v) {
+  const box = document.getElementById(`sig-${v.tx}`);
+  try {
+    const r = await tx(v.tx, BUYER);
+    results.set(v.tx, { raw: r });
+    const fc = r.transaction.actions.map((a) => a.FunctionCall).find((f) => f?.method_name === "submit_near_ai_verdict");
+    if (!fc) throw new Error("no submit_near_ai_verdict action in the tx");
+    const { envelope, proof } = b64json(fc.args);
+    const o = outcome(r);
+    const att = await view(BAZAAR, "model_attestation", { signing_key: proof.signing_key });
+    if (!att) throw new Error("model_attestation returned null: the key is not registered");
+    const respSha = await sha256hex(proof.response);
+    const text = `${att.model}:${proof.request_sha256}:${respSha}`;
+    let sigOk = false;
+    try { sigOk = await verifyAsync(proof.signature, enc.encode(text), proof.signing_key); } catch { sigOk = false; }
+    const tamper = await verifyAsync(proof.signature, enc.encode(text + " "), proof.signing_key).catch(() => false);
+    const nonceOk = att.nonce === proof.nonce;
+    const envOk = envelope.attestation.model === att.model && envelope.attestation.report_hash === att.report_hash && envelope.attestation.tcb_status === att.tcb_status;
+    const pass = o.ok && sigOk && !tamper && nonceOk && envOk;
+    const mark = (b) => (b ? `<span class="ok">yes</span>` : `<span class="bad">no</span>`);
+    box.innerHTML = `<div class="head"><span class="big ${pass ? "ok" : "bad"}">${pass ? "PASS" : "FAIL"}</span> ${esc(v.label)}, read live from mainnet ${nb(v.tx)}</div><div class="kv">${kv([
+      ["tx outcome", o.ok ? `<span class="ok">success</span>` : `<span class="bad">${esc(o.msg)}</span>`],
+      ["model key in the proof", `<code>${esc(proof.signing_key)}</code>`],
+      ["bazaar.model_attestation", `model <code>${esc(att.model)}</code>, tcb ${esc(att.tcb_status)}, report_hash <code>${esc(short(att.report_hash))}</code>`],
+      ["attestation nonce equal", mark(nonceOk)],
+      ["envelope names this attestation", mark(envOk)],
+      ["predicates revealed", envelope.predicates.length ? esc(envelope.predicates.join(", ")) : "none"],
+      ["sha256(response), recomputed", `<code>${esc(respSha)}</code>${respSha === v.rec.response_sha256 ? ` <span class="h">(equal to the committed record)</span>` : ` <span class="bad">(differs from the committed record)</span>`}`],
+      ["signed bytes, rebuilt", `<code>${esc(text)}</code>`],
+      ["ed25519 verify, registered key", sigOk ? `<span class="ok">valid</span>` : `<span class="bad">invalid</span>`],
+      ["control: one byte appended", tamper ? `<span class="bad">still valid (the check is broken)</span>` : `<span class="ok">rejected</span>`],
+    ])}</div>`;
+    return pass;
+  } catch (e) {
+    box.innerHTML = `<div class="head"><span class="big rec">committed record, not read live</span> ${esc(v.label)} ${nb(v.tx)}<span class="ev">the live read failed (${esc(e.message)}), so nothing below was checked in this browser.</span></div><div class="kv">${kv([
+      ["record", `<code>${esc(v.rec.file)}</code>`],
+      ["model", esc(v.rec.model)], ["model key", `<code>${esc(v.rec.signing_key)}</code>`],
+      ["request_sha256", `<code>${esc(v.rec.request_sha256)}</code>`], ["response_sha256", `<code>${esc(v.rec.response_sha256)}</code>`],
+      ["attested", esc(v.rec.attested)],
+    ])}</div>`;
+    return null;
+  }
+}
+
+async function state() {
+  const rows = [];
+  const add = async (k, f) => { try { rows.push([k, await f()]); } catch (e) { rows.push([k, `<span class="rec">not read live (${esc(e.message)})</span>`]); } document.getElementById("state").innerHTML = kv(rows); };
+  await add("bazaar code hash", async () => { const a = await call(RPC, "query", { request_type: "view_account", finality: "final", account_id: BAZAAR }); return `<code>${esc(a.code_hash)}</code> ${a.code_hash === CODE_HASH ? `<span class="ok">the audited wasm, the same hash as both testnet bazaars</span>` : `<span class="bad">differs from ${esc(CODE_HASH)}</span>`}`; });
+  for (const v of VERDICTS) await add(`${v.label}: nullifier`, async () => { const s = await view(BAZAAR, "nullifier_status", { nullifier: v.nullifier }); const d = await view(BAZAAR, "verdict", { nullifier: v.nullifier }); return `<span class="${s === "Spent" ? "ok" : "bad"}">${esc(String(s).toLowerCase())}</span>, issuer <code>${esc(short(d?.issuer))}</code>, tier ${esc(d?.tier)}, checkout ${esc(d?.checkout_ref)}`; });
+  await add("intents.near wNEAR, buyer agent / merchant agent", async () => { const [b, m] = await Promise.all([view("intents.near", "mt_balance_of", { account_id: BUYER, token_id: "nep141:wrap.near" }), view("intents.near", "mt_balance_of", { account_id: IM, token_id: "nep141:wrap.near" })]); return `${amt(b, 24) || "0"} / ${amt(m, 24) || "0"} wNEAR <span class="h">(after execute_intents: 0 / 0.1)</span>`; });
+}
+
+(async () => {
+  document.getElementById("sig").innerHTML = VERDICTS.map((v) => `<div class="panel verdict" id="sig-${v.tx}"><div class="head"><span class="wait">reading ${esc(v.label)} ...</span></div></div>`).join("");
+  renderTxs();
+  const bar = document.getElementById("livebar");
+  const verdicts = [];
+  for (const v of VERDICTS) verdicts.push(await checkVerdict(v));
+  renderTxs();
+  await state();
+  let read = 0, failed = 0;
+  for (const g of GROUPS) for (const [, , h, signer] of g.txs) {
+    if (!results.has(h)) {
+      try { results.set(h, { raw: await tx(h, signer) }); } catch (e) { results.set(h, { error: e.message }); }
+      renderTxs();
+    }
+    if (results.get(h).error) failed++; else read++;
+    bar.textContent = `reading NEAR mainnet: ${read + failed} of ${GROUPS.reduce((a, g) => a + g.txs.length, 0)} transactions`;
+  }
+  const total = read + failed;
+  const sigs = verdicts.filter((x) => x === true).length;
+  bar.className = `live ${failed || verdicts.some((x) => x !== true) ? "off" : "on"}`;
+  bar.textContent = `read live from NEAR mainnet over public RPC: ${read} of ${total} transactions${failed ? ` (${failed} not read, shown from the committed record)` : ""}, ${sigs} of ${VERDICTS.length} verdict signatures checked in this browser.`;
+})();
+</script>
+</body>
+</html>

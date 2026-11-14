@@ -16,7 +16,7 @@ Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Pri
 
 | real (on NEAR testnet, or signed by a real service) | simulated | not claimed |
 |---|---|---|
-| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict (the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote was verified on testnet (spike.bookerbob.testnet), not on mainnet; [docs/mainnet.md](mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, two purchases (one on real data) and one Intents settlement ([docs/mainnet.md](mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
+| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict (the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote is verified on chain on mainnet (docs/mainnet.md); [docs/mainnet.md](mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, two purchases (one on real data) and one Intents settlement ([docs/mainnet.md](mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
 
 **Trust assumptions today, and how each shrinks**
 
@@ -485,8 +485,9 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 - **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
   full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
   price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
-  so a swap of a trust key is queued in public; a code swap is not. Giving the account to a DAO
-  and deleting the key closes it and cannot be undone, so it is not done inside the hackathon.
+  so a swap of a trust key is queued in public; a code swap is not. The DAO-owned copy,
+  `market.bookerbob.testnet`, has no full-access key since 2026-11-14 (its code can change only
+  through a call the contract allows); `bookerbob.testnet` keeps its key as the fix path.
 - **A revealed bid is pinned for its round since the 2026-11-11 redeploy, with three limits.**
   Before it, a round stored no schedule and `round_best_quote` priced each revealed merchant's
   current schedule, so a bonded `open` merchant could reveal, read its rivals, register a
@@ -597,7 +598,7 @@ Testnet, except on mainnet only one sealed round, one purchase (0.9025 USDC) and
 
 - `bookerbob.testnet`: the bazaar, owned by one REP key (the "before" exhibit).
 - `market.bookerbob.testnet`: the same bazaar owned by the Sputnik DAO `bookerbob-gov` from block
-  one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key still exists (it made the redeploys) and is deleted by the lock, which is not done.
+  one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key made the redeploys and was deleted on 2026-11-14 ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)): no key can redeploy it now, re-checked by `make verify-live` and `make no-owner`.
 - `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys.
 - `gate.bookerbob.testnet`: the Verdict Gate; `bookerbob-dusdc.testnet`: the demo token.
 - Done in demo mode (dUSDC): 31 purchases (21 single settles: one with the 1% fee, two with a

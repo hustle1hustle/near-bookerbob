@@ -31,8 +31,8 @@ BookerBob fixes all three on testnet; each line names where to check it.
 
 Honest status: the contract is live on NEAR testnet (`bookerbob.testnet`, every tx in
 `docs/testnet.md`), and `make verify-live` re-derives each live claim over public RPC.
-On mainnet only one sealed round, one purchase and one NEAR Intents settlement ran (docs/mainnet.md). Testnet payments are in dUSDC, a testnet demo token. The facts behind the
-verdicts are synthetic; the NEAR AI verdict, the merchant pitches and the eval answers are
+On mainnet one sealed round, two purchases (one on the founder's real GitHub proof) and one NEAR Intents settlement ran (docs/mainnet.md; `make mainnet-check`). Testnet payments are in dUSDC, a testnet demo token. The swarm's facts are reproducible
+fixtures; the NEAR AI verdict, the merchant pitches and the eval answers are
 real live captures. `make verify` also runs the same contract code on near-sdk's mocked
 chain, offline.
 
@@ -104,8 +104,8 @@ every sealed rating (delegate actions; `make verify-live` checks them).
 
 ## Privacy on one screen
 
-What each party learns about a buyer today (testnet, synthetic facts). The full tables are in
-the README ("Who sees plaintext") and `docs/leak.md`.
+What each party learns about a buyer today (testnet, fixture facts). The full tables are in
+docs/details.md ("Who sees plaintext") and `docs/leak.md`.
 
 | party | learns | does not learn |
 |---|---|---|
@@ -134,11 +134,13 @@ shows only above a k floor of 5. Privacy from REP does not hold today.
 
 ## Minute 5: check what is not claimed
 
+Mainnet, keyless: `make mainnet-check` re-reads the four mainnet records over public RPC (docs/mainnet.md); in a browser, `mainnet.html` on the Pages site shows every mainnet tx and checks the verdict signatures.
+
 - Testnet only. Payments ran in dUSDC, a testnet demo token with no value (production uses
   Circle USDC): 31 purchases (21 single settles: one with the 1% fee, two with a sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group; 5 through a buying group's own DAO treasury),
-  all re-derived by `make verify-live`. The facts behind every verdict are synthetic. zkTLS
+  all re-derived by `make verify-live`. The testnet facts are reproducible fixtures. zkTLS
   ran twice as a pipeline test (`make prove-me`, `make try`), each notarizing a public GitHub
-  profile; no run yet on an account the buyer holds (docs/prove-me.md).
+  profile; on mainnet the founder's signed-in GitHub proof backed one purchase (docs/mainnet.md).
 - The NEAR AI TDX quote: since 2026-11-05 a separate verifier contract
   (`spike.bookerbob.testnet`, tools/dcap-spike) checks the quote on chain in five calls, and
   the bazaar registers a model key only against that finalized result. The bazaar contract

@@ -12,6 +12,7 @@ These are the ones signed by a real key or service, each with the command that c
 | GitHub, public profile | what api.github.com returned for `/users/hustle1hustle` | the same three fields | the REP notary | `make verify-presentation` |
 | GitHub, public profile, twice | the prove-me pipeline test on `/users/octocat`, MPC and proxy mode | the same three fields | the REP notary | `make verify-presentation` |
 | QFEX, the founder's own account | a zero-knowledge proof of a QFEX referral volume floor, made with Jolt in the browser (the REP Proofs extension) over a notarized MPC-TLS session (`GET /users/me/referrals/activity`, 2026-11-13); the notary saw only hash commitments of the request and the answer; the account is not identified | floors only: 30-day and lifetime referral volume at least $1,000,000; referrals per level 1+ / 25+ / 0+; plus the request line and the lengths of request and answer | REP's TEE notary (Phala, key `0307293878…aaed32`, valid until 2026-12-11) over the session; a Jolt proof (guest `57f74108…`, reproducible build) over the two commitments | `node scripts/verify-receipt.mjs fixtures/live/qfex/referral-zk-bundle.json` checks the notary's signed receipt with no REP code; the whole proof (receipt, the two commitments, the Jolt proof against the pinned guest): `cd tools/zk-gallery-verify && npm install && node verify-gallery.mjs qfex-gallery-bundle.json`, VALID against the rules registry head `e77bb403acdeeb22…` (a verifier only, 1.8 MB of wasm; a tampered bundle is refused) |
+| GitHub, public profiles, notarized inside a TDX enclave | what api.github.com returned for `/users/octocat` (proxy mode and MPC-TLS) and `/users/hustle1hustle` (proxy), 2026-11-14 | the same three fields | REP's notary inside an Intel TDX enclave on Phala (`rep-notary-ext`, key 1, `0307293878…aaed32`, its TDX quote published) | `make verify-presentation` (upstream TLSNotary, the enclave key pinned); files in `fixtures/live/tee-notary/` |
 | QFEX, public leaderboard | what api.qfex.com returned for `/public/leaderboard`, no account | `"count":100`; the request is hidden | REP's notary on Phala (`rep-notary-ext`, `0307293878…aaed32`), a signed session receipt | `node scripts/verify-receipt.mjs` |
 
 The TLSNotary presentations carry the server's certificate chain, so anyone re-checks them
@@ -49,7 +50,7 @@ upstream TLSNotary (`tlsnotary/tlsn`, tag `v0.1.0-alpha.15`), and for each file 
 The first build takes about a minute and a half. Then:
 
 ```
-PASS  verify-presentation: 4 real presentations, signed by the notary key 02114d7e..
+PASS  verify-presentation: 7 real presentations: the REP Fly notary 02114d7e.. and the TDX enclave notary 03072938..
 ```
 
 What they show and what they do not:
