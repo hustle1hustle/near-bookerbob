@@ -1,0 +1,49 @@
+# The evaluator as an OutLayer component (wasm32-wasip2). It opens a buyer's sealed TLSNotary
+# presentations inside the TEE, checks them against the pinned notary keys, derives the facts and
+# the predicates with the workspace's rule table, derives the nullifier under a wasm-bound key, and
+# signs the verdict envelope as an issuer through the host key `evaluator`, bound to this wasm. A crate of its own,
+# outside the workspace: TLSNotary and wit-bindgen stay out of the root Cargo.lock.
+# Build: `sh worker/outlayer-eval/build.sh`. Native tests: `cargo test` in this directory.
+[package]
+name = "bookerbob-eval-outlayer"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "bookerbob-eval-outlayer"
+path = "src/main.rs"
+
+[dependencies]
+bookerbob-core = { path = "../../core" }
+bookerbob-referee-worker = { path = ".." }
+# Upstream TLSNotary, the tag tools/verify-presentation uses (presentation verification only).
+tlsn-attestation = { git = "https://github.com/tlsnotary/tlsn.git", tag = "v0.1.0-alpha.15" }
+tlsn-core = { git = "https://github.com/tlsnotary/tlsn.git", tag = "v0.1.0-alpha.15" }
+bincode = "1.3"
+base64 = "0.22"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wit-bindgen = "0.36"
+
+[dev-dependencies]
+ed25519-dalek = { version = "2.2", features = ["rand_core"] }
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+strip = true

@@ -1693,5 +1693,36 @@
       "what": "the DAO-owned market bazaar",
       "lock_tx": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41"
     }
-  ]
+  ],
+  "outlayer_eval": {
+    "date": "2026-11-14",
+    "project_id": "bookerbob.testnet/bookerbob-evaluator",
+    "bazaar": "bookerbob.testnet",
+    "wasm_sha256": "a77f88c951a694a6fcbf91ee4e882d1a537f85abfeab6e1c3a096ccedebe65ba",
+    "context": "bookerbob:v0:evaltee-github",
+    "txs": {
+      "create_project": "FHyFCSD1xhV8ifZMYX585zaQUegdZu4pAF2zytrWPcs",
+      "pubkey": "9yDskw4NWp4cVYqPa3Rqj8M33pjWnbuzrzoGuuciwYzS",
+      "pubkey_resolve": "Gmz33c7C49PRDF8FhLQhKRPNFASxUqMpT4hkDRmwSNds",
+      "register_issuer": "4dCK9ayKvKHtSySmAiA6j1293wCDBUxRHAreAanfj3bd",
+      "fund_a": "7B9y7kaRNFFvPxusYqQjDvd9gMu1oy2pFgstr7xi8DHV",
+      "fund_b": "EF8LbYtadpSuRhxkbC91qiUvoSzMciHrJydD4N9U3k7s",
+      "accept": "Bqc8J1XsuXPYghJ1dkJsRWDVwbCazHkeLB73CPaiB3jB",
+      "execute_anchor": "EvBWgAoW1acgG7kJwR1A52gDsaT3qA7AjGBdALz3ovNf",
+      "accept_resolve": "AcpZJXHhwLPEfhStibuot2vQEpWoXSQPwsNq8tCR3z3C",
+      "submit": "EVd12BCD2VRLkKdewfqpsP2FR3gTvTSHJKD61fY2SjMG",
+      "sybil": "DLKKXVWD7yMuQoBfKpEb5BCaVYdFht414gWVAu7fqEZe",
+      "topup_a": "D554mskEvUdgBtuYfJAwd4V9JM3R8eASy2pLb26PH3gt",
+      "sybil_resolve": "5ez17Md9kXwRCLxzd9UeenxUjhdn16ncpLxHJwCyzsMU",
+      "sybil_submit": "HGm3HrprcZTjgnhXWBug2b8We73m6ARE6Xu6kC3toYTM",
+      "refuse": "7xCsPaXa3m7e1gZ9JDjWD1S6XHfVz9sJNVSQa9VTLQx",
+      "refuse_resolve": "985AmsvQbPQ9a5u7KJ5rG5jD4R8eSPfDz18ELBUxFmoj"
+    },
+    "request_ids": {
+      "pubkey": 47386,
+      "accept": 47510,
+      "sybil": 47638,
+      "refuse": 47653
+    }
+  }
 }

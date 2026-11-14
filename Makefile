@@ -3,7 +3,7 @@ JOBS ?= 2
 CARGO ?= cargo
 CARGO_FLAGS = -j $(JOBS)
 
-.PHONY: adversarial verify-presentation swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean who-sees-what standing-negatives coalition coalition-check leak-amount bucketed-check coalition-test coalition-wasm coalition-live coalition-verify standing-v2-verify coalition-v2-check coalition-v3-check coalition-v4-check verify-all outlayer-buy outlayer-jolt-local outlayer-dispute mainnet-outlayer-check collusion collusion-check mcp mcp-live smith-check smith-live
+.PHONY: outlayer-eval-local outlayer-eval-verify adversarial verify-presentation swarm-try swarm-verify outlayer-local leash buy-twice forge-poc try site audit audit-all wasm-parity one-flow flip-check flip-check-post eval-gate model-buy eval-verify zk-verify-prebuilt verify-offline market-eval join-merchant secret-scan judge leak verify-live demo-tester zk-verify zk-inputs scenario reviews receipts verify demo-offline demo-live test test-ucp fixtures fixtures-check swarm wasm clean who-sees-what standing-negatives coalition coalition-check leak-amount bucketed-check coalition-test coalition-wasm coalition-live coalition-verify standing-v2-verify coalition-v2-check coalition-v3-check coalition-v4-check verify-all outlayer-buy outlayer-jolt-local outlayer-dispute mainnet-outlayer-check collusion collusion-check mcp mcp-live smith-check smith-live
 
 BOOKERBOB = $(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli --
 
@@ -336,7 +336,7 @@ test: test-ucp
 	$(CARGO) test $(CARGO_FLAGS) --workspace
 
 test-ucp:
-	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/buy-twice.test.mjs scripts/leash.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs scripts/community.test.mjs scripts/round-tx.test.mjs scripts/swarm-run.test.mjs scripts/merchant-brain.test.mjs relayer/relay.test.mjs relayer/near.test.mjs relayer/serve.test.mjs scripts/mainnet-moment.test.mjs scripts/device-run.test.mjs scripts/eval-run.test.mjs scripts/status.test.mjs sdk/buy.test.mjs scripts/rep-eval.test.mjs scripts/live-pages.test.mjs scripts/prove-me.test.mjs scripts/rep-eval-v2.test.mjs scripts/nras.test.mjs scripts/leak-keys.test.mjs sdk/clearing.test.mjs scripts/anchor.test.mjs scripts/who-sees-what.test.mjs scripts/leak-amount.test.mjs scripts/coalition-live.test.mjs scripts/outlayer-buy.test.mjs scripts/outlayer-jolt.test.mjs mcp/reputation.test.mjs scripts/econ/anchor.test.mjs
+	node --test ucp/test/near-usdc.test.mjs mcp/rep-read.test.mjs x402/verdict-read.test.mjs sdk/merchant.test.mjs scripts/jmpr-rates-to-merchants.test.mjs scripts/buy-twice.test.mjs scripts/leash.test.mjs scripts/demo-live.test.mjs scripts/demo-tester.test.mjs scripts/join-merchant.test.mjs scripts/community.test.mjs scripts/round-tx.test.mjs scripts/swarm-run.test.mjs scripts/merchant-brain.test.mjs relayer/relay.test.mjs relayer/near.test.mjs relayer/serve.test.mjs scripts/mainnet-moment.test.mjs scripts/device-run.test.mjs scripts/eval-run.test.mjs scripts/status.test.mjs sdk/buy.test.mjs scripts/rep-eval.test.mjs scripts/live-pages.test.mjs scripts/prove-me.test.mjs scripts/rep-eval-v2.test.mjs scripts/nras.test.mjs scripts/leak-keys.test.mjs sdk/clearing.test.mjs scripts/anchor.test.mjs scripts/who-sees-what.test.mjs scripts/leak-amount.test.mjs scripts/coalition-live.test.mjs scripts/outlayer-buy.test.mjs scripts/outlayer-jolt.test.mjs mcp/reputation.test.mjs scripts/econ/anchor.test.mjs scripts/outlayer-eval.test.mjs
 
 fixtures:
 	$(CARGO) run $(CARGO_FLAGS) -q -p bookerbob-cli -- gen-fixtures fixtures
@@ -411,6 +411,19 @@ arc-anchor-test:
 
 arc-anchor-wasm:
 	cd anchor && cargo near build non-reproducible-wasm --no-abi --out-dir ../target/near
+
+# The evaluator inside OutLayer's TEE (worker/outlayer-eval, docs/outlayer-eval.md). Local: the
+# fixed-path wasm build (needs wasi-sdk 25, WASI_SDK=<dir>), the native tests on the committed real
+# presentations, then the wasm in wasmtime with a MOCK signing host and the real submit_verdict on
+# near-sdk's mocked chain. Sends nothing.
+outlayer-eval-local:
+	JOBS=$(JOBS) sh worker/outlayer-eval/build.sh
+	cd worker/outlayer-eval && $(CARGO) test $(CARGO_FLAGS) --release --locked
+	cd worker/outlayer-eval/host && $(CARGO) run $(CARGO_FLAGS) -q --release --locked -- ../target/wasm32-wasip2/release/bookerbob-eval-outlayer.wasm ../../../fixtures/live/prove-me/founder-github-owner.presentation ../../../fixtures/live/tee-notary/octocat-mpc.presentation
+
+# The live testnet run of the evaluator, re-derived keylessly over public RPC (20 checks).
+outlayer-eval-verify:
+	node scripts/outlayer-eval.mjs verify
 
 clean:
 	$(CARGO) clean

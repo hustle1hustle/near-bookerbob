@@ -1,0 +1,142 @@
+{
+  "date": "2026-11-14",
+  "project_id": "bookerbob.testnet/bookerbob-evaluator",
+  "contract": "outlayer.testnet",
+  "bazaar": "bookerbob.testnet",
+  "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/evaluator-v0/bookerbob-eval-outlayer.wasm",
+  "wasm_sha256": "a77f88c951a694a6fcbf91ee4e882d1a537f85abfeab6e1c3a096ccedebe65ba",
+  "context": "bookerbob:v0:evaltee-github",
+  "presentation_sha256": "dcc88f016d25272e0a89300ea1994f9330ecd3e33b4fe6ac6725a66a71afdfa3",
+  "txs": {
+    "create_project": "FHyFCSD1xhV8ifZMYX585zaQUegdZu4pAF2zytrWPcs",
+    "pubkey": "9yDskw4NWp4cVYqPa3Rqj8M33pjWnbuzrzoGuuciwYzS",
+    "pubkey_resolve": "Gmz33c7C49PRDF8FhLQhKRPNFASxUqMpT4hkDRmwSNds",
+    "register_issuer": "4dCK9ayKvKHtSySmAiA6j1293wCDBUxRHAreAanfj3bd",
+    "fund_a": "7B9y7kaRNFFvPxusYqQjDvd9gMu1oy2pFgstr7xi8DHV",
+    "fund_b": "EF8LbYtadpSuRhxkbC91qiUvoSzMciHrJydD4N9U3k7s",
+    "accept": "Bqc8J1XsuXPYghJ1dkJsRWDVwbCazHkeLB73CPaiB3jB",
+    "execute_anchor": "EvBWgAoW1acgG7kJwR1A52gDsaT3qA7AjGBdALz3ovNf",
+    "accept_resolve": "AcpZJXHhwLPEfhStibuot2vQEpWoXSQPwsNq8tCR3z3C",
+    "submit": "EVd12BCD2VRLkKdewfqpsP2FR3gTvTSHJKD61fY2SjMG",
+    "sybil": "DLKKXVWD7yMuQoBfKpEb5BCaVYdFht414gWVAu7fqEZe",
+    "topup_a": "D554mskEvUdgBtuYfJAwd4V9JM3R8eASy2pLb26PH3gt",
+    "sybil_resolve": "5ez17Md9kXwRCLxzd9UeenxUjhdn16ncpLxHJwCyzsMU",
+    "sybil_submit": "HGm3HrprcZTjgnhXWBug2b8We73m6ARE6Xu6kC3toYTM",
+    "refuse": "7xCsPaXa3m7e1gZ9JDjWD1S6XHfVz9sJNVSQa9VTLQx",
+    "refuse_resolve": "985AmsvQbPQ9a5u7KJ5rG5jD4R8eSPfDz18ELBUxFmoj"
+  },
+  "request_ids": {
+    "pubkey": 47386,
+    "accept": 47510,
+    "sybil": 47638,
+    "refuse": 47653
+  },
+  "via": {
+    "pubkey": "resolve",
+    "accept": "resolve",
+    "sybil": "resolve",
+    "refuse": "resolve"
+  },
+  "keys": {
+    "evaluator_key": "be7c92fe3a589c636e91f80927e9fe7f62791c7219809b4731e2817869754b58",
+    "model": "outlayer:bookerbob-evaluator/v0",
+    "notary_keys": [
+      "0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32",
+      "02114d7e15cb2a93ad88997af3394d00008dae381b601f31379d638de492ab25ef"
+    ],
+    "seal_x25519": "86097ce0a599e588781f8f519e60c70032ccae7cc7ad5c84cc61e8225e535959"
+  },
+  "pubkey_out": {
+    "keys": {
+      "evaluator_key": "be7c92fe3a589c636e91f80927e9fe7f62791c7219809b4731e2817869754b58",
+      "model": "outlayer:bookerbob-evaluator/v0",
+      "notary_keys": [
+        "0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32",
+        "02114d7e15cb2a93ad88997af3394d00008dae381b601f31379d638de492ab25ef"
+      ],
+      "seal_x25519": "86097ce0a599e588781f8f519e60c70032ccae7cc7ad5c84cc61e8225e535959"
+    },
+    "signature": "8d6a799ef16b2e288679aea548e4c483de987d985ac65f3d6651e1bfc08c76c91537b6014f82d54e1a7864efbc5de16d21c188ff111c7f83c8b51ae87176e301"
+  },
+  "anchor_id": 5,
+  "buyers": {
+    "a": "a5946c2bac64f12fe391a959c450c3d81edeef3f313f3450cd3b6cc2f93b53ab",
+    "b": "b1ef78e8f0161f395f0c475bf0acac79ae4012241ebd845ba8d553b15333c426"
+  },
+  "failed_runs": [
+    {
+      "key": "accept",
+      "tx": "Bn32vRbRnQmakSgdDH7n3Emjt3ZBpKEVhmNrc94VVfdy",
+      "why": "driver bug: the sealed input was wrapped twice; the component answered an error and exited 1",
+      "request_id": 47443
+    },
+    {
+      "key": "accept",
+      "why": "a second accept run, between the failed one and the recorded one: it returned a signed verdict, but the driver crashed reading OutLayer resolve shape before saving it; its output is not used"
+    }
+  ],
+  "accept": {
+    "alg": "ed25519",
+    "envelope": {
+      "attestation": {
+        "model": "outlayer:bookerbob-evaluator/v0",
+        "report_hash": "bcaed23f993dfdc1a171d2812bea9ae5d623099452b4b7b7b3da7cdcbac4612f",
+        "tcb_status": "fixture"
+      },
+      "cnf": "a5946c2bac64f12fe391a959c450c3d81edeef3f313f3450cd3b6cc2f93b53ab",
+      "commitment": "beb4a1ffc522f56b580f63984074276d14d5a9ebc21e23a7ba92780ac043a941",
+      "context": "bookerbob:v0:evaltee-github",
+      "expires_at_ms": 1794685446949,
+      "issued_at_ms": 1794682446949,
+      "max_spend": "50000000",
+      "nullifier": "4530af8b374e3a5655148109478bbb1516ee519e67460234bd29701bdcc2e27b",
+      "predicates": [],
+      "proof_hash": "5f705e53e33e05748f953e9977354a2a2c8e75dccb04f6338ffdb1dec3c3f018",
+      "tier": "none",
+      "v": 0
+    },
+    "issuer_key": "be7c92fe3a589c636e91f80927e9fe7f62791c7219809b4731e2817869754b58",
+    "signature": "519fd0871ebd660cbc06943126d5b3c0d17f7e0909c2856e3fc48a4545c3ada4d0c0931e366e810fcadfb7dbb3a1d5a40143cf538d3fa7a92afc7470ff319d0e"
+  },
+  "senders": {
+    "sybil": "b1ef78e8f0161f395f0c475bf0acac79ae4012241ebd845ba8d553b15333c426",
+    "refuse": "a5946c2bac64f12fe391a959c450c3d81edeef3f313f3450cd3b6cc2f93b53ab"
+  },
+  "sybil": {
+    "alg": "ed25519",
+    "envelope": {
+      "attestation": {
+        "model": "outlayer:bookerbob-evaluator/v0",
+        "report_hash": "bcaed23f993dfdc1a171d2812bea9ae5d623099452b4b7b7b3da7cdcbac4612f",
+        "tcb_status": "fixture"
+      },
+      "cnf": "b1ef78e8f0161f395f0c475bf0acac79ae4012241ebd845ba8d553b15333c426",
+      "commitment": "07ac4b8fb6315a2d46a71a81d9643045ae1ef38b0b07f5057198a141b4f0c873",
+      "context": "bookerbob:v0:evaltee-github",
+      "expires_at_ms": 1794686533633,
+      "issued_at_ms": 1794683533633,
+      "max_spend": "50000000",
+      "nullifier": "4530af8b374e3a5655148109478bbb1516ee519e67460234bd29701bdcc2e27b",
+      "predicates": [],
+      "proof_hash": "5f705e53e33e05748f953e9977354a2a2c8e75dccb04f6338ffdb1dec3c3f018",
+      "tier": "none",
+      "v": 0
+    },
+    "issuer_key": "be7c92fe3a589c636e91f80927e9fe7f62791c7219809b4731e2817869754b58",
+    "signature": "3d0f794612ce3a80e4ba6fcb712416092c68b5c68596028b6a81d3652ec577b03522a383d7524ea564ab2d6a8ad320123a03171fd9772f2fdeb90c7346d6c100"
+  },
+  "refuse": {
+    "key": "be7c92fe3a589c636e91f80927e9fe7f62791c7219809b4731e2817869754b58",
+    "refusal": {
+      "cnf": "a5946c2bac64f12fe391a959c450c3d81edeef3f313f3450cd3b6cc2f93b53ab",
+      "context": "bookerbob:v0:evaltee-github",
+      "proofs": [
+        "dcc88f016d25272e0a89300ea1994f9330ecd3e33b4fe6ac6725a66a71afdfa3"
+      ],
+      "reason": "github_builder is not proven by the presentation",
+      "verdict": "refuse"
+    },
+    "signature": "121f9d1a94b739cb3f0f4b3330de278b8b47f416134fc2d84680a084dca36aaffb72bc9f09888141c5c33d1d9b220d7e1f8392bb9beca219ba11f0d72a1fde00"
+  },
+  "note": "The evaluator inside OutLayer TEE: sealed TLSNotary presentation in, verdict signed by the TEE-derived key out, accepted by bookerbob.testnet submit_verdict. The presentation is the founder own GitHub account (GET /user), notarized by REP Fly notary; nothing about it is on chain but its sha256."
+}

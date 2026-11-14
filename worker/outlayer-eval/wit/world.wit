@@ -1,0 +1,8 @@
+// The two OutLayer host interfaces the referee imports. wit/deps/*.wit are verbatim copies of
+// fastnear/near-outlayer worker/wit/deps/ at commit e954d4a90702edcaeb290f7bade7c5283913ad74.
+package bookerbob:referee;
+
+world referee {
+    import outlayer:signing-keys/api@0.1.0;
+    import outlayer:encryption-keys/api@0.1.0;
+}

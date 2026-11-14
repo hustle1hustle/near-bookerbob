@@ -1,0 +1,25 @@
+# `sh worker/outlayer-eval/local.sh`: the evaluator component in wasmtime 36 (the runtime major
+# OutLayer's worker uses) with a MOCK signing host: fixed test keys, no TEE, no OutLayer.
+[package]
+name = "bookerbob-eval-host"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace]
+
+[dependencies]
+wasmtime = { version = "36", default-features = false, features = ["component-model", "cranelift", "runtime", "std"] }
+wasmtime-wasi = { version = "36", default-features = false }
+anyhow = "1"
+bookerbob-eval-outlayer = { path = ".." }
+bookerbob-core = { path = "../../../core" }
+bookerbob-referee-worker = { path = "../.." }
+serde_json = "1"
+hex = "0.4"
+base64 = "0.22"
+ed25519-dalek = "2.2"
+sha2 = "0.10"
+bookerbob-bazaar = { path = "../../../contract", features = ["unit-testing"] }
+near-sdk = { version = "=5.29.1", features = ["unit-testing"] }

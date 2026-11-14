@@ -133,7 +133,8 @@ nullifier burned per verdict. In your browser: [prove.html](https://hustle1hustl
 **Moved into TEEs and locked.** On mainnet every verdict is signed by the model's attested TEE
 key. The referee runs in OutLayer's TEE on testnet and mainnet, each run's TDX quote verified on
 chain by our DCAP verifier; the OutLayer arbiter key overturned a forged receipt on testnet, and
-every dispute now needs it. On testnet the bazaar, the market bazaar, the DCAP verifier, the on-chain Jolt
+every dispute now needs it. On testnet the evaluator also runs in OutLayer's TEE: buyer facts are
+sealed to it and checked there, and nobody on the BookerBob side sees them ([docs/outlayer-eval.md](docs/outlayer-eval.md)). On testnet the bazaar, the market bazaar, the DCAP verifier, the on-chain Jolt
 verifier and coalition v4 hold no access key (`node scripts/keyless-check.mjs`). The swarm's facts are reproducible fixtures; real data ran on mainnet (the founder's
 GitHub proof) and in the REP Proofs extension (the QFEX floor).
 
@@ -187,7 +188,7 @@ Track ids: `agents` (Agent Economy), `swarms` (AI Swarms), `privacy` (Privacy & 
 | [46](docs/status.md#r46) | trust anchors under a DAO and a timelock: every anchor change is queued for a public delay; a Sputnik DAO owns a test bazaar | security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [47](docs/status.md#r47) | a buying group's own treasury: a Sputnik DAO per group; only a passed proposal refunds a member or pays the merchant | social, swarms, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [50](docs/status.md#r50) | REP Eval, calibrated: 120 sealed items, 3 NEAR AI models, every answer TEE-signed, a 95% CI, a leaderboard read from chain | agents, privacy, security, open | **live** | [`scripts/rep-eval.mjs`](scripts/rep-eval.mjs) |
-| | every feature, 61 rows, with its full status | | | [docs/status.md](docs/status.md) |
+| | every feature, 62 rows, with its full status | | | [docs/status.md](docs/status.md) |
 <!-- status:end -->
 
 ## License

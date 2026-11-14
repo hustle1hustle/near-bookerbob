@@ -44,6 +44,7 @@ const m = {
   quote_verification: existsSync("tools/dcap-spike/run.json") ? JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8")) : prev.quote_verification ?? null,
   cheat: existsSync("fixtures/live/cheat/run.json") ? JSON.parse(readFileSync("fixtures/live/cheat/run.json", "utf8")) : prev.cheat ?? null,
   outlayer: existsSync("fixtures/live/outlayer/run.json") ? JSON.parse(readFileSync("fixtures/live/outlayer/run.json", "utf8")) : prev.outlayer ?? null,
+  outlayer_eval: existsSync("fixtures/live/outlayer/eval.json") ? (({ date, project_id, bazaar, wasm_sha256, context, txs, request_ids }) => ({ date, project_id, bazaar, wasm_sha256, context, txs, request_ids }))(JSON.parse(readFileSync("fixtures/live/outlayer/eval.json", "utf8"))) : prev.outlayer_eval ?? null,
   outlayer_jolt: existsSync("fixtures/live/outlayer/jolt.json") ? JSON.parse(readFileSync("fixtures/live/outlayer/jolt.json", "utf8")) : prev.outlayer_jolt ?? null,
   outlayer_dispute: existsSync("fixtures/live/outlayer/dispute.json") ? (({ date, project_id, arbiter_key, anchor, dispute }) => ({ date, project_id, arbiter_key, anchor, nullifier: dispute.nullifier, request_id: dispute.request_id, txs: dispute.txs }))(JSON.parse(readFileSync("fixtures/live/outlayer/dispute.json", "utf8"))) : prev.outlayer_dispute ?? null,
   gate: existsSync("fixtures/live/gate/run.json") ? JSON.parse(readFileSync("fixtures/live/gate/run.json", "utf8")) : prev.gate ?? null,

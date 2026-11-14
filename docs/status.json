@@ -44,7 +44,7 @@
     "tracks": "security, privacy",
     "where": "`contract/src/lib.rs` `submit_near_ai_verdict`, `core/src/near_ai.rs`",
     "status": "live",
-    "detail": "`evaluator_key` anchored on both bazaars on 2026-11-10 (the market by a DAO vote and the 5 minute delay); one model verdict countersigned by it settled [HV8r4Uvw\u2026](https://testnet.nearblocks.io/txns/HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS); `cargo test -p bookerbob-bazaar evaluator`; one key of the BookerBob operator, see Known limits",
+    "detail": "`evaluator_key` anchored on both bazaars on 2026-11-10 (the market by a DAO vote and the 5 minute delay); one model verdict countersigned by it settled [HV8r4Uvw…](https://testnet.nearblocks.io/txns/HV8r4UvwEvTtEXuP3orsCnaVCZ8Gw4fmtuEKdmMwK1iS); `cargo test -p bookerbob-bazaar evaluator`; one key of the BookerBob operator, see Known limits",
     "evidence": [
       "model_buy.txs.settle"
     ]
@@ -55,7 +55,7 @@
     "tracks": "security, agents",
     "where": "`contract/src/lib.rs` `set_mandate`, `spend_under_mandate`, `core/src/mandate.rs`",
     "status": "live",
-    "detail": "one live run (`make leash`): over the limit refused [uTaWgUCj\u2026](https://testnet.nearblocks.io/txns/uTaWgUCjbPt932TR2ZYgB7zHdUni9T1LD2gojP7qLx6), not the round's winner refused [9wcKDvct\u2026](https://testnet.nearblocks.io/txns/9wcKDvctckZPtRKKfwvA1mmvFNqYe5kyz2YPGd9Wi7zv), inside the limits settled [5phamDzA\u2026](https://testnet.nearblocks.io/txns/5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp); `cargo test -p bookerbob-bazaar leash`; `make audit` recomputes `liability`",
+    "detail": "one live run (`make leash`): over the limit refused [uTaWgUCj…](https://testnet.nearblocks.io/txns/uTaWgUCjbPt932TR2ZYgB7zHdUni9T1LD2gojP7qLx6), not the round's winner refused [9wcKDvct…](https://testnet.nearblocks.io/txns/9wcKDvctckZPtRKKfwvA1mmvFNqYe5kyz2YPGd9Wi7zv), inside the limits settled [5phamDzA…](https://testnet.nearblocks.io/txns/5phamDzAbLTw6SMuKUDrL1CtAXNQzWRCX81jAUKqJsJp); `cargo test -p bookerbob-bazaar leash`; `make audit` recomputes `liability`",
     "evidence": [
       "leash.txs.settle"
     ]
@@ -65,7 +65,7 @@
     "tracks": "privacy, realworld",
     "where": "`contract/src/lib.rs` `claim_returning`, `docs/semaphore.md`",
     "status": "live",
-    "detail": "one live run (`make buy-twice`): a past buyer's proof from a fresh account [Xxy7DqbH\u2026](https://testnet.nearblocks.io/txns/Xxy7DqbHuCX18TXAJQ5vX1LVz73uRUqxmThNn8KjTme), 34.2 paid against 36 on the receipt [Hzp9EmgT\u2026](https://testnet.nearblocks.io/txns/Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf); all testers are ours, so it shows the mechanism, not a stranger's privacy; `make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`",
+    "detail": "one live run (`make buy-twice`): a past buyer's proof from a fresh account [Xxy7DqbH…](https://testnet.nearblocks.io/txns/Xxy7DqbHuCX18TXAJQ5vX1LVz73uRUqxmThNn8KjTme), 34.2 paid against 36 on the receipt [Hzp9EmgT…](https://testnet.nearblocks.io/txns/Hzp9EmgTtZNxJr8yCZFerezuMUZHvRjHxWawKsYdtyVf); all testers are ours, so it shows the mechanism, not a stranger's privacy; `make verify` (sealed reviews) and `cargo test -p bookerbob-bazaar`",
     "evidence": [
       "buy_twice.txs.settle"
     ]
@@ -114,7 +114,7 @@
     "tracks": "swarms, security",
     "where": "`contract/src/lib.rs` (`mark_unrevealed`, `unrevealed_defaults`, `barred_until`, `is_barred`, `forfeited_bonds`)",
     "status": "live",
-    "detail": "deployed on both bazaars 2026-11-10 and run once in round `silent-1`: the merchant that revealed could not be marked [F6aG4Tqa\u2026](https://testnet.nearblocks.io/txns/F6aG4Tqa7Hc183vnJ9esZ4uagb4JhnfrC3w49UdBbnkD), the silent one was marked, lost 1 dUSDC of its bond and is refused by `commit_bid` for 24 hours [DEd5NAPw\u2026](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ), a second marking was refused [97oR8pKf\u2026](https://testnet.nearblocks.io/txns/97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw); both merchants were ours; `cargo test -p bookerbob-bazaar unrevealed` (18 tests); a merchant with no bond only sits out, and a linked merchant in an `open` round is not marked (Known limits)",
+    "detail": "deployed on both bazaars 2026-11-10 and run once in round `silent-1`: the merchant that revealed could not be marked [F6aG4Tqa…](https://testnet.nearblocks.io/txns/F6aG4Tqa7Hc183vnJ9esZ4uagb4JhnfrC3w49UdBbnkD), the silent one was marked, lost 1 dUSDC of its bond and is refused by `commit_bid` for 24 hours [DEd5NAPw…](https://testnet.nearblocks.io/txns/DEd5NAPwTkuDdSKTiBc7Yff9pGDcrKQczusE4nTpnwcQ), a second marking was refused [97oR8pKf…](https://testnet.nearblocks.io/txns/97oR8pKfTErYSbKJc7z8CCBDWdLUQnUDztKFBw7ZVMqw); both merchants were ours; `cargo test -p bookerbob-bazaar unrevealed` (18 tests); a merchant with no bond only sits out, and a linked merchant in an `open` round is not marked (Known limits)",
     "evidence": [
       "unrevealed.txs.marked"
     ]
@@ -459,7 +459,7 @@
     "tracks": "security",
     "where": "`contract/src/lib.rs` (`set_anchor_delay`, `queue_anchor`, `execute_anchor`, `cancel_anchor`), `scripts/dao-bazaar.mjs`, `docs/testnet.md`",
     "status": "live",
-    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. `market.bookerbob.testnet`, the DAO-owned copy, holds no full-access key since 2026-11-14 (DeleteKey 8YPFUgnU\u2026); so does the quote verifier `spike.bookerbob.testnet` (DeleteKey 7pgUUjnb\u2026), both re-checked by `make verify-live`. The live `bookerbob.testnet` still has one owner key and its full-access key can redeploy the code",
+    "detail": "on `bookerbob-dao-bazaar.testnet` (5 min delay; an early execute refused, a later one applied); 7 + 5 contract tests. `market.bookerbob.testnet`, the DAO-owned copy, holds no full-access key since 2026-11-14 (DeleteKey 8YPFUgnU…); so does the quote verifier `spike.bookerbob.testnet` (DeleteKey 7pgUUjnb…), both re-checked by `make verify-live`. The live `bookerbob.testnet` still has one owner key and its full-access key can redeploy the code",
     "evidence": [
       "dao",
       "dao.timelock"
@@ -575,7 +575,7 @@
     "tracks": "swarms, agents",
     "where": "`cli/src/coalition_sim.rs`, `docs/coalition-prereg.md`, `docs/coalitions.md`",
     "status": "built",
-    "detail": "pre-registration sha256 on testnet before the first seed ran (tx [4KZDqTwj\u2026](https://testnet.nearblocks.io/txns/4KZDqTwjUAT7Yq3pX2wXfTzawYGVQ6Mk35kEr1W289z5), `node scripts/prereg-anchor.mjs check`; the code was not anchored, its sha256 is in the result); 20 seeds: admission by the proven review-score tree fills 83.4% of bundles against 64.5% for single agents, failed legs per 100 bundles 17.3 against 40.8, wins 20, 19 and 20 of 20 seeds (rule: 18); the bonds cut net buyer loss by 21% of the gap to single agents with no filter (17 of 20 seeds cheaper all in, counting the 2% carry); exploratory, beyond the pre-registration: single agents applying the same filter with no bond fill 83.7%, so the fill gain is the standing filter, and with unreliable agents at 80% to 90% the fill gain is gone (79.5% each); sybils: 3 forgery types, each refused in all 160 epoch states; 4.9% dearer per filled bundle, 2 of those points the carry; a simulation with our parameters, `make coalition-check` re-runs it; the hire-edge fan-out is proven alongside and does not rank admission yet (standing v2 would)",
+    "detail": "pre-registration sha256 on testnet before the first seed ran (tx [4KZDqTwj…](https://testnet.nearblocks.io/txns/4KZDqTwjUAT7Yq3pX2wXfTzawYGVQ6Mk35kEr1W289z5), `node scripts/prereg-anchor.mjs check`; the code was not anchored, its sha256 is in the result); 20 seeds: admission by the proven review-score tree fills 83.4% of bundles against 64.5% for single agents, failed legs per 100 bundles 17.3 against 40.8, wins 20, 19 and 20 of 20 seeds (rule: 18); the bonds cut net buyer loss by 21% of the gap to single agents with no filter (17 of 20 seeds cheaper all in, counting the 2% carry); exploratory, beyond the pre-registration: single agents applying the same filter with no bond fill 83.7%, so the fill gain is the standing filter, and with unreliable agents at 80% to 90% the fill gain is gone (79.5% each); sybils: 3 forgery types, each refused in all 160 epoch states; 4.9% dearer per filled bundle, 2 of those points the carry; a simulation with our parameters, `make coalition-check` re-runs it; the hire-edge fan-out is proven alongside and does not rank admission yet (standing v2 would)",
     "evidence": []
   },
   {
@@ -584,7 +584,7 @@
     "tracks": "swarms, agents",
     "where": "`coalition/src/lib.rs` (v3, 29 tests; v1 and v2 as they ran in `coalition/v1/`, `coalition/v2/`), `scripts/coalition-live.mjs`, `docs/coalitions.md`",
     "status": "live",
-    "detail": "on testnet. Coalition v3 (`coalition-v3.bookerbob-demo.testnet`): only the purchase's own named buyer agent can announce it, while unspent; a leg keeps up to 4 announced purchases and delivers with any of them that settled; a leg with no announced purchase is released; a no-show's bond goes half to the buyer, half to the treasury. In job E the treasury and the lead are both ours (the BookerBob operator), so we received the whole slash; the next deploy makes the Sputnik DAO the treasury and sends it the whole slash. Job E: two announces on one leg, the earlier one delivered, a cross-agent announce refused on chain, h05 slashed (finalize [EXa1pwtg\u2026](https://testnet.nearblocks.io/txns/EXa1pwtgyE2QTcwTR2d9s2xSeHmELcL7WEBhHNpQCC4t)). Jobs A to C ran on v1 (m02 had no opening in the n=2 tree, so it could present no proof and was refused; 5 paid sealed reviews seeded it, the graph was re-proved in Jolt, and it was admitted), D on v2; each version's gaps are in the doc. `make coalition-verify` 43 checks over public RPC, plus 29 contract tests; all accounts ours, dUSDC a test token, the three coalition accounts keep their deploy keys",
+    "detail": "on testnet. Coalition v3 (`coalition-v3.bookerbob-demo.testnet`): only the purchase's own named buyer agent can announce it, while unspent; a leg keeps up to 4 announced purchases and delivers with any of them that settled; a leg with no announced purchase is released; a no-show's bond goes half to the buyer, half to the treasury. In job E the treasury and the lead are both ours (the BookerBob operator), so we received the whole slash; the next deploy makes the Sputnik DAO the treasury and sends it the whole slash. Job E: two announces on one leg, the earlier one delivered, a cross-agent announce refused on chain, h05 slashed (finalize [EXa1pwtg…](https://testnet.nearblocks.io/txns/EXa1pwtgyE2QTcwTR2d9s2xSeHmELcL7WEBhHNpQCC4t)). Jobs A to C ran on v1 (m02 had no opening in the n=2 tree, so it could present no proof and was refused; 5 paid sealed reviews seeded it, the graph was re-proved in Jolt, and it was admitted), D on v2; each version's gaps are in the doc. `make coalition-verify` 43 checks over public RPC, plus 29 contract tests; all accounts ours, dUSDC a test token, the three coalition accounts keep their deploy keys",
     "evidence": [
       "coalition.txs.finalize_e"
     ]
@@ -595,7 +595,7 @@
     "tracks": "swarms, agents",
     "where": "`standing-v2/`, `cli/src/coalition_sim_v2.rs`, `docs/coalition-prereg-v2.md` to `-v4.md`, `docs/coalitions.md`",
     "status": "built",
-    "detail": "anchors [7stwAQ6Q\u2026](https://testnet.nearblocks.io/txns/7stwAQ6QJaZdf4aJD8ERngkvN8k3jkSqU3ecTAbijz3J), [kCHZBSZZ\u2026](https://testnet.nearblocks.io/txns/kCHZBSZZ1u89h4HKG9HV7RNjSHQwJ1Rbe7pj9KPfcoQ), [DwZPkVsi\u2026](https://testnet.nearblocks.io/txns/DwZPkVsiV2qkY1n4WpbV6S5oKUy6A2hjfAbvhhHsAQgX); v2: volume buys rank, failed legs 23.7 against 17.3; v3: newcomers in 20 of 20 seeds but the longer list lets unreliable agents past the cut, 21.6 against 17.3; v4 on fresh seeds 21 to 40: as safe as v1 (18.9 against 19.1 failed legs, fill 0.817 against 0.812) with 1.6 reliable newcomers per seed, short of the registered 18 of 20 seeds (16); sybil rings 0 in every attempt; `make coalition-v4-check`",
+    "detail": "anchors [7stwAQ6Q…](https://testnet.nearblocks.io/txns/7stwAQ6QJaZdf4aJD8ERngkvN8k3jkSqU3ecTAbijz3J), [kCHZBSZZ…](https://testnet.nearblocks.io/txns/kCHZBSZZ1u89h4HKG9HV7RNjSHQwJ1Rbe7pj9KPfcoQ), [DwZPkVsi…](https://testnet.nearblocks.io/txns/DwZPkVsiV2qkY1n4WpbV6S5oKUy6A2hjfAbvhhHsAQgX); v2: volume buys rank, failed legs 23.7 against 17.3; v3: newcomers in 20 of 20 seeds but the longer list lets unreliable agents past the cut, 21.6 against 17.3; v4 on fresh seeds 21 to 40: as safe as v1 (18.9 against 19.1 failed legs, fill 0.817 against 0.812) with 1.6 reliable newcomers per seed, short of the registered 18 of 20 seeds (16); sybil rings 0 in every attempt; `make coalition-v4-check`",
     "evidence": []
   },
   {
@@ -617,5 +617,16 @@
     "status": "built",
     "detail": "live on testnet at `bookerbob-outcomes.testnet` since 2026-11-14: 42 hourly epochs, 3,241 events, head `143a000d`; anchor-check PASS (graph events 1..10 equal the bazaar's graph_root at the last anchored block, coalition job ids complete there), a locally changed event fails at its epoch; anchor-rebuild PASS: 6 of 6 coalition (contract, member) records equal the contracts' member() views, and the standing rebuilt from the anchor's 10 graph events equals the bazaar's on-chain standing_root `3b5db5e9`; completeness is partial (counters cover graph events and coalition jobs only; discovery trusts the indexer); a first chain with rounded timestamps is superseded; the same 42 epochs on NEAR mainnet at the implicit account `a145dcce`, head `796e89ab`, with anchor-check and anchor-rebuild PASS against it (0.035 NEAR burnt, 1.557 NEAR storage); the poster and the account key are ours",
     "evidence": []
+  },
+  {
+    "feature": "the evaluator inside OutLayer's TEE: buyer facts sealed to it, the TLSNotary presentation verified there, the verdict signed by a key only the TEE holds and accepted by the bazaar as an issuer",
+    "short": "the evaluator in OutLayer's TEE: buyer facts sealed to it and checked there (v0 live; v1 fixes its audited issues in code)",
+    "tracks": "privacy, security, agents",
+    "where": "`worker/outlayer-eval/`, `scripts/outlayer-eval.mjs`, `docs/outlayer-eval.md`",
+    "status": "live",
+    "detail": "testnet, 2026-11-14: v0 is deployed as project `bookerbob.testnet/bookerbob-evaluator` (release `evaluator-v0`); the founder's signed-in GitHub presentation was sealed to the TEE's X25519 key, verified there with upstream TLSNotary, and a verdict signed by the TEE key was accepted by the bazaar under that key registered as an issuer; a predicate the facts do not back got a signed refusal. The audit of v0 found issues (`docs/outlayer-eval.md`, `docs/audit.md` E1 to E12), and on the locked bazaar v0's issuer key cannot be revoked. v1 fixes them in code with tests (sha256 `4d2c4a3b…`), not deployed: the locked bazaar cannot register it. `make outlayer-eval-verify` re-derives the v0 run keylessly (20 checks)",
+    "evidence": [
+      "outlayer_eval.txs.submit"
+    ]
   }
 ]
