@@ -1,0 +1,93 @@
+{
+  "note": "The chain reads this statement is bound to, over public RPC (final). smith-check and the page fall back to them when RPC does not answer; --live re-reads.",
+  "read_at": "2026-11-14T16:54:18.471Z",
+  "reads": [
+    {
+      "account": "coalition.bookerbob-demo.testnet",
+      "method": "job",
+      "args": {
+        "job": 2
+      },
+      "result": {
+        "id": 2,
+        "buyer": "cl-lead-1df7.bookerbob-demo.testnet",
+        "legs": [
+          {
+            "category": "hoodie",
+            "max_price": "48000000"
+          },
+          {
+            "category": "hotel",
+            "max_price": "450000000"
+          },
+          {
+            "category": "hoodie",
+            "max_price": "45000000"
+          }
+        ],
+        "seats": [
+          {
+            "member": "m01.bookerbob.testnet",
+            "price": "48000000",
+            "pending": false,
+            "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd"
+          },
+          {
+            "member": "h05.bookerbob.testnet",
+            "price": "450000000",
+            "pending": false,
+            "delivered": null
+          },
+          {
+            "member": "m02.bookerbob.testnet",
+            "price": "45000000",
+            "pending": false,
+            "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a"
+          }
+        ],
+        "bond": "5000000",
+        "budget": "30000000",
+        "funded": true,
+        "min_top_pct": 100,
+        "deadline_ms": 1794669579482,
+        "status": "failed"
+      }
+    },
+    {
+      "account": "tx",
+      "method": "7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF",
+      "args": {
+        "sender": "cl-lead-1df7.bookerbob-demo.testnet",
+        "event": "job_finalized"
+      },
+      "result": {
+        "job": 2,
+        "status": "failed",
+        "buyer": "cl-lead-1df7.bookerbob-demo.testnet",
+        "to_buyer": "27361881",
+        "delivered": [
+          {
+            "member": "m01.bookerbob.testnet",
+            "bond_back": "5000000",
+            "share": "2651933",
+            "from_slashed": "1290322"
+          },
+          {
+            "member": "m02.bookerbob.testnet",
+            "bond_back": "5000000",
+            "share": "2486187",
+            "from_slashed": "1209677"
+          }
+        ],
+        "slashed": [
+          {
+            "member": "h05.bookerbob.testnet",
+            "bond_lost": "5000000"
+          }
+        ],
+        "__executor": "coalition.bookerbob-demo.testnet",
+        "__standard": "bookerbob-coalition"
+      }
+    }
+  ]
+}

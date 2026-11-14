@@ -1,0 +1,363 @@
+[
+  {
+    "label": "synthetic buyer: 612.40 USD in 90 days, bucket 2 (over 500)",
+    "by": "requester",
+    "public_hex": "83e45ac9ed7ee35c43959f68ddf682e23b2048e1e5763ed74899c5e36cbcaacab69f015a03904ed08603a08d06",
+    "private_hex": "5a1f00000000000000000000000000000000000000000000000000000000c0de05d69e01bc8c06156d30332e626f6f6b6572626f622e746573746e6574e09e01c025156d30312e626f6f6b6572626f622e746573746e6574fe9e01e0be02156830352e626f6f6b6572626f622e746573746e6574a79f019423156d30322e626f6f6b6572626f622e746573746e6574b09f018457156d30372e626f6f6b6572626f622e746573746e6574",
+    "expect": "ok",
+    "expect_output_hex": "02",
+    "source": {
+      "label": "synthetic buyer: 612.40 USD in 90 days, bucket 2 (over 500)",
+      "prove": true,
+      "public": {
+        "records_root": "83e45ac9ed7ee35c43959f68ddf682e23b2048e1e5763ed74899c5e36cbcaaca",
+        "as_of_day": 20406,
+        "window_days": 90,
+        "thresholds_cents": [
+          "10000",
+          "50000",
+          "100000"
+        ]
+      },
+      "private": {
+        "salt": "5a1f00000000000000000000000000000000000000000000000000000000c0de",
+        "records": [
+          {
+            "day": 20310,
+            "amount_cents": "99900",
+            "merchant": "m03.bookerbob.testnet"
+          },
+          {
+            "day": 20320,
+            "amount_cents": "4800",
+            "merchant": "m01.bookerbob.testnet"
+          },
+          {
+            "day": 20350,
+            "amount_cents": "40800",
+            "merchant": "h05.bookerbob.testnet"
+          },
+          {
+            "day": 20391,
+            "amount_cents": "4500",
+            "merchant": "m02.bookerbob.testnet"
+          },
+          {
+            "day": 20400,
+            "amount_cents": "11140",
+            "merchant": "m07.bookerbob.testnet"
+          }
+        ]
+      },
+      "expect": {
+        "bucket": 2
+      }
+    }
+  },
+  {
+    "label": "the same records against another root: refused",
+    "by": "requester",
+    "public_hex": "0000000000000000000000000000000000000000000000000000000000000000b69f015a03904ed08603a08d06",
+    "private_hex": "5a1f00000000000000000000000000000000000000000000000000000000c0de01b09f018457156d30372e626f6f6b6572626f622e746573746e6574",
+    "expect": "refuse",
+    "source": {
+      "label": "the same records against another root: refused",
+      "public": {
+        "records_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "as_of_day": 20406,
+        "window_days": 90,
+        "thresholds_cents": [
+          "10000",
+          "50000",
+          "100000"
+        ]
+      },
+      "private": {
+        "salt": "5a1f00000000000000000000000000000000000000000000000000000000c0de",
+        "records": [
+          {
+            "day": 20400,
+            "amount_cents": "11140",
+            "merchant": "m07.bookerbob.testnet"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "bucket 0: window total 4999 sits below the first threshold 5000",
+    "by": "smith",
+    "public_hex": "3f5f4641dd10ab203936467e7a2f09540e949d318ff03532c3c9aa04ae196f8ba09c011e018827",
+    "private_hex": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2001969c0187270e73686f702d612e6578616d706c65",
+    "expect": "ok",
+    "expect_output_hex": "00",
+    "source": {
+      "label": "bucket 0: window total 4999 sits below the first threshold 5000",
+      "public": {
+        "records_root": "3f5f4641dd10ab203936467e7a2f09540e949d318ff03532c3c9aa04ae196f8b",
+        "as_of_day": 20000,
+        "window_days": 30,
+        "thresholds_cents": [
+          "5000"
+        ]
+      },
+      "private": {
+        "salt": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+        "records": [
+          {
+            "day": 19990,
+            "amount_cents": "4999",
+            "merchant": "shop-a.example"
+          }
+        ]
+      },
+      "expect": {
+        "bucket": 0
+      }
+    }
+  },
+  {
+    "label": "bucket 3: day == lower bound excluded, day == as_of_day included, threshold equal to total counts",
+    "by": "smith",
+    "public_hex": "8e54286e68e4896cf03a26f326780763b1d375b02dbb4952155c9527391ae791a09c010a03f403dc0bd00f",
+    "private_hex": "2122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f4004969c01e8070a656467652d6c6f776572979c01e80709696e2d77696e646f77919c01e8070d6265666f72652d77696e646f77a09c01e80709656467652d61736f66",
+    "expect": "ok",
+    "expect_output_hex": "03",
+    "source": {
+      "label": "bucket 3: day == lower bound excluded, day == as_of_day included, threshold equal to total counts",
+      "public": {
+        "records_root": "8e54286e68e4896cf03a26f326780763b1d375b02dbb4952155c9527391ae791",
+        "as_of_day": 20000,
+        "window_days": 10,
+        "thresholds_cents": [
+          "500",
+          "1500",
+          "2000"
+        ]
+      },
+      "private": {
+        "salt": "2122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40",
+        "records": [
+          {
+            "day": 19990,
+            "amount_cents": "1000",
+            "merchant": "edge-lower"
+          },
+          {
+            "day": 19991,
+            "amount_cents": "1000",
+            "merchant": "in-window"
+          },
+          {
+            "day": 19985,
+            "amount_cents": "1000",
+            "merchant": "before-window"
+          },
+          {
+            "day": 20000,
+            "amount_cents": "1000",
+            "merchant": "edge-asof"
+          }
+        ]
+      },
+      "expect": {
+        "bucket": 3
+      }
+    }
+  },
+  {
+    "label": "refuse: root committed over records only, salt omitted from the commitment",
+    "by": "smith",
+    "public_hex": "f4025d206e156e13968728828fa4eb4e8782b6a90f0e8fd11b46d5a7a51807eea09c011e018827",
+    "private_hex": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2001969c0187270e73686f702d612e6578616d706c65",
+    "expect": "refuse",
+    "source": {
+      "label": "refuse: root committed over records only, salt omitted from the commitment",
+      "public": {
+        "records_root": "f4025d206e156e13968728828fa4eb4e8782b6a90f0e8fd11b46d5a7a51807ee",
+        "as_of_day": 20000,
+        "window_days": 30,
+        "thresholds_cents": [
+          "5000"
+        ]
+      },
+      "private": {
+        "salt": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+        "records": [
+          {
+            "day": 19990,
+            "amount_cents": "4999",
+            "merchant": "shop-a.example"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "refuse: duplicate threshold breaks strict increase",
+    "by": "smith",
+    "public_hex": "ba272e1d2588bf60a521f5848ac7259fe264e3da71ad391ef6028a523f5c5ef2a09c011e03e807e807d00f",
+    "private_hex": "aa0b0c0d0e0f101112131415161718191a1b1c1d1e1f20212223242526272829019f9c018827016d",
+    "expect": "refuse",
+    "source": {
+      "label": "refuse: duplicate threshold breaks strict increase",
+      "public": {
+        "records_root": "ba272e1d2588bf60a521f5848ac7259fe264e3da71ad391ef6028a523f5c5ef2",
+        "as_of_day": 20000,
+        "window_days": 30,
+        "thresholds_cents": [
+          "1000",
+          "1000",
+          "2000"
+        ]
+      },
+      "private": {
+        "salt": "aa0b0c0d0e0f101112131415161718191a1b1c1d1e1f20212223242526272829",
+        "records": [
+          {
+            "day": 19999,
+            "amount_cents": "5000",
+            "merchant": "m"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "refuse: nine thresholds, one past the cap of 8",
+    "by": "smith",
+    "public_hex": "c5a922976658fc524ea51c288db97501fdf3a7e4fa48636c7c96fcb151eb6a46a09c011e0964c801ac029003f403d804bc05a0068407",
+    "private_hex": "bb0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a019f9c01a08d06016d",
+    "expect": "refuse",
+    "source": {
+      "label": "refuse: nine thresholds, one past the cap of 8",
+      "public": {
+        "records_root": "c5a922976658fc524ea51c288db97501fdf3a7e4fa48636c7c96fcb151eb6a46",
+        "as_of_day": 20000,
+        "window_days": 30,
+        "thresholds_cents": [
+          "100",
+          "200",
+          "300",
+          "400",
+          "500",
+          "600",
+          "700",
+          "800",
+          "900"
+        ]
+      },
+      "private": {
+        "salt": "bb0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a",
+        "records": [
+          {
+            "day": 19999,
+            "amount_cents": "100000",
+            "merchant": "m"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "refuse: window_days 3651 exceeds the 3650 cap",
+    "by": "smith",
+    "public_hex": "db1d9d2e7441a758ff4d79bbd0fee5a3252eb8bf7c243a6f260dd7bfced3db61b69f01c31c01904e",
+    "private_hex": "cc0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b01b09f01a09c01016d",
+    "expect": "refuse",
+    "source": {
+      "label": "refuse: window_days 3651 exceeds the 3650 cap",
+      "public": {
+        "records_root": "db1d9d2e7441a758ff4d79bbd0fee5a3252eb8bf7c243a6f260dd7bfced3db61",
+        "as_of_day": 20406,
+        "window_days": 3651,
+        "thresholds_cents": [
+          "10000"
+        ]
+      },
+      "private": {
+        "salt": "cc0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b",
+        "records": [
+          {
+            "day": 20400,
+            "amount_cents": "20000",
+            "merchant": "m"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "refuse: one record dated one day after as_of_day",
+    "by": "smith",
+    "public_hex": "4667206f8d37aa88f8cec2bab658bb537f3cd781e4663af904e3dd1258c29501a09c011e01e807",
+    "private_hex": "dd0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c029f9c01f403016da19c01f40306667574757265",
+    "expect": "refuse",
+    "source": {
+      "label": "refuse: one record dated one day after as_of_day",
+      "public": {
+        "records_root": "4667206f8d37aa88f8cec2bab658bb537f3cd781e4663af904e3dd1258c29501",
+        "as_of_day": 20000,
+        "window_days": 30,
+        "thresholds_cents": [
+          "1000"
+        ]
+      },
+      "private": {
+        "salt": "dd0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c",
+        "records": [
+          {
+            "day": 19999,
+            "amount_cents": "500",
+            "merchant": "m"
+          },
+          {
+            "day": 20001,
+            "amount_cents": "500",
+            "merchant": "future"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "refuse: two in-window records push the total past u64::MAX",
+    "by": "smith",
+    "public_hex": "b5f564abfaa382dba2cd9bc0f0e2357f93c8b6a37306b5c052a20704378c00c2a09c010a0101",
+    "private_hex": "ee0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d029b9c01ffffffffffffffffff0104626967319c9c01010462696732",
+    "expect": "refuse",
+    "source": {
+      "label": "refuse: two in-window records push the total past u64::MAX",
+      "public": {
+        "records_root": "b5f564abfaa382dba2cd9bc0f0e2357f93c8b6a37306b5c052a20704378c00c2",
+        "as_of_day": 20000,
+        "window_days": 10,
+        "thresholds_cents": [
+          "1"
+        ]
+      },
+      "private": {
+        "salt": "ee0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d",
+        "records": [
+          {
+            "day": 19995,
+            "amount_cents": "18446744073709551615",
+            "merchant": "big1"
+          },
+          {
+            "day": 19996,
+            "amount_cents": "1",
+            "merchant": "big2"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  }
+]

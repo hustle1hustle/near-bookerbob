@@ -1,0 +1,25 @@
+[package]
+name = "standing-v3-guest"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[features]
+guest = []
+
+[dependencies]
+jolt = { package = "jolt-sdk", path = "../vendor/jolt/jolt-sdk" }
+# Standing v2 (standing-v2/): the same events and fan-out as v1, ranked by own seed plus conferred standing.
+bookerbob-standing-v2 = { path = "../../../standing-v2" }
+serde = { version = "1", default-features = false, features = ["alloc"] }
+
+[lib]
+test = false
+doctest = false
+bench = false
+
+[[bin]]
+name = "standing-v3-guest"
+path = "src/main.rs"
+test = false
+bench = false

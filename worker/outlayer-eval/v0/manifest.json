@@ -1,0 +1,9 @@
+{
+  "display": { "name": "BookerBob evaluator" },
+  "capabilities": { "network": [] },
+  "signing_keys": [
+    { "path": "evaluator", "type": "ed25519", "caller": "none" },
+    { "path": "nullifier", "type": "ed25519", "caller": "none" },
+    { "path": "seal", "type": "ed25519", "caller": "none" }
+  ]
+}

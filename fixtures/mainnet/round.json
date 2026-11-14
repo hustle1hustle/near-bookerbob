@@ -25,7 +25,10 @@
     }
   },
   "approved": {
-    "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "7K36642sRoEdLVMrDv9gy39DUS1NuM6uKZdWkwLtEnX2"
+    "3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "7K36642sRoEdLVMrDv9gy39DUS1NuM6uKZdWkwLtEnX2",
+    "365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "3CXdUEzZJ6CbxquHD9EQfwawVuSXKNk9xkG2ZJt8fTgY",
+    "6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "G2gVfSgDaQDwbmy88SasvLREG6zQCQGeNjSBwG2r44Kd",
+    "776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC"
   },
   "reveals": {},
   "txs": {
@@ -34,7 +37,10 @@
     "commit merchant-a": "6YXmSngHpCnuLtrq5JVk3dJmYR41zN2bbyr2oTP9Hmm6",
     "commit merchant-b": "5TX1nbJgt8bAy5PHNoVaBQYCh3Ctneai8yqU2zxj5chh",
     "approve 3d0c7bf9019533b2d1168d52b51b007c9d0dde00e514a78b76c1a5c062df8070": "7K36642sRoEdLVMrDv9gy39DUS1NuM6uKZdWkwLtEnX2",
-    "fund relayer": "HSUtCzbxdXTCnqgydVr4shMvyjBtZhCeCxJq579pibgg"
+    "fund relayer": "HSUtCzbxdXTCnqgydVr4shMvyjBtZhCeCxJq579pibgg",
+    "approve 365a2c3f675392685c163d71e83d00492837bb5bd2a6c883deb8e44850ae6d05": "3CXdUEzZJ6CbxquHD9EQfwawVuSXKNk9xkG2ZJt8fTgY",
+    "approve 6f69cd2e210e86ff3a7f1984289bc09987e954b830ead5d89daaaf3e56b152f5": "G2gVfSgDaQDwbmy88SasvLREG6zQCQGeNjSBwG2r44Kd",
+    "approve 776e009b65ca3d71a678f9a490b5c451afa1587f0a443ea0a1837f889e3c8a35": "HcZFnKsJSfHWV74rdgfmbqvx3Ls2TQk2ExmCLBssZZWC"
   },
   "page_test": {
     "note": "our own test of the round page flow (the page code, round-tx.js, run from Node): a fresh key, funded by our buyer, bids 0.23 USDC. Marked ours.",

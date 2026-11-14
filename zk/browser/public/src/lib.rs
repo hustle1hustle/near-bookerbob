@@ -102,3 +102,53 @@ pub fn same_output(a: &[u8], b: &[u8]) -> bool {
     let trim = |x: &[u8]| x.iter().rposition(|byte| *byte != 0).map_or(0, |i| i + 1);
     a[..trim(a)] == b[..trim(b)]
 }
+
+/// The public statement of a standing proof (`agents/standing/statement.json`): the graph events
+/// as hex, in the order the contract applied them, and the claimed (graph root, standing hash).
+/// The prover and the wasm verifier build the guest's bytes from it with this one function, so a
+/// changed event or claim is a different statement.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Standing {
+    #[serde(default)]
+    pub note: String,
+    pub events: Vec<String>,
+    pub root: String,
+    pub scores_hash: String,
+}
+
+fn unhex(s: &str, what: &str) -> Result<Vec<u8>, String> {
+    let b = s.as_bytes();
+    if b.len() % 2 != 0 || !b.iter().all(u8::is_ascii_hexdigit) {
+        return Err(format!("{what}: not hex"));
+    }
+    let nib = |c: u8| (c as char).to_digit(16).unwrap_or(0) as u8;
+    Ok(b.chunks(2).map(|p| (nib(p[0]) << 4) | nib(p[1])).collect())
+}
+
+fn hash32(s: &str, what: &str) -> Result<[u8; 32], String> {
+    unhex(s, what)?.try_into().map_err(|_| format!("{what}: not 32 bytes"))
+}
+
+impl Standing {
+    pub fn from_json(bytes: &[u8]) -> Result<Self, String> {
+        serde_json::from_slice(bytes).map_err(|e| format!("statement.json: {e}"))
+    }
+
+    pub fn event_bytes(&self) -> Result<Vec<Vec<u8>>, String> {
+        self.events.iter().enumerate().map(|(i, e)| unhex(e, &format!("event {i}"))).collect()
+    }
+
+    pub fn claim(&self) -> Result<([u8; 32], [u8; 32]), String> {
+        Ok((hash32(&self.root, "root")?, hash32(&self.scores_hash, "scores_hash")?))
+    }
+
+    /// The guest's input bytes: the one argument, postcard.
+    pub fn inputs(&self) -> Result<Vec<u8>, String> {
+        postcard::to_stdvec(&self.event_bytes()?).map_err(|e| e.to_string())
+    }
+
+    /// The guest's output bytes for this claim, postcard.
+    pub fn outputs(&self) -> Result<Vec<u8>, String> {
+        postcard::to_stdvec(&self.claim()?).map_err(|e| e.to_string())
+    }
+}

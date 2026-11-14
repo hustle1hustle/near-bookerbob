@@ -1,0 +1,432 @@
+[
+  {
+    "label": "job C as on chain (coalition.bookerbob-demo.testnet job 2), k_min 2",
+    "by": "requester",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c02",
+    "private_hex": "0300156d30312e626f6f6b6572626f622e746573746e657480d8f11601403633393537313439653466306436373064613831386337373862393339356131646366646664326230343236616530663337613432326530653535626365646401156830352e626f6f6b6572626f622e746573746e657480e9c9d6010002156d30322e626f6f6b6572626f622e746573746e6574c0caba15014039343130326535353133363564616138376439663131346661343732393664343066316532343662326465386163643931326261616564643532306439303261",
+    "expect": "ok",
+    "expect_output_hex": "0203",
+    "source": {
+      "label": "job C as on chain (coalition.bookerbob-demo.testnet job 2), k_min 2",
+      "prove": true,
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 2,
+        "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+        "k_min": 2
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "m01.bookerbob.testnet",
+            "price": "48000000",
+            "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd"
+          },
+          {
+            "leg": 1,
+            "member": "h05.bookerbob.testnet",
+            "price": "450000000",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "m02.bookerbob.testnet",
+            "price": "45000000",
+            "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a"
+          }
+        ]
+      },
+      "expect": {
+        "delivered": 2,
+        "seats": 3
+      }
+    }
+  },
+  {
+    "label": "job C, k_min 3: only 2 delivered, refused",
+    "by": "requester",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c03",
+    "private_hex": "0300156d30312e626f6f6b6572626f622e746573746e657480d8f11601403633393537313439653466306436373064613831386337373862393339356131646366646664326230343236616530663337613432326530653535626365646401156830352e626f6f6b6572626f622e746573746e657480e9c9d6010002156d30322e626f6f6b6572626f622e746573746e6574c0caba15014039343130326535353133363564616138376439663131346661343732393664343066316532343662326465386163643931326261616564643532306439303261",
+    "expect": "refuse",
+    "source": {
+      "label": "job C, k_min 3: only 2 delivered, refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 2,
+        "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+        "k_min": 3
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "m01.bookerbob.testnet",
+            "price": "48000000",
+            "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd"
+          },
+          {
+            "leg": 1,
+            "member": "h05.bookerbob.testnet",
+            "price": "450000000",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "m02.bookerbob.testnet",
+            "price": "45000000",
+            "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "h05 claims delivery against job C's real root: refused",
+    "by": "requester",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c03",
+    "private_hex": "0300156d30312e626f6f6b6572626f622e746573746e657480d8f11601403633393537313439653466306436373064613831386337373862393339356131646366646664326230343236616530663337613432326530653535626365646401156830352e626f6f6b6572626f622e746573746e657480e9c9d60101403030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303002156d30322e626f6f6b6572626f622e746573746e6574c0caba15014039343130326535353133363564616138376439663131346661343732393664343066316532343662326465386163643931326261616564643532306439303261",
+    "expect": "refuse",
+    "source": {
+      "label": "h05 claims delivery against job C's real root: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 2,
+        "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+        "k_min": 3
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "m01.bookerbob.testnet",
+            "price": "48000000",
+            "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd"
+          },
+          {
+            "leg": 1,
+            "member": "h05.bookerbob.testnet",
+            "price": "450000000",
+            "delivered": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          {
+            "leg": 2,
+            "member": "m02.bookerbob.testnet",
+            "price": "45000000",
+            "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "two of two delivered, k_min 2: proves, revealing only the counts",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740b362454b87861c56cbe0bc55b44d1f85abffa840f63f9b3f00f2f010a77aa6e2502",
+    "private_hex": "020017616c7068612e626f6f6b6572626f622e746573746e6574c0843d0140303132333435363738396162636465663031323334353637383961626364656630313233343536373839616263646566303132333435363738396162636465660116626574612e626f6f6b6572626f622e746573746e657480897a014066656463626139383736353433323130666564636261393837363534333231306665646362613938373635343332313066656463626139383736353433323130",
+    "expect": "ok",
+    "expect_output_hex": "0202",
+    "source": {
+      "label": "two of two delivered, k_min 2: proves, revealing only the counts",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "11",
+        "seats_root": "362454b87861c56cbe0bc55b44d1f85abffa840f63f9b3f00f2f010a77aa6e25",
+        "k_min": 2
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "alpha.bookerbob.testnet",
+            "price": "1000000",
+            "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          },
+          {
+            "leg": 1,
+            "member": "beta.bookerbob.testnet",
+            "price": "2000000",
+            "delivered": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+          }
+        ]
+      },
+      "expect": {
+        "delivered": 2,
+        "seats": 2
+      }
+    }
+  },
+  {
+    "label": "k_min 0 with zero delivered: allowed",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740cf5fa70f09d6362aa97ad57d17020d1deda4390963b92459daa8d65dc8f18535000",
+    "private_hex": "0300146d312e626f6f6b6572626f622e746573746e6574f4030001146d322e626f6f6b6572626f622e746573746e6574d8040002146d332e626f6f6b6572626f622e746573746e6574bc0500",
+    "expect": "ok",
+    "expect_output_hex": "0003",
+    "source": {
+      "label": "k_min 0 with zero delivered: allowed",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "12",
+        "seats_root": "f5fa70f09d6362aa97ad57d17020d1deda4390963b92459daa8d65dc8f185350",
+        "k_min": 0
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "m1.bookerbob.testnet",
+            "price": "500",
+            "delivered": null
+          },
+          {
+            "leg": 1,
+            "member": "m2.bookerbob.testnet",
+            "price": "600",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "m3.bookerbob.testnet",
+            "price": "700",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": {
+        "delivered": 0,
+        "seats": 3
+      }
+    }
+  },
+  {
+    "label": "seats_root does not match the private seats: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740d000000000000000000000000000000000000000000000000000000000000000000",
+    "private_hex": "010017616c7068612e626f6f6b6572626f622e746573746e6574c0843d014030313233343536373839616263646566303132333435363738396162636465663031323334353637383961626364656630313233343536373839616263646566",
+    "expect": "refuse",
+    "source": {
+      "label": "seats_root does not match the private seats: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "13",
+        "seats_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "k_min": 0
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "alpha.bookerbob.testnet",
+            "price": "1000000",
+            "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "nine seats, one above the cap of 8: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740efe83a7bd91696d69dcd6cc4065077c5183fe6e8db50e426b9e354abb8bcc21ed00",
+    "private_hex": "09001473302e626f6f6b6572626f622e746573746e65740100011473312e626f6f6b6572626f622e746573746e65740100021473322e626f6f6b6572626f622e746573746e65740100031473332e626f6f6b6572626f622e746573746e65740100041473342e626f6f6b6572626f622e746573746e65740100051473352e626f6f6b6572626f622e746573746e65740100061473362e626f6f6b6572626f622e746573746e65740100071473372e626f6f6b6572626f622e746573746e65740100081473382e626f6f6b6572626f622e746573746e65740100",
+    "expect": "refuse",
+    "source": {
+      "label": "nine seats, one above the cap of 8: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "14",
+        "seats_root": "fe83a7bd91696d69dcd6cc4065077c5183fe6e8db50e426b9e354abb8bcc21ed",
+        "k_min": 0
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "s0.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 1,
+            "member": "s1.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "s2.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 3,
+            "member": "s3.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 4,
+            "member": "s4.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 5,
+            "member": "s5.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 6,
+            "member": "s6.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 7,
+            "member": "s7.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          },
+          {
+            "leg": 8,
+            "member": "s8.bookerbob.testnet",
+            "price": "1",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "legs 0 then 2, root honestly commits to the malformed list: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740f30d58808168544fc0a731fcdf9d792ab6a46de075f750bce82fb71155f1acc2100",
+    "private_hex": "020017616c7068612e626f6f6b6572626f622e746573746e657464000216626574612e626f6f6b6572626f622e746573746e6574c80100",
+    "expect": "refuse",
+    "source": {
+      "label": "legs 0 then 2, root honestly commits to the malformed list: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "15",
+        "seats_root": "30d58808168544fc0a731fcdf9d792ab6a46de075f750bce82fb71155f1acc21",
+        "k_min": 0
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "alpha.bookerbob.testnet",
+            "price": "100",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "beta.bookerbob.testnet",
+            "price": "200",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "one member on two seats to inflate the delivered count: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657410f8f78ae14e23aafae36dc14cbf999076250390c9b664ce264e12d9894e0d5e1302",
+    "private_hex": "0200156475702e626f6f6b6572626f622e746573746e65746401403031323334353637383961626364656630313233343536373839616263646566303132333435363738396162636465663031323334353637383961626364656601156475702e626f6f6b6572626f622e746573746e6574c801014066656463626139383736353433323130666564636261393837363534333231306665646362613938373635343332313066656463626139383736353433323130",
+    "expect": "refuse",
+    "source": {
+      "label": "one member on two seats to inflate the delivered count: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "16",
+        "seats_root": "f8f78ae14e23aafae36dc14cbf999076250390c9b664ce264e12d9894e0d5e13",
+        "k_min": 2
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "dup.bookerbob.testnet",
+            "price": "100",
+            "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          },
+          {
+            "leg": 1,
+            "member": "dup.bookerbob.testnet",
+            "price": "200",
+            "delivered": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "delivery id uses uppercase hex, not lowercase: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65741155d09300fa7fb4ba9daa0cc85c2b91193de461a8af75248eede26cd19e0ce7af01",
+    "private_hex": "010016736f6c6f2e626f6f6b6572626f622e746573746e65748407014041303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030",
+    "expect": "refuse",
+    "source": {
+      "label": "delivery id uses uppercase hex, not lowercase: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "17",
+        "seats_root": "55d09300fa7fb4ba9daa0cc85c2b91193de461a8af75248eede26cd19e0ce7af",
+        "k_min": 1
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "solo.bookerbob.testnet",
+            "price": "900",
+            "delivered": "A000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "only one of two delivered against k_min 2: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e6574122991641dc8d31e832f027768271e9a7b5a97b2e393d371d282edee10ed2eb8b302",
+    "private_hex": "020017616c7068612e626f6f6b6572626f622e746573746e6574c0843d0140303132333435363738396162636465663031323334353637383961626364656630313233343536373839616263646566303132333435363738396162636465660116626574612e626f6f6b6572626f622e746573746e657480897a00",
+    "expect": "refuse",
+    "source": {
+      "label": "only one of two delivered against k_min 2: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": "18",
+        "seats_root": "2991641dc8d31e832f027768271e9a7b5a97b2e393d371d282edee10ed2eb8b3",
+        "k_min": 2
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "alpha.bookerbob.testnet",
+            "price": "1000000",
+            "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          },
+          {
+            "leg": 1,
+            "member": "beta.bookerbob.testnet",
+            "price": "2000000",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  }
+]

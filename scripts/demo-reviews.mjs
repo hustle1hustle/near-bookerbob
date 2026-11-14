@@ -79,7 +79,7 @@ export async function reviews(d, phase) {
     });
     for (const x of shuffle(raters)) await d.direct("fund one-time account", c.treasury, d.treasury, x.key.pub, [{ type: "Transfer", deposit: near(0.02) }]);
     for (const x of shuffle(raters)) {
-      const secret = readFileSync(join(c.testersDir, x.m.tester, "semaphore.secret"), "utf8").trim();
+      const secret = readFileSync(join(c.testersDir, x.m.dir ?? x.m.tester, "semaphore.secret"), "utf8").trim();
       const q = { secret, members: all, message_hex: x.sealed, scope_hex: sha(`bookerbob/review/v0|${c.merchant}|${now}`) };
       const out = spawnSync("node", ["identity.mjs", "prove"], { cwd: "semaphore", input: JSON.stringify(q), encoding: "utf8" });
       if (out.status !== 0) throw new Error(`proof: ${out.stderr.slice(-300)}`);

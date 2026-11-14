@@ -2,8 +2,8 @@
 # (a16z/jolt b4eb62480d76, fetched into vendor/jolt by build.sh); the four guests in zk/ stay
 # on 997c1543efd4, the program hash registered on chain. Nothing here touches them.
 [workspace]
-members = ["public", "guest", "host"]
-exclude = ["vendor", "prove-wasm", "verify-wasm"]
+members = ["public", "guest", "host", "standing-guest", "standing-host", "standing-v2-guest", "standing-v3-guest"]
+exclude = ["vendor", "prove-wasm", "verify-wasm", "verify-standing-wasm"]
 resolver = "2"
 
 [workspace.package]

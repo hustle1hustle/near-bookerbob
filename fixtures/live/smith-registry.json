@@ -1,0 +1,532 @@
+{
+  "note": "The smith registry on testnet: its account, every tx, and each program as get_program returned it.",
+  "contract": "smith-reg.bookerbob-demo.testnet",
+  "smith": "smith.bookerbob-demo.testnet",
+  "window_ms": 600000,
+  "txs": {
+    "create_smith-reg": {
+      "hash": "2czZGyu6fswR8R4pLmLkazsjQWBiMUe18SgsbBAgzVvH",
+      "signer": "bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T15:45:26.668Z"
+    },
+    "deploy": {
+      "hash": "6ajTPAjCk8JEXQYR2ZR6SoKkZY4uQw37XUSmx5vJKp4k",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T15:45:42.276Z"
+    },
+    "pin_standing-graph": {
+      "hash": "EpToezsq1YaVNj1ty3xdMpTL6WTHTSWp3c5BF78GLgSG",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T15:45:57.929Z"
+    },
+    "verifier_key_outlayer-jolt-997c": {
+      "hash": "HPDjNwJgRWnsfNYKgjsamsrod91xUXrvwybNemgttLLu",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T15:48:38.893Z"
+    },
+    "attest_use_standing-graph_accept": {
+      "hash": "DZfSmqd74t9s4VXspo2adEaoXcJe9i5z2iRKhAYtAV64",
+      "signer": "bookerbob.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "by": "the OutLayer verifier session: an OutLayer-signed accept of the live standing proof (OutLayer request 46413, tx 2ckdmHPoE5qakAEBELyCYttumxtUMHzbdvzBFBmVYjw3, resolve 2gkYZhZvNbGdnrXU4nGPGZvKahaSECEdpD5wZ8SJuoJb)"
+    },
+    "attest_use_standing-graph_forged_reject": {
+      "hash": "HtErk3AmcHxPbMUs9kr34r5qjEAPdntKEBtgWARn1Erg",
+      "signer": "bookerbob.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "expect_failure": "not an accept",
+      "by": "the OutLayer verifier session: its signed reject of a forged proof, refused by attest_use"
+    },
+    "request_coalition-k-of-n": {
+      "hash": "BD4m8aednbKy324dkNUminnGJ8Lr5jHLbdhKi2L2Re3m",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:01:57.790Z"
+    },
+    "model_key_5a0210f2442c7935": {
+      "hash": "4SzWQLUpcEP6QJcYxRe744DgyGxat9QGuejqYw7qdER6",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:02:13.315Z"
+    },
+    "register_coalition-k-of-n": {
+      "hash": "5R69xjd2uNv1qVHGdtz6T18wPGGkBhAUP4t7yQbrUHYp",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:02:26.031Z"
+    },
+    "accept_coalition-k-of-n": {
+      "hash": "9vN3PVp6VwYmQQyJ8yC5TrSuDHCNgCyVtom5DCuWbmVF",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:02:38.770Z"
+    },
+    "request_coalition-split": {
+      "hash": "29fL8E4CjKzVRR4f4hABHEJ53MTS36ZPZuRWrWUUufcx",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:08:09.797Z"
+    },
+    "register_coalition-split": {
+      "hash": "DWR2QfG6DxonLB5Vid8zmuUxKWmXrhztUgZXeXfi8hLB",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:08:25.873Z"
+    },
+    "accept_coalition-split": {
+      "hash": "GejmYv76ociGChj5Sf1c8nJHJddhhRgHTqNogGTdUVMg",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:08:38.647Z"
+    },
+    "create_buyer-agent": {
+      "hash": "XvhUzauRyhRkqs9PhGrBqgUEfZHuYQsiZwJ2TKZuz1w",
+      "signer": "bookerbob-demo.testnet",
+      "receiver": "buyer-agent.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:13:07.060Z"
+    },
+    "request_spend-bucket": {
+      "hash": "48X56v8ehsNztW9V4LRgPbrrYbAQjrbWL9Hk1VXeBzZ3",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:13:19.218Z"
+    },
+    "register_spend-bucket": {
+      "hash": "FvxWYyvE7if8d1MSb4skiuBcWrXELW2xEZr6JPo5MEe1",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:13:34.458Z"
+    },
+    "accept_spend-bucket": {
+      "hash": "41dcJydYKLxGg26qBosb1kqqoPVbZoJpQVvsPzvk8EEX",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:13:47.204Z"
+    },
+    "request_spend-bucket-zk": {
+      "hash": "C8RyVioXcq8zUtbeyYZ9kZJuSxVm2TYw2fRnEh8mdtsP",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:19:00.608Z"
+    },
+    "register_spend-bucket-zk": {
+      "hash": "DDR824RqF57oxxQjGvQ19i3RWHxnBnj8qrUWr28FHsTa",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:19:13.711Z"
+    },
+    "accept_spend-bucket-zk": {
+      "hash": "B2S6yr5frxajmipeq1E9gX756kEErGpdFac53d3geqc6",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:19:26.328Z"
+    },
+    "upgrade_1": {
+      "hash": "BLqpDRVstVYQsjyFqZ8qWrYchZ5BtfsSRwW98AKisZGw",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:24:17.599Z"
+    },
+    "supersede_coalition-k-of-n_1": {
+      "hash": "DJdpRF25Hroa1U5wN8sm2Fk2jWKUsyTwwghNa86cacAG",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:26:39.248Z"
+    },
+    "accept_coalition-k-of-n_2": {
+      "hash": "GoJpKL2NsBQpDAjX85xCN2Lt5mhte4ofdTyB1VN5Qh3q",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:26:52.241Z"
+    },
+    "supersede_spend-bucket_1": {
+      "hash": "2yQmPohPM8tg5UQZ8W4KcZ8mHUsWCPLFjnPuVaX2NQRZ",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:27:11.932Z"
+    },
+    "accept_spend-bucket_2": {
+      "hash": "Ayvjxi882h4sub3c6Hws86FtMfNcZvyRQ8qcmSRrDnD3",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:27:24.796Z"
+    },
+    "supersede_coalition-split_1": {
+      "hash": "B5b4Ei18JbPAcxJ2TqSoPsVDArr5WM6A9e4vACoJ4WS3",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:27:44.724Z"
+    },
+    "accept_coalition-split_2": {
+      "hash": "6EKBc3aDvsdGANdq1CQ5DMEXV2etUHsr4f4gEhBEsfPD",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:27:58.147Z"
+    },
+    "upgrade_2": {
+      "hash": "JALCKoCt3dcpP5uwCyo4RCGq6eu4vfZ67hXAjXKJNtKD",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:53:00.441Z"
+    },
+    "upgrade_3": {
+      "hash": "229oYANQyhapxTRhHf5QyvDGgALTod9WuaukiEXeiAss",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T16:53:58.443Z"
+    },
+    "supersede_coalition-k-of-n_2": {
+      "hash": "GNXLyA96RJiavr34pufVqeShv4tQ1kpPvnYvPvfk6hs7",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:00:15.397Z"
+    },
+    "accept_coalition-k-of-n_3": {
+      "hash": "89Kxz5Nr2mZwFM2Z8c7MaY6fHNckMwmCdeadLfm6TcPv",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:00:28.279Z"
+    },
+    "supersede_spend-bucket_2": {
+      "hash": "Be1UcmMbw8HcXW3CAuX6MEgsmwjG88rLvHNUbYoQum7a",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:00:47.846Z"
+    },
+    "accept_spend-bucket_3": {
+      "hash": "BC31UG2uFE4ky3mreFZ5LbySWs2ixwbJvCWSrBEetwqc",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:01:00.501Z"
+    },
+    "supersede_coalition-split_2": {
+      "hash": "zqycRoUhXXjgLS19uBJm6FzgsrTcZjJCE1CAVE4aTRV",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:01:19.869Z"
+    },
+    "accept_coalition-split_3": {
+      "hash": "DGzkxRouLmqxtqkMdp9GapwPt38k2cPWqcWdgQhDbfiS",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:01:32.831Z"
+    },
+    "supersede_spend-bucket-zk_1": {
+      "hash": "8hKViizAks4ZGKvkkJmQLpF5Yy1tdB5jTHrdqe1dZAns",
+      "signer": "smith.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:01:52.140Z"
+    },
+    "accept_spend-bucket-zk_2": {
+      "hash": "8MYCDbvEsERVEM4dMmViyW2VCf3DKTb3H2Qizpn8WPj1",
+      "signer": "buyer-agent.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:02:05.132Z"
+    },
+    "upgrade_4": {
+      "hash": "EpvEocX7U3iujGipUEBLhXFksDAoJWAhH82rM72e2Lah",
+      "signer": "smith-reg.bookerbob-demo.testnet",
+      "receiver": "smith-reg.bookerbob-demo.testnet",
+      "at": "2026-11-14T17:25:27.416Z"
+    }
+  },
+  "programs": {
+    "standing-graph": {
+      "request": {
+        "id": "standing-graph",
+        "requester": "smith-reg.bookerbob-demo.testnet",
+        "registrar": "smith-reg.bookerbob-demo.testnet",
+        "spec_hash": "a3db58e02da030ab3b444c4eea0f711c9866860b838178a035bedd42fb4cf1b5",
+        "posted_ms": 1794671155400
+      },
+      "program": {
+        "request_id": "standing-graph",
+        "registrar": "smith-reg.bookerbob-demo.testnet",
+        "source_hash": "dc620549799d5941cdc3a003315dd7e25587c65babeaa31bef50114f568d1870",
+        "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+        "elf_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "model": "hand-written: zk/guests/standing, Jolt 997c1543e",
+        "signing_address": "",
+        "signed_text": "",
+        "signature": "",
+        "response_hash": "",
+        "registered_ms": 1794671155400,
+        "usable_after_ms": 1794671755400,
+        "accepted": true,
+        "state": "pending",
+        "challenger": null,
+        "challenge_reason": null,
+        "resolve_by_ms": null,
+        "uses": 2
+      },
+      "status_at_snapshot": "usable",
+      "read_at": "2026-11-14T17:02:11.743Z"
+    },
+    "coalition-k-of-n": {
+      "request": {
+        "id": "coalition-k-of-n",
+        "requester": "cl-lead-1df7.bookerbob-demo.testnet",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "spec_hash": "7d92675f839e4acd5b305440d30e2e0e258e70294c050d51bc5b2a0b837d7fc9",
+        "posted_ms": 1794672115064
+      },
+      "program": {
+        "request_id": "coalition-k-of-n",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "source_hash": "07debdb3fdce2049f5931899755f58153d0126c275e1e6a4b4fd61e4cd724869",
+        "program_hash": "b8345c0457aaed2eae1c0d2be41761e59758869b93e36d8f7a13151473804ad0",
+        "elf_hash": "30f4619b4a16699b718467a8f26fa307579ad84be91ba323897ec625917552e6",
+        "model": "z-ai/glm-5.3-flash",
+        "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+        "signed_text": "z-ai/glm-5.3-flash:c50a76aac4ba2448b8011f00f4a598d988238b9f321e9cab85e60367872a00d9:249fb11f077c0246484a246bebae3d3e3d9f67173b53325a9aac4acef72e68b6",
+        "signature": "e959275538708e6b5f3a2bc98ca32cac22b42aac06204d4a81a461de5696d0db5bb088e35e6bd0256a89649253e8ff4b9045a857d7f4330322b0fb10e8ff3607",
+        "response_hash": "249fb11f077c0246484a246bebae3d3e3d9f67173b53325a9aac4acef72e68b6",
+        "registered_ms": 1794672143437,
+        "usable_after_ms": 1794676211970,
+        "accepted": true,
+        "state": "pending",
+        "challenger": null,
+        "challenge_reason": null,
+        "resolve_by_ms": null,
+        "uses": 0
+      },
+      "status_at_snapshot": "pending",
+      "read_at": "2026-11-14T17:02:11.744Z"
+    },
+    "coalition-split": {
+      "request": {
+        "id": "coalition-split",
+        "requester": "cl-lead-1df7.bookerbob-demo.testnet",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "spec_hash": "bff28a1463eca2b6150c407ed7f2356a5244d6039e65a50672a26b20774a5b61",
+        "posted_ms": 1794672486975
+      },
+      "program": {
+        "request_id": "coalition-split",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "source_hash": "873b0594d2174a931dfe20bf0d1ab50e0716ad0818778016c7bd654400abc4f9",
+        "program_hash": "dc65a0f063d316e896f6c44563ead2d9df596bdab95f978f04c13eec3b4432ae",
+        "elf_hash": "593d7679828be6a3b883253609b2bc80b99503511ab64f5b67b7785211f67745",
+        "model": "z-ai/glm-5.3-flash",
+        "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+        "signed_text": "z-ai/glm-5.3-flash:29744d7895e6b41e5cd4bc342d61c5bb7bf96d23906ecebf64194f808fdc200d:72ec59344ddd75e884145a732b5877922afe1534c76e613ff039a1dad22be5ee",
+        "signature": "8dd56b8320a8c3d25ca07d077c7df9705cffd96c0c6dfb6fa2a173712c85f706141768718efa710df4baf22e4479f94c5bc33d24c92d0ebb53c354898540dc0e",
+        "response_hash": "72ec59344ddd75e884145a732b5877922afe1534c76e613ff039a1dad22be5ee",
+        "registered_ms": 1794672503356,
+        "usable_after_ms": 1794676277305,
+        "accepted": true,
+        "state": "pending",
+        "challenger": null,
+        "challenge_reason": null,
+        "resolve_by_ms": null,
+        "uses": 0
+      },
+      "status_at_snapshot": "pending",
+      "read_at": "2026-11-14T17:02:11.744Z"
+    },
+    "spend-bucket": {
+      "request": {
+        "id": "spend-bucket",
+        "requester": "buyer-agent.bookerbob-demo.testnet",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "spec_hash": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58f",
+        "posted_ms": 1794672797265
+      },
+      "program": {
+        "request_id": "spend-bucket",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "source_hash": "9d668c2a43d3d054a07cdbc94851a6de0708512e671a54193ca9795471578bd5",
+        "program_hash": "136dd9a90b511d5881796bca761d590ca914ed29cc2e7e410215749f47503fb7",
+        "elf_hash": "3e3cc8db446f64496b747f57473be79fd85dfa66fd2c1ace517ef8dcbd5cd1bc",
+        "model": "z-ai/glm-5.3-flash",
+        "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+        "signed_text": "z-ai/glm-5.3-flash:d23c5fb17f5c022325bf57f135bd717ef1cc70fe397318fd6d4832d97c5f7e11:496a34410dc170d1e71ef0730cb68795e14bbc2a9e7849547531a1b5ea789d7a",
+        "signature": "187c6510040c44b9742c939f52c2689bf57bc88ce8aaca2b0124251f720dd9d4356389d10527904d6c1bbf591235680eaa7bd6495fd905a575c1c93e482b240a",
+        "response_hash": "496a34410dc170d1e71ef0730cb68795e14bbc2a9e7849547531a1b5ea789d7a",
+        "registered_ms": 1794672812447,
+        "usable_after_ms": 1794676245298,
+        "accepted": true,
+        "state": "pending",
+        "challenger": null,
+        "challenge_reason": null,
+        "resolve_by_ms": null,
+        "uses": 0
+      },
+      "status_at_snapshot": "pending",
+      "read_at": "2026-11-14T17:02:11.744Z"
+    },
+    "spend-bucket-zk": {
+      "request": {
+        "id": "spend-bucket-zk",
+        "requester": "buyer-agent.bookerbob-demo.testnet",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "spec_hash": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58f",
+        "posted_ms": 1794673137748
+      },
+      "program": {
+        "request_id": "spend-bucket-zk",
+        "registrar": "smith.bookerbob-demo.testnet",
+        "source_hash": "9d668c2a43d3d054a07cdbc94851a6de0708512e671a54193ca9795471578bd5",
+        "program_hash": "bec48cc20de5867164669c8bd1fbd2fcbaf1c9ce041f6790d156cfb82d299383",
+        "elf_hash": "3e3cc8db446f64496b747f57473be79fd85dfa66fd2c1ace517ef8dcbd5cd1bc",
+        "model": "z-ai/glm-5.3-flash",
+        "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+        "signed_text": "z-ai/glm-5.3-flash:d23c5fb17f5c022325bf57f135bd717ef1cc70fe397318fd6d4832d97c5f7e11:496a34410dc170d1e71ef0730cb68795e14bbc2a9e7849547531a1b5ea789d7a",
+        "signature": "187c6510040c44b9742c939f52c2689bf57bc88ce8aaca2b0124251f720dd9d4356389d10527904d6c1bbf591235680eaa7bd6495fd905a575c1c93e482b240a",
+        "response_hash": "496a34410dc170d1e71ef0730cb68795e14bbc2a9e7849547531a1b5ea789d7a",
+        "registered_ms": 1794673151111,
+        "usable_after_ms": 1794676309906,
+        "accepted": true,
+        "state": "pending",
+        "challenger": null,
+        "challenge_reason": null,
+        "resolve_by_ms": null,
+        "uses": 0
+      },
+      "status_at_snapshot": "pending",
+      "read_at": "2026-11-14T17:02:11.744Z"
+    }
+  },
+  "superseded": [
+    {
+      "contract": "smith-registry.bookerbob-demo.testnet",
+      "why": "first deploy, 2026-11-14 15:3x UTC: registration was open to any caller with any key, so an audit found a squat and a self-made-key path; replaced by a fresh account with a requester-named registrar and an owner-listed model key. Its records are kept here as they were.",
+      "wasm_history": [
+        "f18cc8ef0b912be4d64f138fbd25921fafb77b226d41e1af43c5888e4b372a22",
+        "0cba8ea1af1ce06b887d0c3bcfb3279e9e80545db52f2b0df74fa5021a94cbc7"
+      ],
+      "txs": {
+        "create_smith-registry": {
+          "hash": "AMKYoaCdQjidSkodcjr7PyuX7QEeGbQBiazQ8W5gqo46",
+          "signer": "bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:31:45.558Z"
+        },
+        "create_smith": {
+          "hash": "E19thD6dtgViYfmJLhcL8n2Ze2B6ZnHti5cvMpz4YHmZ",
+          "signer": "bookerbob-demo.testnet",
+          "receiver": "smith.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:32:01.004Z"
+        },
+        "deploy": {
+          "hash": "Ht2SiNEA2qRmM5P8DTKjYX5EtCdB49joTUe62iS2mGy2",
+          "signer": "smith-registry.bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:32:14.174Z"
+        },
+        "request_coalition-k-of-n": {
+          "hash": "AUH91v3qaxSEQh46uWYcHXBnSRDNJPXvpe1pyauUHVe4",
+          "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:32:33.763Z"
+        },
+        "register_coalition-k-of-n": {
+          "hash": "EQ2juTSCMvSUvw3jRYhqv1PK3s6C9Z1M1ZRfjzG6Kpk2",
+          "signer": "smith.bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:32:46.532Z"
+        },
+        "accept_coalition-k-of-n": {
+          "hash": "AoEBd3WBZSTCVCKk6N7CfAEV8FezLuGvLpaSa43gdx2N",
+          "signer": "cl-lead-1df7.bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:32:59.830Z"
+        },
+        "upgrade_1": {
+          "hash": "5G9SnQu6DRY583v2y1FNtBpS4bGjiN17Ja6YCT8zdN9C",
+          "signer": "smith-registry.bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:35:12.221Z"
+        },
+        "pin_standing-graph": {
+          "hash": "FWgJ5nVWZJe9JCcMkNQa6VVnAAGEsniQewQc2PpYWSsy",
+          "signer": "smith-registry.bookerbob-demo.testnet",
+          "receiver": "smith-registry.bookerbob-demo.testnet",
+          "at": "2026-11-14T15:35:24.956Z"
+        }
+      },
+      "programs": {
+        "coalition-k-of-n": {
+          "request": {
+            "id": "coalition-k-of-n",
+            "requester": "cl-lead-1df7.bookerbob-demo.testnet",
+            "spec_hash": "7d92675f839e4acd5b305440d30e2e0e258e70294c050d51bc5b2a0b837d7fc9",
+            "posted_ms": 1794670350858
+          },
+          "program": {
+            "request_id": "coalition-k-of-n",
+            "registrar": "smith.bookerbob-demo.testnet",
+            "source_hash": "7a8c3e8ccb48197461d37793e951509d03440fb9beebc23c6326529b1ba36624",
+            "program_hash": "fcabf0ef36c63212d6a46a88f93e746e16d166e7a0b1d42f7c7e52931f1656a1",
+            "elf_hash": "178c4327a396af7769ad0620f89b5d8cbe88461f0e81a32bc00c5fb2d6e0f71b",
+            "model": "z-ai/glm-5.3-flash",
+            "signing_address": "5a0210f2442c79355784f9de021985429561da5bacc3a4424b01ac52b7e0caff",
+            "signed_text": "z-ai/glm-5.3-flash:e529f052a3bf67eaf5b736d51ae7454cacc42b2b13717a69e82e5946975da359:63b3d7f55e6547a43a4d56844a7048462dc122a30f7f412592c7a1c6f6c52b3b",
+            "signature": "8b6286cc11e34a6f1e5270aa153fd509d127297f1d7f15ae96e6f4362c40480910a60801f148feb5b29da3c532fe2baf5f4e9b13ca4709f09775587ad077cf0c",
+            "response_hash": "63b3d7f55e6547a43a4d56844a7048462dc122a30f7f412592c7a1c6f6c52b3b",
+            "registered_ms": 1794670363770,
+            "usable_after_ms": 1794670963770,
+            "accepted": true,
+            "state": "pending",
+            "challenger": null,
+            "challenge_reason": null,
+            "uses": 0
+          },
+          "status_at_snapshot": "pending",
+          "read_at": "2026-11-14T15:35:28.092Z"
+        },
+        "standing-graph": {
+          "request": {
+            "id": "standing-graph",
+            "requester": "smith-registry.bookerbob-demo.testnet",
+            "spec_hash": "a3db58e02da030ab3b444c4eea0f711c9866860b838178a035bedd42fb4cf1b5",
+            "posted_ms": 1794670522332
+          },
+          "program": {
+            "request_id": "standing-graph",
+            "registrar": "smith-registry.bookerbob-demo.testnet",
+            "source_hash": "dc620549799d5941cdc3a003315dd7e25587c65babeaa31bef50114f568d1870",
+            "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+            "elf_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+            "model": "hand-written: zk/guests/standing, Jolt 997c1543e",
+            "signing_address": "",
+            "signed_text": "",
+            "signature": "",
+            "response_hash": "",
+            "registered_ms": 1794670522332,
+            "usable_after_ms": 1794671122332,
+            "accepted": true,
+            "state": "pending",
+            "challenger": null,
+            "challenge_reason": null,
+            "uses": 0
+          },
+          "status_at_snapshot": "pending",
+          "read_at": "2026-11-14T15:35:28.092Z"
+        }
+      }
+    }
+  ],
+  "wasm_sha256": "ae3be0ca646ca7f2bc5d00d846b1252855ef7f017d380478bfbb0b934365f1b1",
+  "verifier_keys": {
+    "outlayer-jolt-997c": {
+      "key": "954d224e5db702d95f267cbb3bcafe649ec6aa61f3c179a21b9100bf3eb09464",
+      "evidence": "OutLayer project bookerbob.testnet/bookerbob-jolt-verify (wasm cad8d2e1..fb65); pubkey run AZkVdDGms2HtmCDxrDw1xC9tQ7T8CakfQJFGUovsRw8U (request 46402), resolve tx 9FVqb3A72XnLTZem7HYUoGmDa8t6KGMw4H6srQVTNFZF; key and evidence as given by the outlayer session, not re-derived here"
+    }
+  },
+  "wasm_history": [
+    "598a39aa3b0f3b4ab09c087cc937799a21642722b35a78ea13e7177d21de77b2",
+    "72468b1f53fea78d87ce31c79aa5b4ae1342d3c998319c02eea92606bd67c757",
+    "d97a63174a6209d09fbc8c6083bc82b3cf381b07609c636c2a4bfc04e36a00af",
+    "99638ed85cf0ec82e50613f4d7b96eaf37114bfc94f51d868035a7c590c0787b",
+    "ae3be0ca646ca7f2bc5d00d846b1252855ef7f017d380478bfbb0b934365f1b1"
+  ],
+  "deployed_code_hash": {
+    "value": "Cj8txnv8QcRNZRLjyujjT1RH33XDRVemQEHScVX6iXix",
+    "note": "view_account code_hash of the registry after upgrade_4 (base58 sha256 of target/near/bookerbob_smith_registry.wasm), read 2026-11-14 17:4x UTC"
+  }
+}

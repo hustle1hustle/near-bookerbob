@@ -1,0 +1,19 @@
+[package]
+name = "standing-host"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Native tool for the browser copy of the standing guest: statement from the committed input, prove, verify, refuse changed statements."
+
+[dependencies]
+jolt-sdk = { path = "../vendor/jolt/jolt-sdk", features = ["host"] }
+guest = { package = "standing-browser-guest", path = "../standing-guest" }
+guest_v2 = { package = "standing-v2-guest", path = "../standing-v2-guest" }
+guest_v3 = { package = "standing-v3-guest", path = "../standing-v3-guest" }
+bookerbob-standing-v2 = { path = "../../../standing-v2" }
+sha2 = "0.10"
+decide-public = { path = "../public" }
+bookerbob-graph = { path = "../../../graph" }
+bincode = { version = "2", features = ["serde"] }
+serde_json = "1"
+hex = "0.4"

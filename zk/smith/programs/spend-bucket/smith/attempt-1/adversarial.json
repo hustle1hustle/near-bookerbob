@@ -1,0 +1,243 @@
+[
+  {
+    "label": "bucket 0: window total 4999 sits below the first threshold 5000",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20000,
+      "window_days": 30,
+      "thresholds_cents": [
+        "5000"
+      ]
+    },
+    "private": {
+      "salt": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+      "records": [
+        {
+          "day": 19990,
+          "amount_cents": "4999",
+          "merchant": "shop-a.example"
+        }
+      ]
+    },
+    "expect": {
+      "bucket": 0
+    }
+  },
+  {
+    "label": "bucket 3: day == lower bound excluded, day == as_of_day included, threshold equal to total counts",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20000,
+      "window_days": 10,
+      "thresholds_cents": [
+        "500",
+        "1500",
+        "2000"
+      ]
+    },
+    "private": {
+      "salt": "2122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40",
+      "records": [
+        {
+          "day": 19990,
+          "amount_cents": "1000",
+          "merchant": "edge-lower"
+        },
+        {
+          "day": 19991,
+          "amount_cents": "1000",
+          "merchant": "in-window"
+        },
+        {
+          "day": 19985,
+          "amount_cents": "1000",
+          "merchant": "before-window"
+        },
+        {
+          "day": 20000,
+          "amount_cents": "1000",
+          "merchant": "edge-asof"
+        }
+      ]
+    },
+    "expect": {
+      "bucket": 3
+    }
+  },
+  {
+    "label": "refuse: root committed over records only, salt omitted from the commitment",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private.records"
+      },
+      "as_of_day": 20000,
+      "window_days": 30,
+      "thresholds_cents": [
+        "5000"
+      ]
+    },
+    "private": {
+      "salt": "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+      "records": [
+        {
+          "day": 19990,
+          "amount_cents": "4999",
+          "merchant": "shop-a.example"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "refuse: duplicate threshold breaks strict increase",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20000,
+      "window_days": 30,
+      "thresholds_cents": [
+        "1000",
+        "1000",
+        "2000"
+      ]
+    },
+    "private": {
+      "salt": "aa0b0c0d0e0f101112131415161718191a1b1c1d1e1f20212223242526272829",
+      "records": [
+        {
+          "day": 19999,
+          "amount_cents": "5000",
+          "merchant": "m"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "refuse: nine thresholds, one past the cap of 8",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20000,
+      "window_days": 30,
+      "thresholds_cents": [
+        "100",
+        "200",
+        "300",
+        "400",
+        "500",
+        "600",
+        "700",
+        "800",
+        "900"
+      ]
+    },
+    "private": {
+      "salt": "bb0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a",
+      "records": [
+        {
+          "day": 19999,
+          "amount_cents": "100000",
+          "merchant": "m"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "refuse: window_days 3651 exceeds the 3650 cap",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20406,
+      "window_days": 3651,
+      "thresholds_cents": [
+        "10000"
+      ]
+    },
+    "private": {
+      "salt": "cc0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b",
+      "records": [
+        {
+          "day": 20400,
+          "amount_cents": "20000",
+          "merchant": "m"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "refuse: one record dated one day after as_of_day",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20000,
+      "window_days": 30,
+      "thresholds_cents": [
+        "1000"
+      ]
+    },
+    "private": {
+      "salt": "dd0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c",
+      "records": [
+        {
+          "day": 19999,
+          "amount_cents": "500",
+          "merchant": "m"
+        },
+        {
+          "day": 20001,
+          "amount_cents": "500",
+          "merchant": "future"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "refuse: two in-window records push the total past u64::MAX",
+    "public": {
+      "records_root": {
+        "commit": "bookerbob/smith/spend-records/v0",
+        "of": "private"
+      },
+      "as_of_day": 20000,
+      "window_days": 10,
+      "thresholds_cents": [
+        "1"
+      ]
+    },
+    "private": {
+      "salt": "ee0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d",
+      "records": [
+        {
+          "day": 19995,
+          "amount_cents": "18446744073709551615",
+          "merchant": "big1"
+        },
+        {
+          "day": 19996,
+          "amount_cents": "1",
+          "merchant": "big2"
+        }
+      ]
+    },
+    "expect": "refuse"
+  }
+]

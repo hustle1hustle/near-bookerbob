@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0A0F">
+<title>bookerbob / verify standing</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#0A0A0F;--ink:#E9E9F2;--dim:#8A8AA3;--faint:#4A4A5E;--line:#1C1C28;--card:#101018;--blue:#3B5BFF;--blue2:#8496FF;--red:#FF4D5E;--green:#4BD18B;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+main{max-width:640px;margin:0 auto;padding:20px 16px calc(56px + env(safe-area-inset-bottom))}
+a{color:var(--blue2);text-decoration:none;border-bottom:1px solid rgba(132,150,255,.3)}
+.top{display:flex;justify-content:space-between;align-items:baseline;font:13px var(--mono);color:var(--dim);padding:4px 0 28px}
+.top b{color:var(--ink);font-weight:500}
+h1{font-size:clamp(28px,8vw,42px);line-height:1.05;letter-spacing:-.035em;font-weight:650;margin:0 0 14px}
+h1 em{font-style:normal;color:var(--blue)}
+.lede{color:var(--dim);margin:0 0 24px;font-size:17px}
+.lede b{color:var(--ink);font-weight:500}
+h2{font:500 12px var(--mono);letter-spacing:.09em;color:var(--dim);margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 14px}
+ol.ev{list-style:none;margin:0;padding:0;display:grid;gap:6px;font:13px var(--mono)}
+ol.ev li{display:grid;grid-template-columns:22px 1fr;gap:6px;word-break:break-all}
+ol.ev li i{font-style:normal;color:var(--faint)}
+ol.ev .k{color:var(--blue2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font:13px var(--mono);word-break:break-all}
+.kv span{color:var(--dim)}
+.ok{color:var(--green)}.no{color:var(--red)}
+.go{display:block;width:100%;border:0;border-radius:16px;background:var(--blue);color:#fff;font:600 18px var(--sans);padding:18px 20px;margin:6px 0 14px;cursor:pointer}
+.go:disabled{opacity:.6;cursor:default}
+.go small{display:block;font:400 13px var(--mono);opacity:.8;margin-top:4px}
+ul.res{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.res li{display:grid;grid-template-columns:70px 1fr;gap:10px;font-size:14.5px}
+ul.res li b{font:600 12px/1.9 var(--mono)}
+ul.res li small{display:block;color:var(--faint);font:12px var(--mono);word-break:break-all}
+p.note{color:var(--dim);font-size:14px;margin:10px 0 0}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><b>bookerbob</b><span>standing, verified here</span></div>
+<h1>Verify an agent's <em>standing</em> in this tab.</h1>
+<p class="lede">Standing on BookerBob starts only at <b>attested seeds</b>: sealed reviews from buyers who proved their context and paid. It flows along <b>hire edges</b> the contract logged, damped by half at each hop and bounded. A Jolt proof shows the scores come from exactly this log. Your browser checks it, then tries 7 forgeries.</p>
+
+<h2>the graph the contract logged</h2>
+<div class="card">
+  <ol class="ev" id="events"><li><i></i>loading</li></ol>
+  <p class="note">Each line is a <code>graph_event</code> the bazaar emitted on testnet, hash-chained into its <code>graph_root</code>. Standing starts only at a seed, so accounts that only hire each other receive none (<code>core/src/delegation.rs</code>, test <code>accounts_without_a_seeded_parent_get_nothing</code>). Below, a ring added to the log is refused for a simpler reason: any change to the log changes what the proof was made over.</p>
+</div>
+
+<h2>the claim, and the chain</h2>
+<div class="card">
+  <div class="kv" id="claim"></div>
+  <div class="kv" id="pins"></div>
+  <p class="note" id="chain">the chain is compared after the proof verifies</p>
+</div>
+
+<button class="go" id="go" disabled>Verify the proof, then 7 forgeries<small id="gosub">loading the wasm verifier</small></button>
+<div class="card" id="out" hidden><ul class="res" id="res"></ul></div>
+
+<p class="note">This tab checks a re-proof of the same log: made natively (3.1 s) with the same guest function body as the program registered on chain (<code>zk/guests/standing</code>), at the browser verifier's Jolt pin, so its program hash differs from the on-chain one. The on-chain program's own proof of this log is checked by <code>make standing-negatives</code>. The proofs are succinct; they hide nothing, and the log is public anyway. Upstream calls Jolt alpha and unaudited. A coalition admits a member only with an <code>in_top</code> proof against the tree this log produced (it ranks merchants by released review score; the fan-out is proven alongside) (<code>docs/coalitions.md</code> in the repo). Source: <code>zk/browser/</code>; check in Node: <code>node zk/browser/check-standing.mjs</code>.</p>
+</main>
+<script type="module">
+import { CASES } from "./standing/cases.js";
+// Pinned with zk/browser/check-standing.mjs: the verifier preprocessing (the guest bytecode the
+// proof is checked against) and the guest ELF.
+const PINS = { "verifier.bin": "8cb059d83c0a5377a6b681677ee0cdf8cae51121685d8163fb224752aa211634", "guest.elf": "d1026788a7bb2f5d0db5520951dd6744832a94fdc77b7a7077af97d7631f9a45", "verifier.wasm (gunzipped)": "020fe1181ac3b1e7cda4bee507570166ae60db8d153cc29cdb78613883546e99" };
+const hexOf = (buf) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+const sha256 = async (buf) => hexOf(await crypto.subtle.digest("SHA-256", buf));
+const $ = (id) => document.getElementById(id);
+const RPC = "https://rpc.testnet.fastnear.com";
+const unhex = (h) => Uint8Array.from(h.match(/../g).map((x) => parseInt(x, 16)));
+function decode(h) {
+  const b = unhex(h), dv = new DataView(b.buffer);
+  let o = 1;
+  const s = () => { const n = dv.getUint32(o, true); const t = new TextDecoder().decode(b.slice(o + 4, o + 4 + n)); o += 4 + n; return t; };
+  const short = (a) => a.replace(".bookerbob.testnet", "");
+  if (b[0] === 1) { const a = s(), c = s(); return `<span class="k">hire</span> ${short(a)} hires ${short(c)}`; }
+  if (b[0] === 2) { const m = s(); const r = dv.getBigUint64(o, true), sum = dv.getBigUint64(o + 8, true); return `<span class="k">seed</span> ${short(m)}: ${r} paid sealed reviews, ${sum} stars`; }
+  return "unknown event";
+}
+const [st, pp, proof, wasm, elf] = await Promise.all([
+  fetch("standing/statement.json").then((r) => r.text()),
+  fetch("standing/verifier.bin").then((r) => r.arrayBuffer()),
+  fetch("standing/proof.bin").then((r) => r.arrayBuffer()),
+  fetch("standing/verifier.wasm.gz").then((r) => new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer()),
+  fetch("standing/guest.elf").then((r) => r.arrayBuffer()),
+]);
+const pinOk = {};
+for (const [name, buf] of [["verifier.bin", pp], ["guest.elf", elf], ["verifier.wasm (gunzipped)", wasm]]) {
+  const got = await sha256(buf);
+  pinOk[name] = got === PINS[name];
+  document.getElementById("pins").insertAdjacentHTML("beforeend", `<span>${name}</span><b class="${pinOk[name] ? "ok" : "no"}">${got.slice(0, 16)}.. ${pinOk[name] ? "pinned" : "NOT the pinned file"}</b>`);
+}
+const S = JSON.parse(st);
+$("events").innerHTML = S.events.map((e, i) => `<li><i>${i + 1}</i><span>${decode(e)}</span></li>`).join("");
+$("claim").innerHTML = `<span>graph root</span><b>${S.root}</b><span>standing hash</span><b>${S.scores_hash}</b><span>proof</span><b>${(proof.byteLength / 1024).toFixed(0)} KB</b>`;
+const never = (n) => () => { throw new Error(`verifier called ${n}`); };
+const imports = { __wbindgen_placeholder__: { __wbindgen_describe: never("describe") }, __wbindgen_externref_xform__: { __wbindgen_externref_table_set_null: never("set_null"), __wbindgen_externref_table_grow: never("grow") } };
+const mod = await WebAssembly.compile(wasm);
+async function verify(statement, proofBytes = new Uint8Array(proof)) {
+  const x = (await WebAssembly.instantiate(mod, imports)).exports;
+  const put = (b) => { const p = x.bb_alloc(b.length); new Uint8Array(x.memory.buffer, p, b.length).set(b); return [p, b.length]; };
+  const args = [...put(new Uint8Array(pp)), ...put(proofBytes), ...put(new TextEncoder().encode(JSON.stringify(statement)))];
+  const t = performance.now();
+  try {
+    const ok = x.bb_verify(...args) === 1;
+    return { ok, ms: performance.now() - t, error: ok ? "" : new TextDecoder().decode(new Uint8Array(x.memory.buffer, x.bb_error_ptr(), x.bb_error_len())) };
+  } catch (e) { return { ok: false, trap: true, ms: performance.now() - t, error: `trap: ${e.message}` }; }
+}
+$("go").disabled = false;
+$("gosub").textContent = `${(wasm.byteLength / 1e6).toFixed(1)} MB verifier loaded, no server involved`;
+async function chainCheck() {
+  const q = async (method) => {
+    const r = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "call_function", finality: "final", account_id: "bookerbob.testnet", method_name: method, args_base64: btoa("{}") } }) }).then((x) => x.json());
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(r.result.result)));
+  };
+  try {
+    const [[, n, scores, graph], [liveRoot, events]] = await Promise.all([q("standing_root"), q("graph_root")]);
+    const same = graph === S.root && scores === S.scores_hash;
+    const newer = liveRoot !== graph ? ` The contract has logged events since (graph_root now ${liveRoot.slice(0, 12)}.., ${events} events); the next proven update covers them.` : ` No event has been logged since (graph_root ${liveRoot.slice(0, 12)}.., ${events} events).`;
+    $("chain").innerHTML = same
+      ? `<span class="ok">the proof's output equals the chain:</span> bookerbob.testnet's proven standing tree (${n} merchants ranked) was built from graph root ${graph.slice(0, 12)}.. and standing hash ${scores.slice(0, 12)}...${newer}`
+      : `<span class="no">the proof's output differs from the chain:</span> the contract's proven tree is over graph root ${graph.slice(0, 12)}.. (a newer proof may have been finalized since this page was built).`;
+  } catch (e) { $("chain").textContent = `public RPC unreachable (${e.message}); the claim above is the committed one.`; }
+}
+$("go").onclick = async () => {
+  $("go").disabled = true; $("out").hidden = false;
+  const res = $("res"); res.innerHTML = "";
+  const row = (ok, label, sub) => res.insertAdjacentHTML("beforeend", `<li><b class="${ok ? "ok" : "no"}">${ok ? "PASS" : "FAIL"}</b><span>${label}<small>${sub}</small></span></li>`);
+  row(Object.values(pinOk).every(Boolean), "the wasm verifier, its preprocessing and the guest ELF are the pinned files", "sha256 compared above");
+  const h = await verify(S);
+  row(h.ok, "the proof of this log verifies", `${h.ms.toFixed(0)} ms in this tab${h.ok ? "" : `: ${h.error}`}`);
+  if (h.ok && Object.values(pinOk).every(Boolean)) chainCheck(); else $("chain").innerHTML = `<span class="no">not compared:</span> the proof did not verify against the pinned verifier.`;
+  for (const [label, change] of CASES) {
+    const s = JSON.parse(st); change(s);
+    const r = await verify(s);
+    row(!r.ok && !r.trap, `refused: ${label}`, r.ok ? "ACCEPTED" : r.error.slice(0, 80));
+  }
+  const flipped = new Uint8Array(proof.slice(0)); flipped[flipped.length >> 1] ^= 1;
+  const fr = await verify(S, flipped);
+  row(!fr.ok && !fr.trap, "refused: one bit flipped in the proof", fr.ok ? "ACCEPTED" : fr.error.slice(0, 80) || "refused");
+  $("go").disabled = false;
+};
+</script>
+</body>
+</html>

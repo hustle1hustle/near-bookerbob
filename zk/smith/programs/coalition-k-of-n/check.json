@@ -1,0 +1,107 @@
+{
+  "id": "coalition-k-of-n",
+  "rows": [
+    {
+      "label": "job C as on chain (coalition.bookerbob-demo.testnet job 2), k_min 2",
+      "by": "requester",
+      "wasm": "0203",
+      "guest_panic": false,
+      "cycles": 62630,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "job C, k_min 3: only 2 delivered, refused",
+      "by": "requester",
+      "wasm": "refused: delivered below k_min",
+      "guest_panic": true,
+      "cycles": 61554,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "h05 claims delivery against job C's real root: refused",
+      "by": "requester",
+      "wasm": "refused: seats_root mismatch",
+      "guest_panic": true,
+      "cycles": 71152,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "two of two delivered, k_min 2: proves, revealing only the counts",
+      "by": "smith",
+      "wasm": "0202",
+      "guest_panic": false,
+      "cycles": 56344,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "k_min 0 with zero delivered: allowed",
+      "by": "smith",
+      "wasm": "0003",
+      "guest_panic": false,
+      "cycles": 34840,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "seats_root does not match the private seats: refused",
+      "by": "smith",
+      "wasm": "refused: seats_root mismatch",
+      "guest_panic": true,
+      "cycles": 35456,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "nine seats, one above the cap of 8: refused",
+      "by": "smith",
+      "wasm": "refused: seat count out of range",
+      "guest_panic": true,
+      "cycles": 70315,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "legs 0 then 2, root honestly commits to the malformed list: refused",
+      "by": "smith",
+      "wasm": "refused: seat legs not sequential",
+      "guest_panic": true,
+      "cycles": 26767,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "one member on two seats to inflate the delivered count: refused",
+      "by": "smith",
+      "wasm": "refused: duplicate member",
+      "guest_panic": true,
+      "cycles": 49446,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "delivery id uses uppercase hex, not lowercase: refused",
+      "by": "smith",
+      "wasm": "refused: delivery id not lowercase hex",
+      "guest_panic": true,
+      "cycles": 36331,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "only one of two delivered against k_min 2: refused",
+      "by": "smith",
+      "wasm": "refused: delivered below k_min",
+      "guest_panic": true,
+      "cycles": 43883,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    }
+  ],
+  "all": true,
+  "adversarial_encode_errors": [],
+  "at": "2026-11-14T17:42:20.126Z"
+}

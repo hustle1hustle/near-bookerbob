@@ -48,7 +48,7 @@ export function encodeAction(a) {
   switch (a.type) {
     case "CreateAccount": return u8(0);
     case "DeployContract": return Buffer.concat([u8(1), bytes(a.code)]);
-    case "FunctionCall": return Buffer.concat([u8(2), str(a.method_name), bytes(Buffer.from(JSON.stringify(a.args))), u64(a.gas), u128(a.deposit)]);
+    case "FunctionCall": return Buffer.concat([u8(2), str(a.method_name), bytes(Buffer.isBuffer(a.args) ? a.args : Buffer.from(JSON.stringify(a.args))), u64(a.gas), u128(a.deposit)]); // a Buffer is sent as is (borsh args)
     case "Transfer": return Buffer.concat([u8(3), u128(a.deposit)]);
     case "AddKey": {
       const perm = a.permission === "FullAccess" ? u8(1)

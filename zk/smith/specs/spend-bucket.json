@@ -1,0 +1,152 @@
+{
+  "id": "spend-bucket",
+  "version": 1,
+  "requester": {
+    "account": "buyer-agent.bookerbob-demo.testnet",
+    "role": "buyer agent"
+  },
+  "ask": "Prove which spend bucket a buyer's last window_days of purchases falls in, from records the buyer committed to earlier, and reveal only the bucket index. The records and the total stay with the buyer.",
+  "privacy": true,
+  "types": {
+    "Record": [
+      [
+        "day",
+        "u32"
+      ],
+      [
+        "amount_cents",
+        "u64"
+      ],
+      [
+        "merchant",
+        "string"
+      ]
+    ]
+  },
+  "public": [
+    [
+      "records_root",
+      "bytes32"
+    ],
+    [
+      "as_of_day",
+      "u32"
+    ],
+    [
+      "window_days",
+      "u32"
+    ],
+    [
+      "thresholds_cents",
+      "vec<u64>"
+    ]
+  ],
+  "private": [
+    [
+      "salt",
+      "bytes32"
+    ],
+    [
+      "records",
+      "vec<Record>"
+    ]
+  ],
+  "output": [
+    [
+      "bucket",
+      "u32"
+    ]
+  ],
+  "rules": [
+    "records_root must equal commit(\"bookerbob/smith/spend-records/v0\", s) over the whole private input s (the 32-byte random salt and the records); otherwise refuse. The salt keeps both records_root and the proof's private commitment from being guessed from a few candidate record lists.",
+    "thresholds_cents must be strictly increasing and hold 1 to 8 entries; otherwise refuse.",
+    "window_days must be between 1 and 3650 and at most as_of_day; otherwise refuse.",
+    "At most 256 records; otherwise refuse. A record with a day after as_of_day refuses.",
+    "total = the sum of amount_cents over records with as_of_day - window_days < day <= as_of_day, with checked addition (overflow refuses).",
+    "bucket = how many thresholds are <= total (0 when total is below the first threshold).",
+    "Output only the bucket."
+  ],
+  "vectors": [
+    {
+      "label": "synthetic buyer: 612.40 USD in 90 days, bucket 2 (over 500)",
+      "prove": true,
+      "public": {
+        "records_root": {
+          "commit": "bookerbob/smith/spend-records/v0",
+          "of": "private"
+        },
+        "as_of_day": 20406,
+        "window_days": 90,
+        "thresholds_cents": [
+          "10000",
+          "50000",
+          "100000"
+        ]
+      },
+      "private": {
+        "salt": "5a1f00000000000000000000000000000000000000000000000000000000c0de",
+        "records": [
+          {
+            "day": 20310,
+            "amount_cents": "99900",
+            "merchant": "m03.bookerbob.testnet"
+          },
+          {
+            "day": 20320,
+            "amount_cents": "4800",
+            "merchant": "m01.bookerbob.testnet"
+          },
+          {
+            "day": 20350,
+            "amount_cents": "40800",
+            "merchant": "h05.bookerbob.testnet"
+          },
+          {
+            "day": 20391,
+            "amount_cents": "4500",
+            "merchant": "m02.bookerbob.testnet"
+          },
+          {
+            "day": 20400,
+            "amount_cents": "11140",
+            "merchant": "m07.bookerbob.testnet"
+          }
+        ]
+      },
+      "expect": {
+        "bucket": 2
+      }
+    },
+    {
+      "label": "the same records against another root: refused",
+      "public": {
+        "records_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "as_of_day": 20406,
+        "window_days": 90,
+        "thresholds_cents": [
+          "10000",
+          "50000",
+          "100000"
+        ]
+      },
+      "private": {
+        "salt": "5a1f00000000000000000000000000000000000000000000000000000000c0de",
+        "records": [
+          {
+            "day": 20400,
+            "amount_cents": "11140",
+            "merchant": "m07.bookerbob.testnet"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  ],
+  "limits": {
+    "heap": 262144,
+    "max_input": 1024,
+    "max_private": 16384,
+    "max_output": 256,
+    "max_trace": 1048576
+  }
+}

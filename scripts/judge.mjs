@@ -67,15 +67,38 @@ if (wantLive) {
   const mc = spawnSync("node", ["scripts/mainnet-check.mjs"], { cwd: root, encoding: "utf8", timeout: 900_000 });
   const lastLine = (mc.stdout || "").trim().split("\n").pop() ?? "";
   if (mc.status === 3 || mc.error) console.log(mc.error ? "SKIP  mainnet: public RPC too slow (skipped, not failed; make mainnet-check has no limit)" : lastLine);
-  else line(mc.status === 0, "mainnet: the bazaar, its round, two purchases, the Intents settlement and the on-chain DCAP check re-read over public RPC", lastLine.replace(/^(PASS|FAIL)\s+/, ""));
+  else line(mc.status === 0, "mainnet: the bazaar, its round, three purchases (one under the OutLayer referee), the Intents settlement and the on-chain DCAP check re-read over public RPC", lastLine.replace(/^(PASS|FAIL)\s+/, ""));
 } else console.log("SKIP  mainnet checks: offline by default (JUDGE_LIVE=1 make judge or make mainnet-check reads mainnet)");
 
 // 1b. the README's status table is generated from docs/status.json and every live row has
 // testnet evidence; a stale phrase anywhere in the docs fails here.
 const mk = spawnSync("node", ["scripts/market-eval.mjs", "--check"], { cwd: root, encoding: "utf8" });
 line(mk.status === 0, "make market-eval: the published table is what the code computes", mk.status === 0 ? "1,000 simulated rounds, a model with stated assumptions" : mk.stderr.trim().split("\n").pop());
+
+// Coalitions against single agents: the pre-registered rule on the committed 20-seed result
+// (docs/coalition-prereg.md, anchored on testnet before the run; make coalition-check re-runs the sim).
+const co = spawnSync("node", ["scripts/coalition-check.mjs"], { cwd: root, encoding: "utf8" });
+line(co.status === 0, "coalitions against single agents: the pre-registered rule holds on the committed 20-seed result (make coalition-check re-runs it)", (co.stdout.split("\n").find((l) => /^(PASS|FAIL)\s+coalition \(committed/.test(l)) ?? "no verdict line").replace(/^(PASS|FAIL)\s+coalition \(committed result\):\s*/, ""));
+
+// Admission by the hire-edge fan-out, v2 to v4: each pre-registered, each a published FAIL. The
+// line passes when the committed result recomputes and its anchor named; the verdict is shown as is.
+for (const t of ["v2", "v3", "v4"]) {
+  const c = spawnSync("node", [`scripts/coalition-check-${t}.mjs`], { cwd: root, encoding: "utf8" });
+  const vl = c.stdout.split("\n").find((l) => new RegExp(`^(PASS|FAIL)\\s+coalition ${t} \\(committed`).test(l)) ?? "no verdict line";
+  line(vl !== "no verdict line" && !/^FAIL  (pre-registration|seed|overall|pass rule|[a-z_0-9]+ here)/m.test(c.stdout), `coalition admission ${t}, pre-registered: the committed result recomputes, its verdict published as is`, vl.replace(new RegExp(`^(PASS|FAIL)\\s+coalition ${t} \\(committed result\\):\\s*`), "$1 ").slice(0, 160));
+}
+
+// The price leak per sale (L10): every bucketed merchant within its stated bound (docs/leak-amount.md).
+const la = spawnSync("node", ["scripts/leak-amount.mjs"], { cwd: root, encoding: "utf8" });
+line(la.status === 0, "price leak per sale (L10): bucketed schedules within their bound", (la.stdout.trim().split("\n").pop() ?? "").replace(/^(PASS|FAIL)\s+/, ""));
 const forge = spawnSync("node", ["scripts/forge-poc.mjs", "verify"], { cwd: root, encoding: "utf8" });
 line(forge.status === 0, "the attack the evaluator closes: the model attested a typed fact (make forge-poc), the contract refuses it unsigned", "README, Known limits");
+const col = spawnSync("node", ["scripts/collusion.mjs", "check"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+{
+  const out = col.stdout.trim().split("\n");
+  const h = out.find((l) => /hypothesis/.test(l)) ?? "";
+  line(col.status === 0, "make collusion-check: pre-registration anchored on testnet before the run, every TEE signature, prompt and answer re-checked, every number recomputed", col.status === 0 ? h.replace(/^(PASS|INFO)\s+/, "") : out.filter((l) => l.startsWith("FAIL")).slice(0, 2).join("; "));
+}
 const stat = spawnSync("node", ["scripts/status.mjs", "--check"], { cwd: root, encoding: "utf8" });
 line(stat.status === 0, "docs: README status table = docs/status.json, live rows backed by the testnet manifest, no stale phrase, no live method called not deployed, set sizes equal to agents/live.json, every repeated count (purchases, settles, replays, orders, checks) equal to the manifest and the verify log", stat.status === 0 ? "" : stat.stdout.trim().split("\n").slice(0, 3).join("; "));
 
@@ -139,7 +162,7 @@ const zk = (g, input) => {
   const proof = existsSync(`${dir}/proof.bin`) ? readFileSync(`${dir}/proof.bin`).length : 0;
   line(program && out && proof === r.proof_bytes, `jolt ${g}: committed output equals the input's expected value, program hash = sha256(preprocessing)`, `proved in ${r.prove_seconds.toFixed(2)} s, proof ${proof} B`);
 };
-for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["standing-testnet-3", "standing-testnet-3-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
+for (const [g, input] of [["standing", "standing-input.json"], ["standing-testnet", "standing-testnet-input.json"], ["standing-testnet-2", "standing-testnet-2-input.json"], ["standing-testnet-3", "standing-testnet-3-input.json"], ["standing-coalition", "standing-coalition-input.json"], ["standing-live", "standing-live-input.json"], ["price", "price-input.json"], ["referee", "referee-input.json"], ["cohort", "cohort-input.json"]]) zk(g, input);
 
 // 2b. The Jolt proofs themselves, with the committed prebuilt verifier for this platform.
 {
@@ -157,8 +180,47 @@ for (const [g, input] of [["standing", "standing-input.json"], ["standing-testne
   line(bv.status === 0, "Jolt proof of the agent's pick (the one a browser makes at prove.html) verifies in the page's wasm verifier", `${refused} changed claims refused, ${n} checks; zk/browser/README.md`);
 }
 
+// 2d. Proven standing refuses a forged graph: the committed Jolt proof of the live testnet graph,
+// re-verified against a forged hire edge, a sybil ring, a changed seed weight, a dropped edge,
+// a reordered chain and two changed claims; each must be refused (scripts/standing-negatives.mjs).
+{
+  const sn = spawnSync("node", ["scripts/standing-negatives.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  const last = (sn.stdout || sn.stderr || "").trim().split("\n").pop();
+  if (sn.status === 3) console.log(last);
+  else line(sn.status === 0, "proven standing: the live graph's Jolt proof verifies, and every forged edge, weight or claim is refused", last.replace(/^(PASS|FAIL)\s+standing-negatives:\s+/, ""));
+}
+
+// 2d'. The same standing claim in the browser's wasm verifier (agents/standing.html): the log the
+// on-chain program proved, re-proved at the browser pin, verified, and 7 forgeries refused.
+{
+  const bs = spawnSync("node", ["zk/browser/check-standing.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  const n = (bs.stdout.match(/^PASS /gm) ?? []).length, cases = (bs.stdout.match(/^PASS  refused \(case\)/gm) ?? []).length, flip = /^PASS  refused \(proof bit\)/m.test(bs.stdout);
+  line(bs.status === 0 && cases === 7 && flip, "proven standing in the browser (standing.html): the page's wasm verifier, pinned by sha256, accepts a re-proof of the live graph's log", `${cases} changed statements refused${flip ? " and a flipped proof bit" : ""}, ${n} checks`);
+}
+
+// 2e. Who sees what on the real-data mainnet purchase: the buyer's facts are absent from every byte
+// on chain (txs, logs, the verdict view, the referee's result), and the gateway request (a testnet
+// capture of the same code path) is ciphertext; the parties that do see more are listed rows
+// (scripts/who-sees-what.mjs, on the committed copy of the 6 mainnet txs; --live re-reads them).
+{
+  const ws = spawnSync("node", ["scripts/who-sees-what.mjs"], { cwd: root, encoding: "utf8", timeout: 60_000 });
+  const last = (ws.stdout || ws.stderr || "").trim().split("\n").pop();
+  line(ws.status === 0, "who sees what: the real-data mainnet purchase", last.replace(/^(PASS|FAIL)\s+who sees what:\s+/, ""));
+}
+
+// 2f. The Jolt smith (docs/smith.md): programs a NEAR AI model wrote on swarm agents' requests.
+// Their proofs in the generic wasm verifier (changed statements refused), the TEE-signed
+// authorship, the template and the lint, the registry snapshot; JUDGE_LIVE=1 re-reads the
+// registry, its txs and job C over public RPC.
+if (existsSync(root + "scripts/smith-check.mjs")) {
+  const live = process.env.JUDGE_LIVE === "1";
+  const sc = spawnSync("node", ["scripts/smith-check.mjs", ...(live ? ["--live"] : [])], { cwd: root, encoding: "utf8", timeout: live ? 600_000 : 120_000 });
+  const n = (sc.stdout.match(/^PASS /gm) ?? []).length, refused = (sc.stdout.match(/^PASS .*refused/gm) ?? []).length;
+  line(sc.status === 0, "Jolt smith: model-written guest programs verify against their registered program hashes", `${n} checks, ${refused} changed statements refused${live ? ", registry read live" : ""}; docs/smith.md`);
+}
+
 // 3. JS suites
-const suites = ["ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs", "scripts/nras.test.mjs"].filter((f) => existsSync(root + f));
+const suites = ["scripts/who-sees-what.test.mjs", "scripts/leak-amount.test.mjs", "ucp/test/near-usdc.test.mjs", "mcp/rep-read.test.mjs", "x402/verdict-read.test.mjs", "sdk/merchant.test.mjs", "scripts/jmpr-rates-to-merchants.test.mjs", "scripts/demo-live.test.mjs", "scripts/demo-tester.test.mjs", "scripts/join-merchant.test.mjs", "relayer/relay.test.mjs", "relayer/near.test.mjs", "relayer/serve.test.mjs", "scripts/mainnet-moment.test.mjs", "scripts/device-run.test.mjs", "scripts/eval-run.test.mjs", "scripts/status.test.mjs", "sdk/buy.test.mjs", "scripts/rep-eval.test.mjs", "scripts/live-pages.test.mjs", "scripts/prove-me.test.mjs", "scripts/rep-eval-v2.test.mjs", "scripts/nras.test.mjs", "scripts/outlayer-eval.test.mjs"].filter((f) => existsSync(root + f));
 const { NEAR_RPC: _ignored, ...suiteEnv } = process.env;
 const t = spawnSync("node", ["--test", ...suites], { cwd: root, encoding: "utf8", timeout: 60_000, env: suiteEnv });
 const pass = Number(t.stdout.match(/^# pass (\d+)/m)?.[1] ?? 0);

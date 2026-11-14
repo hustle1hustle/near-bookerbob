@@ -67,6 +67,15 @@ export function sealTo(plaintext, recipientEdHex) {
   const nonce = randomBytes(24);
   return Buffer.concat([ephPub, nonce, xchachaSeal(key, nonce, Buffer.from(plaintext))]).toString("hex");
 }
+/** sealTo, plus the per-message key, so a sender can disclose what it sent (openField opens it). */
+export function sealToWithKey(plaintext, recipientEdHex) {
+  const eph = generateKeyPairSync("x25519");
+  const ephPub = eph.publicKey.export({ format: "der", type: "spki" }).subarray(12);
+  const shared = diffieHellman({ privateKey: eph.privateKey, publicKey: xPub(edPubToX(Buffer.from(recipientEdHex, "hex"))) });
+  const key = Buffer.from(hkdfSync("sha256", shared, Buffer.alloc(0), INFO, 32));
+  const nonce = randomBytes(24);
+  return { wire: Buffer.concat([ephPub, nonce, xchachaSeal(key, nonce, Buffer.from(plaintext))]).toString("hex"), key: key.toString("hex") };
+}
 export function openWith(wireHex, xSecretRaw) {
   const b = Buffer.from(wireHex, "hex");
   const shared = diffieHellman({ privateKey: xPriv(xSecretRaw), publicKey: xPub(b.subarray(0, 32)) });

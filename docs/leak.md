@@ -6,14 +6,30 @@
 |---|---|---|
 | anyone reading the chain | nullifier, commitments, tcb_status, cap, settled amount, merchant, checkout_ref, the account and who funded it; revealed predicates, except on a sealed verdict | the facts; a sealed verdict's predicates; the person |
 | the merchant | what the chain shows, the Shopify order in the test store | the facts, the account's owner |
-| the relayer and the treasury (REP today) | every account it funds and relays for, and when; so it can link a buyer's calls in one purchase; a rating, when it carries the reveal | the facts |
+| the relayer and the treasury (the BookerBob operator today) | every account it funds and relays for, and when; so it can link a buyer's calls in one purchase; a rating, when it carries the reveal | the facts |
 | NEAR AI enclave | the facts, sealed to its attested key | who the account is |
 | the NEAR AI gateway | the API key, size and time of each request | the facts (E2EE v2 seals them past it) |
-| the referee and the arbiter (both keys are REP's today; the referee is not yet an attested OutLayer worker, so this reader is REP too) | the proof set they judge; a sealed verdict's opening | the person, other purchases |
-| REP as verdict issuer | the facts it signs over (synthetic so far) | |
-| REP as verdict evaluator (model path) | the facts in the clear, and the prompt it builds from them | |
-| REP as VOPRF evaluator | who asked, in which context, and when; a blinded element | the input and the nullifier it produces, so timing is its only link |
-| the notary (`make prove-me`, `make try`; REP's key, not attested) | that a session ran, its transcript commitments | the redacted fields. This row does not separate the two notary modes: the one `make try` run used PROXY mode, not MPC-TLS (docs/prove-me.md) |
+| the referee and the arbiter (both run on OutLayer since 2026-11-14 with TEE-derived keys, the referee on testnet and mainnet, the arbiter on testnet; the TDX quotes are verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md, docs/keyless.md); but our seed referee and arbiter keys stay registered and the OutLayer project's owner is the BookerBob operator, so a reader can be us) | the proof set they judge; a sealed verdict's opening | the person, other purchases |
+| the operator as verdict issuer | the facts it signs over (synthetic so far) | |
+| the operator as verdict evaluator (model path) | the facts in the clear, and the prompt it builds from them | |
+| the operator as VOPRF evaluator | who asked, in which context, and when; a blinded element | the input and the nullifier it produces, so timing is its only link |
+| the notary (`make prove-me`, `make try`; the operator's key, not attested) | that a session ran, its transcript commitments | the redacted fields. This row does not separate the two notary modes: the one `make try` run used PROXY mode, not MPC-TLS (docs/prove-me.md) |
+
+The table checked byte by byte on the one purchase made over real data (the founder's signed-in
+GitHub proof, mainnet, `fixtures/mainnet/real-refusal.json`): `make who-sees-what`, in `make judge`.
+6 checks: the 6 mainnet txs (args, logs) and the verdict view hold none of 24 fact strings; the
+model's answer, opened with the key on chain, holds only the envelope's predicates and a nonce;
+its reasoning field does not open; the proof_hash is blinded by a private salt (a search of
+848,421 guesses, the true facts among them, matches nothing; it illustrates the salt); the
+referee's result holds no fact; the gateway's request bytes are hex ciphertext (the testnet
+capture of the same code path). 9 listed rows say who does see more: the account links to the
+buyer's earlier purchase and funding, NEAR AI's metadata, the referee worker's clear input in this
+run, our evaluator, the model in the TEE, the notary, the RPC providers, and this repo, which
+publishes these facts on purpose.
+Its tests plant a fact in a log, the referee result, the verdict view and the gateway request,
+plaintext or hex-encoded plaintext reasoning and gateway messages,
+an unblinded proof_hash, a plaintext message, a predicate mismatch and missing inputs; each must
+fail (`scripts/who-sees-what.test.mjs`). `WHO_FLAGS=--live` re-reads mainnet.
 
 `make leak` reads only public testnet data (signers, receivers, args, events, block heights,
 funding) for the txs in `fixtures/live/testnet-manifest.json` and applies these rules (L5 to L10 are below):
@@ -61,6 +77,16 @@ back. What remains is the buyers who share the amount (L6). L10 is reported, not
 single purchase so far decodes. Fixed tiers in a buying group do not, and that is the working
 fix: the grid, not the seal. Buy Twice adds a bit: a merchant's returning discount doubles the
 subsets, and each claim's amount is checked by L10 once one runs live.
+
+Measured and shrunk in `docs/leak-amount.md` (`node scripts/leak-amount.mjs`), in the amount
+channel. On the swarm's own sales, given the merchant, the amount leaked 1.00 bit per sale; with
+bucketed schedules 0.00, because every swarm set holds world_id_human, which those buckets price.
+Across all 30 schedules, with every swarm set assumed at every merchant, the mean goes from 1.03
+to 0.41 bits; 14 of the 16 schedules that leak 0 after rest on the same fact.
+The merchant a buyer picks still tells about 1.5 bits in hoodie, and bucketing does not touch it.
+Live on testnet: 5 buyers paid one amount, 40.92, at `bkt-m01.bookerbob-demo.testnet`. Their bit
+sets differ as we recorded them; the chain holds only hashes, and the equal price follows from
+the schedule.
 
 ## Before (2026-11-05, round 5979413, `docs/leak-before.json`)
 

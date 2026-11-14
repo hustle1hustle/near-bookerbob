@@ -1,0 +1,77 @@
+{
+  "network": "testnet",
+  "contract": "verifier.bookerbob-jolt-a.testnet",
+  "signer": "bookerbob-jolt-a.testnet",
+  "wasm_sha256": "29ae5c01c1b95c572f2df3383e889761896cc9322ec2b26779effd98ca5533d2",
+  "create_account_tx": "2vhP2wMtPf24tXtmPMKX6ibUDDoyoF1sZWeiD6WnkUbf",
+  "deploy_tx": "FHB6D7ZjyNmY2rzfibCTBBgD1pMxnDM5k5LNh4h4UD2i",
+  "lock_tx": "EVRobx8K5h4H145c7tCUU1KmTiJx3Bke17sqmJPaMaFQ",
+  "locked": "the only full-access key was deleted after the final audit, on the founder's OK; the account has no keys, the code is permanent",
+  "note": "the final contract after two audits; an earlier pre-audit deploy on bookerbob-jolt-a.testnet ran the same three cases (its txs remain on chain, its contract was replaced)",
+  "jobs": [
+    {
+      "id": 1,
+      "what": "the live standing proof (zk/out/standing-testnet-3), honest",
+      "proof": "zk/out/standing-testnet-3/proof.bin",
+      "io": "zk/out/standing-testnet-3/io_device.bin",
+      "expect": "verified",
+      "txs": [
+        "ABi9pQmmR5hfxALRAjMJW1fZZRAuC3tUJHexD9EhaTLH",
+        "4474u2UDV3sPWT1U9frHxAFqX1WETMaqKD17dnViHVNX",
+        "HyA75xebyCptni1NRSgH7jzQVxk86k2eTnKS3oyJSFpn",
+        "JZtzrpRxkDBKuSjNB8bcEQdWpfmBVi5dRCan1r4XQSU",
+        "Fs7tELnDa1yaxQjpCDrjrZEqFawExp6EprBGh22wJp13",
+        "3UqSWpwhVZnCc1GsdjrJtkk92TgaPkh4myjiaLGB1FTb",
+        "2cQ54hrURMase8GKbjsrL5hLtscTeQa7R93FrnnZvZmi",
+        "DNnca2REPaHA1Y7tRGcTpRpdNUPjzKr2GNECUXX6G6Rm"
+      ],
+      "result": "zk/out/standing-testnet-3/result.json"
+    },
+    {
+      "id": 2,
+      "what": "the same proof with the final Dory message's E1 moved by the G1 generator (a valid point)",
+      "proof": "zk/onchain/forged/forged-dory.bin",
+      "io": "zk/out/standing-testnet-3/io_device.bin",
+      "expect": "refused at unit 56: dory final: InvalidProof",
+      "txs": [
+        "Dd3MJoLrg8XTadET9nU9wGNc1i88ECUGE46e5r34ibvV",
+        "9M5Rnppvyu9GLV5b5VVfvDJKeaLPbnQyYtxN7Y856WUd",
+        "DbPLsLZggxk5ZUSQeKUNKdmLpKjnVuRczU3iYHQRx73o",
+        "A9kVMAxP5PSCVJTkpfL3r4ojMHXDC6Doz4YZWVUQdoV9",
+        "GE4UP4Qond3MJb1RgUx5enRMGG61iAX5J4qpg4UjCBoh",
+        "4WbaoG9TzPQbQE75qJSKQwB838Q8cJTGYHbX6nUQocWh",
+        "E6GJtRAUXz3wcfuCaTZFYn2vq3UpPP6Bf4Hin7qqwvzN",
+        "9neZRkc3wa3gyrNHxa6xL6ShRSugUvknicvUKeohgREm"
+      ]
+    },
+    {
+      "id": 3,
+      "what": "the honest proof with one byte of the claimed output changed",
+      "proof": "zk/out/standing-testnet-3/proof.bin",
+      "io": "zk/onchain/forged/forged-io.bin",
+      "expect": "refused at unit 1: stage 1: SumcheckVerificationError",
+      "txs": [
+        "8B8CAMB5rd3f7VpRDNHpEUjK6fkTbQWxUiegB1f3yeDt",
+        "Fr2eZzcfJhkXk5Vgyqx6UNPoxzHRMd4HAX4sAVDdAGDx"
+      ]
+    },
+    {
+      "id": 4,
+      "what": "the live standing proof behind the bazaar's standing tree (zk/out/standing-live, 10 graph events), honest; coalition version 4 admits on it",
+      "proof": "zk/onchain/live/proof.bin",
+      "io": "zk/onchain/live/io_device.bin",
+      "result": "zk/onchain/live/result.json",
+      "expect": "verified",
+      "txs": [
+        "7uevS7dLbBSX9YWGrp7LfxyjfoSvm5YWMTdDJa93iWe8",
+        "CJrXNtr1eJuVJY8mEpmcagXc9S9UDzsxczUvy8F264TB",
+        "J1Lz8r9K5YARHGcGbxfrnaEknsixfmqrQ9ebXFmxiVNa",
+        "C88bCkyEmL9oWi7BEFLowkRX1xMYZrY2p2uF1346Qw8z",
+        "8rA29X7A3v91jFgrHqafoZfySSRjnZsmmxDMMdYV1j4v",
+        "27bZH3t1L9UTnDHSv6TjMAyqopXK38jsgZwS7ihnCDTQ",
+        "ZX1t9VLYMJQUmwjteHFd3dhLUZDJQzMSuFkKVTgpFh6",
+        "AhKSKWACn3BhW2vDQEpdCGtrzbH7zDJpYJzpwosSVZPM"
+      ]
+    }
+  ]
+}

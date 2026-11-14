@@ -1,0 +1,67 @@
+{
+ "note": "The economy anchor on NEAR mainnet, dry: what it would cost to deploy the open anchor (the testnet wasm) and post every anchored testnet epoch. Gas is measured on testnet with the same wasm and records; mainnet gas price read live. Nothing was sent.",
+ "read_at": "2026-11-14T16:35:45.749Z",
+ "mainnet_gas_price_yocto_per_gas": "100000000",
+ "wasm_sha256": "4ddd3f946d5a220b6e76c4b1a783df7ef392a429684a7af32f33ef286a40533c",
+ "wasm_bytes": 142059,
+ "epochs": 42,
+ "events": 3241,
+ "transactions": 7,
+ "items": [
+  {
+   "item": "1. fund a fresh implicit account (a transfer from the free balance of the mainnet DCAP verifier account)",
+   "gas_tgas": 15.8748430625,
+   "burnt_near": "0.001587"
+  },
+  {
+   "item": "2. deploy + new() + post-only function-call key, one tx",
+   "gas_tgas": 12.462124250156,
+   "burnt_near": "0.001246",
+   "storage_near": "1.423620",
+   "storage_bytes": 142362
+  },
+  {
+   "item": "3. post seq 0..22 (23 epochs, 225742 bytes of records)",
+   "gas_tgas": 84.120921712263,
+   "attached_tgas": 126,
+   "burnt_near": "0.008412"
+  },
+  {
+   "item": "4. post seq 23..23 (1 epochs, 270575 bytes of records)",
+   "gas_tgas": 29.070979653582,
+   "attached_tgas": 43,
+   "burnt_near": "0.002907"
+  },
+  {
+   "item": "5. post seq 24..27 (4 epochs, 249214 bytes of records)",
+   "gas_tgas": 34.238804275795,
+   "attached_tgas": 51,
+   "burnt_near": "0.003424"
+  },
+  {
+   "item": "6. post seq 28..40 (13 epochs, 230205 bytes of records)",
+   "gas_tgas": 56.341358877047,
+   "attached_tgas": 84,
+   "burnt_near": "0.005634"
+  },
+  {
+   "item": "7. post seq 41..41 (1 epochs, 73310 bytes of records)",
+   "gas_tgas": 7.434587231232,
+   "attached_tgas": 11,
+   "burnt_near": "0.000743"
+  },
+  {
+   "item": "state for 42 entries (about 276 bytes each)",
+   "storage_near": "0.116280",
+   "storage_bytes": 11628
+  }
+ ],
+ "total_burnt_near": "0.023954",
+ "total_storage_locked_near": "1.539900",
+ "fund_near": "1.597809",
+ "per_epoch_after": {
+  "gas_tgas_typical": 3,
+  "gas_tgas_busiest": 29.070979653582,
+  "storage_near": "0.002760"
+ }
+}

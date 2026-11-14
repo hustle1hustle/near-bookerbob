@@ -63,6 +63,11 @@ if [ -d "$SECRETS_DIR" ]; then
   sort -u -o "$tmp/values.txt" "$tmp/values.txt"
   # Drop public values that legitimately appear (account ids, hosts, version strings).
   grep -vE '\.(testnet|near|com|org|dev|io)$|^https?:|^[0-9]{4}-[0-9]{2}' "$tmp/values.txt" > "$tmp/v2.txt" || true
+  # Values already public on chain: scripts/secret-scan-public.txt lists their sha256 only (an
+  # OutLayer v0 referee input salt, sent unsealed in testnet tx args; founder decision 2026-11-14).
+  if [ -f scripts/secret-scan-public.txt ]; then
+    node -e 'const fs = require("fs"), c = require("crypto"); const pub = new Set(fs.readFileSync(process.argv[2], "utf8").split("\n").filter((l) => /^[0-9a-f]{64}/.test(l)).map((l) => l.slice(0, 64))); const f = process.argv[1]; fs.writeFileSync(f, fs.readFileSync(f, "utf8").split("\n").filter((v) => !pub.has(c.createHash("sha256").update(v).digest("hex"))).join("\n"));' "$tmp/v2.txt" scripts/secret-scan-public.txt
+  fi
   nvals=$(wc -l < "$tmp/v2.txt" | tr -d ' ')
   # Every value as a substring anywhere in history, one pass: an 8-byte prefix index (BSD grep -F
   # with thousands of patterns takes over 20 minutes here). Writes the hit line numbers.

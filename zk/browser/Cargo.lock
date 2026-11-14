@@ -313,6 +313,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bookerbob-graph"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+]
+
+[[package]]
+name = "bookerbob-standing-v2"
+version = "0.1.0"
+dependencies = [
+ "bookerbob-graph",
+]
+
+[[package]]
 name = "bookerbob-zkcore"
 version = "0.1.0"
 dependencies = [
@@ -1793,6 +1807,50 @@ name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
+
+[[package]]
+name = "standing-browser-guest"
+version = "0.1.0"
+dependencies = [
+ "bookerbob-graph",
+ "jolt-sdk",
+ "serde",
+]
+
+[[package]]
+name = "standing-host"
+version = "0.1.0"
+dependencies = [
+ "bincode 2.0.1",
+ "bookerbob-graph",
+ "bookerbob-standing-v2",
+ "decide-public",
+ "hex",
+ "jolt-sdk",
+ "serde_json",
+ "sha2",
+ "standing-browser-guest",
+ "standing-v2-guest",
+ "standing-v3-guest",
+]
+
+[[package]]
+name = "standing-v2-guest"
+version = "0.1.0"
+dependencies = [
+ "bookerbob-standing-v2",
+ "jolt-sdk",
+ "serde",
+]
+
+[[package]]
+name = "standing-v3-guest"
+version = "0.1.0"
+dependencies = [
+ "bookerbob-standing-v2",
+ "jolt-sdk",
+ "serde",
+]
 
 [[package]]
 name = "strsim"

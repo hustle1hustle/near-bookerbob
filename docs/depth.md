@@ -160,22 +160,22 @@ visible as `anchor_queued`, executable by anyone after the delay and cancellable
 inside it. Raising the TCB floor and removing an issuer apply at once, because they only narrow
 trust and are the response to a compromised key. The delay is 5 minutes on the DAO test bazaar
 and, since 2026-11-10, 5 minutes on the live bazaar too ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)). It
-covers anchors, not the code: the full-access key of `bookerbob.testnet` can still redeploy.
+covers anchors; the code is fixed: `bookerbob.testnet` has no access key since 2026-11-14 (DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)).
 
 | who holds | what it can do today |
 |---|---|
-| the full-access key on `bookerbob.testnet` (one key, `ed25519:BDvqs4A7…`, held by REP) | redeploy the contract code at any time, which bypasses every rule above, including the timelock. The contract cannot defend against its own account's full-access key. Fix: hand the account to the DAO and delete the key, so an upgrade is a DAO proposal (planned; it is irreversible, so it waits on the founder) |
-| the owner role on `bookerbob.testnet` (the same account) | register trust anchors, each after the 5 minute public delay |
-| the DAO test bazaar's account | its full-access key is also REP's; the DAO holds the owner role, not the code |
+| the full-access key on `bookerbob.testnet` | deleted on 2026-11-14 ([28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)): no one can redeploy the contract code (`node scripts/keyless-check.mjs`) |
+| the owner role on `bookerbob.testnet` (the same account) | nothing since the lock: no key can sign an owner call, so trust anchors, rounds and fees are frozen |
+| the DAO test bazaar's account | its full-access key is also the operator's; the DAO holds the owner role, not the code |
 
 | layer | what it proves | what it does not |
 |---|---|---|
 | zkTLS proof | the facts came from the user's real account over TLS | the notary is a single MPC key today, not attested ("notary not attested") |
-| NEAR AI TEE | the answer came from the attested model key; the TDX quote verifies to Intel's root and its report_data holds that key and our nonce; under E2EE v2 the signature covers the ciphertext | TEE caveats apply; `tcb_status` is recorded, not hidden; the NVIDIA GPU evidence is checked offline from NVIDIA's signed NRAS reply (8 GPUs, bound to the request nonce, the signing key chained to NVIDIA's pinned root, `scripts/nras.mjs`); the contract trusts the owner's registration of the model key (the TDX quote is now verified on chain, in five calls of 40 to 132 Tgas, by `spike.bookerbob.testnet`, and `register_model_attestation_verified` requires a finalized verification: `tools/dcap-spike/README.md`; the verifier account keeps REP's key) |
-| on-chain TDX quote check (`spike.bookerbob.testnet`, a dcap-qvl fork) | the NEAR AI quote chains to Intel's root CA, its TCB Info, QE Identity and PCK chain are Intel-signed and current at the block's time (not the caller's), the quote's signature holds, and report_data is the model key and nonce; five calls of 40, 100, 99, 132 and 69 Tgas; one changed byte in the signed report fails at the last step | the collateral is fetched off chain from Intel's PCS by whoever starts a verification (its signatures are checked on chain); until the lock, the verifier account keeps REP's full-access key, so its code could be replaced; the GPU evidence is checked off chain (NRAS, `scripts/nras.mjs`) |
+| NEAR AI TEE | the answer came from the attested model key; the TDX quote verifies to Intel's root and its report_data holds that key and our nonce; under E2EE v2 the signature covers the ciphertext | TEE caveats apply; `tcb_status` is recorded, not hidden; the NVIDIA GPU evidence is checked offline from NVIDIA's signed NRAS reply (8 GPUs, bound to the request nonce, the signing key chained to NVIDIA's pinned root, `scripts/nras.mjs`); the contract trusts the owner's registration of the model key (the TDX quote is now verified on chain, in five calls of 40 to 132 Tgas, by `spike.bookerbob.testnet`, and `register_model_attestation_verified` requires a finalized verification: `tools/dcap-spike/README.md`; the verifier account is locked, no access keys, code hash `7ZabqCJb…`) |
+| on-chain TDX quote check (`spike.bookerbob.testnet`, a dcap-qvl fork) | the NEAR AI quote chains to Intel's root CA, its TCB Info, QE Identity and PCK chain are Intel-signed and current at the block's time (not the caller's), the quote's signature holds, and report_data is the model key and nonce; five calls of 40, 100, 99, 132 and 69 Tgas; one changed byte in the signed report fails at the last step | the collateral is fetched off chain from Intel's PCS by whoever starts a verification (its signatures are checked on chain); the verifier account is locked (no access keys since 2026-11-14, DeleteKey 7pgUUjnb…, code hash `7ZabqCJb…`, checked by `scripts/outlayer-attest.mjs`), so its code cannot be replaced; the GPU evidence is checked off chain (NRAS, `scripts/nras.mjs`) |
 | verdict issuer | the envelope was signed by a registered key (`ed25519_verify` / `p256_verify`) | that the issuer is honest beyond its key |
 | referee (OutLayer worker) | every cited fact is in the proof set, its asserted field and value match, and it proves its line; the price is the code quote | OutLayer is unaudited; a compromised referee key can sign a false receipt (the dispute path exists for that) |
-| dispute arbiter | an independent re-run of every check, signed | only as independent as its operator; today it is a fixture seed like the referee |
+| dispute arbiter | an independent re-run of every check, signed | on testnet two keys sign at threshold 2: ours and the OutLayer project's TEE-derived key (attestation not checked); the project owner is our account (`docs/keyless.md`) |
 | World ID verifier | one World ID holder bound one agent | there is no World ID verifier on NEAR; the contract trusts the service key |
 | contract | nullifier used once, price from code, cap, receipt required, payout atomic with the burn | it never sees raw facts, by design |
 
@@ -187,7 +187,7 @@ covers anchors, not the code: the full-access key of `bookerbob.testnet` can sti
 | anyone reading the chain | per verdict: nullifier, commitment, revealed predicates, tcb_status, cap; settled amount, merchant, checkout_ref. A sealed verdict shows only the nullifier, the commitments and tcb_status until settle; its amount still narrows which discounts applied | the proof set, the buyer's other contexts (the nullifier is per context) |
 | the referee and arbiter | the proof set they judge (synthetic in fixtures) | nothing more; on-chain `input_data` is public, so `request_referee` accepts only input sealed to the worker key (X25519, XChaCha20-Poly1305, `worker/src/sealed.rs`) |
 | NEAR AI enclave | the facts, sealed to its key | |
-| REP | the older HMAC nullifier key, so it can link accounts on those purchases; on a VOPRF purchase, who asked and when (below) | |
+| the BookerBob operator | the older HMAC nullifier key, so it can link accounts on those purchases; on a VOPRF purchase, who asked and when (below) | |
 
 ### What each party can link
 
@@ -196,7 +196,7 @@ covers anchors, not the code: the full-access key of `bookerbob.testnet` can sti
 | a merchant | the verdict to the settle of its own sale (same nullifier, same agent account) | the buyer's other purchases in other contexts (per-context nullifier), the raw history | |
 | anyone reading the chain | today, every call one agent account makes (verdict, settle, review-group join); two purchases by the same agent account | which group member wrote a rating (Semaphore); the rating's sender to the buyer (one-time implicit account) | one-time cnf key and account per purchase (planned, panel action 6) |
 | the relayer | every sender it pays for, and each rating at reveal time | the buyer behind a one-time review account, unless it also relayed that buyer's purchase | run your own relayer; it is not trusted by the contract |
-| REP (VOPRF evaluator) | who asked for an evaluation in which context, and when; for purchases before 2026-11-05, accounts across contexts (an HMAC under a REP key) | which on-chain nullifier an evaluation became (it sees a blinded element only); a person's nullifier in a context it never evaluated (it does not know `x`) | the key in a TDX enclave with 2-of-3 backups, then a committee (decided, not built) |
+| the BookerBob operator, as VOPRF evaluator | who asked for an evaluation in which context, and when; for purchases before 2026-11-05, accounts across contexts (an HMAC under an operator key) | which on-chain nullifier an evaluation became (it sees a blinded element only); a person's nullifier in a context it never evaluated (it does not know `x`) | the key in a TDX enclave with 2-of-3 backups, then a committee (decided, not built) |
 | the NEAR AI enclave | the facts it was sealed (by design) | | |
 
 ### Attacks and what stops them
@@ -243,9 +243,9 @@ covers anchors, not the code: the full-access key of `bookerbob.testnet` can sti
   (signatures, nullifiers, Semaphore, the k floor).
 - The zkTLS notary is a single MPC key today, not attested. A compromised notary could sign
   false facts. A verdict is only as good as the notary behind it.
-- The VOPRF nullifier (since 2026-11-05) removes REP's ability to recompute a person's nullifier
+- The VOPRF nullifier (since 2026-11-05) removes our ability to recompute a person's nullifier
   in any context or to tie an evaluation to the nullifier it became. It does not remove timing (a
-  lone request just before a purchase), REP's view of who asked, or REP's single evaluator key.
+  lone request just before a purchase), our view of who asked, or our single evaluator key.
 - When a TEE output and a Jolt output disagree: today they cover different things (NEAR AI
   derives the verdict predicates; Jolt proves the standing, price, referee and cohort code),
   so they cannot disagree on one value. Where both will exist (planned predicate guest),
@@ -258,11 +258,12 @@ covers anchors, not the code: the full-access key of `bookerbob.testnet` can sti
   A standing update waits out a window, anyone can challenge it with a bond, and a false one
   slashes the worker's bond; the arbiters rerun the verifier off chain and sign the
   resolution. A threshold of distinct arbiter signatures is built and tested (2 of 3 in the
-  tests); the live bazaar runs at threshold 1.
-- Who holds the arbiter keys: REP. The one live arbiter key and all three test keys are ours;
-  no outside operator holds one yet. A dishonest REP arbiter could uphold a false update or
-  overturn an honest receipt; the threshold only helps once the keys sit with different
-  operators.
+  tests); the live bazaar runs at threshold 2 since 2026-11-14.
+- Who holds the arbiter keys: REP holds one live arbiter key and all three test keys. Since
+  2026-11-14 the second live arbiter is the OutLayer project's TEE key, which overturned a forged
+  receipt on testnet (`docs/keyless.md`); at threshold 2 every decision needs both keys, so our
+  key alone cannot uphold a false update or overturn an honest receipt. A challenged standing
+  update cannot resolve until the OutLayer module signs graph resolutions.
 - Jolt is built without its `zk` feature (docs/jolt.md has the per-guest table of what is
   private): the proofs are succinct, and anything the guest reads is assumed public or
   committed elsewhere.
@@ -305,7 +306,7 @@ near-cli-rs was installed here: dry-run first, check the first live step by hand
 | the `bazaar` contract, every method, run natively on near-sdk's MockedBlockchain (host functions such as `ed25519_verify`, `p256_verify`, `alt_bn128_*` run through nearcore's VM logic) | `contract/`, `make verify` |
 | the buyer, the proof set and every key except NEAR AI's | `cli/src/fixtures.rs` |
 | Semaphore proofs: real Groth16 proofs from Semaphore's V4 ceremony artifacts, generated locally for synthetic identities | `fixtures/semaphore/` |
-| the referee worker, built for OutLayer but run locally | `worker/` |
+| the referee worker, on OutLayer: live on testnet 2026-11-14, TDX quote verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md) | `worker/`, `worker/outlayer/` |
 | the NEP-366 relayer, x402 reads, MCP server, UCP handler, merchant SDK: tested on synthetic inputs | `relayer/`, `x402/`, `mcp/`, `ucp/`, `sdk/` |
 | USDC payouts: scheduled as receipts in the mocked chain, never executed | `make verify` check 24 |
 
@@ -340,7 +341,7 @@ Where testnet stands, as of 2026-11-10:
   sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 21 replays refused, a settle-only function-call key
   that cannot withdraw, 18 sealed reviews released over 3 rounds at k >= 5 (12 for m01, 6 for h05), the group price at k >= 5, a
   standing update with nonzero merchants, 21 orders in the Shopify test store.
-- Not on testnet yet: the OutLayer referee (its registration waits on the founder). The NEP-366
+- The OutLayer referee: live on testnet 2026-11-14, TDX quote verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md). The NEP-366
   relayer sends on testnet: it paid every demo purchase call and every sealed rating.
 - Demo mode: [docs/demo-mode.md](demo-mode.md), `make demo-tester`.
 - Mainnet only on an explicit go.

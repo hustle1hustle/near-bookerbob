@@ -1,0 +1,25 @@
+[package]
+name = "standing-browser-guest"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[features]
+guest = []
+
+[dependencies]
+jolt = { package = "jolt-sdk", path = "../vendor/jolt/jolt-sdk" }
+# The standing code the contract and the on-chain Jolt guest (zk/guests/standing) run.
+bookerbob-graph = { path = "../../../graph" }
+serde = { version = "1", default-features = false, features = ["alloc"] }
+
+[lib]
+test = false
+doctest = false
+bench = false
+
+[[bin]]
+name = "standing-browser-guest"
+path = "src/main.rs"
+test = false
+bench = false

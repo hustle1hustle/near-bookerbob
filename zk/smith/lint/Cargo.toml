@@ -1,0 +1,23 @@
+[package]
+name = "smith-lint"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "The smith's static check on a model-written body.rs: a syn parse with an item, path and macro allowlist. Built to wasm32 so node runs the same check (agents/smith/lint.wasm)."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+syn = { version = "2", default-features = false, features = ["full", "visit", "parsing", "printing"] }
+proc-macro2 = { version = "1", default-features = false }
+quote = { version = "1", default-features = false }
+
+[workspace]
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

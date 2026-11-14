@@ -1,0 +1,48 @@
+{
+  "note": "Smith programs with a proof; agents/smith.html and scripts/smith-check.mjs read these.",
+  "programs": [
+    {
+      "id": "coalition-k-of-n",
+      "requester": {
+        "account": "cl-lead-1df7.bookerbob-demo.testnet",
+        "role": "coalition lead of job C"
+      },
+      "ask": "Prove that at least k_min of the coalition's seats delivered, against a commitment to the seat records, and reveal only how many delivered and how many seats there are. Do not reveal which members delivered.",
+      "program_hash": "b8345c0457aaed2eae1c0d2be41761e59758869b93e36d8f7a13151473804ad0",
+      "spec_hash": "7d92675f839e4acd5b305440d30e2e0e258e70294c050d51bc5b2a0b837d7fc9",
+      "output": {
+        "delivered": 2,
+        "seats": 3
+      }
+    },
+    {
+      "id": "coalition-split",
+      "requester": {
+        "account": "cl-lead-1df7.bookerbob-demo.testnet",
+        "role": "coalition lead of job C"
+      },
+      "ask": "Prove that the coalition's payout followed its pro-rata rule: from the committed seat records, the budget and the bond, recompute every deliverer's bond back, budget share and share of slashed bonds, every slashed bond and the buyer's remainder, and check they equal the payouts the job announced.",
+      "program_hash": "dc65a0f063d316e896f6c44563ead2d9df596bdab95f978f04c13eec3b4432ae",
+      "spec_hash": "bff28a1463eca2b6150c407ed7f2356a5244d6039e65a50672a26b20774a5b61",
+      "output": {
+        "deliverers": 2,
+        "slashed": 1,
+        "paid_out": "17638119"
+      }
+    },
+    {
+      "id": "spend-bucket",
+      "requester": {
+        "account": "buyer-agent.bookerbob-demo.testnet",
+        "role": "buyer agent"
+      },
+      "ask": "Prove which spend bucket a buyer's last window_days of purchases falls in, from records the buyer committed to earlier, and reveal only the bucket index. The records and the total stay with the buyer.",
+      "program_hash": "136dd9a90b511d5881796bca761d590ca914ed29cc2e7e410215749f47503fb7",
+      "spec_hash": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58f",
+      "output": {
+        "bucket": 2
+      },
+      "zk_program_hash": "bec48cc20de5867164669c8bd1fbd2fcbaf1c9ce041f6790d156cfb82d299383"
+    }
+  ]
+}

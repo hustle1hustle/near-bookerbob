@@ -3,24 +3,29 @@
 [![ci](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/ci.yml)
 [![verify-live](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml/badge.svg)](https://github.com/hustle1hustle/near-bookerbob/actions/workflows/live.yml)
 
+**The same NEAR contract runs a16z's Jolt verifier on a full proof on mainnet and on testnet:
+stages 1 to 7 and the Dory opening, about 6 PGas over 8 transactions.** On mainnet it verified the
+live agent-reputation proof ([DzzyBuE8…](https://nearblocks.io/txns/DzzyBuE8CRTSiQtr4JGfrHZ4GbkG2eWLhy9nHXft31rg)).
+A forged Dory proof is refused on both networks and a one-byte claim change on testnet, and the
+testnet copy, `verifier.bookerbob-jolt-a.testnet`, holds no access key (lock tx
+[EVRobx8K…](https://testnet.nearblocks.io/txns/EVRobx8K5h4H145c7tCUU1KmTiJx3Bke17sqmJPaMaFQ)).
+Re-check it in under 30 s: `node scripts/jolt-onchain-check.mjs`, `make jolt-onchain-mainnet-check`.
+Both networks run code hash `3ohvMhiF…` (wasm sha256 `29ae5c01…`); `cd zk/onchain && scripts/build.sh`
+rebuilt it byte for byte from a second checkout.
+
+A keyless coalition admits merchant agents only when the testnet verifier proves the bazaar's live
+reputation root, so agent reputation is closed on chain for coalition admission: the bazaar, the
+verifier and the coalition hold no keys (`make coalition-jolt-check`; `node scripts/keyless-check.mjs` ends
+`PASS  keyless-check: 5 accounts, none holds an access key`).
+
+New Jolt checks come from the swarm: on an agent's request, a TEE-attested NEAR AI model writes the
+guest from a fixed skeleton, and a testnet registry records its program hash ([docs/smith.md](docs/smith.md)).
+
+Verify everything: [agents/verify.html](https://hustle1hustle.github.io/near-bookerbob/verify.html), `make verify-all`.
+
 [![prove 3 facts, pay 408: a buyer agent in Lisbon proves three facts and pays 408.00 against a public 510.00 while 8 seller agents bid sealed](docs/media/hook.gif)](https://hustle1hustle.github.io/near-bookerbob/)
 
-**Intent matching for the agent economy: your agent proves a few facts about you and pays less,
-seller agents bid for your intent in a sealed auction, and a NEAR contract enforces the price, the
-payment and the TEE signature on every AI decision; each claim is checked by a referee whose
-signed receipt the contract requires.**
-
-![How one purchase works, in 8 steps: you state an intent, your agent proves a few facts in a signed verdict, a referee checks every claim, 8 seller agents bid sealed, the contract prices from code, you pay against a receipt, buyers rate the seller anonymously, anyone re-checks it](docs/media/stack.jpg)
-
 Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Private AI, AI Security & Defense.
-
-![The swarm setup: buyer agents, merchant agents, model merchants, adversarial agents and outside people bidding into the bazaar contract on NEAR testnet, with NEAR AI TEE signatures, a referee and a public record](docs/media/swarm-setup.svg)
-
-![s2: each model merchant's sealed bid per round and what buyers paid](docs/media/s2-prices.svg)
-
-When 10 AI merchants priced their own sealed bids from the public record, the price a proven
-buyer paid fell from 26.80 to 24.08 in four rounds, just above the sellers' costs (run s2,
-[docs/swarm-run.md](docs/swarm-run.md#s2)).
 
 ## Check it in three commands
 
@@ -35,7 +40,7 @@ From a clone, no keys:
 Also: `make adversarial` (3,724 attacks, all refused) and
 `make verify-presentation`. A five-minute walk:
 [docs/judge-guide.md](docs/judge-guide.md). For agents: [AGENTS.md](AGENTS.md).
-Verify in your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), the zk gallery kit (`tools/zk-gallery-verify`).
+Verify in your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [standing.html](https://hustle1hustle.github.io/near-bookerbob/standing.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), the zk gallery kit (`tools/zk-gallery-verify`).
 
 ## Three things an agent economy breaks
 
@@ -45,12 +50,15 @@ BookerBob fixes all three.
 | what breaks | what BookerBob does | check it |
 |---|---|---|
 | **Agents leak you.** A shopping agent tells sellers who you are and your history. | Your agent proves a few facts in a signed verdict; sellers price the verdict, code sets the price, the history stays with you; a claim the proofs do not back is refused before payment. | the hotel buy, priced by code against proven facts: public 510.00, the proven buyer pays 408.00 ([9Esa4qik…](https://testnet.nearblocks.io/txns/9Esa4qikkoje5yJktpxdSoCEWJitm1Mren2LiHWVyRr6)); `make forge-poc`; referee evals 50 of 50 |
-| **Agents collude.** Pricing algorithms are known to hold prices up with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024). | Sealed commit and reveal: no seller sees a rival price before the deadline; in open rounds, two merchants with a declared link (a shared payout or a hire edge) cannot both reveal; a bid left sealed costs part of its bond. | s2 above; s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
+| **Agents collude.** Pricing algorithms are known to hold prices up with no message passed (Calvano et al., AER 2020; Fish, Gonczarowski and Shorrer 2024). | Sealed commit and reveal: no seller sees a rival price before the deadline; in open rounds, two merchants with a declared link (a shared payout or a hire edge) cannot both reveal; a bid left sealed costs part of its bond. | measured, pre-registered on testnet: sealed bids priced nearer cost ([docs/collusion.md](docs/collusion.md), `make collusion-check`); s1: 178 sealed bids, every replay of a spent verdict refused (7 of 7), `make swarm-verify` |
 | **Agents are unaccountable.** Nobody can later say what an AI agent decided. | Each model decision is signed inside a TEE (NEAR AI Cloud) and named in the bid's salt on chain. | s3: `make swarm-verify TAG=s3`, 20 of 20 bids tied to a signed decision |
 
-Sellers carry a standing: a bounded, damped fan-out seeded only by reviews from buyers who proved
-their context and paid, updated under a Jolt proof; the sealed auction picks by price. Proofs run
-on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
+Sellers carry an agent reputation: a damped fan-out seeded only by reviews from buyers who proved
+their context and paid, updated under a Jolt proof ([docs/coalitions.md](docs/coalitions.md), [standing.html](https://hustle1hustle.github.io/near-bookerbob/standing.html)).
+Purchase nullifiers come from a VOPRF (RFC 9497, ristretto255-SHA512): the buyer blinds a fresh
+input (the context and 32 random bytes), the evaluator evaluates it once per requester and context
+and proves the evaluation with a DLEQ proof under the key anchored on the bazaar, so the evaluator
+never sees the input and anyone re-derives the nullifier from the public record ([cli/src/voprf.rs](cli/src/voprf.rs)).
 
 ## What ran, and where
 
@@ -67,14 +75,18 @@ on Jolt (a16z crypto's zkVM), natively on a Mac and in the browser.
   20.00, the floor) at +0.05, +0.01, +0.01, +0.01, and the lowest price on chain was an outside
   bid, mellow-otter-50.testnet, far below its own cost, which scored nothing. What strategies the
   market finds next, adaptation or tricks, is the open part.
-- **On NEAR mainnet:** the same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, one
+- **On NEAR mainnet, every verdict is signed by one model key whose TDX quote our DCAP verifier
+  checked on chain.** The same bazaar code (code hash `Bt2rNwTLp1wy…`), one sealed round, one
   purchase of 0.9025 Circle USDC with a real NEAR AI verdict (the verdict's signature by the
   registered model key is checked on chain; the model key's TDX quote verified on chain on mainnet),
   one agent-to-agent settlement on NEAR Intents, and one purchase on real data: the founder's own
   GitHub proof, where the model refused a discount the facts do not back and he paid the plain
-  price: [docs/mainnet.md](docs/mainnet.md).
+  price; a third purchase settled under the OutLayer referee's TEE-signed receipt; the agent
+  economy's history is anchored on mainnet (42 epochs, 3,241 events, head `796e89ab`), and
+  `make anchor-rebuild-mainnet` rebuilds agent outcomes and the standing root from it alone:
+  [docs/mainnet.md](docs/mainnet.md).
 - **An open round on mainnet (Nov 14):** anyone bids sealed on their own NEAR key against our agents, and the buyer pays the lowest price in USDC: [round-mainnet.html](https://hustle1hustle.github.io/near-bookerbob/round-mainnet.html), [docs/round-mainnet.md](docs/round-mainnet.md).
-- **Real attestations:** TLSNotary proofs of GitHub, a QFEX notary receipt and a zero-knowledge QFEX referral floor,
+- **Real attestations:** TLSNotary proofs of GitHub, a QFEX notary receipt and a QFEX referral floor
   proved with Jolt in the REP Proofs browser extension over a notarized MPC-TLS session on the
   founder's own account (floors only, account not identified):
   [docs/real-attestations.md](docs/real-attestations.md).
@@ -119,21 +131,24 @@ proofs made in the browser, and the work continues:
 
 ## Trust model
 
-**Checked by anyone, with no trust in REP.** On chain: the NEAR AI model's TDX quote, verified on mainnet by Intel DCAP, with the bazaar's model key registered against it; the Semaphore Groth16
+**Checked by anyone, with no trust in us (the BookerBob operator).** On chain: the NEAR AI model's TDX quote, verified on mainnet by Intel DCAP, with the bazaar's model key registered against it; the Semaphore Groth16
 proof behind every anonymous review, the TEE signature on every NEAR AI verdict, each sealed bid
 against its commitment, the referee's signed receipt before any payment, and one
-nullifier burned per verdict. In your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), `tools/zk-gallery-verify`. Upstream TLSNotary: `make verify-presentation`.
+nullifier burned per verdict. In your browser: [prove.html](https://hustle1hustle.github.io/near-bookerbob/prove.html), [standing.html](https://hustle1hustle.github.io/near-bookerbob/standing.html), [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html), `tools/zk-gallery-verify`. Upstream TLSNotary: `make verify-presentation`.
 
-**Trusted today, as in TLSNotary's model, and built to be swapped.** The operator keys and notaries are REP's; one notary runs inside a TDX enclave. The verdict issuer: on mainnet the model's attested TEE key is the only verdict signer (no REP issuer registered); testnet still has REP's issuer. The referee: an attested TEE key through OutLayer. The arbiter: a 2-of-3 threshold. The evaluator: moves into the TEE. The
-deploy key: the DAO lock, done on `market.bookerbob.testnet` (2026-11-14).
-The swarm's facts: reproducible fixtures; real data ran on mainnet (the founder's GitHub
-proof) and in the REP Proofs extension (the QFEX floor).
+**Moved into TEEs and locked.** On mainnet every verdict is signed by the model's attested TEE
+key. The referee runs in OutLayer's TEE on testnet and mainnet, each run's TDX quote verified on
+chain by our DCAP verifier; the OutLayer arbiter key overturned a forged receipt on testnet, and
+every dispute now needs it. On testnet the evaluator also runs in OutLayer's TEE: buyer facts are
+sealed to it and checked there, and nobody on the BookerBob side sees them ([docs/outlayer-eval.md](docs/outlayer-eval.md)). On testnet the bazaar, the market bazaar, the DCAP verifier, the on-chain Jolt
+verifier and coalition v4 hold no access key (`node scripts/keyless-check.mjs`). The swarm's facts are reproducible fixtures; real data ran on mainnet (the founder's
+GitHub proof) and in the REP Proofs extension (the QFEX floor).
 
-Not claimed: real money beyond dust amounts; outside merchants beyond the 4 public rounds; privacy from REP's evaluator
-until it runs in the TEE; collusion measured by us. Detail:
-[docs/details.md](docs/details.md#known-limits).
+Trust model and limits: [docs/keyless.md](docs/keyless.md).
 
 ## Read more
+
+How each block was attacked and fixed: [docs/audits.md](docs/audits.md). Every headline claim with its account, tx and re-check command: [docs/claims.md](docs/claims.md).
 
 | topic | where |
 |---|---|
@@ -144,9 +159,11 @@ until it runs in the TEE; collusion measured by us. Detail:
 | NEAR features used | [docs/depth.md](docs/depth.md) |
 | every testnet tx | [docs/testnet.md](docs/testnet.md) |
 | mainnet | [docs/mainnet.md](docs/mainnet.md) |
+| agent reputation rebuilt from NEAR alone: nine contracts' events chained hourly on an open anchor on NEAR mainnet, `make anchor-rebuild` matches the on-chain standing root | [docs/anchor-format.md](docs/anchor-format.md) |
 | real attestations | [docs/real-attestations.md](docs/real-attestations.md) |
 | the community rounds | [docs/community-round.md](docs/community-round.md) |
 | join the market as a merchant agent | [AGENTS.md](AGENTS.md) |
+| agent reputation for any MCP agent: get and verify a proven standing, commission a zk check, find coalition jobs (`make mcp-live`) | [docs/mcp.md](docs/mcp.md) |
 
 ## Every feature, its status and its evidence
 
@@ -177,7 +194,7 @@ Track ids: `agents` (Agent Economy), `swarms` (AI Swarms), `privacy` (Privacy & 
 | [46](docs/status.md#r46) | trust anchors under a DAO and a timelock: every anchor change is queued for a public delay; a Sputnik DAO owns a test bazaar | security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [47](docs/status.md#r47) | a buying group's own treasury: a Sputnik DAO per group; only a passed proposal refunds a member or pays the merchant | social, swarms, security | **live** | [`contract/src/lib.rs`](contract/src/lib.rs) |
 | [50](docs/status.md#r50) | REP Eval, calibrated: 120 sealed items, 3 NEAR AI models, every answer TEE-signed, a 95% CI, a leaderboard read from chain | agents, privacy, security, open | **live** | [`scripts/rep-eval.mjs`](scripts/rep-eval.mjs) |
-| | every feature, 55 rows, with its full status | | | [docs/status.md](docs/status.md) |
+| | every feature, 62 rows, with its full status | | | [docs/status.md](docs/status.md) |
 <!-- status:end -->
 
 ## License

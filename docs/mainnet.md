@@ -1,13 +1,14 @@
 # On NEAR mainnet (2026-11-13)
 
-Everything else in this repo ran on NEAR testnet. On mainnet, with the founder's own NEAR, five
-things ran once each. The facts behind the first purchase's verdict are the same synthetic
-fixture facts as on testnet; the second purchase ran on the founder's real GitHub proof. The
+Everything else in this repo ran on NEAR testnet. On mainnet, with the founder's own NEAR, the
+seven records below ran once each. The facts behind the first and third purchases' verdicts are
+the same synthetic fixture facts as on testnet; the second purchase ran on the founder's real
+GitHub proof; the third settled under the OutLayer referee's receipt. The
 money is real and small.
 
-All five keyless checks at once: `make mainnet-check` (also run by `JUDGE_LIVE=1 make judge` and the daily `live` workflow).
+All six keyless checks at once: `make mainnet-check` (also run by `JUDGE_LIVE=1 make judge` and the daily `live` workflow).
 
-In a browser, with no project server: [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html) reads every tx above from public mainnet RPC with its outcome and checks the NEAR AI verdict's ed25519 signature again against the model key the bazaar holds (`agents/mainnet.html`).
+In a browser, with no project server: [mainnet.html](https://hustle1hustle.github.io/near-bookerbob/mainnet.html) reads every tx above except the OutLayer referee row (checked by `node scripts/mainnet-outlayer.mjs check`) from public mainnet RPC with its outcome and checks the NEAR AI verdict's ed25519 signature again against the model key the bazaar holds (`agents/mainnet.html`).
 
 | what | record | check it (keyless, public RPC) |
 |---|---|---|
@@ -16,12 +17,14 @@ In a browser, with no project server: [mainnet.html](https://hustle1hustle.githu
 | One purchase: a real E2EE NEAR AI verdict (DeepSeek V4.1 Flash) over the synthetic facts; the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote is verified on chain on mainnet (Intel DCAP, verifier e99f0afb…, `node scripts/mainnet-dcap.mjs check`); a receipt from a fresh mainnet referee key, 0.9025 Circle USDC escrowed and paid to the round's lowest bidder, the replay refused ([verdict](https://nearblocks.io/txns/99A78KAXogT5N9tKWnMugMfHmw7pL6hpAfwtyQgAFUnV), [settle](https://nearblocks.io/txns/6V7RHkgzkAyZVweT5J2E6WEfz6ZV4kg8Py8pwAJpNu84), [replay refused](https://nearblocks.io/txns/BvZ9SerkAeVS1LJ5SuhkZfpzqpWwNN9uGM3ZQAP2gSec)) | `fixtures/mainnet/buy.json` | `node scripts/mainnet-buy.mjs check` |
 | Real data: the founder's signed-in GitHub proof (TLSNotary) is the whole proof set; asked for `github_builder` (an account at least 3 years old), the NEAR AI model's TEE-signed answer refuses it (the account is 2 years old), and the buyer pays the plain 0.95 USDC with a verdict that claims nothing ([verdict](https://nearblocks.io/txns/9E6copWnJBPDPGm5wro7ncYkUzBaSSyvmTtmNhVKgB4u), [settle](https://nearblocks.io/txns/GwLCRE5c41gvhZPryEprGtqmWwiN3bbnKatUF8aAeSj)) | `fixtures/mainnet/real-refusal.json` | `node scripts/mainnet-real.mjs check` |
 | The NEAR AI model's TDX quote verified on chain on mainnet: the same dcap-qvl verifier as `spike.bookerbob.testnet` (byte-identical wasm, code hash `7ZabqCJb…`) on `e99f0afb…4b02`, five calls ([start](https://nearblocks.io/txns/5yendWfDf5JgDABUSzASDiaf8MZmvCEvXRQJ4Wz5k6nh), [finalize](https://nearblocks.io/txns/GcfqrmXmXre9QF7icFxWFEyuugahWQuRjMaTrVaur6yt)), UpToDate, report_data the model key; then the bazaar's quote verifier set to it ([BVuM5eya…](https://nearblocks.io/txns/BVuM5eyaMnnKTPyAo8bXbv1juGLoFY6GmgdLsfdpXNK)) and the model key registered against that verification ([DuFaeAxw…](https://nearblocks.io/txns/DuFaeAxwaM9HPPrbqai5W3gtf5QSR6J7S9bnFtLhV1g2)) | `fixtures/mainnet/dcap.json` | `node scripts/mainnet-dcap.mjs check` |
+| The OutLayer referee (2026-11-14): the project `bookerbob-referee` on `outlayer.near`, owned by the bazaar, from the same public wasm as testnet v1 (`6fca1eaa…`, [create](https://nearblocks.io/txns/FKiPwaw5kYJQrnXdf8qNSrDmPKsn3ELvxgoXNJRU6jZ9)); its TEE-derived referee key `8b9b3286…` registered on the bazaar ([register](https://nearblocks.io/txns/6ewTqkDfd9RYgfz2QpwpMBZDJfc8SmnAJBcM6gvVWX7x)); one purchase with a NEAR AI verdict whose input went to OutLayer sealed through `request_referee`, the receipt back through the bazaar's callback, 0.9025 USDC settled ([request_referee](https://nearblocks.io/txns/AWeGAm2uAYnV3Hz8Hz5mbYHMacPNYoHDov39Kt8bDD7V), [settle](https://nearblocks.io/txns/DisKLZ1zfgJC3kvww4DrRePKitvjW1gNN7n4Ebn9zPas)); 0.320589 NEAR spent, 0.30 of it the swap to USDC. The operator's own mainnet referee key stays registered beside it (`docs/keyless.md`) | `fixtures/mainnet/outlayer.json` | `node scripts/mainnet-outlayer.mjs check` |
 | One agent-to-agent settlement on NEAR Intents: the buyer agent's signed transfer intent moved 0.1 wNEAR to the merchant agent inside `intents.near` ([execute_intents](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz)) | `fixtures/mainnet/intents-settle.json` | `node scripts/intents-settle.mjs check` |
+| The economy anchor: the testnet economy's 42 hourly epochs (3,241 events of nine contracts) on the open anchor at the implicit account `a145dcce…23474`, head `796e89ab…`; agent outcomes and the bazaar's standing root rebuild from it alone ([first post](https://nearblocks.io/txns/FpkDR3NWBxkwfoQy6Kw4gEfMsPA4PZw3eSnMfMYDE8oC); added 2026-11-14, after the five above) | `fixtures/mainnet/econ-anchor.json`, docs/anchor-format.md | `make anchor-check-mainnet`, `make anchor-rebuild-mainnet` |
 | An open round, `mainnet-open-1`: anyone bids sealed with their own NEAR account and key from [round-mainnet.html](https://hustle1hustle.github.io/near-bookerbob/round-mainnet.html) or a terminal, approved by BookerBob's watcher (a function-call key limited to `open_round` and `approve_merchant`), revealed after 21:30 UTC; the lowest price is paid in Circle USDC ([open](https://nearblocks.io/txns/EZmS7q5Ew1B8yawcZyNj3iPJyMUzgkBt5GJtJaqsGkg3)); details in [round-mainnet.md](round-mainnet.md) | `fixtures/mainnet/round.json` | `node scripts/round-mainnet.mjs check` |
 
 What is not claimed: the mainnet trust keys (model attestation registration, evaluator, referee)
-are REP's, set by the bazaar's owner; the bazaar owner is its own
-account with a full-access key REP holds. The verdict reveals `airbnb_frequent` and
+are REP's, set by the bazaar's owner (since 2026-11-14 an OutLayer TEE-derived referee key is registered beside ours); the bazaar owner is its own
+account with a full-access key we hold. The verdict reveals `airbnb_frequent` and
 `claude_spender` only: there is no World verifier on mainnet. The runners are gated by
 `--mainnet` and `BOOKERBOB_MAINNET_GO=<today>`; `demo-live` and `deploy-testnet.sh` still refuse
 mainnet.

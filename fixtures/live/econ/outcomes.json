@@ -1,0 +1,528 @@
+{
+ "note": "Agent outcomes rebuilt from the economy anchor's posts alone (docs/anchor-format.md). unsatisfied: the events a later standing program can read as failed interactions.",
+ "source": "near:testnet:bookerbob.testnet",
+ "poster": "bookerbob-outcomes.testnet",
+ "anchor": "bookerbob-outcomes.testnet",
+ "epochs": 42,
+ "records": 3241,
+ "head": "143a000d4353a88fd125087cc89c424570d7bcc5aa88f84571ec425e07fe5677",
+ "standing": {
+  "graph_events": 10,
+  "graph_root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530",
+  "scores_hash": "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d",
+  "standing_root": "3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01",
+  "ranks": [
+   [
+    "m01.bookerbob.testnet",
+    1
+   ],
+   [
+    "h05.bookerbob.testnet",
+    2
+   ],
+   [
+    "m02.bookerbob.testnet",
+    3
+   ]
+  ]
+ },
+ "accounts": {
+  "bkt-m01.bookerbob-demo.testnet": {
+   "settled": 5,
+   "settled_amount": "204600000",
+   "reverted": 0,
+   "receipts": 5,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "builders.bookerbob-demo.testnet": {
+   "settled": 2,
+   "settled_amount": "56000000",
+   "reverted": 0,
+   "receipts": 2,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "cl-lead-1df7.bookerbob-demo.testnet": {
+   "settled": 0,
+   "settled_amount": "0",
+   "reverted": 0,
+   "receipts": 0,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [
+    "m01.bookerbob.testnet",
+    "h05.bookerbob.testnet",
+    "m02.bookerbob.testnet"
+   ],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "h05.bookerbob.testnet": {
+   "settled": 61,
+   "settled_amount": "25867200000",
+   "reverted": 0,
+   "receipts": 63,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 6,
+   "reviews_rounds": 1,
+   "hired": [],
+   "hired_by": [
+    "cl-lead-1df7.bookerbob-demo.testnet"
+   ],
+   "joined": 3,
+   "completed": 0,
+   "slashed": 2,
+   "earned": "0",
+   "lost": "10000000",
+   "programs": []
+  },
+  "m01.bookerbob.testnet": {
+   "settled": 54,
+   "settled_amount": "1947720000",
+   "reverted": 0,
+   "receipts": 57,
+   "refused": 2,
+   "overturned": 2,
+   "ratings": 12,
+   "reviews_rounds": 2,
+   "hired": [
+    "m02.bookerbob.testnet"
+   ],
+   "hired_by": [
+    "cl-lead-1df7.bookerbob-demo.testnet"
+   ],
+   "joined": 3,
+   "completed": 2,
+   "slashed": 0,
+   "earned": "8493537",
+   "lost": "0",
+   "programs": []
+  },
+  "m02.bookerbob.testnet": {
+   "settled": 32,
+   "settled_amount": "1243200000",
+   "reverted": 12,
+   "receipts": 20,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 5,
+   "reviews_rounds": 1,
+   "hired": [
+    "m03.bookerbob.testnet"
+   ],
+   "hired_by": [
+    "m01.bookerbob.testnet",
+    "m03.bookerbob.testnet",
+    "cl-lead-1df7.bookerbob-demo.testnet"
+   ],
+   "joined": 2,
+   "completed": 1,
+   "slashed": 0,
+   "earned": "3695864",
+   "lost": "0",
+   "programs": []
+  },
+  "m03.bookerbob.testnet": {
+   "settled": 0,
+   "settled_amount": "0",
+   "reverted": 0,
+   "receipts": 0,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [
+    "m02.bookerbob.testnet"
+   ],
+   "hired_by": [
+    "m02.bookerbob.testnet"
+   ],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "m04.bookerbob.testnet": {
+   "settled": 24,
+   "settled_amount": "905280000",
+   "reverted": 12,
+   "receipts": 12,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "m08.bookerbob.testnet": {
+   "settled": 18,
+   "settled_amount": "514110000",
+   "reverted": 0,
+   "receipts": 18,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "m11.bookerbob.testnet": {
+   "settled": 15,
+   "settled_amount": "375870000",
+   "reverted": 0,
+   "receipts": 15,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  },
+  "vetted.bookerbob-demo.testnet": {
+   "settled": 2,
+   "settled_amount": "72000000",
+   "reverted": 1,
+   "receipts": 1,
+   "refused": 0,
+   "overturned": 0,
+   "ratings": 0,
+   "reviews_rounds": 0,
+   "hired": [],
+   "hired_by": [],
+   "joined": 0,
+   "completed": 0,
+   "slashed": 0,
+   "earned": "0",
+   "lost": "0",
+   "programs": []
+  }
+ },
+ "graph": [
+  {
+   "index": 1,
+   "event": "01150000006d30312e626f6f6b6572626f622e746573746e6574150000006d30322e626f6f6b6572626f622e746573746e6574",
+   "root": "1d76aaab1208b275a4903223adadc25e758c7272f8a9d1de1e3ca31dd22b6075"
+  },
+  {
+   "index": 2,
+   "event": "01150000006d30322e626f6f6b6572626f622e746573746e6574150000006d30332e626f6f6b6572626f622e746573746e6574",
+   "root": "16e97dec8e51ce266b44e2ef2933b3b3df6315f0df3261de5ee8b29b2c99cf82"
+  },
+  {
+   "index": 3,
+   "event": "01150000006d30332e626f6f6b6572626f622e746573746e6574150000006d30322e626f6f6b6572626f622e746573746e6574",
+   "root": "782a6b09457d692214c2cee8523619275d670579a83fdf6a9e5468d96e803b2f"
+  },
+  {
+   "index": 4,
+   "event": "02150000006d30312e626f6f6b6572626f622e746573746e657406000000000000001a00000000000000",
+   "root": "ad42980dafd34038b63552ea229024f827ea968159d2369943a405b9d1e72326"
+  },
+  {
+   "index": 5,
+   "event": "02150000006d30312e626f6f6b6572626f622e746573746e65740c000000000000003500000000000000",
+   "root": "39615a186cb8fcbc432dcf3aefa3f9367e9aa72934185de9c53e1d76c0272fb3"
+  },
+  {
+   "index": 6,
+   "event": "02150000006830352e626f6f6b6572626f622e746573746e657406000000000000001b00000000000000",
+   "root": "c1a80ccb166e47ae4e8bd53e00fd7f2f005ae8b46ad8e13a1dd2c2c9c73a1e5e"
+  },
+  {
+   "index": 7,
+   "event": "0123000000636c2d6c6561642d316466372e626f6f6b6572626f622d64656d6f2e746573746e6574150000006d30312e626f6f6b6572626f622e746573746e6574",
+   "root": "0221d50936fb3ad436c26a0d612914d950fb9849064be82978dd3ea2bcb95d58"
+  },
+  {
+   "index": 8,
+   "event": "02150000006d30322e626f6f6b6572626f622e746573746e657405000000000000001300000000000000",
+   "root": "64843eb79acfc008121facd9125ee2c2767ef08962be872dd4dadfbc6c1966d2"
+  },
+  {
+   "index": 9,
+   "event": "0123000000636c2d6c6561642d316466372e626f6f6b6572626f622d64656d6f2e746573746e6574150000006830352e626f6f6b6572626f622e746573746e6574",
+   "root": "cc3c8a835d49c203797f3b0814a1caed9c6e306d48f1167d6b4db694a1ea9e1c"
+  },
+  {
+   "index": 10,
+   "event": "0123000000636c2d6c6561642d316466372e626f6f6b6572626f622d64656d6f2e746573746e6574150000006d30322e626f6f6b6572626f622e746573746e6574",
+   "root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530"
+  }
+ ],
+ "unsatisfied": [
+  {
+   "kind": "settle_reverted",
+   "account": "vetted.bookerbob-demo.testnet",
+   "nullifier": "88fa9cbaad539c96e5b331f39611083ffd76fa4c08cec56dd9588e293c6e0a1f",
+   "height": 276351322
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "f95c8f713617dae90516a46cb507073bf971930bf9f86251e851df5643c57782",
+   "height": 277201540
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "f48cf8a75c7c9d7e04a83547b422b3e3de7145bd1265dd561a1b498ea02d4fe8",
+   "height": 277201725
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "07366b62a2aa8e42999e4d4e7dc52eae0c55ffeecfc148b647d1e8b0a133dc48",
+   "height": 277201791
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "e4bdc4e6b8368df747afce0551ffb2b40e7d2f5dd13e6dbaf9c618e7df636d33",
+   "height": 277201928
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "0324401692f113f3d0d52cd14fecbcd8ee158f2322fc9e86473a6f36f49aec87",
+   "height": 277202800
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "70e126f773ffa0ab77df9a86d569b555186f80f43cdb378296b7f46b14dacf23",
+   "height": 277203043
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "f6f7b614495e5c3862171e3c56fe09782e49cbcc55886c4e721cf74b7c69c2d8",
+   "height": 277203316
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "4daeef7d20d39956899d7fb64445386a449d36bbd35b16cc3c03872f01946899",
+   "height": 277203608
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "258d02ecb1e6b0b1ecf16f77847625daeaf3f5dbc706dd4a304cf4ce3e6d44ac",
+   "height": 277203851
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "db9af2151121fd53478385f426810030c01a84d811dd684bf10430db4e78ecba",
+   "height": 277204267
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "45c813e6e40e4933d95229dc3854966dbccdfe46ac2a045625f1e0d44e5bf47d",
+   "height": 277204501
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "9f69288b95ea6b7aac13ec71ae435d1bd9243cb047357dcfd309214a44a4782d",
+   "height": 277204761
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "7966b1fa0a7dece775ce4a15a1910c74a251c230b78a89d9c703e346455e6e9f",
+   "height": 277205289
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "9fe7a3c9cb677b99ab93d2f171d100f5fc982a980d3bc27571cca3d89c5940b3",
+   "height": 277205526
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "714e674a35bb779280ab77793c1f1568a3ece4498710cee32c10ad97f69b6bea",
+   "height": 277205784
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "0cd79b5d47bf8ecd4d0b5a99aa65f65f6acfe25613f15ea6f81a918a0052a75b",
+   "height": 277206084
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "7916a62d8c5524ab7fdfdb0a544b6aae479020399a21ff1e962cb4d244bd8e82",
+   "height": 277206335
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "73527e8b1197cb663999872aa4ac7763162b06933a478409ea05e7fec9cb7873",
+   "height": 277206741
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "91368a025bac4fa237c4ac42a69af57f4009449f25eb71d42bcdb6a5bc214ded",
+   "height": 277206985
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "852f1e201a129fbdd7d790b96a7b5942e3ebdb44f3ddefeec00480337b85eef0",
+   "height": 277207246
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "e8934653c45bc9715cd78212c0788b5cc347c0121832e7217ed7662746b55df9",
+   "height": 277207775
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "b3de392fbd988e220d7081ddd47faba473cc8b17f366b84d0e3ea3fcc1d9e5a2",
+   "height": 277208014
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m02.bookerbob.testnet",
+   "nullifier": "b418fb717102d33dc115be63a1858ee21436b38bbb82abdf658b7ed3c599ab39",
+   "height": 277208276
+  },
+  {
+   "kind": "settle_reverted",
+   "account": "m04.bookerbob.testnet",
+   "nullifier": "353c34c30b21248e9dd70c80fc70a273947753ed13003567f0d58fd488ba2f77",
+   "height": 277208602
+  },
+  {
+   "kind": "receipt_refused",
+   "account": "m01.bookerbob.testnet",
+   "nullifier": "cf5b930bec3d32b591ac20325b0a76556f2dd0bd8040f61c5a61db3739741f6a",
+   "reason": "F9 not in proof set",
+   "height": 277663915
+  },
+  {
+   "kind": "slashed",
+   "account": "h05.bookerbob.testnet",
+   "contract": "coalition",
+   "job": 0,
+   "bond_lost": "5000000",
+   "height": 277664129
+  },
+  {
+   "kind": "receipt_refused",
+   "account": "m01.bookerbob.testnet",
+   "nullifier": "a985463610eeb36da8a1c90cba3e46919c78e88494c335d5108ecacd76d85084",
+   "reason": "F9 not in proof set",
+   "height": 277673097
+  },
+  {
+   "kind": "dispute_overturned",
+   "account": "m01.bookerbob.testnet",
+   "nullifier": "cdb28dcd4c156a28ce66f659b1586e00f1733ef86c78f5ee1c9438dcf4d61f39",
+   "height": 277674312
+  },
+  {
+   "kind": "slashed",
+   "account": "h05.bookerbob.testnet",
+   "contract": "coalition",
+   "job": 2,
+   "bond_lost": "5000000",
+   "height": 277674552
+  },
+  {
+   "kind": "dispute_overturned",
+   "account": "m01.bookerbob.testnet",
+   "nullifier": "cdb28dcd4c156a28ce66f659b1586e00f1733ef86c78f5ee1c9438dcf4d61f39",
+   "height": 277676086
+  }
+ ],
+ "programs": [
+  {
+   "kind": "graph_program_set",
+   "program_hash": "62bf56ebc9f70ff8423da31a2d448ab02784358ea3c66aca2ba7b2fda976d0f9",
+   "height": 277673168
+  },
+  {
+   "kind": "smith_register",
+   "registry": "smith-registry.bookerbob-demo.testnet",
+   "request_id": "coalition-k-of-n",
+   "program_hash": "fcabf0ef36c63212d6a46a88f93e746e16d166e7a0b1d42f7c7e52931f1656a1",
+   "height": 277675875
+  },
+  {
+   "kind": "smith_pin",
+   "registry": "smith-registry.bookerbob-demo.testnet",
+   "request_id": "standing-graph",
+   "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+   "height": 277676149
+  },
+  {
+   "kind": "graph_program_set",
+   "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+   "height": 277676557
+  },
+  {
+   "kind": "smith_pin",
+   "registry": "smith-reg.bookerbob-demo.testnet",
+   "request_id": "standing-graph",
+   "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+   "height": 277677231
+  }
+ ]
+}

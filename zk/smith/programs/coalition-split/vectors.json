@@ -1,0 +1,590 @@
+[
+  {
+    "label": "job C as finalized on chain (tx 7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF)",
+    "by": "requester",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c8087a70ec096b10202156d30312e626f6f6b6572626f622e746573746e6574c096b1029deea101d2e04e156d30322e626f6f6b6572626f622e746573746e6574c096b102abdf9701cdea4901156830352e626f6f6b6572626f622e746573746e6574d984860d",
+    "private_hex": "0300156d30312e626f6f6b6572626f622e746573746e657480d8f11601403633393537313439653466306436373064613831386337373862393339356131646366646664326230343236616530663337613432326530653535626365646401156830352e626f6f6b6572626f622e746573746e657480e9c9d6010002156d30322e626f6f6b6572626f622e746573746e6574c0caba15014039343130326535353133363564616138376439663131346661343732393664343066316532343662326465386163643931326261616564643532306439303261",
+    "expect": "ok",
+    "expect_output_hex": "0201e7c5b408",
+    "source": {
+      "label": "job C as finalized on chain (tx 7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF)",
+      "prove": true,
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 2,
+        "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+        "budget": "30000000",
+        "bond": "5000000",
+        "delivered": [
+          {
+            "member": "m01.bookerbob.testnet",
+            "bond_back": "5000000",
+            "share": "2651933",
+            "from_slashed": "1290322"
+          },
+          {
+            "member": "m02.bookerbob.testnet",
+            "bond_back": "5000000",
+            "share": "2486187",
+            "from_slashed": "1209677"
+          }
+        ],
+        "slashed": [
+          "h05.bookerbob.testnet"
+        ],
+        "to_buyer": "27361881"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "m01.bookerbob.testnet",
+            "price": "48000000",
+            "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd"
+          },
+          {
+            "leg": 1,
+            "member": "h05.bookerbob.testnet",
+            "price": "450000000",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "m02.bookerbob.testnet",
+            "price": "45000000",
+            "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a"
+          }
+        ]
+      },
+      "expect": {
+        "deliverers": 2,
+        "slashed": 1,
+        "paid_out": "17638119"
+      }
+    }
+  },
+  {
+    "label": "a lead that pays itself one unit more: refused",
+    "by": "requester",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c8087a70ec096b10202156d30312e626f6f6b6572626f622e746573746e6574c096b1029deea101d2e04e156d30322e626f6f6b6572626f622e746573746e6574c096b102abdf9701cdea4901156830352e626f6f6b6572626f622e746573746e6574da84860d",
+    "private_hex": "0300156d30312e626f6f6b6572626f622e746573746e657480d8f11601403633393537313439653466306436373064613831386337373862393339356131646366646664326230343236616530663337613432326530653535626365646401156830352e626f6f6b6572626f622e746573746e657480e9c9d6010002156d30322e626f6f6b6572626f622e746573746e6574c0caba15014039343130326535353133363564616138376439663131346661343732393664343066316532343662326465386163643931326261616564643532306439303261",
+    "expect": "refuse",
+    "source": {
+      "label": "a lead that pays itself one unit more: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 2,
+        "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+        "budget": "30000000",
+        "bond": "5000000",
+        "delivered": [
+          {
+            "member": "m01.bookerbob.testnet",
+            "bond_back": "5000000",
+            "share": "2651933",
+            "from_slashed": "1290322"
+          },
+          {
+            "member": "m02.bookerbob.testnet",
+            "bond_back": "5000000",
+            "share": "2486187",
+            "from_slashed": "1209677"
+          }
+        ],
+        "slashed": [
+          "h05.bookerbob.testnet"
+        ],
+        "to_buyer": "27361882"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "m01.bookerbob.testnet",
+            "price": "48000000",
+            "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd"
+          },
+          {
+            "leg": 1,
+            "member": "h05.bookerbob.testnet",
+            "price": "450000000",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "m02.bookerbob.testnet",
+            "price": "45000000",
+            "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "all three deliver, no slashing, buyer remainder zero",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740794b708de2198581475b1303cdff74f740815929be886d2c6a97e8af3c4340824f02ee807030d616c7068612e746573746e6574e807e807000d627261766f2e746573746e6574e807b817000f636861726c69652e746573746e6574e807d00f000000",
+    "private_hex": "03000d616c7068612e746573746e657464014061613030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303031010d627261766f2e746573746e6574ac02014061613030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032020f636861726c69652e746573746e6574c801014061613030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303033",
+    "expect": "ok",
+    "expect_output_hex": "0300a846",
+    "source": {
+      "label": "all three deliver, no slashing, buyer remainder zero",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 7,
+        "seats_root": "94b708de2198581475b1303cdff74f740815929be886d2c6a97e8af3c4340824",
+        "budget": "6000",
+        "bond": "1000",
+        "delivered": [
+          {
+            "member": "alpha.testnet",
+            "bond_back": "1000",
+            "share": "1000",
+            "from_slashed": "0"
+          },
+          {
+            "member": "bravo.testnet",
+            "bond_back": "1000",
+            "share": "3000",
+            "from_slashed": "0"
+          },
+          {
+            "member": "charlie.testnet",
+            "bond_back": "1000",
+            "share": "2000",
+            "from_slashed": "0"
+          }
+        ],
+        "slashed": [],
+        "to_buyer": "0"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "alpha.testnet",
+            "price": "100",
+            "delivered": "aa00000000000000000000000000000000000000000000000000000000000001"
+          },
+          {
+            "leg": 1,
+            "member": "bravo.testnet",
+            "price": "300",
+            "delivered": "aa00000000000000000000000000000000000000000000000000000000000002"
+          },
+          {
+            "leg": 2,
+            "member": "charlie.testnet",
+            "price": "200",
+            "delivered": "aa00000000000000000000000000000000000000000000000000000000000003"
+          }
+        ]
+      },
+      "expect": {
+        "deliverers": 3,
+        "slashed": 0,
+        "paid_out": "9000"
+      }
+    }
+  },
+  {
+    "label": "two deliverers and two slashed, floor remainders go to the buyer",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657409cf387f2db35f92b3841ccc6fba51ecc2d241e19f16e2671d209c5c0cbfd3fad2b960e13c020a64312e746573746e6574e13ce021b01e0a64322e746573746e6574e13ce021b01e020a73312e746573746e65740a73322e746573746e6574db59",
+    "private_hex": "04000a64312e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303031010a73312e746573746e65746400020a64322e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032030a73322e746573746e6574c80100",
+    "expect": "ok",
+    "expect_output_hex": "0202e2f901",
+    "source": {
+      "label": "two deliverers and two slashed, floor remainders go to the buyer",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 9,
+        "seats_root": "cf387f2db35f92b3841ccc6fba51ecc2d241e19f16e2671d209c5c0cbfd3fad2",
+        "budget": "12345",
+        "bond": "7777",
+        "delivered": [
+          {
+            "member": "d1.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          },
+          {
+            "member": "d2.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          }
+        ],
+        "slashed": [
+          "s1.testnet",
+          "s2.testnet"
+        ],
+        "to_buyer": "11483"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "d1.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000001"
+          },
+          {
+            "leg": 1,
+            "member": "s1.testnet",
+            "price": "100",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "d2.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000002"
+          },
+          {
+            "leg": 3,
+            "member": "s2.testnet",
+            "price": "200",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": {
+        "deliverers": 2,
+        "slashed": 2,
+        "paid_out": "31970"
+      }
+    }
+  },
+  {
+    "label": "deliverer inflates own budget share by one unit: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657409cf387f2db35f92b3841ccc6fba51ecc2d241e19f16e2671d209c5c0cbfd3fad2b960e13c020a64312e746573746e6574e13ce121b01e0a64322e746573746e6574e13ce021b01e020a73312e746573746e65740a73322e746573746e6574db59",
+    "private_hex": "04000a64312e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303031010a73312e746573746e65746400020a64322e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032030a73322e746573746e6574c80100",
+    "expect": "refuse",
+    "source": {
+      "label": "deliverer inflates own budget share by one unit: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 9,
+        "seats_root": "cf387f2db35f92b3841ccc6fba51ecc2d241e19f16e2671d209c5c0cbfd3fad2",
+        "budget": "12345",
+        "bond": "7777",
+        "delivered": [
+          {
+            "member": "d1.testnet",
+            "bond_back": "7777",
+            "share": "4321",
+            "from_slashed": "3888"
+          },
+          {
+            "member": "d2.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          }
+        ],
+        "slashed": [
+          "s1.testnet",
+          "s2.testnet"
+        ],
+        "to_buyer": "11483"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "d1.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000001"
+          },
+          {
+            "leg": 1,
+            "member": "s1.testnet",
+            "price": "100",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "d2.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000002"
+          },
+          {
+            "leg": 3,
+            "member": "s2.testnet",
+            "price": "200",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "private seats differ from the committed root (price edited): refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e6574090000000000000000000000000000000000000000000000000000000000000000b960e13c020a64312e746573746e6574e13ce021b01e0a64322e746573746e6574e13ce021b01e020a73312e746573746e65740a73322e746573746e6574db59",
+    "private_hex": "04000a64312e746573746e6574df02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303031010a73312e746573746e65746400020a64322e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032030a73322e746573746e6574c80100",
+    "expect": "refuse",
+    "source": {
+      "label": "private seats differ from the committed root (price edited): refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 9,
+        "seats_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "budget": "12345",
+        "bond": "7777",
+        "delivered": [
+          {
+            "member": "d1.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          },
+          {
+            "member": "d2.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          }
+        ],
+        "slashed": [
+          "s1.testnet",
+          "s2.testnet"
+        ],
+        "to_buyer": "11483"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "d1.testnet",
+            "price": "351",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000001"
+          },
+          {
+            "leg": 1,
+            "member": "s1.testnet",
+            "price": "100",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "d2.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000002"
+          },
+          {
+            "leg": 3,
+            "member": "s2.testnet",
+            "price": "200",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "same member holds two seats: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657404f68aa21237fa769675c3243aa109f639df06033d5ea3447fc21ba659ad82912ce807f4030209782e746573746e6574f403f4030009782e746573746e6574f403f403000000",
+    "private_hex": "020009782e746573746e6574f4030140636330303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030310109782e746573746e6574f403014063633030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032",
+    "expect": "refuse",
+    "source": {
+      "label": "same member holds two seats: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 4,
+        "seats_root": "f68aa21237fa769675c3243aa109f639df06033d5ea3447fc21ba659ad82912c",
+        "budget": "1000",
+        "bond": "500",
+        "delivered": [
+          {
+            "member": "x.testnet",
+            "bond_back": "500",
+            "share": "500",
+            "from_slashed": "0"
+          },
+          {
+            "member": "x.testnet",
+            "bond_back": "500",
+            "share": "500",
+            "from_slashed": "0"
+          }
+        ],
+        "slashed": [],
+        "to_buyer": "0"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "x.testnet",
+            "price": "500",
+            "delivered": "cc00000000000000000000000000000000000000000000000000000000000001"
+          },
+          {
+            "leg": 1,
+            "member": "x.testnet",
+            "price": "500",
+            "delivered": "cc00000000000000000000000000000000000000000000000000000000000002"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "slashed list padded with a ghost member: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657409cf387f2db35f92b3841ccc6fba51ecc2d241e19f16e2671d209c5c0cbfd3fad2b960e13c020a64312e746573746e6574e13ce021b01e0a64322e746573746e6574e13ce021b01e030a73312e746573746e65740a73322e746573746e65740d67686f73742e746573746e6574db59",
+    "private_hex": "04000a64312e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303031010a73312e746573746e65746400020a64322e746573746e6574de02014062623030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032030a73322e746573746e6574c80100",
+    "expect": "refuse",
+    "source": {
+      "label": "slashed list padded with a ghost member: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 9,
+        "seats_root": "cf387f2db35f92b3841ccc6fba51ecc2d241e19f16e2671d209c5c0cbfd3fad2",
+        "budget": "12345",
+        "bond": "7777",
+        "delivered": [
+          {
+            "member": "d1.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          },
+          {
+            "member": "d2.testnet",
+            "bond_back": "7777",
+            "share": "4320",
+            "from_slashed": "3888"
+          }
+        ],
+        "slashed": [
+          "s1.testnet",
+          "s2.testnet",
+          "ghost.testnet"
+        ],
+        "to_buyer": "11483"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "d1.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000001"
+          },
+          {
+            "leg": 1,
+            "member": "s1.testnet",
+            "price": "100",
+            "delivered": null
+          },
+          {
+            "leg": 2,
+            "member": "d2.testnet",
+            "price": "350",
+            "delivered": "bb00000000000000000000000000000000000000000000000000000000000002"
+          },
+          {
+            "leg": 3,
+            "member": "s2.testnet",
+            "price": "200",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "budget times price overflows u128: refused",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740b855cb59b5c5ee762717e29467e413072ca5c8910cd7d5a5529e167253b008bddffffffffffffffffffffffffffffffffffff0301010c736f6c6f2e746573746e65740100000000",
+    "private_hex": "01000c736f6c6f2e746573746e657402014064643030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303031",
+    "expect": "refuse",
+    "source": {
+      "label": "budget times price overflows u128: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 11,
+        "seats_root": "855cb59b5c5ee762717e29467e413072ca5c8910cd7d5a5529e167253b008bdd",
+        "budget": "340282366920938463463374607431768211455",
+        "bond": "1",
+        "delivered": [
+          {
+            "member": "solo.testnet",
+            "bond_back": "1",
+            "share": "0",
+            "from_slashed": "0"
+          }
+        ],
+        "slashed": [],
+        "to_buyer": "0"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "solo.testnet",
+            "price": "2",
+            "delivered": "dd00000000000000000000000000000000000000000000000000000000000001"
+          }
+        ]
+      },
+      "expect": "refuse"
+    }
+  },
+  {
+    "label": "everyone slashed: no deliverers, buyer takes budget and all bonds",
+    "by": "smith",
+    "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e65740c9d3f9b54910ff82d7f5c026822953733abb284015e2de00d83771f2e85419521d836e807000209612e746573746e657409622e746573746e6574a846",
+    "private_hex": "020009612e746573746e6574f403000109622e746573746e6574f40300",
+    "expect": "ok",
+    "expect_output_hex": "000200",
+    "source": {
+      "label": "everyone slashed: no deliverers, buyer takes budget and all bonds",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet",
+        "job": 12,
+        "seats_root": "9d3f9b54910ff82d7f5c026822953733abb284015e2de00d83771f2e85419521",
+        "budget": "7000",
+        "bond": "1000",
+        "delivered": [],
+        "slashed": [
+          "a.testnet",
+          "b.testnet"
+        ],
+        "to_buyer": "9000"
+      },
+      "private": {
+        "seats": [
+          {
+            "leg": 0,
+            "member": "a.testnet",
+            "price": "500",
+            "delivered": null
+          },
+          {
+            "leg": 1,
+            "member": "b.testnet",
+            "price": "500",
+            "delivered": null
+          }
+        ]
+      },
+      "expect": {
+        "deliverers": 0,
+        "slashed": 2,
+        "paid_out": "0"
+      }
+    }
+  }
+]

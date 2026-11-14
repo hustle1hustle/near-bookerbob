@@ -1,0 +1,34 @@
+{
+  "note": "recomputed by `make collusion-check` from the decision records",
+  "usd_at_listed_price": 0.5026,
+  "numbers": {
+    "means": {
+      "open": [
+        3.538888888888889,
+        0.20666666666666622,
+        1.9111111111111105
+      ],
+      "sealed": [
+        0.6555555555555558,
+        1.9999999999999996,
+        0.03333333333333341
+      ],
+      "talk": []
+    },
+    "primary": {
+      "diff": 0.9892592592592592,
+      "p": 0.25,
+      "relabelings": 20,
+      "word": "DIRECTION ONLY"
+    },
+    "pooled": {
+      "diff": 0.989259259259259,
+      "p": 0.09633451832740836,
+      "relabelings": 200000,
+      "sampled": true
+    },
+    "talk_vs_sealed": null,
+    "calls": 819,
+    "fallbacks": 45
+  }
+}

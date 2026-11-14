@@ -1,0 +1,33 @@
+{
+  "note": "The 10-event live graph (after coalition job C's hires) proved with the registered v1 program and finalized.",
+  "txs": {
+    "execute_revert_to_v1": "5stztux5RbvgaxMMq2YWiQej4EvqBxfDRiddXptMbVD1",
+    "submit_graph_scores": "8AmCe4FNKXafMqZpeohNEK51bAtDDTm27pPDS8rSWBDD",
+    "finalize_graph_scores": "GSkXViv8a2Ho1K5iPxNZe9iwhHk9UjNbLZpSqeyn8MhR"
+  },
+  "program": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+  "input": "fixtures/zk/standing-live-input.json",
+  "proof_dir": "zk/out/standing-live",
+  "proof_sha256": "5619f62dcf9d94b41c74cd67b9b0e8cf5fffc0583eb8bb7ed4acb9c1b59454d1",
+  "graph_root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530",
+  "standing_root": [
+    "3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01",
+    3,
+    "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d",
+    "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530"
+  ],
+  "ranks": [
+    [
+      "m01.bookerbob.testnet",
+      1
+    ],
+    [
+      "h05.bookerbob.testnet",
+      2
+    ],
+    [
+      "m02.bookerbob.testnet",
+      3
+    ]
+  ]
+}

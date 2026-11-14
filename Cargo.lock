@@ -213,6 +213,7 @@ dependencies = [
  "bookerbob-core",
  "bookerbob-graph",
  "bookerbob-referee-worker",
+ "bookerbob-standing-v2",
  "bookerbob-zkcore",
  "chacha20poly1305",
  "curve25519-dalek",
@@ -283,6 +284,13 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "x25519-dalek",
+]
+
+[[package]]
+name = "bookerbob-standing-v2"
+version = "0.1.0"
+dependencies = [
+ "bookerbob-graph",
 ]
 
 [[package]]

@@ -1,0 +1,22 @@
+{
+  "note": "What a verifier checks: the proof against the program hash (sha256 of verifier.bin), with the guest's input bytes rebuilt from `public` and its output bytes from (spec_hash, private_commitment, output). The private input is not here.",
+  "id": "spend-bucket",
+  "spec_hash": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58f",
+  "program_hash": "136dd9a90b511d5881796bca761d590ca914ed29cc2e7e410215749f47503fb7",
+  "public": {
+    "records_root": "83e45ac9ed7ee35c43959f68ddf682e23b2048e1e5763ed74899c5e36cbcaaca",
+    "as_of_day": 20406,
+    "window_days": 90,
+    "thresholds_cents": [
+      "10000",
+      "50000",
+      "100000"
+    ]
+  },
+  "public_hex": "83e45ac9ed7ee35c43959f68ddf682e23b2048e1e5763ed74899c5e36cbcaacab69f015a03904ed08603a08d06",
+  "private_commitment": "c693e57a663cc47acbdda45b829aff86f2d83133bc782e81eb7ab899d477eff0",
+  "output": {
+    "bucket": 2
+  },
+  "output_hex": "02"
+}

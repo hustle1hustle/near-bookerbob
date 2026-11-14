@@ -1,0 +1,36 @@
+{
+  "note": "The economy anchor on NEAR mainnet: the testnet economy's 42 epochs (source near:testnet:bookerbob.testnet), posted 2026-11-14 on the founder's OK. Funded from the free balance of the mainnet DCAP verifier account. make anchor-check and make anchor-rebuild pass against it (docs/anchor-format.md).",
+  "account": "a145dcce5119739380e74b3295098a2ae040e1ce4679efb4a7046420cee23474",
+  "source": "near:testnet:bookerbob.testnet",
+  "txs": {
+    "fund": "EH95qz2rSK8XiCBwCdfyDTGsLAqvyjE14Bf8yKUCdkLV",
+    "deploy": "7JFTYuZbzMwjd94HYaMXoQxCUEt8feYAD8fQb29hQagf",
+    "post 0": "FpkDR3NWBxkwfoQy6Kw4gEfMsPA4PZw3eSnMfMYDE8oC",
+    "post 1": "8XTHhfxnbrD7b9ubxrgPPJpHpnRE4CmYps13QQUx9xxJ",
+    "post 2": "2ETg1cNL9x7aKSgfqPC2V87jFaGGPrrDEgyqbcXmfajG",
+    "post 3": "5Cvq73vSwbkaWwMvkvF2NroRJ98dTX1Zt8BcoV5YY2Bp",
+    "post 4": "FUekAg3AQvNVJKoCVRvQaC1sZnvoPw3oX2acLSwMNdFE",
+    "top-up": "3WoNFDtJLTW68dYAnVm2QNxEGBSQJZKdc9cbtAiiAu5T"
+  },
+  "head": "796e89abc6b6844dc8869d4fe012bf9aa26f8f3450a36e1597a67d1aebba7949",
+  "code_hash": "6Ex4pgQ6LGuBcgFBAmERgufvdRD2Mte3GdXhDGdfVYyq",
+  "failed": {
+    "8PnkXMDzCwHKVdqSjuBeGXov8QgdDtuQzTsrfmxWRmRY": "rejected before inclusion (RequiresFullAccess: a function-call key cannot sign 23 actions); nothing spent",
+    "9J4Z5zTzaxV7xt1Ff9qa14SmTAtaqqdUf2GnTWU87g1v": "LackBalanceForState, short 0.047339 NEAR; gas burnt 0.007221 NEAR; the 0.1 NEAR top-up followed"
+  },
+  "spend": {
+    "read_at": "2026-11-14",
+    "funded_near": "1.697809",
+    "dcap_balance_before": "9.743483226274700200",
+    "dcap_balance_after": "8.037724247199700200",
+    "dcap_spent_near": "1.705759 (1.697809 sent + 0.007950 gas for the two transfers)",
+    "anchor_gas_burnt_near": "0.027493 (deploy 0.001222, five posts 0.019051, the failed post 0.007221)",
+    "anchor_balance_after": "1.670315509624798800",
+    "storage_bytes": 155700,
+    "storage_locked_near": "1.557000",
+    "free_on_anchor_near": "0.113316",
+    "total_burnt_near": "0.035443",
+    "plan_storage_bytes": 153990,
+    "why_more_storage": "every map key holds the poster account, 64 characters here against 26 on testnet"
+  }
+}

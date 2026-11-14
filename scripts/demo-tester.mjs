@@ -185,7 +185,10 @@ export class Demo {
     if (implicit) {
       const tmp = join(c.testersDir, `implicit-${hex6}`);
       mkdirSync(tmp, { recursive: true });
-      key = newSeed(join(tmp, "account.seed"));
+      // opts.seed: a key made earlier, so the account can be named before it buys (a coalition
+      // job lists its buyer agents when it opens, scripts/coalition-live.mjs jobd).
+      if (opts.seed) writeFileSync(join(tmp, "account.seed"), opts.seed.trim() + "\n", { mode: 0o600 });
+      key = opts.seed ? keyFromSeed(opts.seed) : newSeed(join(tmp, "account.seed"));
       id = key.pub;
       dir = tmp;
       (this.implicit ??= new Set()).add(id);
@@ -255,6 +258,15 @@ export class Demo {
     const q = opts.sealed ? null : await this.client.view(c.bazaar, "quote", { merchant: c.merchant, nullifier: rec.nullifier });
     const k = q?.cohort?.k ?? 0;
     const input = run([...BOOKERBOB, "worker-input", opts.fixturesDir ?? "fixtures", join(live, "verdict.json"), opts.sealed ? join(live, "opening.json") : String(k)]);
+    if (opts.referee) {
+      // The referee runs elsewhere (make outlayer-buy: OutLayer, through request_referee); the
+      // hook returns the receipt's price, or { stop: true } after a refusal it has recorded.
+      const r = await opts.referee({ input, rec, tester, live, q, d: this });
+      save();
+      if (r.stop) return rec;
+      rec.price = r.price;
+      rec.cohort_k = k;
+    } else {
     const seed = readFileSync(join(c.keysDir, "referee.seed"), "utf8").trim();
     const result = JSON.parse(run(["cargo", "run", "-q", "-p", "bookerbob-referee-worker"], { input, env: { ...process.env, REFEREE_SIGNING_SEED: seed } }));
     if (result.body.merchant !== c.merchant) throw new Error(`the referee's winner is ${result.body.merchant}, expected ${c.merchant}`);
@@ -263,6 +275,7 @@ export class Demo {
     if (result.body.outcome !== "receipt") throw new Error(`the referee refused: ${result.body.detail}`);
     if (q && String(rec.price) !== String(q.price)) throw new Error(`referee price ${rec.price} differs from the on-chain quote ${q.price} (k=${k})`);
     rec.txs.receipt = (await this.relay("submit_referee_result", tester, c.bazaar, fc("submit_referee_result", { result }, 0n, 100n * TGAS))).hash;
+    }
     console.log(`   receipt price ${Number(rec.price) / 1e6} dUSDC${k ? ` (group price, k=${k})` : ""}`);
     step(9, "escrow in dUSDC");
     rec.txs.escrow = (await this.relay("ft_transfer_call", tester, c.dusdc, fc("ft_transfer_call", { receiver_id: c.bazaar, amount: String(rec.price), msg: "" }, 1n, 100n * TGAS))).hash;
@@ -291,6 +304,7 @@ export class Demo {
     if (s.logs.some((l) => l.includes("settle_reverted"))) throw new Error("the dUSDC payout failed and the settle was reverted");
     if ((await this.client.view(c.bazaar, "paid_in", { nullifier: rec.nullifier })) !== "demo") throw new Error("paid_in is not demo");
     save();
+    if (opts.skipFinish) return rec;
     return this.finish(rec, tester, dir, save, step);
   }
 

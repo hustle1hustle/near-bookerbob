@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 bookerbob-core = { path = "../core" }
 bookerbob-graph = { path = "../graph" }
+bookerbob-standing-v2 = { path = "../standing-v2" }
 bookerbob-zkcore = { path = "../zkcore" }
 bookerbob-bazaar = { path = "../contract", features = ["unit-testing"] }
 bookerbob-referee-worker = { path = "../worker" }

@@ -1,0 +1,119 @@
+{
+  "date": "2026-11-14",
+  "bazaar": "bookerbob.testnet",
+  "treasury": "bookerbob-demo.testnet",
+  "contract": "outlayer.testnet",
+  "project_id": "bookerbob.testnet/bookerbob-referee",
+  "project_uuid": "p000000000000018b",
+  "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/outlayer-referee-v1/bookerbob-referee-outlayer.wasm",
+  "wasm_sha256": "6fca1eaa09b2c1ca583a6914bdff7256d73a3d9f4469bd55f1eb00446be8dbb6",
+  "source_commit": "hustle1hustle/near-bookerbob 1d39cd6 worker/outlayer with the fixed-path worker/outlayer/build.sh (release outlayer-referee-v1 carries it), rustc 1.96.0",
+  "v0": {
+    "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/outlayer-referee-v0/bookerbob-referee-outlayer.wasm",
+    "wasm_sha256": "45af89f93de0e3e4949dafa142e3137429db7fd81a981468f5bbeb0c161a8329",
+    "pubkey_tx": "9d8SVnxGHRPoYmHgR9QYoFezQXXTi2FwCutd9Eb14eYC",
+    "runs": {
+      "honest": {
+        "tester": "2a560842c3115d9acb53d8787cc418ca21e2905c97b66fd92f9e29ea9586c10d",
+        "nullifier": "068aae106e04d1fa953be33b536eeb1a34229666cbd113d1178c193faf857a92",
+        "merchant": "m01.bookerbob.testnet",
+        "request_id": 45509,
+        "txs": {
+          "account": "F2CoBToJEw2BzGnY3eV6ToLJJFWBRXRUYPvGVYdRkShH",
+          "escrow_entry": "9JVaMJoEhWuC5HV3ZQ29s2Uu8FhoUXGNDAQqDCCMM6gb",
+          "dusdc_storage": "4MkexcsSLKfLeCg9n4AQz8Hk9MUhk5ECiT423oezXayY",
+          "mint": "GR52CWbTmZV75FVeGaSfmsjbfK4swgAzDSQtVpq3BXa4",
+          "world": "ELA4ChA35XscmZpPd2eWaq9cwW72KjBir4Re8cmnzyQY",
+          "verdict": "6cnXeKRTnnerGwwRYHmE89twEdwB38Samit9tQVBcJHD",
+          "request_referee": "7vizVBAUGgayrBHd2EkLmELTUpi2now2PgR1FmiBBHEE",
+          "escrow": "2JipSYRhYGpvREzfHGCPH2Q6QiU7Pmt5zuoiD8W6wSGK",
+          "settle": "9mUHZ4MSN9BxToD2meJTxBJLpQRLjWhJMMu7F3agrmYj"
+        },
+        "sealed_input_sha256": "b4d2b5623f46cc9ae0f93874133df7dab640fe841d27c782263cb1a90eb7ce9a",
+        "via": "callback",
+        "price": "36000000",
+        "receipt_hash": "38a19cffb20b3bca80f1e1380b7e21f9c61585beb8d951d5b96b6975d3319a07",
+        "result_sha256": "20f823abf19c18530a703e7be040fdc1235c254bd88d22ea417729e56902c757"
+      },
+      "cheat": {
+        "tester": "1c594f8283c219162ff16e0326224f13e992c2806da987e184d7c58c7165f49c",
+        "nullifier": "cf5b930bec3d32b591ac20325b0a76556f2dd0bd8040f61c5a61db3739741f6a",
+        "merchant": "m01.bookerbob.testnet",
+        "request_id": 45529,
+        "txs": {
+          "account": "6wXvvosXn59P1VhXM6n5Z5C9uCoXEkC29qzapbWx1NX9",
+          "escrow_entry": "3nhGp4wtLm1zXwcGJwq2rbg1ZWLB7efPFZp6hP1o5iEY",
+          "dusdc_storage": "8ZDTrAYwjJka6AEGGncNem2PBCjHAhEC6VxK6WXuD38H",
+          "mint": "8QdjWq6wAZr58HFNLHDfX8Hw1tWvAVhJqK3rkCcKLdG",
+          "world": "6RtmZ5TEN6uA2cLickcxQncomv159ssEZEdvZo174gKu",
+          "verdict": "5ABM9gCdG4CaT2Ww9saipPLQvVjMJHXQ3gpff8SkMbrQ",
+          "request_referee": "Df38AiotQXbFTSCD6Lf1R391B1HBhHJpdT8xpLbVNfK3",
+          "settle_attempt": "4fB3HV1wG2U38GeebjcGRNt4ou4inKjfNnXfExMJUcjM"
+        },
+        "sealed_input_sha256": "ba1235c2fbdcfc9aaf0903167f45dc2c57381e51a531bb3629accd711f526640",
+        "via": "callback",
+        "refused": "F9 not in proof set",
+        "settle_refused": "no referee receipt for this quote"
+      }
+    }
+  },
+  "keys": {
+    "arbiter_key": "1617391412d7e8cae76179deb8c1d35397a904594ac8884dd59600da59040e4a",
+    "referee_key": "5863e39dcd923d485c4d01784e84ca4c3b5ffae79c893baf933919ccf547feca",
+    "seal_for": "bookerbob.testnet",
+    "seal_pq1_sha256": "681aa672106d30148920520303edea9e007f15c8357b1fddcf5388ac2d131fe2",
+    "seal_x25519": "4af85c301e224911657e773db0708f70d8954a73e1a21968de1a81338143877e"
+  },
+  "keys_signature": "dd32bed4405545b1c375f531d8436b66d44b93f200451b83b181af5bfb40ad9aadab51b241a1cdc67144b8f86ad161f1a494a4a330f0e4ca883dc3476be4470f",
+  "txs": {
+    "create_project": "GBX3r8Bumwfa3w4AfUkUkZWeAoLAwdn45GNee6evm7nG",
+    "pubkey": "4rA7TU2zGTjSnWBL1N2N8hNMSfhC2SQDdP6CpBPzLcxF",
+    "add_version_v1": "EJAJDoaDSpfagqVUwaCbXaPGxYQaqLFVppHB1c74gtvL",
+    "sealkey_failed": "8qhMH4wLTVgnecabEKgUqLA47xTE1GKSLFbMB6zLmRqW",
+    "set_outlayer": "AFfTUsJWvSb3jy2Bpb329ArkfhbKPdDzWUbwXXyjLSrf",
+    "register_referee_queued": "BbSSa4CB4NKfur9P9W2ZHeZg6RnEBoyroaneeWCDf3Jp",
+    "register_referee_executed": "429EVoXJzWJjfNLYbGQ8Y4edxxyHxNq69KKJxRg6D48e"
+  },
+  "honest": {
+    "tester": "91cd006011838f3b7de04ba5606947b04319f5d250d73aedac22b48d6ffcbc89",
+    "nullifier": "29d5917919e2ac642250348e81752c51ca94a455912c7a0073f42a3742ae94c1",
+    "merchant": "m01.bookerbob.testnet",
+    "request_id": 46123,
+    "txs": {
+      "account": "4StTzWF5DNK1s7dSgQ6VviRi3goFvDuau3PB1HooStG2",
+      "escrow_entry": "AQSepiagdPHoBJtr3AvcTLjBsBiuhGeFjr5FKcFgw3Gc",
+      "dusdc_storage": "Ddj96VyvSpRLaPWAjf6xmgydci4XozuDwgJwycxmCiQJ",
+      "mint": "4yhR2XAK97eR3c4VXfLqP153BzRBGkC5AwpechYdGT2b",
+      "world": "TyKNJG3HKVCHqz9PomSnXZVQta3PyukUPWzRJ9jE5P3",
+      "verdict": "3npFmvGxfCwKXfZLnfuZGMdUrGfkY7hdMsZpbzm191tv",
+      "request_referee": "Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv",
+      "escrow": "5R2WBiusRdPywCkKk2Hg4SMdHZU717PocSsUeEmNDNJm",
+      "settle": "BSk1PZt88jZQ2pfxPypo9mN38cLrPKXKjRvcS8cew79X"
+    },
+    "sealed_input_sha256": "8214996e747f539d0ef4d22a7cab506d170582aa70156177b35e3c413a042725",
+    "via": "callback",
+    "price": "36000000",
+    "receipt_hash": "499edcaa4693a2a739e2512444cbb87c5acd211776315c77fcf4f52ef4c0f0a1",
+    "result_sha256": "154c5a4f6c806ae6e54f8574f16101f9bf9c190f296aca8554739660d8db6106"
+  },
+  "cheat": {
+    "tester": "5fad897ab68ac51da30842a5826abf3231672e935698128a738753a8399d38b1",
+    "nullifier": "a985463610eeb36da8a1c90cba3e46919c78e88494c335d5108ecacd76d85084",
+    "merchant": "m01.bookerbob.testnet",
+    "request_id": 46139,
+    "txs": {
+      "account": "AwbDWDCuwbFnJ8a7kmjVts1RcR8D1JQR7fbkAPmMHT7e",
+      "escrow_entry": "WJ5Kie8YUEGgYVF6mhkb3s5n4ruewxUAozL3q19pqPx",
+      "dusdc_storage": "Cqj4PjL5SBj39J5Lq13pdLwienrJxdsQxWZ2foRGUn92",
+      "mint": "73W8FxD8AjuaqseXCJGAUCWcH2juWgLwgqFCvVwyh71",
+      "world": "DJixmDmdq6B2UxnKGqCTgDUaenzuCMfyyR3W3DAvKPvY",
+      "verdict": "EWPYAGjUJmUD6GrqE7ci6QzwRwYgwwYJNWbQMerh5QsS",
+      "request_referee": "3FbtcCH8Y9ZA7hwzCrkTS76Fy4PDioDwhavw6U2nQGJ6",
+      "settle_attempt": "C9iWCT5cYctsjCTGw4u4GigsfpEQQp7TsWh23y6XJSAU"
+    },
+    "sealed_input_sha256": "62d3feeb05985884f8cbc781476576fc7f08c07b9d6f007380895e0715a5dd95",
+    "via": "callback",
+    "refused": "F9 not in proof set",
+    "settle_refused": "no referee receipt for this quote"
+  }
+}

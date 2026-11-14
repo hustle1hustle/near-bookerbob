@@ -1,0 +1,69 @@
+{
+ "note": "The proven standing tree of bookerbob.testnet: one opening per merchant, made by `bookerbob standing-proofs` from the input the on-chain Jolt proof covers. Rebuild: node mcp/standing-data.mjs.",
+ "contract": "bookerbob.testnet",
+ "input": "fixtures/zk/standing-live-input.json",
+ "graph_root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530",
+ "scores_hash": "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d",
+ "standing_root": "3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01",
+ "n": 3,
+ "proof": {
+  "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+  "proof_dir": "zk/out/standing-live",
+  "proof_sha256": "5619f62dcf9d94b41c74cd67b9b0e8cf5fffc0583eb8bb7ed4acb9c1b59454d1",
+  "submit_tx": "8AmCe4FNKXafMqZpeohNEK51bAtDDTm27pPDS8rSWBDD",
+  "finalize_tx": "GSkXViv8a2Ho1K5iPxNZe9iwhHk9UjNbLZpSqeyn8MhR"
+ },
+ "entries": [
+  {
+   "merchant": "m01.bookerbob.testnet",
+   "rank": 1,
+   "n": 3,
+   "score_commit": "10fbe820f94f5cd64a9a9cf69ad62fbfe8dfd37a58c75a20f883aa4c29086926",
+   "path": [
+    [
+     "fdbea6a8fc3d39fa9feeabdaba10f76028afa92dd2657eca3e425655856db532",
+     false
+    ],
+    [
+     "755cac4df8c97bbb2a9884efcee8189a0f491a405d4a70074984866c46e3e55d",
+     false
+    ]
+   ],
+   "score_x100": 400
+  },
+  {
+   "merchant": "h05.bookerbob.testnet",
+   "rank": 2,
+   "n": 3,
+   "score_commit": "fca4567351b8bbc506b3221cfdf3714c00eafbdb6a590efa6dee97ddec5b4fee",
+   "path": [
+    [
+     "5441511a4d04c07909529ca70624788e58c3dd2434f0872053e22f8175bde640",
+     true
+    ],
+    [
+     "755cac4df8c97bbb2a9884efcee8189a0f491a405d4a70074984866c46e3e55d",
+     false
+    ]
+   ],
+   "score_x100": 381
+  },
+  {
+   "merchant": "m02.bookerbob.testnet",
+   "rank": 3,
+   "n": 3,
+   "score_commit": "4ad713bb87dcd8a4c137c565828644d13bce4ebdf45a21d9895cc8ba5ed18582",
+   "path": [
+    [
+     "55680e4b8712aea02ed82b99409565ee98f2f8820d4fcfd52513962096e016a3",
+     false
+    ],
+    [
+     "dd06411866a3073bb367fa8f3909af6f3d28edf819dbca6a8bd044314da1f292",
+     true
+    ]
+   ],
+   "score_x100": 340
+  }
+ ]
+}

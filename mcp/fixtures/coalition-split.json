@@ -1,0 +1,67 @@
+{
+  "id": "coalition-split",
+  "version": 1,
+  "requester": { "account": "cl-lead-1df7.bookerbob-demo.testnet", "role": "coalition lead of job C" },
+  "ask": "Prove that the coalition's payout followed its pro-rata rule: from the committed seat records, the budget and the bond, recompute every deliverer's bond back, budget share and share of slashed bonds, every slashed bond and the buyer's remainder, and check they equal the payouts the job announced.",
+  "types": {
+    "Seat": [["leg", "u32"], ["member", "string"], ["price", "u128"], ["delivered", "option<string>"]],
+    "Payout": [["member", "string"], ["bond_back", "u128"], ["share", "u128"], ["from_slashed", "u128"]]
+  },
+  "public": [["coalition", "string"], ["job", "u64"], ["seats_root", "bytes32"], ["budget", "u128"], ["bond", "u128"], ["delivered", "vec<Payout>"], ["slashed", "vec<string>"], ["to_buyer", "u128"]],
+  "private": [["seats", "vec<Seat>"]],
+  "output": [["deliverers", "u32"], ["slashed", "u32"], ["paid_out", "u128"]],
+  "rules": [
+    "seats_root must equal commit(\"bookerbob/smith/coalition-seats/v0\", &s.seats); otherwise refuse. Between 1 and 8 seats, seat i has leg i, no member twice; otherwise refuse.",
+    "A seat delivered when `delivered` is Some. P = the sum of price over all seats, D = the sum of price over delivered seats. P must be > 0; otherwise refuse.",
+    "slashed_total = bond * (number of seats that did not deliver). to_deliverers = slashed_total - slashed_total / 2 when D > 0, else 0.",
+    "For each delivered seat, in seat order: bond_back = bond, share = budget * price / P (floor), from_slashed = to_deliverers * price / D (floor).",
+    "to_buyer = budget + bond * (number of seats) - the sum over delivered seats of (bond_back + share + from_slashed).",
+    "p.delivered must equal exactly the list of (member, bond_back, share, from_slashed) for the delivered seats in seat order; p.slashed must equal exactly the members of the seats that did not deliver, in seat order; p.to_buyer must equal to_buyer. Otherwise refuse.",
+    "All arithmetic is checked u128; any overflow refuses.",
+    "Output: deliverers = number of delivered seats, slashed = number of seats that did not deliver, paid_out = the sum over delivered seats of (bond_back + share + from_slashed)."
+  ],
+  "vectors": [
+    {
+      "label": "job C as finalized on chain (tx 7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF)",
+      "prove": true,
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet", "job": 2,
+        "seats_root": { "commit": "bookerbob/smith/coalition-seats/v0", "of": "private.seats" },
+        "budget": "30000000", "bond": "5000000",
+        "delivered": [
+          { "member": "m01.bookerbob.testnet", "bond_back": "5000000", "share": "2651933", "from_slashed": "1290322" },
+          { "member": "m02.bookerbob.testnet", "bond_back": "5000000", "share": "2486187", "from_slashed": "1209677" }
+        ],
+        "slashed": ["h05.bookerbob.testnet"],
+        "to_buyer": "27361881"
+      },
+      "private": { "seats": [
+        { "leg": 0, "member": "m01.bookerbob.testnet", "price": "48000000", "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd" },
+        { "leg": 1, "member": "h05.bookerbob.testnet", "price": "450000000", "delivered": null },
+        { "leg": 2, "member": "m02.bookerbob.testnet", "price": "45000000", "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a" }
+      ] },
+      "expect": { "deliverers": 2, "slashed": 1, "paid_out": "17638119" }
+    },
+    {
+      "label": "a lead that pays itself one unit more: refused",
+      "public": {
+        "coalition": "coalition.bookerbob-demo.testnet", "job": 2,
+        "seats_root": { "commit": "bookerbob/smith/coalition-seats/v0", "of": "private.seats" },
+        "budget": "30000000", "bond": "5000000",
+        "delivered": [
+          { "member": "m01.bookerbob.testnet", "bond_back": "5000000", "share": "2651933", "from_slashed": "1290322" },
+          { "member": "m02.bookerbob.testnet", "bond_back": "5000000", "share": "2486187", "from_slashed": "1209677" }
+        ],
+        "slashed": ["h05.bookerbob.testnet"],
+        "to_buyer": "27361882"
+      },
+      "private": { "seats": [
+        { "leg": 0, "member": "m01.bookerbob.testnet", "price": "48000000", "delivered": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd" },
+        { "leg": 1, "member": "h05.bookerbob.testnet", "price": "450000000", "delivered": null },
+        { "leg": 2, "member": "m02.bookerbob.testnet", "price": "45000000", "delivered": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a" }
+      ] },
+      "expect": "refuse"
+    }
+  ],
+  "limits": { "heap": 262144, "max_input": 2048, "max_private": 4096, "max_output": 256, "max_trace": 1048576 }
+}

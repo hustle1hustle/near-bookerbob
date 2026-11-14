@@ -93,7 +93,7 @@ category (`lib.rs:2020`). Merchants bid before any buyer is known to the round.
    The contract checks a registered referee key, its ed25519 signature, that the result names
    this verdict digest, and that the price equals `quote_for` (`:2783-2836`). Outcome
    `receipt` stores `(merchant, price)` on the verdict; `refused` only logs `receipt_refused`.
-   Not live on testnet yet (README Deployments: "Not on testnet yet: the OutLayer referee").
+   The OutLayer referee is live on testnet 2026-11-14, TDX quote verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md).
 6. `settle(nullifier, merchant, checkout_ref, amount: U128)` (`:2986`; `settle_demo` `:2997`
    pays in dUSDC). Caller is the verdict's agent. `take_payment_at` (`:3028-3136`) requires:
    merchant approved, not spent, agent match, TCB floor, not expired, a receipt for this

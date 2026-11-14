@@ -1,0 +1,784 @@
+{
+  "note": "bucketed schedules (docs/leak-amount.md): each rule pays the same bps and the cap equals it, so every buyer with at least one priced bit pays one price. b keeps the merchant's expected revenue under the swarm prior. Written by node scripts/leak-amount.mjs --write; checked by node scripts/leak-amount.mjs. account null: a design with no on-chain registration.",
+  "prior": "swarm: fixtures/live/swarm/s1.json purchases; uniform: every subset of the merchant's priced predicates",
+  "merchants": [
+    {
+      "account": "bkt-m01.bookerbob-demo.testnet",
+      "of": "m01.bookerbob.testnet",
+      "category": "open",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 0,
+        "uniform": 1
+      },
+      "bound_why": "swarm 0 is our claim about who buys here: the schedule prices world_id_human, and every swarm set proves it, so every swarm buyer pays one price. A buyer without a priced bit pays the base, so under another prior the bound is the design's 1 bit.",
+      "schedule": {
+        "base_price": "48000000",
+        "rules": [
+          {
+            "predicate": "claude_spender",
+            "bps": 1475
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1475
+          },
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1475
+          }
+        ],
+        "cap_bps": 1475
+      }
+    },
+    {
+      "account": null,
+      "of": "m01.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "48000000",
+        "rules": [
+          {
+            "predicate": "claude_spender",
+            "bps": 1475
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1475
+          },
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1475
+          }
+        ],
+        "cap_bps": 1475
+      }
+    },
+    {
+      "account": null,
+      "of": "m02.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "42000000",
+        "rules": [
+          {
+            "predicate": "booking_genius",
+            "bps": 1000
+          }
+        ],
+        "cap_bps": 1000
+      }
+    },
+    {
+      "account": null,
+      "of": "m03.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "50000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1400
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1400
+          }
+        ],
+        "cap_bps": 1400
+      }
+    },
+    {
+      "account": null,
+      "of": "m04.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "46000000",
+        "rules": [
+          {
+            "predicate": "steam_veteran",
+            "bps": 1800
+          }
+        ],
+        "cap_bps": 1800
+      }
+    },
+    {
+      "account": null,
+      "of": "m05.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "44000000",
+        "rules": [
+          {
+            "predicate": "uber_regular",
+            "bps": 1200
+          }
+        ],
+        "cap_bps": 1200
+      }
+    },
+    {
+      "account": null,
+      "of": "m06.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "52000000",
+        "rules": [
+          {
+            "predicate": "claude_spender",
+            "bps": 1250
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1250
+          }
+        ],
+        "cap_bps": 1250
+      }
+    },
+    {
+      "account": null,
+      "of": "m07.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "55000000",
+        "rules": [],
+        "cap_bps": 0
+      }
+    },
+    {
+      "account": null,
+      "of": "m08.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "47000000",
+        "rules": [
+          {
+            "predicate": "world_id_human",
+            "bps": 1500
+          }
+        ],
+        "cap_bps": 1500
+      }
+    },
+    {
+      "account": null,
+      "of": "m09.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "45000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 600
+          },
+          {
+            "predicate": "claude_spender",
+            "bps": 600
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 600
+          }
+        ],
+        "cap_bps": 600
+      }
+    },
+    {
+      "account": null,
+      "of": "m10.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "60000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 2250
+          },
+          {
+            "predicate": "claude_spender",
+            "bps": 2250
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 2250
+          }
+        ],
+        "cap_bps": 2250
+      }
+    },
+    {
+      "account": null,
+      "of": "m11.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "49000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1250
+          },
+          {
+            "predicate": "booking_genius",
+            "bps": 1250
+          }
+        ],
+        "cap_bps": 1250
+      }
+    },
+    {
+      "account": null,
+      "of": "m12.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "51000000",
+        "rules": [
+          {
+            "predicate": "steam_veteran",
+            "bps": 1600
+          },
+          {
+            "predicate": "uber_regular",
+            "bps": 1600
+          }
+        ],
+        "cap_bps": 1600
+      }
+    },
+    {
+      "account": null,
+      "of": "m13.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "48500000",
+        "rules": [
+          {
+            "predicate": "world_id_human",
+            "bps": 1200
+          },
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1200
+          }
+        ],
+        "cap_bps": 1200
+      }
+    },
+    {
+      "account": null,
+      "of": "m14.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "50500000",
+        "rules": [
+          {
+            "predicate": "claude_spender",
+            "bps": 1000
+          },
+          {
+            "predicate": "steam_veteran",
+            "bps": 1000
+          }
+        ],
+        "cap_bps": 1000
+      }
+    },
+    {
+      "account": null,
+      "of": "m15.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "53000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1200
+          },
+          {
+            "predicate": "booking_genius",
+            "bps": 1200
+          },
+          {
+            "predicate": "uber_regular",
+            "bps": 1200
+          }
+        ],
+        "cap_bps": 1200
+      }
+    },
+    {
+      "account": null,
+      "of": "m16.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "43500000",
+        "rules": [
+          {
+            "predicate": "uber_regular",
+            "bps": 500
+          }
+        ],
+        "cap_bps": 500
+      }
+    },
+    {
+      "account": null,
+      "of": "m17.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "49500000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1100
+          },
+          {
+            "predicate": "booking_genius",
+            "bps": 1100
+          },
+          {
+            "predicate": "claude_spender",
+            "bps": 1100
+          },
+          {
+            "predicate": "steam_veteran",
+            "bps": 1100
+          },
+          {
+            "predicate": "uber_regular",
+            "bps": 1100
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1100
+          }
+        ],
+        "cap_bps": 1100
+      }
+    },
+    {
+      "account": null,
+      "of": "m18.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "47500000",
+        "rules": [
+          {
+            "predicate": "claude_spender",
+            "bps": 1000
+          }
+        ],
+        "cap_bps": 1000
+      }
+    },
+    {
+      "account": null,
+      "of": "m19.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "46500000",
+        "rules": [
+          {
+            "predicate": "world_id_human",
+            "bps": 900
+          },
+          {
+            "predicate": "claude_spender",
+            "bps": 900
+          }
+        ],
+        "cap_bps": 900
+      }
+    },
+    {
+      "account": null,
+      "of": "m20.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "54000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1700
+          },
+          {
+            "predicate": "booking_genius",
+            "bps": 1700
+          }
+        ],
+        "cap_bps": 1700
+      }
+    },
+    {
+      "account": null,
+      "of": "m21.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "45500000",
+        "rules": [
+          {
+            "predicate": "uber_regular",
+            "bps": 1500
+          },
+          {
+            "predicate": "steam_veteran",
+            "bps": 1500
+          }
+        ],
+        "cap_bps": 1500
+      }
+    },
+    {
+      "account": null,
+      "of": "m22.bookerbob.testnet",
+      "category": "hoodie",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "41000000",
+        "rules": [],
+        "cap_bps": 0
+      }
+    },
+    {
+      "account": null,
+      "of": "h01.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "1593000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1125
+          },
+          {
+            "predicate": "booking_genius",
+            "bps": 1125
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1125
+          }
+        ],
+        "cap_bps": 1125
+      }
+    },
+    {
+      "account": null,
+      "of": "h02.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "1008000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 800
+          }
+        ],
+        "cap_bps": 800
+      }
+    },
+    {
+      "account": null,
+      "of": "h03.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "1119000000",
+        "rules": [
+          {
+            "predicate": "booking_genius",
+            "bps": 1000
+          },
+          {
+            "predicate": "uber_regular",
+            "bps": 1000
+          }
+        ],
+        "cap_bps": 1000
+      }
+    },
+    {
+      "account": null,
+      "of": "h04.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "1452000000",
+        "rules": [
+          {
+            "predicate": "claude_spender",
+            "bps": 1500
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1500
+          }
+        ],
+        "cap_bps": 1500
+      }
+    },
+    {
+      "account": null,
+      "of": "h05.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "510000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1500
+          },
+          {
+            "predicate": "claude_spender",
+            "bps": 1500
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1500
+          }
+        ],
+        "cap_bps": 1500
+      }
+    },
+    {
+      "account": null,
+      "of": "h06.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "1305000000",
+        "rules": [
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1150
+          },
+          {
+            "predicate": "world_id_human",
+            "bps": 1150
+          }
+        ],
+        "cap_bps": 1150
+      }
+    },
+    {
+      "account": null,
+      "of": "h07.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "831000000",
+        "rules": [
+          {
+            "predicate": "booking_genius",
+            "bps": 666
+          },
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 666
+          },
+          {
+            "predicate": "uber_regular",
+            "bps": 666
+          }
+        ],
+        "cap_bps": 666
+      }
+    },
+    {
+      "account": null,
+      "of": "h08.bookerbob.testnet",
+      "category": "hotel-lisbon",
+      "bucketed": true,
+      "design": "any",
+      "bound_bits": {
+        "swarm": 1,
+        "uniform": 1
+      },
+      "schedule": {
+        "base_price": "669000000",
+        "rules": [
+          {
+            "predicate": "world_id_human",
+            "bps": 1750
+          },
+          {
+            "predicate": "airbnb_frequent",
+            "bps": 1750
+          }
+        ],
+        "cap_bps": 1750
+      }
+    }
+  ]
+}

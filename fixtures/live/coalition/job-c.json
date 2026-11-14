@@ -1,0 +1,185 @@
+{
+  "coalition": "coalition.bookerbob-demo.testnet",
+  "bazaar": "bookerbob.testnet",
+  "lead": "cl-lead-1df7.bookerbob-demo.testnet",
+  "members": {
+    "m01": "m01.bookerbob.testnet",
+    "h05": "h05.bookerbob.testnet",
+    "m02": "m02.bookerbob.testnet"
+  },
+  "txs": {
+    "open": {
+      "hash": "3SHmz6oCLjbE9oN416AzkFJ5Luq4vu2XhrRPMRmnR1Xq",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "fund": {
+      "hash": "AiC3LQQDHNboqZBZizYGw9tYSpj1UbLdpK8znymz17iy",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "m02_before": {
+      "hash": "A8psb8PU1SyDkMViDcdZSMxgHZLj8u8Uy3nztn2HxHqx",
+      "signer": "m02.bookerbob.testnet"
+    },
+    "topup_m02": {
+      "hash": "8w5vmStw9mgxKNYKxkSXR8XhkDoLnZgE9gZpgNS1VfHg",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "join_m01": {
+      "hash": "2ny6qKWGxKnHjfinY2NWv9c1j6eT8sr6dVvaZ9ctWYzs",
+      "signer": "m01.bookerbob.testnet"
+    },
+    "join_h05": {
+      "hash": "CEkNvx3ka1gyDkAHuS4JB7om6C6Uv6Du3bboLp8D8PS4",
+      "signer": "h05.bookerbob.testnet"
+    },
+    "join_m02": {
+      "hash": "GSj6y2BMowc1heofP3DSTLr1a2Z9Zyt7mqd6WGajAhtY",
+      "signer": "m02.bookerbob.testnet"
+    },
+    "deliver_m01": {
+      "hash": "FNTHNwsC1NarSRvf47kVGkBoJuouQVmDvdaoo4mVMiNv",
+      "signer": "m01.bookerbob.testnet"
+    },
+    "deliver_m02": {
+      "hash": "4ksA4ocaBTYvwaaDKkgg1XXiN4ydZK7y14hm2bfMGP8t",
+      "signer": "m02.bookerbob.testnet"
+    },
+    "finalize": {
+      "hash": "7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "hire_h05": {
+      "hash": "68CLFyT9hgtsx9tUNAsPvEJ8Htr8ckLZEh2DQ55hJne3",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "hire_m02": {
+      "hash": "3HekZUKqBLAjdufsoo16AWvEKnxEMnaSK7YuuPZEoAoX",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    }
+  },
+  "purchases": {
+    "m01": {
+      "tester": "906587e19465647f02a08c132d84775020256ce742841bdd9697052cf3091f6b",
+      "merchant": "m01.bookerbob.testnet",
+      "nullifier": "63957149e4f0d670da818c778b9395a1dcfdfd2b0426ae0f37a422e0e55bcedd",
+      "price": "36000000",
+      "txs": {
+        "account": "A8kJhYiKsVLK3bh2CYUuGcERJSnTKqkZLwUngynVfQt2",
+        "escrow_entry": "CbxfACdZgmDxmfyVsBEWn2PnJRzVh9sBsGVT8NouxYEp",
+        "dusdc_storage": "E1N6iMveH5e9kuL1qSaNTWdLvnwqhpvJGMqBG2FvQXE1",
+        "mint": "3wghFU4gABhSSjptLVxYxghw1JKtcdoVBu9QVsz6SMbk",
+        "world": "BYSW1nyyo7LhaFvkAoMJDL5tvKwmzSwtndi8CDjSdTc",
+        "verdict": "HQn41UMnSW22PCS7G4M4dfGXkgnuzLSsafvTAuxs19xj",
+        "receipt": "7rQgm9nKpQwPXAma3mt3BjRyU5khUrsp3prmgYCPjv94",
+        "escrow": "E6YjAomURkqn9tPr1iChHUo3ewgfNzRWh8KAvTLYaEd2",
+        "settle": "9NgbQc25g7nxdFhHzxietGhsZtYqhvxjKWarqC63tuTw",
+        "replay": "HifviHv5eauMMeCKCDyzmF7eLdUfC55HRm1bYmrsN7uk",
+        "review_join": "DdG5dCG2GMre3PvHKEnCRqSrt8qeQr3RGxRZoCaZ5vxX"
+      },
+      "review_size": 19
+    },
+    "m02": {
+      "tester": "a97b483d945903e5ded8b54ced5e804ace1a6af3fd7c125ef4d9fdcb4336496c",
+      "merchant": "m02.bookerbob.testnet",
+      "nullifier": "94102e551365daa87d9f114fa47296d40f1e246b2de8acd912baaedd520d902a",
+      "price": "42000000",
+      "txs": {
+        "account": "Dhq1Zvw8hP5gKMQTjGzWcWFTLZswpRDJ8HR6YiW2Johb",
+        "escrow_entry": "B5aSLykdt5WRnFFMqPcEPLsS713Sdp5ZcpDw7vBeyckJ",
+        "dusdc_storage": "EQagTgWvDEgW67Tj5yW16Yp2xgRqfB9eEYaMQJmnWLSa",
+        "mint": "5LJonHRajGNFmJSBarJn1XNr7fCEoKpp3jzVaA9BUuQA",
+        "world": "F4VQXxQhm9SZWdsqdcAgeabbzz1UzgqMocbwEnjMvF6Z",
+        "verdict": "5iMiXuwdvCwPKMxbgbVd2kGFMiEr96Y2tCH5HNWjnNP1",
+        "receipt": "4EMgLfPTPTSx2N1ceDyNCJXGQhadjStZP3uoGdghm32Q",
+        "escrow": "vcfBUfDRKztMMBzHfJafK42zr2yqimNrf48hscHZ6mb",
+        "settle": "Atr2tHwDE6JWLgnUubnLk49VCMCbPFsaxwaY4Triaai5",
+        "replay": "8x9sABA5p9YRuTNaRpd9uofEx79UaJPFNVaTkVpWbb6K",
+        "review_join": "82VqD1uvPzyni7H4hYdY8KotQkmeGXdkTze87d94mSpU"
+      },
+      "review_size": 6
+    }
+  },
+  "balances": {
+    "before": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "70448718",
+      "m01.bookerbob.testnet": "1867742082",
+      "h05.bookerbob.testnet": "25240000000",
+      "m02.bookerbob.testnet": "656964000",
+      "coalition.bookerbob-demo.testnet": "30000000"
+    },
+    "after_finalize": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "97810599",
+      "m01.bookerbob.testnet": "1942964337",
+      "h05.bookerbob.testnet": "25235000000",
+      "m02.bookerbob.testnet": "702239864",
+      "coalition.bookerbob-demo.testnet": "0"
+    }
+  },
+  "budget": "30000000",
+  "deadline_ms": 1794669579482,
+  "job": 2,
+  "standing_before": [
+    "885a81526ea7e9a3918cbb6636b5504b1c3c101534d3cd368bfa97345c49ea85",
+    2,
+    "0327ed15cde22e0e97792cb01ff285b8dbf7ea70b8ef4da1f0b6831ca6cfc3ff",
+    "c1a80ccb166e47ae4e8bd53e00fd7f2f005ae8b46ad8e13a1dd2c2c9c73a1e5e"
+  ],
+  "no_show": "h05",
+  "standing_after": [
+    "4f537c5500d92e78ee0cd7438c4a9a890d60adfe9da6e4dc8bfff05a3ff853ac",
+    3,
+    "5b9d167c9243ea8b7d8641cf0cc1a327f3ab063b52a4adbf3daec1076084f652",
+    "64843eb79acfc008121facd9125ee2c2767ef08962be872dd4dadfbc6c1966d2"
+  ],
+  "openings": [
+    {
+      "merchant": "m01.bookerbob.testnet",
+      "rank": 1,
+      "n": 3,
+      "score_commit": "316384980b66c48b79db0ee7e97ce02abf977730b2c2d2aa9ecbfd798a559dda",
+      "path": [
+        [
+          "172790f81c79fe1974cd377cb80f78872dea9e47f8fa85626130d33dbcdb72ec",
+          false
+        ],
+        [
+          "06b0344334c1419cca6be36f42c9e70e3627ee9cbd171959ccda2d5cb05c71bf",
+          false
+        ]
+      ]
+    },
+    {
+      "merchant": "h05.bookerbob.testnet",
+      "rank": 2,
+      "n": 3,
+      "score_commit": "1d30c8f16532ebddc10a7d5c738786a17cee35ebbf875d457bdd554d38efb896",
+      "path": [
+        [
+          "ec2132fe0234d6b2c474b89b6dbcbc83abe4a045fb04cea0181d162e7c03bab6",
+          true
+        ],
+        [
+          "06b0344334c1419cca6be36f42c9e70e3627ee9cbd171959ccda2d5cb05c71bf",
+          false
+        ]
+      ]
+    },
+    {
+      "merchant": "m02.bookerbob.testnet",
+      "rank": 3,
+      "n": 3,
+      "score_commit": "070c89476e0397e568c2295c1e5eb105c7f36b298225119d46abeb8e8e93e4db",
+      "path": [
+        [
+          "ce65123475f844da1df4e303c9cd86f48ca34a84da897458193a9dfff5c74549",
+          false
+        ],
+        [
+          "015ba81fa1050d0cb40a4b099437057dd4ecbc9fbb1ccace674de2256c411196",
+          true
+        ]
+      ]
+    }
+  ],
+  "date": "2026-11-14"
+}

@@ -21,6 +21,8 @@ const walk = (d) => readdirSync(join("agents", d), { withFileTypes: true }).flat
 // coi-prove-sw.js: the page's own service worker (scope prove only) adds the cross-origin
 // isolation headers a static host cannot send, so the threaded prover can run.
 if (existsSync("agents/prove.html")) FILES.push(...walk("prove"), "coi-prove-sw.js");
+// The standing page: the Jolt proof of the live standing graph, verified in the tab (zk/browser/check-standing.mjs).
+if (existsSync("agents/standing.html")) FILES.push("standing.html", ...walk("standing"));
 mkdirSync("site/out", { recursive: true });
 for (const f of FILES) {
   mkdirSync(dirname(join("site", f)), { recursive: true });

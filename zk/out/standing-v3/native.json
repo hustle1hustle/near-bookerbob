@@ -1,0 +1,8 @@
+{
+  "events": 10,
+  "preprocess_s": 20.117471917,
+  "proof_bytes": 87614,
+  "prove_s": 7.605546042,
+  "verifier_bin_bytes": 773345,
+  "verify_ms": 92.034709
+}

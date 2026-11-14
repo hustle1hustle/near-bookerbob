@@ -1,0 +1,28 @@
+{
+  "elf_bytes": 40816,
+  "elf_sha256": "3e3cc8db446f64496b747f57473be79fd85dfa66fd2c1ace517ef8dcbd5cd1bc",
+  "io_inputs_hex": "2d83e45ac9ed7ee35c43959f68ddf682e23b2048e1e5763ed74899c5e36cbcaacab69f015a03904ed08603a08d06",
+  "io_outputs_hex": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58fc693e57a663cc47acbdda45b829aff86f2d83133bc782e81eb7ab899d477eff00102000000000000",
+  "output_hex": "02",
+  "preprocess_s": 9.720984667,
+  "private_commitment": "c693e57a663cc47acbdda45b829aff86f2d83133bc782e81eb7ab899d477eff0",
+  "program_hash": "136dd9a90b511d5881796bca761d590ca914ed29cc2e7e410215749f47503fb7",
+  "proof_bytes": 79237,
+  "prove_s": 1.639163791,
+  "refused": [
+    "output: first byte changed",
+    "private commitment: one bit changed",
+    "spec hash: one bit changed",
+    "public input: last byte changed"
+  ],
+  "spec_hash": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58f",
+  "threads": 11,
+  "verifier_bytes": 379724,
+  "verify_ms": 28.219041999999998,
+  "peak_rss_bytes": 386482176,
+  "source_sha256": "9d668c2a43d3d054a07cdbc94851a6de0708512e671a54193ca9795471578bd5",
+  "urs": {
+    "dory_24.urs": "91708ba5f10aadc3851371ca877f6e387290e5e6e4166da021aae19f716ba91b"
+  },
+  "at": "2026-11-14T16:55:43.337Z"
+}

@@ -1,0 +1,189 @@
+{
+  "bazaar": "bookerbob.testnet",
+  "dusdc": "bookerbob-dusdc.testnet",
+  "coalition": "coalition.bookerbob-demo.testnet",
+  "members": {
+    "m01": "m01.bookerbob.testnet",
+    "h05": "h05.bookerbob.testnet"
+  },
+  "txs": {
+    "coalition_account": {
+      "hash": "DPqk5pQY7WGqr9bvYW1UNtfv63txNnHgttrBajbthYJJ",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "deploy": {
+      "hash": "ASh2E1nSMWKkdBkPQtaSiPgmgXwADm1kBXXN5MXbXTxr",
+      "signer": "coalition.bookerbob-demo.testnet"
+    },
+    "coalition_dusdc_storage": {
+      "hash": "2mKvNCJUmPuosRgoG6SQHr3J8CPg4gKZCXbnjnpU99Fw",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "lead_account": {
+      "hash": "14AK977VYiR57PB8P5UCp9nMRpqwjnDY5RADtUANhKmc",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "lead_dusdc_storage": {
+      "hash": "EyMVGDjAnWAC3PZTfJrZ29p5LGpXbjDAVphZFyhKvqZq",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "lead_mint": {
+      "hash": "hKtYDZHBLCUbmp6jt7H6m4VDBQNWe4h7B5WfSALMZXM",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "stranger_account": {
+      "hash": "2FAey7kK1m5EaeCPe1SLUGeRWzXFqE5pdWZGbFjcHFzf",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "stranger_dusdc_storage": {
+      "hash": "E9gCNfxmVhxj1hzszhZ6XsJFAcstbkKQNHUSjAk7Qvsr",
+      "signer": "cl-stranger-1df7.bookerbob-demo.testnet"
+    },
+    "stranger_mint": {
+      "hash": "HmHbX2Dbn21Tyqjkx2aPZ7aVw9zVtPeVihmKUGjJ264i",
+      "signer": "cl-stranger-1df7.bookerbob-demo.testnet"
+    },
+    "open_a": {
+      "hash": "96m7crKjDoWx7B5y4xXXQn8hXm8fqu41npGzxcRHuvVU",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "fund_a": {
+      "hash": "4kisBi1nZMvYDuSeRV2uNeEM6NfxuF8V7ZrmRXKKUUEn",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "join_m01": {
+      "hash": "Gy21J52XbmvATUKb9hkPj53ufVYUJgnGFSBZXi9b6sNo",
+      "signer": "m01.bookerbob.testnet"
+    },
+    "topup_h05": {
+      "hash": "74fdM9nKoWFfNHYDPah2obF9TEftGjkTxkyr9J63dDXQ",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "join_h05": {
+      "hash": "56yRBJUWrWiFuSTRN7a3PEiEVdDMGQjMTYUBDed5bPfQ",
+      "signer": "h05.bookerbob.testnet"
+    },
+    "leg_taken": {
+      "hash": "F7mmh2GReaTMBcLTEw6irSoMnepA4oMgbQW5qGMGchEx",
+      "signer": "cl-stranger-1df7.bookerbob-demo.testnet"
+    },
+    "open_b": {
+      "hash": "6cdpYfMLiTAvhYDEAP8F9QyV8jzGEdZNq8StJNHh46CN",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "fund_b": {
+      "hash": "Aw4m7BCLjnvvRqdY6FAK7oSUaj1vdVs4qUxY6RubBrPu",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "stranger_no_proof": {
+      "hash": "GeDHQptQVd6WYSifU3vjomCCbgJMiQ4rbhtpLRKWLvQe",
+      "signer": "cl-stranger-1df7.bookerbob-demo.testnet"
+    },
+    "stranger_wrong_leaf": {
+      "hash": "73LgSsTQvws9U892UnnuLPqZ5v3smZpoDSSC7X1yQydN",
+      "signer": "cl-stranger-1df7.bookerbob-demo.testnet"
+    },
+    "low_standing": {
+      "hash": "5XSXhNDr3aVGYFPyvpw3p6qBTCoaBaWKsDbATrR2p1ya",
+      "signer": "h05.bookerbob.testnet"
+    },
+    "deliver": {
+      "hash": "Ao1o2CNmiJspQLRXYowVzBfqYYgcxgc15PTymCWFZzPr",
+      "signer": "m01.bookerbob.testnet"
+    },
+    "finalize_a": {
+      "hash": "DkoBchZP63RXVJB768dQNKx4d5eUstsDnuiPr9d2gcDQ",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "finalize_b": {
+      "hash": "88gnyhnQgQr2nUHjLwigciMBAEVZfo5Br3WG9HYMCBvV",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    "hire": {
+      "hash": "BtmLQbt33E9jGVrivniJ8JaowHFsfwVYQRHMi7c1ogFE",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    }
+  },
+  "balances": {
+    "before": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "100000000",
+      "m01.bookerbob.testnet": "1791910800",
+      "h05.bookerbob.testnet": "25245000000",
+      "cl-stranger-1df7.bookerbob-demo.testnet": "10000000",
+      "coalition.bookerbob-demo.testnet": "0"
+    },
+    "after_joins": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "79000000",
+      "m01.bookerbob.testnet": "1786910800",
+      "h05.bookerbob.testnet": "25240000000",
+      "cl-stranger-1df7.bookerbob-demo.testnet": "10000000",
+      "coalition.bookerbob-demo.testnet": "31000000"
+    },
+    "after_finalize": {
+      "cl-lead-1df7.bookerbob-demo.testnet": "100448718",
+      "m01.bookerbob.testnet": "1867742082",
+      "h05.bookerbob.testnet": "25240000000",
+      "cl-stranger-1df7.bookerbob-demo.testnet": "10000000",
+      "coalition.bookerbob-demo.testnet": "0"
+    }
+  },
+  "wasm_sha256": "070500ad608a47318872fc5c059dfd5f246e8b988fc0581748c2a41895cdf00a",
+  "tag": "1df7",
+  "lead": "cl-lead-1df7.bookerbob-demo.testnet",
+  "stranger": "cl-stranger-1df7.bookerbob-demo.testnet",
+  "standing": {
+    "root": "885a81526ea7e9a3918cbb6636b5504b1c3c101534d3cd368bfa97345c49ea85",
+    "n": 2,
+    "openings": [
+      {
+        "merchant": "m01.bookerbob.testnet",
+        "rank": 1,
+        "n": 2,
+        "score_commit": "fd16c2bc3bed2f064baa1d0cab49d771da9e1bf2d8f74b2e4ab1743e0897118d",
+        "path": [
+          [
+            "36b602ad170da13f4f2e9c69195cc2b726810a613bc5dc7eca57752d973fd3c4",
+            false
+          ]
+        ]
+      },
+      {
+        "merchant": "h05.bookerbob.testnet",
+        "rank": 2,
+        "n": 2,
+        "score_commit": "7c42e171c72daa6c73fc16ab63883b39425e9d67c44b883da60013a06501f9ff",
+        "path": [
+          [
+            "f803416efe16a15f335f2d55f288b024354c1e0d921cae54527743d9d256e3cb",
+            true
+          ]
+        ]
+      }
+    ]
+  },
+  "deadline_a": 1794663534128,
+  "job_a": 0,
+  "budget_b": "1000000",
+  "job_b": 1,
+  "tester": "bea7a1be05ce126415b63e399037874c7a8dfcce3c7a573bb4da39a09678574f",
+  "nullifier": "4a786f0ca73f08b0c22ef483c13ebb0dc48669c3f62f5550ec9c467653927bb3",
+  "purchase_price": "36000000",
+  "purchase_txs": {
+    "account": "CWWbEqqJfQ1bRpw5DPZzQcnEZbfPhb6pJTWJbVNtdRtP",
+    "escrow_entry": "GC2oXZDtGhrjvtcbjRCdSe9wuTLBZyeDNGuzxQHYCKF",
+    "dusdc_storage": "82Dpfz4cNhdUyuKKjDg6e5EuDMu2XyEQZKxnSEsJos9E",
+    "mint": "6HqqirwbYQ4pd4kDEwmimJsMkasLAESZxFyx6Wk9LuxQ",
+    "world": "3QjLFjZhdKf3egFanYVD6P9nLE2ksAXab9iPKJT9E5F7",
+    "verdict": "2R7aQ9TbYbkPFTcDYwci3iayxd3sLMQEt7aDCQipaSTq",
+    "receipt": "G4TJNhTvfhibkW9i52jtCDR9F6WWWNgK95Sx1JbTmEch",
+    "escrow": "EiArVB2jL1q3o2bAh64ZHB71nULf3mtVeKi8mW8CkGqp",
+    "settle": "FLMWDf4nU5VG4RunHwNgh9WzdbjYL7rvj7ho6DrSACqS",
+    "replay": "2HxHBEFFnADY5U9pHgs48Gmiw8HyvADbaxmge7tBb4zW",
+    "review_join": "FbNESjwDDndgssTPfLKnmUSsJhDWSoVqyhX14CSsD47s"
+  },
+  "graph_root_after": [
+    "0221d50936fb3ad436c26a0d612914d950fb9849064be82978dd3ea2bcb95d58",
+    7
+  ],
+  "date": "2026-11-14"
+}

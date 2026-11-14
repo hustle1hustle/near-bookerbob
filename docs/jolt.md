@@ -49,7 +49,7 @@ run at scale exists. The contract also receives and hashes the full score list o
 
 | guest | proves | status |
 |---|---|---|
-| `standing` (a bounded, damped fan-out of standing from each seed along hire edges, `graph/src/lib.rs` `conferred`; not a stationary PageRank) | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | proved and verified (`zk/out/standing`) |
+| `standing` (a bounded, damped fan-out of standing from each seed along hire edges, `graph/src/lib.rs` `conferred`; each seed's mass is bounded, with no stationary distribution) | from the graph events (hire edges, released review seeds), the hash-chained root they produce, and the merchant scores plus every account's standing with conserved transport, w = 1/2 (following a design rule in REP's unpublished draft "(title withheld) for a World of Agents"); output (root, scores hash) | proved and verified (`zk/out/standing`) |
 | `price` | `price = f(schedule, revealed, cohort size)` with `bookerbob-zkcore::price`, the contract's own function; output (price, discount_bps, input hash), so a receipt can carry the proof hash next to its price | proved and verified |
 | `referee` | the structured-claim check with `bookerbob-zkcore::referee`, as a second path beside the TEE worker; output (receipt?, input hash); a refusal proves too | proved and verified |
 | `cohort` | the answer came from a committed cohort of at least 5 distinct members: the hash chain over their nullifiers equals the contract's `cohort_root`; output (root, k); below 5 the guest panics. Jolt can prove a panicking run with the panic flag set, so what holds is that both verifiers here require panic = false (`zk/src/main.rs`, `zk/browser/verify-wasm/src/lib.rs`): no proof they accept exists. The guest comments that say "no proof exists" mean this; they are left as they are so the program hashes do not move | proved and verified |
@@ -113,6 +113,77 @@ Nothing in CI rebuilds a guest and re-derives a program hash from source:
 the committed preprocessing. Whether a guest build gives the same hash on another machine is
 not tested.
 
+## The Dory setup (URS)
+
+Jolt commits to polynomials with Dory. Dory needs public generators: vectors of random points
+in G1 and G2 plus two blinding points (the URS). Both pins load them from
+`~/Library/Caches/dory/dory_<n>.urs` (`dory-pcs`, `setup()`), and when the file is missing they
+draw new ones from `OsRng` and save them there. The file holds the prover setup followed by the
+verifier setup derived from it, and the verifier setup is the first field of the verifier
+preprocessing. So the program hash commits to the URS: a verifier holding the registered hash
+uses exactly these generators, and a rebuild with any other URS gives a different hash.
+
+How `n` is chosen: `n = log2(max trace length, rounded up to a power of 2) + 4` (8 from
+2^25 on). At `997c1543e` that is `JoltProverPreprocessing::new`; the browser pin
+(`b4eb62480`, `jolt-prover` `setup_total_vars`, `jolt-dory` `setup_prover`) also takes the
+advice sizes into account and rounds `n` up to even. Both pins read the same file format and
+the same cache.
+
+| program | pin | max trace | URS file | rebuilds from current source |
+|---|---|---|---|---|
+| standing (`zk/out/standing*`, `c780ceab..`, registered on chain) | 997c1543e | 2^24 | `dory_28.urs` | yes |
+| price, cohort | 997c1543e | 2^20 | `dory_24.urs` | no: `zkcore` changed after them; their committed proofs still verify |
+| referee | 997c1543e | 2^22 | `dory_26.urs` | no: `zkcore` changed after it; its committed proof still verifies |
+| `agents/standing/verifier.bin` (`8cb059d8..`) | b4eb62480 | 2^24 | `dory_28.urs` | yes |
+| `agents/prove/verifier.bin` (decide) | b4eb62480 | 2^16 | `dory_20.urs` | not run |
+
+Evidence for each row: the whole verifier setup section of that `.urs` file occurs byte for
+byte in the committed preprocessing, and no other cached file's does.
+
+Ours was generated on our machine by `dory-pcs`, the first time a Jolt build there needed each
+size (file dates: `dory_28` 2026-03-25, `dory_24` and `dory_26` 2026-09-24, `dory_20`
+2026-11-10). dory-pcs sampled each point from a random x-coordinate (OsRng, ark-ec
+Projective::rand; in G2 the point is then multiplied by the cofactor), so whoever ran it learned
+no discrete logs and holds no trapdoor. A reader cannot check that from the bytes: the same file
+could have been built as known multiples of one generator, and whoever did that could open a
+commitment two ways. So what a reader trusts is provenance: that these files came from the stock
+sampler on our machine.
+
+The files are pinned in `zk/urs/` with `zk/urs/SHA256` (public parameters, about 3 MB).
+`scripts/dory-urs.sh pre <stamp>` fails when the dory cache holds any `dory_*.urs` that is not
+pinned (a guest of that size would load it silently; `BOOKERBOB_DORY_ALLOW_UNPINNED=1` accepts
+them), installs any missing pinned file, checks the sha256 of each one and fails on a mismatch,
+then touches `<stamp>`. `scripts/dory-urs.sh post <stamp>` fails if any `.urs` in the cache was
+written after that. It never moves or deletes a cache file. The cache is `$LOCALAPPDATA/dory`
+when `LOCALAPPDATA` is set, as `dory-pcs` resolves it, so `make dory-urs`, `make zk-verify`,
+`make zk-prove G=<guest> OUT=<dir>`, `zk/browser/build.sh` and `node scripts/standing-v2.mjs
+prove` point it at a clean directory of their own (`$HOME/.cache/bookerbob-urs`, override with
+`DORY_LOCALAPPDATA`) that holds only the pinned files. The build script and the two prove paths
+run `post` after preprocessing.
+
+Reproduction check, with `LOCALAPPDATA` pointing at an empty directory so the cache holds only
+the pinned files (the shared cache is left alone):
+
+```
+T=$(mktemp -d); S=$T/stamp
+LOCALAPPDATA=$T sh scripts/dory-urs.sh pre $S
+(cd zk && LOCALAPPDATA=$T ./bin/bookerbob-zk prove standing ../fixtures/zk/standing-live-input.json $T/out)
+(cd zk/browser && LOCALAPPDATA=$T ./target/release/standing-host build ../../fixtures/zk/standing-live-input.json $T/browser)
+LOCALAPPDATA=$T sh scripts/dory-urs.sh post $S
+```
+
+Measured 2026-11-14: the prebuilt `zk/bin` host gives verifier preprocessing sha256
+`c780ceab..`, the on-chain standing program, and `standing-host` gives `verifier.bin`
+`8cb059d8..` and the same guest ELF, both byte for byte. With an empty cache instead, the same
+command draws a new `dory_28.urs` each time, so the standing hash differs on every run
+(`bf5f744e..` and `c830f89f..` in two runs). The price, cohort and referee rebuilds carry the
+pinned URS section unchanged, and their hashes still differ from the committed ones further in,
+in the program bytes.
+
+Next step: replace the drawn URS. Dory
+needs no secret, so generators hashed to the curve from a public seed let anyone recheck the
+file, with no ceremony. It moves every program hash, so the programs would be registered again.
+
 ## A fifth guest, proved in the browser (separate pin)
 
 `agents/prove.html` proves one more guest, `decide`, in the visitor's own browser: it reprices
@@ -160,6 +231,11 @@ referral row, and outputs floors only:
 | notary key | key 1, `0307293878f0133efed565f3aa39963d7362f7adab8b2b172d1ff3bf7908aaed32`, valid 2026-11-11 to 2026-12-11 |
 | bundle | `tools/zk-gallery-verify/qfex-gallery-bundle.json` (the same bytes as `fixtures/live/qfex/referral-zk-bundle.json`) |
 
+Which Jolt protocol: we do not claim this proof is zero-knowledge. Its pin `248aefd` is REP's
+build on a private fork of Jolt, so anyone can verify the proof with the verifier below, but no
+one outside can rebuild the guest or confirm from public source whether Jolt's zk feature was on.
+`zk_mode: 1` in the bundle is the gallery's public mode (no account tag), not Jolt's zk feature.
+
 Check it offline (a verifier only: 1.8 MB of Jolt verifier wasm and the guest's verifier data):
 
 ```
@@ -182,14 +258,65 @@ commitments are the two digests the notary signed, and the Jolt proof against th
 - Measurements (prove time, peak RAM, proof size) per guest are in the table at the top and
   in `docs/evidence.md`.
 
+## A forged graph is refused (`make standing-negatives`, in `make judge`)
+
+The committed proof of the live testnet graph (`zk/out/standing-live`: 10 events, 6 hire edges and
+4 seeds the contract logged, after the coalition runs) verifies with the committed prebuilt verifier. Its output root is
+the graph root the bazaar's proven standing tree was built from (`standing_root()` on
+`bookerbob.testnet`, read live by `agents/standing.html`). The proof binds the event log and its
+output; each change below is refused by the Jolt verifier (its proof line fails, a panic does not
+count):
+
+| change | why it fails |
+|---|---|
+| a hire edge outside the proven log (m09 hires m01) | the events no longer hash to the proven root |
+| a sybil ring (3 fresh accounts hire each other) | same; and with no attested seed upstream it would confer 0 anyway |
+| a seed's weight (m01's 6 ratings claimed as 60) | the seed is a hashed event: the root changes |
+| a dropped hire edge | the root changes |
+| two events swapped | the root is a hash chain, so order counts |
+| the claimed root, one byte | the proof binds its output |
+| the claimed scores hash, one byte | same |
+
+The same check runs in a browser: `agents/standing.html` verifies a re-proof of this log, made
+natively with the same guest code at the browser verifier's Jolt pin, in the tab, with the 7 changes
+(`node zk/browser/check-standing.mjs`, in `make judge`).
+
+A standing score is only as good as the edges under it. Every edge here is a contract event:
+`hire` is signed by the hiring account, and a seed is released only from sealed reviews by
+buyers who proved their context and paid. Anyone can add an edge; only a seed starts standing.
+
+## A v1 issue found, and fixed in the measured v2: self-returned standing
+
+Found on 2026-11-14 while writing the cost-of-attack test for standing v2 (`standing-v2/`). In v1
+(`graph/src/lib.rs` `conferred`, the program registered on chain), mass a seed sends around a ring
+of hires and back to its own merchant counts as standing for that merchant. The extra is bounded
+by w/(1-w) of its own seed (one seed's worth at w = 1/2), and less for a plain two-account ring.
+
+Is the live graph affected? In v1 the `in_top` tree ranks merchants by their review average,
+and conferred standing takes no part in admission, so no rank or admission on chain changed.
+The published standing values:
+- the 6-event graph proved in `zk/out/standing-testnet-3`: no (the only ring, m02 and m03, had
+  no seed);
+- the 8-event graph after the coalition run (`fixtures/zk/standing-coalition-input.json`): yes,
+  for one account. m02 holds a 5-rating seed and sits in the m02 and m03 ring, so about 1.67 of
+  its own seeds (5/3, rounded down per hop) come back to it in v1's `standing` list.
+
+`standing-v2/` (v2 to v4, measured in docs/coalitions.md, none on chain) does not count mass
+returned to a seed's own merchant (test `self_returned_mass_does_not_count`). The v1 program
+registered on chain still counts it in its `standing` list, which does not rank admission.
+
 ## What these proofs are, and are not
 
 - This build is upstream a16z/jolt at `997c1543e`, compiled without Jolt's optional `zk`
-  feature (we enable `host` only). The proofs are **succinct, not zero-knowledge**: they show
+  feature (we enable `host` only). The proofs are **succinct, and they hide nothing**: they show
   the computation was done right, they do not hide its inputs. Every input we prove is public
   or committed anyway (graph events are public chain logs; price, referee and cohort inputs
   are committed by hash).
 - Upstream says Jolt "is in alpha and is not suitable for production use" and "has not been
   audited". Treat a Jolt proof here as strong engineering evidence, not an audited guarantee.
-- The contract does not verify the proof itself: a bonded worker key signs the update, anyone
-  can challenge it, and an arbiter key reruns the verifier (see above).
+- The bazaar does not verify the proof itself: a bonded worker key signs the update, anyone
+  can challenge it, and an arbiter key reruns the verifier (see above). A separate locked
+  contract does: `verifier.bookerbob-jolt-a.testnet` verifies the standing proof in full on chain
+  (stages 1 to 7 and the Dory opening, 8 transactions, [jolt-onchain.md](jolt-onchain.md)), and
+  coalition version 4 admits a member only against that verified proof
+  ([coalitions.md](coalitions.md)).

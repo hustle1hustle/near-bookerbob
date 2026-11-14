@@ -1,0 +1,253 @@
+name: Build and Test Jolt
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["**", main]
+
+env:
+  RUSTFLAGS: -D warnings
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+      - name: cargo fmt
+        run: cargo fmt --all --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy
+      - name: cargo clippy --features allocative,host
+        run: cargo clippy --all --all-targets --features allocative,host
+      - name: cargo clippy --features allocative,host,zk
+        run: cargo clippy --all --all-targets --features allocative,host,zk
+      - name: cargo clippy --no-default-features
+        run: cargo clippy --all --all-targets --no-default-features
+
+  machete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: bnjbvr/cargo-machete@main
+      - name: cargo machete
+        run: cargo machete --with-metadata
+
+  build-wasm:
+    name: Build Wasm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Build Wasm
+        working-directory: ./jolt-core
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' cargo build --release --target wasm32-unknown-unknown
+
+  test-core:
+    runs-on: ubuntu-latest
+    name: Test jolt-core
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rust-src
+          cache-directories: ~/.cache/dory
+      - name: Build and install jolt CLI
+        run: cargo install --path . --locked
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Run jolt-core tests
+        run: cargo nextest run --release -p jolt-core
+
+  test-core-zk:
+    runs-on: ubuntu-latest
+    name: Test jolt-core (zk)
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rust-src
+          cache-directories: ~/.cache/dory
+      - name: Build and install jolt CLI
+        run: cargo install --path . --locked
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Run jolt-core tests with zk feature
+        run: cargo nextest run --release -p jolt-core --features zk
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: crate-ci/typos@v1.44.0
+        with:
+          files: .
+
+  test-sdk:
+    name: jolt binary check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-directories: ~/.cache/dory
+      - name: Build and install jolt CLI
+        run: cargo install --path . --locked
+
+      - name: Use the `jolt` binary to generate code
+        run: jolt new sample_project
+
+      - name: Pin jolt-sdk to current commit in Cargo.toml files
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          # Pin jolt-sdk in the host Cargo.toml
+          sed -i 's|jolt-sdk = { git = "https://github.com/a16z/jolt", features = \["host"\] }|jolt-sdk = { git = "https://github.com/a16z/jolt", rev = "'$COMMIT_HASH'", features = ["host"] }|' sample_project/Cargo.toml
+          # Pin jolt-sdk in the guest Cargo.toml
+          sed -i 's|jolt = { package = "jolt-sdk", git = "https://github.com/a16z/jolt" }|jolt = { package = "jolt-sdk", git = "https://github.com/a16z/jolt", rev = "'$COMMIT_HASH'" }|' sample_project/guest/Cargo.toml
+
+      - name: Make sure the generated code runs
+        working-directory: ./sample_project
+        run: cargo run --release
+
+  test-wasm-verify:
+    name: WASM Verifier E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-directories: ~/.cache/dory
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Build and install jolt CLI
+        run: cargo install --path . --locked
+
+      - name: Install wasm-pack and wasm32 target
+        run: |
+          curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | bash
+          rustup target add wasm32-unknown-unknown
+
+      - name: Generate sample project
+        run: jolt new sample_project
+
+      - name: Pin jolt-sdk to current commit
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          sed -i 's|jolt-sdk = { git = "https://github.com/a16z/jolt", features = \["host"\] }|jolt-sdk = { git = "https://github.com/a16z/jolt", rev = "'$COMMIT_HASH'", features = ["host"] }|' sample_project/Cargo.toml
+          sed -i 's|jolt = { package = "jolt-sdk", git = "https://github.com/a16z/jolt" }|jolt = { package = "jolt-sdk", git = "https://github.com/a16z/jolt", rev = "'$COMMIT_HASH'" }|' sample_project/guest/Cargo.toml
+
+      - name: Set up prover and verifier scripts
+        run: |
+          cp scripts/ci/wasm-e2e/prove_and_save.rs sample_project/src/main.rs
+          cp scripts/ci/wasm-e2e/verify.mjs sample_project/verify.mjs
+
+      - name: Prove natively and save artifacts
+        working-directory: ./sample_project
+        run: cargo run --release
+
+      - name: Build WASM verifier
+        working-directory: ./sample_project
+        run: jolt build-wasm
+
+      - name: Verify proof in WASM
+        working-directory: ./sample_project
+        run: node verify.mjs
+
+  test-inlines:
+    name: Test inlines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Discover inline crates
+        id: discover_inlines
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkgs=$(cargo metadata --format-version=1 --no-deps \
+                   | jq -r '.packages[].name' \
+                   | grep '^jolt-inlines-' \
+                   | tr '\n' ' ')
+          echo "Found inline crates: $pkgs"
+          echo "pkgs=$pkgs" >> "$GITHUB_OUTPUT"
+      - name: Test each inline crate (host)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pkg in ${{ steps.discover_inlines.outputs.pkgs }}; do
+            cargo nextest run --features host -p "$pkg"
+          done
+
+  test-sdk-verifier:
+    name: Jolt SDK Verifier Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-directories: ~/.cache/dory
+      - name: Build and install jolt CLI
+        run: cargo install --path . --locked
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Generate test fixtures
+        run: bash jolt-sdk/tests/gen-fixtures.sh
+      - name: Run SDK verifier tests
+        run: cargo nextest run --release -p jolt-sdk --features host
+
+  test-tracer:
+    runs-on: ubuntu-latest
+    name: Test tracer
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Build and install jolt CLI
+        run: cargo install --path . --locked
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Run tracer tests
+        run: cargo nextest run --release -p tracer
+
+  zklean-extractor-tests:
+    name: ZkLean extractor tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run extractor tests
+        working-directory: ./zklean-extractor
+        run: cargo test
+
+  compile-extracted-lean:
+    name: Compile extracted Lean
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Extract Jolt ZkLean package
+        working-directory: ./zklean-extractor
+        run: cargo run --release -- -o -p jolt-zklean
+
+  #    - name: Run lake build on the extracted model
+  #      uses: leanprover/lean-action@v1
+  #      with:
+  #        lake-package-directory: ./zklean-extractor/jolt-zklean
+  #        build: true
+  #        test: true

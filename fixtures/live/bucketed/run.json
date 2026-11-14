@@ -1,0 +1,184 @@
+{
+  "note": "testnet only: a bucketed merchant and buyers with different proven bit sets who settle at one amount. dUSDC is a testnet demo token; the buyers are our own one-time accounts; the facts are the synthetic fixture set. Each buyer's sealed predicates are listed here to show the claim; the opening salt and every seed stay with the buyer, so the on-chain hashes cannot be opened from this file.",
+  "bazaar": "bookerbob.testnet",
+  "merchant": "bkt-m01.bookerbob-demo.testnet",
+  "of": "m01.bookerbob.testnet",
+  "schedule": {
+    "base_price": "48000000",
+    "rules": [
+      {
+        "predicate": "claude_spender",
+        "bps": 1475
+      },
+      {
+        "predicate": "world_id_human",
+        "bps": 1475
+      },
+      {
+        "predicate": "airbnb_frequent",
+        "bps": 1475
+      }
+    ],
+    "cap_bps": 1475
+  },
+  "join": {
+    "txs": {
+      "account": "FgrwXYhMxwxPUqLVfiRXxQdLsoCKDSXQBJX4TM8poyk2",
+      "dusdc_storage": "BVHcHKjeX1gpU7cYTc3hTfHjf3McPyqbCwTwNJ7YGZxY",
+      "mint": "C9yw2XZgRpVB5doLGSWfn4Bsr6yxfsFQJ8STmq2ozeq5",
+      "register": "H9o4MTXVRMpGpeRXWDNnVs1TG5BiNdMfQ327yNU9Wu9y",
+      "bond": "5qCd4CZBgtRxD1X3GeoxQHCg1xGJ2ZVDHZkQUzDsoppy"
+    },
+    "approved": true
+  },
+  "buys": [
+    {
+      "buyer": "b8c15f87aadf73738d40d7d6fdafa951be85c2fb0f15aa617ed3a902979a8a7d",
+      "nullifier": "ad996887bcae868aa6c7b3499a4f252baae7be427834254f0f2046446af64e02",
+      "revealed": [
+        "world_id_human"
+      ],
+      "paid": "40920000",
+      "opening": {
+        "predicates": [
+          "world_id_human"
+        ],
+        "tier": "gold",
+        "max_spend": "45000000"
+      },
+      "txs": {
+        "account": "CzYL2iW85yspsWvXhSYifMfnb2Ki8KVwvTU5Xi4YYBis",
+        "escrow_entry": "FKZUkFkpCR2umN2gQ18voa3YEPCE9jrzuRysoXjyBodV",
+        "dusdc_storage": "F58JvmbhHXxf9boeSnsc2h4FFXdXvGwXDVhcYiin5QoT",
+        "mint": "3q9MScViQYsVAKFTBbTbjQTQyTxCX3Sq25Xp3bpcPH5f",
+        "world": "Di1NhZDNzSTGaEqRX3uDnz2SfuwRUkXp6ctAT1FpoqRw",
+        "verdict": "7L2PvqGs3P2x8sZ3U4Mwft6gfT3RyTAN9wvsnGetrQo4",
+        "receipt": "6EMo4Uyr2mA5Rd4rC2xxs9fP2JcKgcWNaMkNyAPrWBr8",
+        "escrow": "F2VqMyub2ogH3YDi28A3yMVcobMUX1vWvgD6BBRq2JRR",
+        "settle": "FBYsGHKDTDu5ttDpZzeDbQRSxQA5YDAt3AsdCm1je74V",
+        "replay": "23hJQaaMSs8AX3VC65RYAcM1pNZUBmmijkGrdijpQndi",
+        "review_join": "5XMmJ29mv5sdBLtuHnBF93aqq1XGuLWm3hMD1NEcW3Vj"
+      }
+    },
+    {
+      "buyer": "6787f5ad4171b4cfa44682f0901c1bd35892539565b912a11a708f82c7fa089b",
+      "nullifier": "f25ae5b46b71ef184ea5e372724254a099e5afecf94611fccbb3a82c3ec18618",
+      "revealed": [
+        "airbnb_frequent",
+        "claude_spender",
+        "world_id_human"
+      ],
+      "paid": "40920000",
+      "opening": {
+        "predicates": [
+          "airbnb_frequent",
+          "claude_spender",
+          "world_id_human"
+        ],
+        "tier": "gold",
+        "max_spend": "45000000"
+      },
+      "txs": {
+        "account": "FQQCodEBjkLNVPefAqTZUWnk5nFKXrLCYUsfcrRkTyN3",
+        "escrow_entry": "EY6UT2nQxmycyRgDk1GmuHGG96TKQE5sfPbDZkJCnxMb",
+        "dusdc_storage": "dPnWdXVZ5Z7CV3pYifa6MPgZbJjrZnUTW4EtLYnQ9zQ",
+        "mint": "D1bRZeV8gBm5HbJwcTtuUQdgpfqKbtB1DTEQ7NrJpaCk",
+        "world": "ckABUL7H18B78NAnrU1jmexc8iB4YxyMMY4NATqmoFP",
+        "verdict": "6CHhBGyAhma5CMMwA5vcbFA7ok1jmCsWuhEr3XK7nA4r",
+        "receipt": "Bff6YYiAxDGaA9kgE2DQdj7vWVkGPLDWgpwcEa1UC9sA",
+        "escrow": "GkhZ6BxE7GyjH3NDhTHREYVWQmDRCedmqrN1QBoKs9MM",
+        "settle": "AgA3sMSiaF1Y5skBd9KYV5ZTwJStdiRAhEJUZfjToGDa",
+        "replay": "9iPuHSyy6t9ByfaPFjxTFQ8oV7DzFkDiQmACi7xGD8Dv",
+        "review_join": "HguKZRzVEiVUyQb3DfNrQoKyZ6n5ekSHrbwRTVD6XTkX"
+      }
+    },
+    {
+      "buyer": "c3330cf072f16db7c03e9075fb63b4a832945c2aaf1af9f1783db1cf458138b6",
+      "nullifier": "e03786fa925120990532a776653251c9d192ae3cbb80aaa53abde61245fcf8e2",
+      "revealed": [
+        "airbnb_frequent",
+        "world_id_human"
+      ],
+      "paid": "40920000",
+      "opening": {
+        "predicates": [
+          "airbnb_frequent",
+          "world_id_human"
+        ],
+        "tier": "gold",
+        "max_spend": "45000000"
+      },
+      "txs": {
+        "account": "6XEW7dyJnxRWxMMEwtPa9TmJAvKzpMmqzF58PkWo4uLv",
+        "escrow_entry": "43bEoc7yEKTSz5HWtmJrpBrNveL9cSWGLsJfxWSQWpns",
+        "dusdc_storage": "GUTi4wEPSz1kp75VfFZ9y3mFW9iJN7QmwXfoDMMaLkLk",
+        "mint": "DNiGXbdHZfeEGvZzgzBJrPok7fvSbZpsmGZjAg9rcSL5",
+        "world": "8jp9CWqjRJi8SAtidQ2f5Jdu1caX3QBo3xU5oJV1qCxC",
+        "verdict": "B35iJs6VVkr9cLxwCsBQPPVAEhfkUF3Z4RJdS7AB91he",
+        "receipt": "8LXTk1gNRRF7Zc1Hke2stjw52PbqFUo6oYoqMhwr2Pu4",
+        "escrow": "G4aorcxF9tW1sy7pzULeUcNtiva21K1SL3mMpQnecxRg",
+        "settle": "3QPQkfnGgPpXxEFz6Vq5sKDZZJV8cK48DeVS8rSumfru",
+        "replay": "9vsQZfAPYCALTz9fk83dnaUt5eVG3faEXdQrTCGzeura",
+        "review_join": "8MU2PQDGxfF84LneMkbayvgYkm4BGoeH12EuQ6v1m6QN"
+      }
+    },
+    {
+      "buyer": "0eb5cdf06120614152f34f09ee39c04d0b03d1636984e1d8d89fb96e16b3c300",
+      "nullifier": "74a3866df909fe664cd7c3b251e012da83877f6954ec3d6f471566e218fc5d32",
+      "revealed": [
+        "claude_spender"
+      ],
+      "paid": "40920000",
+      "opening": {
+        "predicates": [
+          "claude_spender"
+        ],
+        "tier": "gold",
+        "max_spend": "45000000"
+      },
+      "txs": {
+        "account": "5L36SvKnzXnCaNefd5HWt85jvgXT2Y9vy6NaDpGKii34",
+        "escrow_entry": "EM9TqdwTLTCp3QxMtvUeKfb5k4LyGT1qDxYvSb77KBGE",
+        "dusdc_storage": "H8gV3AniDBSK33taHdxDD3nttbN6fp2xKy1soXP2nFy",
+        "mint": "ADgT1L42rYou7EdTrptJJZ6EMX7xbik8VDRhMBcw8npi",
+        "world": "FPDLpST6wSz9LChVrapxn8VStmKmyLA8KERFxD3FzWw8",
+        "verdict": "HMjwL5NdXbeu8GSukzTVn97CgycPUn3RGJHmc6Fci2L1",
+        "receipt": "FNgtnmqSoKuJ3anabXapgmpzVybPq9EPTrt18FiBCLQf",
+        "escrow": "49qrDcgPm8QogSQPWztMCqEE4wPQAjWY3W6gtHPdDvco",
+        "settle": "6Z16Z1wnzHMfcGw2MPhVfTJFe9T6R3V7B2Psgdcbvd3H",
+        "replay": "217fnQSLJv32d2dGAtcxpTDGDECDce7mYmixxrriizf8",
+        "review_join": "GSV1qDbt1ugNwhpLHvJPB65w2z4z5NGhEbUKZ8hBQbSf"
+      }
+    },
+    {
+      "buyer": "7808e03777a9ead00b4004021a78f42645b23449968f224cc2b5192ed63a0130",
+      "nullifier": "0cba68adb97fa84712e71a7ebb993f42e7b8bde3c6a09d917a9af64550f19da5",
+      "revealed": [
+        "claude_spender",
+        "world_id_human"
+      ],
+      "paid": "40920000",
+      "opening": {
+        "predicates": [
+          "claude_spender",
+          "world_id_human"
+        ],
+        "tier": "gold",
+        "max_spend": "45000000"
+      },
+      "txs": {
+        "account": "CLqCK1t8N1GTFqbveU8cNLfQ5zeQAcK2syUHn6ycigaJ",
+        "escrow_entry": "2BHvBw3pxFTxUXGhA1Qo8fFu73D8RpZWsiT3obwRAoXT",
+        "dusdc_storage": "FxdSC2mzDrbVqfeKAUo5hk7C4EGUc5uefZYDe82B3wWR",
+        "mint": "86bjzAegQYJPbuTTjGd7srB4wsFwUE2Xef6SGfQUHav9",
+        "world": "HzbKopQYmf7zDRryJ7n4ei6JWSpLKgK5otMCxfDMSUEb",
+        "verdict": "AUTc4ZdMrkEsChB344Ywx8B3GwRwAMzZ1JBVoEmksoaQ",
+        "receipt": "7uh4WjzdG5FEzacaEWUUoKxARZQWdB1WTa68NGsWai6g",
+        "escrow": "57myoKVJK1zqbBkK45XgSjMtLzn4yexdTQAjZYjMh3Dx",
+        "settle": "27NwBG3jAqsroRqa2Wiq2ahKgrmdBECiU9mLHrxTtQYP",
+        "replay": "8MtXGipQHTCEaih4GWRLQSGDFQJm4ciwxK8b6SHPmfzU",
+        "review_join": "7wM1smVz18ZoMAttBdK649jepV8GBqb34bt6AD8A5VMD"
+      }
+    }
+  ]
+}

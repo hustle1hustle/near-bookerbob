@@ -1,0 +1,118 @@
+{
+  "txs": {
+    "submit_graph_scores": {
+      "hash": "5jgLWwxzwZEAegQkLfsfMcnifjbvKwTHCeNQpvUyeY61",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "finalize_graph_scores": {
+      "hash": "hvuk8t1f5eo9vAV9wGKEBakh8JWhsLpmbv66gU3dUJ1",
+      "signer": "bookerbob-demo.testnet"
+    }
+  },
+  "graph_root": "64843eb79acfc008121facd9125ee2c2767ef08962be872dd4dadfbc6c1966d2",
+  "events": 8,
+  "sources": [
+    {
+      "hash": "BtmLQbt33E9jGVrivniJ8JaowHFsfwVYQRHMi7c1ogFE",
+      "signer": "cl-lead-1df7.bookerbob-demo.testnet"
+    },
+    {
+      "hash": "G8acbKsmBPxvhSEXnLsmHyJHtqBycHD4ckXuV3oBVnhq",
+      "signer": "bookerbob-demo.testnet"
+    }
+  ],
+  "input": "fixtures/zk/standing-coalition-input.json",
+  "proof_dir": "zk/out/standing-coalition",
+  "proof_sha256": "3016edd8812438f586cc5543a99403d0c4d06e20f8c89ea9fdf41b9942b96c66",
+  "program": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+  "merchants": [
+    [
+      "h05.bookerbob.testnet",
+      6,
+      381
+    ],
+    [
+      "m01.bookerbob.testnet",
+      12,
+      400
+    ],
+    [
+      "m02.bookerbob.testnet",
+      5,
+      340
+    ]
+  ],
+  "prove_seconds": 3.725693333,
+  "scores_hash": "5b9d167c9243ea8b7d8641cf0cc1a327f3ab063b52a4adbf3daec1076084f652",
+  "challenge_until_ms": 1794664567176,
+  "standing_root": [
+    "4f537c5500d92e78ee0cd7438c4a9a890d60adfe9da6e4dc8bfff05a3ff853ac",
+    3,
+    "5b9d167c9243ea8b7d8641cf0cc1a327f3ab063b52a4adbf3daec1076084f652",
+    "64843eb79acfc008121facd9125ee2c2767ef08962be872dd4dadfbc6c1966d2"
+  ],
+  "ranks": [
+    [
+      "m01.bookerbob.testnet",
+      1
+    ],
+    [
+      "h05.bookerbob.testnet",
+      2
+    ],
+    [
+      "m02.bookerbob.testnet",
+      3
+    ]
+  ],
+  "openings": [
+    {
+      "merchant": "m01.bookerbob.testnet",
+      "rank": 1,
+      "n": 3,
+      "score_commit": "316384980b66c48b79db0ee7e97ce02abf977730b2c2d2aa9ecbfd798a559dda",
+      "path": [
+        [
+          "172790f81c79fe1974cd377cb80f78872dea9e47f8fa85626130d33dbcdb72ec",
+          false
+        ],
+        [
+          "06b0344334c1419cca6be36f42c9e70e3627ee9cbd171959ccda2d5cb05c71bf",
+          false
+        ]
+      ]
+    },
+    {
+      "merchant": "h05.bookerbob.testnet",
+      "rank": 2,
+      "n": 3,
+      "score_commit": "1d30c8f16532ebddc10a7d5c738786a17cee35ebbf875d457bdd554d38efb896",
+      "path": [
+        [
+          "ec2132fe0234d6b2c474b89b6dbcbc83abe4a045fb04cea0181d162e7c03bab6",
+          true
+        ],
+        [
+          "06b0344334c1419cca6be36f42c9e70e3627ee9cbd171959ccda2d5cb05c71bf",
+          false
+        ]
+      ]
+    },
+    {
+      "merchant": "m02.bookerbob.testnet",
+      "rank": 3,
+      "n": 3,
+      "score_commit": "070c89476e0397e568c2295c1e5eb105c7f36b298225119d46abeb8e8e93e4db",
+      "path": [
+        [
+          "ce65123475f844da1df4e303c9cd86f48ca34a84da897458193a9dfff5c74549",
+          false
+        ],
+        [
+          "015ba81fa1050d0cb40a4b099437057dd4ecbc9fbb1ccace674de2256c411196",
+          true
+        ]
+      ]
+    }
+  ]
+}

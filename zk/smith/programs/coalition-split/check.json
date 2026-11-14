@@ -1,0 +1,98 @@
+{
+  "id": "coalition-split",
+  "rows": [
+    {
+      "label": "job C as finalized on chain (tx 7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF)",
+      "by": "requester",
+      "wasm": "0201e7c5b408",
+      "guest_panic": false,
+      "cycles": 72478,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "a lead that pays itself one unit more: refused",
+      "by": "requester",
+      "wasm": "refused: to_buyer mismatch",
+      "guest_panic": true,
+      "cycles": 71140,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "all three deliver, no slashing, buyer remainder zero",
+      "by": "smith",
+      "wasm": "0300a846",
+      "guest_panic": false,
+      "cycles": 78137,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "two deliverers and two slashed, floor remainders go to the buyer",
+      "by": "smith",
+      "wasm": "0202e2f901",
+      "guest_panic": false,
+      "cycles": 69943,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "deliverer inflates own budget share by one unit: refused",
+      "by": "smith",
+      "wasm": "refused: delivered payouts mismatch",
+      "guest_panic": true,
+      "cycles": 68067,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "private seats differ from the committed root (price edited): refused",
+      "by": "smith",
+      "wasm": "refused: seats_root mismatch",
+      "guest_panic": true,
+      "cycles": 64192,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "same member holds two seats: refused",
+      "by": "smith",
+      "wasm": "refused: duplicate member",
+      "guest_panic": true,
+      "cycles": 52398,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "slashed list padded with a ghost member: refused",
+      "by": "smith",
+      "wasm": "refused: slashed members mismatch",
+      "guest_panic": true,
+      "cycles": 69559,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "budget times price overflows u128: refused",
+      "by": "smith",
+      "wasm": "refused: budget share overflow",
+      "guest_panic": true,
+      "cycles": 34654,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "everyone slashed: no deliverers, buyer takes budget and all bonds",
+      "by": "smith",
+      "wasm": "000200",
+      "guest_panic": false,
+      "cycles": 32020,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    }
+  ],
+  "all": true,
+  "adversarial_encode_errors": [],
+  "at": "2026-11-14T16:56:11.883Z"
+}

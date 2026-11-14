@@ -43,6 +43,10 @@ const m = {
   buy_twice: existsSync("fixtures/live/buy-twice/run.json") ? JSON.parse(readFileSync("fixtures/live/buy-twice/run.json", "utf8")) : prev.buy_twice ?? null,
   quote_verification: existsSync("tools/dcap-spike/run.json") ? JSON.parse(readFileSync("tools/dcap-spike/run.json", "utf8")) : prev.quote_verification ?? null,
   cheat: existsSync("fixtures/live/cheat/run.json") ? JSON.parse(readFileSync("fixtures/live/cheat/run.json", "utf8")) : prev.cheat ?? null,
+  outlayer: existsSync("fixtures/live/outlayer/run.json") ? JSON.parse(readFileSync("fixtures/live/outlayer/run.json", "utf8")) : prev.outlayer ?? null,
+  outlayer_eval: existsSync("fixtures/live/outlayer/eval.json") ? (({ date, project_id, bazaar, wasm_sha256, context, txs, request_ids }) => ({ date, project_id, bazaar, wasm_sha256, context, txs, request_ids }))(JSON.parse(readFileSync("fixtures/live/outlayer/eval.json", "utf8"))) : prev.outlayer_eval ?? null,
+  outlayer_jolt: existsSync("fixtures/live/outlayer/jolt.json") ? JSON.parse(readFileSync("fixtures/live/outlayer/jolt.json", "utf8")) : prev.outlayer_jolt ?? null,
+  outlayer_dispute: existsSync("fixtures/live/outlayer/dispute.json") ? (({ date, project_id, arbiter_key, anchor, dispute }) => ({ date, project_id, arbiter_key, anchor, nullifier: dispute.nullifier, request_id: dispute.request_id, txs: dispute.txs }))(JSON.parse(readFileSync("fixtures/live/outlayer/dispute.json", "utf8"))) : prev.outlayer_dispute ?? null,
   gate: existsSync("fixtures/live/gate/run.json") ? JSON.parse(readFileSync("fixtures/live/gate/run.json", "utf8")) : prev.gate ?? null,
   group_dao: (() => {
     const f = join(c.testersDir, "group-dao-state.json");
@@ -57,6 +61,11 @@ const m = {
     const g = JSON.parse(readFileSync(f, "utf8"));
     return [{ group: g.group, offer_tx: g.offer_tx, offer: g.offer, members: g.members.map((x) => ({ tester: x.tester, nullifier: x.nullifier, receipt_price: String(x.receipt_price), paid: String(x.paid), txs: { intent: x.txs.intent, settle_group: x.txs.settle_group, verdict: x.txs.verdict } })) }];
   })(),
+  // Recorded by hand or by their own runs; kept as they are.
+  market_lock: prev.market_lock ?? null,
+  spike_lock: prev.spike_lock ?? null,
+  coalition: prev.coalition ?? null,
+  bucketed: existsSync("fixtures/live/bucketed/run.json") ? (({ merchant, join, buys }) => ({ merchant, txs: { register: join.txs.register, bond: join.txs.bond, settle: buys.map((b) => b.txs.settle) } }))(JSON.parse(readFileSync("fixtures/live/bucketed/run.json", "utf8"))) : prev.bucketed ?? null,
 };
 writeFileSync("fixtures/live/testnet-manifest.json", JSON.stringify(m, null, 2) + "\n");
 console.log(`manifest: ${m.testers.length} testers, reviews ${m.reviews ? m.reviews.ratings : "not published yet"}`);

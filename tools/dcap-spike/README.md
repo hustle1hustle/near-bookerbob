@@ -41,8 +41,9 @@ at the TCB step; and checks that the five steps give exactly what the whole chec
 
 ## Stated plainly
 
-- **The verifier is trusted for its code.** `spike.bookerbob.testnet` keeps its full-access key
-  (REP's), so its code could be replaced; the bazaar trusts the account, like any anchor.
+- **The verifier's code is fixed.** `spike.bookerbob.testnet` has no full-access key since
+  2026-11-14 (DeleteKey [7pgUUjnb…](https://testnet.nearblocks.io/txns/7pgUUjnb6qiAwqVF8gZdKXXGysjbtmXymbVfkoJY4Wcv)), so its code cannot be replaced; `make no-owner` and
+  `make verify-live` re-check it. The bazaar trusts the account, like any anchor.
 - **The collateral is passed in.** It is Intel-signed and its signatures are checked on chain,
   but someone has to fetch it from Intel's PCS; nothing on chain fetches it.
 - The NVIDIA GPU evidence is checked off chain, from NVIDIA's signed NRAS reply (`scripts/nras.mjs`), not here.

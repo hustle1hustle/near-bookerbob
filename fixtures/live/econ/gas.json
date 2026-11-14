@@ -1,0 +1,305 @@
+{
+ "note": "Measured on testnet for the mainnet plan (scripts/econ/mainnet.mjs): gas burnt per tx (all receipts), from the public tx indexer; storage from view_account. transfer_gas: a mainnet funding transfer to a fresh implicit account (fixtures/mainnet/bazaar.json fund merchant-a). account_and_keys_bytes: 182 for the account and its full-access key (view_account after the faucet created it) plus an estimated 121 for the post-only key; the fund transfer gas is an upper bound.",
+ "read_at": "2026-11-14T16:35:45.271Z",
+ "deploy_tx": "9ethoPfauVWGWPZDyTibFLypDJHr9FR44PvJxUt7wV1C",
+ "deploy_gas": 12462124250156,
+ "transfer_gas": 15874843062500,
+ "storage_usage": 153990,
+ "account_and_keys_bytes": 303,
+ "posts": [
+  {
+   "seq": 0,
+   "tx": "4tPChxoVjcs1B1kWQQRiwYNZRtkGyWhEczgb8ukiWrof",
+   "bytes": 11074,
+   "n": 46,
+   "gas": 4017288296158
+  },
+  {
+   "seq": 1,
+   "tx": "e74LbY6kBin5A2sd1BhpJogjxfKSgmkadEaCGG9zSxP",
+   "bytes": 9876,
+   "n": 38,
+   "gas": 3740563669904
+  },
+  {
+   "seq": 2,
+   "tx": "CZhVTs4MH9UVAtZsbcUiNFBZajmVebwkwssZnveqJm2p",
+   "bytes": 24628,
+   "n": 83,
+   "gas": 5123156935282
+  },
+  {
+   "seq": 3,
+   "tx": "9ETupRkx7qnrV676DWNBZB64ZA964CERRB5CDYfrQVAk",
+   "bytes": 20566,
+   "n": 81,
+   "gas": 4935920527594
+  },
+  {
+   "seq": 4,
+   "tx": "4CUohSnPy5atjpzYTwNSRZ9myvDPZyMn8ruKYfu82CiN",
+   "bytes": 18321,
+   "n": 60,
+   "gas": 4461873141170
+  },
+  {
+   "seq": 5,
+   "tx": "EZu5uHSge5H9XdDNRtrHuVoX9zEbfM6rkH2aWFJMZBkR",
+   "bytes": 3002,
+   "n": 9,
+   "gas": 2947907579523
+  },
+  {
+   "seq": 6,
+   "tx": "BNbCAdGGyPynE9EauJ4BfRQasHDwfVbpYmy8tyHg3R4X",
+   "bytes": 24814,
+   "n": 79,
+   "gas": 5057526305374
+  },
+  {
+   "seq": 7,
+   "tx": "eCb35U9Sd5cDrSBNaFCRn76iDMGwTQ4LgiZb1MGQ71G",
+   "bytes": 1343,
+   "n": 4,
+   "gas": 2793757000983
+  },
+  {
+   "seq": 8,
+   "tx": "A1ojp4Sdab2Q7wbM86uyAwV2ey83BqG9neNS7Cr654ud",
+   "bytes": 2192,
+   "n": 8,
+   "gas": 2900095666737
+  },
+  {
+   "seq": 9,
+   "tx": "Gby1fdkFrhzGH8Uais5LwtMdoMS9RF5PWffj5T8kKioU",
+   "bytes": 6916,
+   "n": 22,
+   "gas": 3334283293696
+  },
+  {
+   "seq": 10,
+   "tx": "4x1RrXmssjfR3mTwbteQUvYzsang6BSeWbd6mHxhX6hP",
+   "bytes": 10039,
+   "n": 33,
+   "gas": 3659282500411
+  },
+  {
+   "seq": 11,
+   "tx": "76JauJj3YCNR224LJFuMA4Q6y2igTAnzpb91aXNwxe4q",
+   "bytes": 4939,
+   "n": 15,
+   "gas": 3132199910455
+  },
+  {
+   "seq": 12,
+   "tx": "CBmc3XxqkiMkvvf3G2URCVeV9ywyso9f1GP138936uBw",
+   "bytes": 2768,
+   "n": 8,
+   "gas": 2922532311384
+  },
+  {
+   "seq": 13,
+   "tx": "2HhyhJojbBWHqc23bEMytgKKcY6Ew2p5gzGB7afAqbfa",
+   "bytes": 9005,
+   "n": 27,
+   "gas": 3504493656015
+  },
+  {
+   "seq": 14,
+   "tx": "GfqCh4JGGGCBZWko3kjy5ETVVTCMRsM3eRA6EMVKzoLh",
+   "bytes": 7634,
+   "n": 23,
+   "gas": 3380242011933
+  },
+  {
+   "seq": 15,
+   "tx": "5UBHkcpnYEvymgRoYwkwwZ4sVyA6x8CpVCuH1mwx95gi",
+   "bytes": 3781,
+   "n": 12,
+   "gas": 3032932959553
+  },
+  {
+   "seq": 16,
+   "tx": "AsKqKvUSuDnzuCQQZrtFpAcUD59JvV9QTk48Ew4E9yZu",
+   "bytes": 5133,
+   "n": 15,
+   "gas": 3137783769119
+  },
+  {
+   "seq": 17,
+   "tx": "4yfeRNXuY8qVUCvy3tfPC5V1dwE1EXBoXsoDZC2rukRS",
+   "bytes": 3125,
+   "n": 9,
+   "gas": 2955166320576
+  },
+  {
+   "seq": 18,
+   "tx": "4agfpT66UX8PZqbAvukG2CHEa7mimdrGGrghHhytsRnU",
+   "bytes": 7185,
+   "n": 21,
+   "gas": 3328745429087
+  },
+  {
+   "seq": 19,
+   "tx": "A3NwqGJ6zaa1MAz8PpzL2r1c4FTuAzwA7BQBHUEB1xMp",
+   "bytes": 11588,
+   "n": 35,
+   "gas": 3751567965837
+  },
+  {
+   "seq": 20,
+   "tx": "Cy3zEoJ7mPdkkWZHYj2c1QLPjosuWSbZYRyhzisKuQYd",
+   "bytes": 4166,
+   "n": 16,
+   "gas": 3125019498543
+  },
+  {
+   "seq": 21,
+   "tx": "8kL9nFaEGziFfoRpMzM2b6oc2Hq3obqeNEqf6RMyZonE",
+   "bytes": 5615,
+   "n": 22,
+   "gas": 3290938141725
+  },
+  {
+   "seq": 22,
+   "tx": "4mgusQ8aLhHT4zRVeVQd1oCxKbKXWVdRRLYKTaW4bHsh",
+   "bytes": 28032,
+   "n": 101,
+   "gas": 5587644821204
+  },
+  {
+   "seq": 23,
+   "tx": "4FnXUJc9KfchvVgMNsVc7jLrUL9ihM1dEnXDiTHFPsKg",
+   "bytes": 270575,
+   "n": 885,
+   "gas": 29070979653582
+  },
+  {
+   "seq": 24,
+   "tx": "4X8Ya5jUJCDqq7FDpg3zQbvaY2XaJ18wgEkDwtZsL1vr",
+   "bytes": 141411,
+   "n": 421,
+   "gas": 15702964454774
+  },
+  {
+   "seq": 25,
+   "tx": "A7qrcHWKEmUEY5QWzVbMeyab6fkUTEDSLUZcpjvuNwkh",
+   "bytes": 33862,
+   "n": 115,
+   "gas": 6052259860108
+  },
+  {
+   "seq": 26,
+   "tx": "6QxSPrgZNa6KkdwdwG6Kfyc7K8CXjJPupML1vELqweR9",
+   "bytes": 23831,
+   "n": 76,
+   "gas": 4968006547641
+  },
+  {
+   "seq": 27,
+   "tx": "HG4Ussx1cMGWTMSEhQKnrUjgaWmVRTn31XQpSprRCnfW",
+   "bytes": 50110,
+   "n": 161,
+   "gas": 7515573413272
+  },
+  {
+   "seq": 28,
+   "tx": "2W2u3zzcj2RzfXXafwvHBMMdZP2B3eZyRqMEx4Sad3nt",
+   "bytes": 40037,
+   "n": 133,
+   "gas": 6618985796814
+  },
+  {
+   "seq": 29,
+   "tx": "GttvogCRVSLVFhktxYH7zkS7D6UQ7YXkTHvpVFVf97uJ",
+   "bytes": 25085,
+   "n": 90,
+   "gas": 5273249763561
+  },
+  {
+   "seq": 30,
+   "tx": "Dk6zfz9WMBLMSYmY7MjSimQdxS2QwYwWHQrKaoPaN34b",
+   "bytes": 2138,
+   "n": 8,
+   "gas": 2900768764644
+  },
+  {
+   "seq": 31,
+   "tx": "5yZRY4XXHRanUU1SFJ7FkeEhYMMsL2zxVEMTgaqY2b9X",
+   "bytes": 19266,
+   "n": 74,
+   "gas": 4764198398111
+  },
+  {
+   "seq": 32,
+   "tx": "FE2GGiEHWJK3FHLJk1b82av9PwCvs6zNUvRw4urJ4QVJ",
+   "bytes": 29319,
+   "n": 112,
+   "gas": 5839789278920
+  },
+  {
+   "seq": 33,
+   "tx": "4rRoxD6pfXeFzwE3Sn2XcGrD1n4CMTd4Dy5QyU3PfbUF",
+   "bytes": 1848,
+   "n": 7,
+   "gas": 2871250274702
+  },
+  {
+   "seq": 34,
+   "tx": "CrBZ9QgCCdbdYVYY3DgH5X6dq9RQu3ahqDKVymoK3YhV",
+   "bytes": 2406,
+   "n": 9,
+   "gas": 2929080624194
+  },
+  {
+   "seq": 35,
+   "tx": "A9gsTnykFjpDxtwAar2WGdqCbhaF3iSkkxjC2SLgdgH6",
+   "bytes": 3474,
+   "n": 16,
+   "gas": 3098285112419
+  },
+  {
+   "seq": 36,
+   "tx": "GELtdBcWZHKUa7wJJpZf71KRyYurfddgR3rcBrbksBMc",
+   "bytes": 3070,
+   "n": 14,
+   "gas": 3046610622967
+  },
+  {
+   "seq": 37,
+   "tx": "HdDUXcL6Cy81EG6AgTKEjZKSYVNfuppaFDZM19Pw3c4X",
+   "bytes": 2862,
+   "n": 13,
+   "gas": 3020132622293
+  },
+  {
+   "seq": 38,
+   "tx": "14X8gDSXLW9sMPfYtZA8gfnbEasNhwobHXN6SZNVQXTj",
+   "bytes": 2652,
+   "n": 12,
+   "gas": 2993544703559
+  },
+  {
+   "seq": 39,
+   "tx": "Gf6zSWqBbjgwhoWjVTMJw83xhLagb6ZBCai8rP4YJrxT",
+   "bytes": 90129,
+   "n": 194,
+   "gas": 9592812258992
+  },
+  {
+   "seq": 40,
+   "tx": "HnWsyR7L44vp2LBa84t2TAJ3hzhPycHXnhbAMxt66PwW",
+   "bytes": 7919,
+   "n": 23,
+   "gas": 3392650655871
+  },
+  {
+   "seq": 41,
+   "tx": "Eu67jggobGWLco9tq2yAYj564NPaL7xT6GbhQFCe4xxY",
+   "bytes": 73310,
+   "n": 111,
+   "gas": 7434587231232
+  }
+ ]
+}

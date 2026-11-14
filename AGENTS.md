@@ -12,7 +12,7 @@ Facts and pointers, nothing else.
   own code (near-sdk's mocked chain, not testnet), then 6 of the 96 testnet swarm purchases are
   re-read live over public RPC. `NEAR_AI_KEY=<yours>` adds 6 live NEAR AI verdicts under E2EE
   with their TEE signatures checked (about $0.006 on that key).
-- Three commands, with measured times:
+- Four commands, with measured times:
   - `make judge`: Node 22, offline, no keys, about 25 s (2026-11-11, a warm macOS arm64
     laptop). Ends `PASS  make judge`. It replays a committed snapshot of the testnet reads and
     verifies the committed Jolt proofs; it makes no proof.
@@ -20,19 +20,22 @@ Facts and pointers, nothing else.
     114 s from a fresh clone (crates fetched). Ends `ALL PASS (26 checks)`.
   - `make verify-live`, or `JUDGE_LIVE=1 make judge`: the same testnet claims over public RPC,
     5 to 20 minutes (old txs come from a rate-limited public archive).
+  - `make verify-all` (`QUICK=1` skips the full testnet sweep): the keyless live checks, mainnet and
+    testnet, in one run, with a labelled snapshot fallback; writes `agents/verify.json`, which
+    `agents/verify.html` shows beside its own live reads in your browser.
 - The status of every feature (live, built, stub, planned) with its evidence: `README.md`,
   "Every feature, its status and its evidence" (the short table) and `docs/status.md` (every
   row in full). Both are generated from `docs/status.json`; `node scripts/status.mjs --check`
   fails when either differs.
-- What does not hold yet: `docs/details.md`, "Known limits". Who holds each trust key (REP holds all
-  of them today): `docs/details.md`, "Who can lie, what catches it, who holds the key".
+- What does not hold yet: `docs/details.md`, "Known limits". Who holds each trust key, all of
+  them held by us (the BookerBob operator) today: `docs/details.md`, "Who can lie, what catches it, who holds the key". Which keys moved into a TEE on 2026-11-14 and which we still hold: `docs/keyless.md`.
 - What is synthetic: the facts behind every verdict, the buyers (our own test accounts), the
   money (dUSDC, a testnet demo token), the World ID action. Detail: "What is real and what is
   fixture" below.
-- Who took part: REP runs all 30 listed merchant agents and the 5 community agents. Before the
+- Who took part: we run all 30 listed merchant agents and the 5 community agents. Before the
   community series the one other bidder was a separate agent session we ran and funded. Now
   outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
-- Testnet, except one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement on mainnet: `docs/mainnet.md`. Every testnet tx hash: `docs/testnet.md`. A five-minute walk:
+- Testnet, except one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt) and one NEAR Intents settlement on mainnet: `docs/mainnet.md`. Every testnet tx hash: `docs/testnet.md`. A five-minute walk:
   `docs/judge-guide.md`.
 
 BookerBob: merchant agents compete on price for a buyer. The buyer reveals a few proven
@@ -48,12 +51,12 @@ One buyer through every outside system on one screen; each leg prints LIVE (ran 
 | leg | mode | waits for |
 |---|---|---|
 | NEAR AI verdict under E2EE v2, the facts sealed to the registered model key, TEE signature checked | LIVE (about $0.001 of NEAR AI credit; needs `~/.rep-secrets/near-ai.key`) | |
-| OutLayer `request_referee`, the input sealed to the worker's X25519 + ML-KEM-768 key | DRY | an OutLayer project registered on the bazaar (docs/outlayer.md) |
+| OutLayer `request_referee`, the input sealed to the worker's X25519 key | DRY here; live on testnet since 2026-11-14 through `make outlayer-buy` | nothing on testnet; one-flow only prints it (docs/outlayer.md) |
 | settle with the agent's function-call key: its on-chain permission and the calls it was refused | LIVE (chain read) | |
 | 1Click top-up of a group escrow from wNEAR into NEAR USDC | DRY (the asset list is a LIVE read) | a 1Click key and mainnet (gated) |
 | Agent Market competition job for the referee, checked against the live OpenAPI spec | DRY (the spec is a LIVE read) | mainnet and an agent token (docs/agent-market.md) |
 
-The testnet purchases themselves: `make demo-tester`, `make model-buy`, `make try`.
+The testnet purchases themselves: `make model-buy` (a NEAR AI verdict). `make demo-tester`, `make try` and the swarm buys signed with our issuer key, removed from `bookerbob.testnet` on 2026-11-14, so they are historical there (their records stay checkable: `make verify-live`, `make audit`).
 
 ## Run it (no network, no keys, no secrets)
 

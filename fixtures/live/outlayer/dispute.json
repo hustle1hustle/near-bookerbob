@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-14",
+  "bazaar": "bookerbob.testnet",
+  "treasury": "bookerbob-demo.testnet",
+  "contract": "outlayer.testnet",
+  "project_id": "bookerbob.testnet/bookerbob-referee",
+  "project_uuid": "p000000000000018b",
+  "arbiter_key": "1617391412d7e8cae76179deb8c1d35397a904594ac8884dd59600da59040e4a",
+  "rep_referee": "2f99e90f7ca11c6d014a7bde2cb02e8a4105c8340ae3cc62f10be0dc8eba3751",
+  "anchor": {
+    "id": 3,
+    "queued": "6Yyis8DY6oWaqq4qb8mxDmnWfepAjehLKiKEXqapzMcb",
+    "executed": "3P8hnCqRYB4eoWDhP5cSLKjzb3cWeDSV7N7UyZx8gmff"
+  },
+  "arbiter_threshold": 2,
+  "threshold_tx": "HPuUXT9Ti42wTaxzSR4ToQ8NNq8oDgmc8qthhRd4U6f7",
+  "arbiter_registrations": [
+    "AaMSd3bzv8AsXGLd3afBD67eoQNoX537kS4adCREEkmx",
+    "EPYwEfrzL8fxbfusc6SD7Puzp2zbvxZWiNyPFrr25w1H",
+    "umBFbjm3T1Qi1xhuTHao3WpzTKikbmBN7AFP65jb4EB",
+    "6kTYmJ1w4qLGVVyfUT6r1B4vR8cgmynVNVUDACy81Lyv",
+    "4pgPC9vb1njMwxqgUzbvia1JSMYouZig2bBdAEWTstY7",
+    "3P8hnCqRYB4eoWDhP5cSLKjzb3cWeDSV7N7UyZx8gmff"
+  ],
+  "arbiter_registrations_note": "Every tx that emitted arbiter_registered on bookerbob.testnet, as the nearblocks index lists the register_arbiter and execute_anchor calls (2026-11-14). The contract has no view of the arbiter set; set_arbiter_threshold(2) succeeding shows at least 2 keys.",
+  "dispute": {
+    "tester": "18109b630704267dacdea7735fbfbca46bbd037c4a4766a386ccc8ab49f26ced",
+    "nullifier": "cdb28dcd4c156a28ce66f659b1586e00f1733ef86c78f5ee1c9438dcf4d61f39",
+    "merchant": "m01.bookerbob.testnet",
+    "honest_refusal": "F9 not in proof set",
+    "txs": {
+      "forged_receipt": "8gBa62UUe5DMKat9g2AGcR5BMJ8XLN7AjbaqYJBME5vo",
+      "request_execution": "AjfwNan6WZ5vSgrfw8FSSnrLebzTnUba6vGYP34xKwXh",
+      "outlayer_resolve": "AEuiNjB97413UQ99vhhHaXna4Yv9iFkyPseKq61DUan4",
+      "submit_dispute_decision": "9srAcjnjE51MTeqhjCW7df4wm877EthvtJbDVssiZvXN",
+      "settle_attempt": "8A6wx7KTxMVCWrNdUvkWsRPBqdTWExrvFnbn5bpgzvsx"
+    },
+    "forged_result_sha256": "44e4c50d3b8271e66313236b26f443a268d59f4b21f76a518e6805a8401dd25a",
+    "sealed_input_sha256": "305d7ae1234e1a8641431832e810810eaa2f46f6ac5e92214ffea602e36338d1",
+    "timeouts": [],
+    "request_id": 46342,
+    "outlayer": {
+      "instructions": 15339956,
+      "time_ms": 1093
+    },
+    "decision": "overturned",
+    "reasons": [
+      "referee said receipt, re-run says refused: F9 not in proof set"
+    ]
+  },
+  "first_run": {
+    "tester": "18109b630704267dacdea7735fbfbca46bbd037c4a4766a386ccc8ab49f26ced",
+    "nullifier": "cdb28dcd4c156a28ce66f659b1586e00f1733ef86c78f5ee1c9438dcf4d61f39",
+    "merchant": "m01.bookerbob.testnet",
+    "honest_refusal": "F9 not in proof set",
+    "txs": {
+      "forged_receipt": "5E9594dWzK461At7oFu2DxyduQe4Uz4aN5fKkEpG7ymb",
+      "request_execution": "3baRViNVkUaFonm9LxT3LrwEVzekQ5dwN2yUzq4nTQZs",
+      "outlayer_resolve": "3LcGum5xxanHELr65CdSsFAes4EeQ7njKMoVyXHmEfcL",
+      "submit_dispute_decision": "AbZNWzjUaxSCp4doPFWEuSi2Ypx1SKEGmJR9AVNA31se",
+      "settle_attempt": "2iGKmQdqAa3L3fyeDmG5mmWNWAQ7SKTWU4GyhU845QnP"
+    },
+    "forged_result_sha256": "affe51314d78bd39010e10ff09a236e95408aaa831b08d5449f25678432f91d5",
+    "sealed_input_sha256": "9f1b4d09097813d58078480eac01cc8ef44cac1e559f8dc3565e9e5ed6664656",
+    "request_id": 46224,
+    "outlayer": {
+      "instructions": 15365912,
+      "time_ms": 743
+    },
+    "decision": "overturned",
+    "reasons": [
+      "referee said receipt, re-run says refused: F9 not in proof set"
+    ],
+    "note": "The first run (2026-11-14 about 15:20 UTC). OutLayer's worker posted the overturned decision, but its resolve tx failed on chain ('Execution request not found': the request timed out; all of the worker's resolves between 15:14 and 15:19 failed the same way). The decision was relayed from that tx's arguments and accepted. Kept as a documented timeout; the check reads `dispute`.",
+    "resolve_failed": true
+  }
+}

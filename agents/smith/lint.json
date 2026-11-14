@@ -1,0 +1,10 @@
+{
+  "note": "agents/smith/lint.wasm is built from these sources: cd zk/smith/lint && cargo build --release --target wasm32-unknown-unknown (Rust 1.95, the committed Cargo.lock). smith-check checks both hashes; a byte-identical rebuild of the wasm on another machine has not been tried.",
+  "source_files": [
+    "zk/smith/lint/Cargo.toml",
+    "zk/smith/lint/Cargo.lock",
+    "zk/smith/lint/src/lib.rs"
+  ],
+  "source_sha256": "4ff93ae9e002436b01bd97318ee9ca671cbdcc43cbf4c7402da1c0fd2b89fadb",
+  "wasm_sha256": "910c069614a4a3d1ac928acb6ba4ebeb3d3b50a6487f2bbff70bbaa21662f29a"
+}

@@ -900,10 +900,10 @@
   },
   "standing_root": {
     "note": "The proven standing tree: its root is built by the bazaar from the score list of a Jolt-proven, challengeable graph update; no score is stored. The scores follow from public events, so the root is a compact rank check, not score privacy. Only the top merchant's opening is published here.",
-    "standing_root": "885a81526ea7e9a3918cbb6636b5504b1c3c101534d3cd368bfa97345c49ea85",
-    "n": 2,
-    "scores_hash": "0327ed15cde22e0e97792cb01ff285b8dbf7ea70b8ef4da1f0b6831ca6cfc3ff",
-    "graph_root": "c1a80ccb166e47ae4e8bd53e00fd7f2f005ae8b46ad8e13a1dd2c2c9c73a1e5e",
+    "standing_root": "3b5db5e91745e01e7cc6b9dcfda9ddf2bd6341c9a9bd32bcfa350985f0df3a01",
+    "n": 3,
+    "scores_hash": "121dc8dd70a6fef8b2cab4f59e9762a3cf41aabb706411c66caaa74a08d5295d",
+    "graph_root": "7f1bf041fef4c7bd32257e7ba2d8ef431df605b3dc991a0c3913a65432bee530",
     "ranks": [
       [
         "m01.bookerbob.testnet",
@@ -912,26 +912,43 @@
       [
         "h05.bookerbob.testnet",
         2
+      ],
+      [
+        "m02.bookerbob.testnet",
+        3
       ]
     ],
     "published_opening": {
       "merchant": "m01.bookerbob.testnet",
       "rank": 1,
-      "n": 2,
-      "score_commit": "fd16c2bc3bed2f064baa1d0cab49d771da9e1bf2d8f74b2e4ab1743e0897118d",
+      "n": 3,
+      "score_commit": "10fbe820f94f5cd64a9a9cf69ad62fbfe8dfd37a58c75a20f883aa4c29086926",
       "path": [
         [
-          "36b602ad170da13f4f2e9c69195cc2b726810a613bc5dc7eca57752d973fd3c4",
+          "fdbea6a8fc3d39fa9feeabdaba10f76028afa92dd2657eca3e425655856db532",
+          false
+        ],
+        [
+          "755cac4df8c97bbb2a9884efcee8189a0f491a405d4a70074984866c46e3e55d",
           false
         ]
       ]
     },
     "pct": 50,
     "low_merchant": "h05.bookerbob.testnet",
-    "submit_tx": "7W5kBY3rw7a8EYUJtMaMLWRoy2W9ZVCgJT5a9JZoFk2n",
-    "finalize_tx": "DswLxceMNRZxjuhk5BMWDY8WANLMaxBUFNrwFgjFgTuj",
-    "proof": "zk/out/standing-testnet-3",
-    "input": "fixtures/zk/standing-testnet-3-input.json"
+    "submit_tx": "8AmCe4FNKXafMqZpeohNEK51bAtDDTm27pPDS8rSWBDD",
+    "finalize_tx": "GSkXViv8a2Ho1K5iPxNZe9iwhHk9UjNbLZpSqeyn8MhR",
+    "proof": "zk/out/standing-live",
+    "input": "fixtures/zk/standing-live-input.json",
+    "history": [
+      {
+        "standing_root": "885a81526ea7e9a3918cbb6636b5504b1c3c101534d3cd368bfa97345c49ea85",
+        "n": 2,
+        "graph_root": "c1a80ccb166e47ae4e8bd53e00fd7f2f005ae8b46ad8e13a1dd2c2c9c73a1e5e",
+        "submit_tx": "7W5kBY3rw7a8EYUJtMaMLWRoy2W9ZVCgJT5a9JZoFk2n",
+        "finalize_tx": "DswLxceMNRZxjuhk5BMWDY8WANLMaxBUFNrwFgjFgTuj"
+      }
+    ]
   },
   "model_buy": {
     "tester": "72ef8c95943851e7bb92fc4c5787d5057281c6111ee56a3443d40ddf243c25eb",
@@ -1420,5 +1437,292 @@
     "delete_key_tx": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41",
     "date": "2026-11-14",
     "full_access_keys": 0
+  },
+  "spike_lock": {
+    "account": "spike.bookerbob.testnet",
+    "delete_key_tx": "7pgUUjnb6qiAwqVF8gZdKXXGysjbtmXymbVfkoJY4Wcv",
+    "date": "2026-11-14",
+    "full_access_keys": 0
+  },
+  "bucketed": {
+    "merchant": "bkt-m01.bookerbob-demo.testnet",
+    "txs": {
+      "register": "H9o4MTXVRMpGpeRXWDNnVs1TG5BiNdMfQ327yNU9Wu9y",
+      "bond": "5qCd4CZBgtRxD1X3GeoxQHCg1xGJ2ZVDHZkQUzDsoppy",
+      "settle": [
+        "FBYsGHKDTDu5ttDpZzeDbQRSxQA5YDAt3AsdCm1je74V",
+        "AgA3sMSiaF1Y5skBd9KYV5ZTwJStdiRAhEJUZfjToGDa",
+        "3QPQkfnGgPpXxEFz6Vq5sKDZZJV8cK48DeVS8rSumfru",
+        "6Z16Z1wnzHMfcGw2MPhVfTJFe9T6R3V7B2Psgdcbvd3H",
+        "27NwBG3jAqsroRqa2Wiq2ahKgrmdBECiU9mLHrxTtQYP"
+      ]
+    }
+  },
+  "coalition": {
+    "contract": "coalition.bookerbob-demo.testnet",
+    "txs": {
+      "finalize_a": "DkoBchZP63RXVJB768dQNKx4d5eUstsDnuiPr9d2gcDQ",
+      "finalize_c": "7fviwuTwKPLmuC1hNdG6tfeUYh9uihYR8uYegS2x3DLF",
+      "join_m02_c": "GSj6y2BMowc1heofP3DSTLr1a2Z9Zyt7mqd6WGajAhtY",
+      "m02_refused_before_seed": "A8psb8PU1SyDkMViDcdZSMxgHZLj8u8Uy3nztn2HxHqx",
+      "submit_graph_scores": "5jgLWwxzwZEAegQkLfsfMcnifjbvKwTHCeNQpvUyeY61",
+      "finalize_graph_scores": "hvuk8t1f5eo9vAV9wGKEBakh8JWhsLpmbv66gU3dUJ1",
+      "finalize_d": "WNhhivouMfRGS89a8KLnGp7bGVDBpiW8x7MMFq4K9pD",
+      "finalize_e": "EXa1pwtgyE2QTcwTR2d9s2xSeHmELcL7WEBhHNpQCC4t"
+    },
+    "contract_v2": "coalition-v2.bookerbob-demo.testnet",
+    "contract_v3": "coalition-v3.bookerbob-demo.testnet"
+  },
+  "outlayer": {
+    "date": "2026-11-14",
+    "bazaar": "bookerbob.testnet",
+    "treasury": "bookerbob-demo.testnet",
+    "contract": "outlayer.testnet",
+    "project_id": "bookerbob.testnet/bookerbob-referee",
+    "project_uuid": "p000000000000018b",
+    "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/outlayer-referee-v1/bookerbob-referee-outlayer.wasm",
+    "wasm_sha256": "6fca1eaa09b2c1ca583a6914bdff7256d73a3d9f4469bd55f1eb00446be8dbb6",
+    "source_commit": "hustle1hustle/near-bookerbob 1d39cd6 worker/outlayer with the fixed-path worker/outlayer/build.sh (release outlayer-referee-v1 carries it), rustc 1.96.0",
+    "v0": {
+      "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/outlayer-referee-v0/bookerbob-referee-outlayer.wasm",
+      "wasm_sha256": "45af89f93de0e3e4949dafa142e3137429db7fd81a981468f5bbeb0c161a8329",
+      "pubkey_tx": "9d8SVnxGHRPoYmHgR9QYoFezQXXTi2FwCutd9Eb14eYC",
+      "runs": {
+        "honest": {
+          "tester": "2a560842c3115d9acb53d8787cc418ca21e2905c97b66fd92f9e29ea9586c10d",
+          "nullifier": "068aae106e04d1fa953be33b536eeb1a34229666cbd113d1178c193faf857a92",
+          "merchant": "m01.bookerbob.testnet",
+          "request_id": 45509,
+          "txs": {
+            "account": "F2CoBToJEw2BzGnY3eV6ToLJJFWBRXRUYPvGVYdRkShH",
+            "escrow_entry": "9JVaMJoEhWuC5HV3ZQ29s2Uu8FhoUXGNDAQqDCCMM6gb",
+            "dusdc_storage": "4MkexcsSLKfLeCg9n4AQz8Hk9MUhk5ECiT423oezXayY",
+            "mint": "GR52CWbTmZV75FVeGaSfmsjbfK4swgAzDSQtVpq3BXa4",
+            "world": "ELA4ChA35XscmZpPd2eWaq9cwW72KjBir4Re8cmnzyQY",
+            "verdict": "6cnXeKRTnnerGwwRYHmE89twEdwB38Samit9tQVBcJHD",
+            "request_referee": "7vizVBAUGgayrBHd2EkLmELTUpi2now2PgR1FmiBBHEE",
+            "escrow": "2JipSYRhYGpvREzfHGCPH2Q6QiU7Pmt5zuoiD8W6wSGK",
+            "settle": "9mUHZ4MSN9BxToD2meJTxBJLpQRLjWhJMMu7F3agrmYj"
+          },
+          "sealed_input_sha256": "b4d2b5623f46cc9ae0f93874133df7dab640fe841d27c782263cb1a90eb7ce9a",
+          "via": "callback",
+          "price": "36000000",
+          "receipt_hash": "38a19cffb20b3bca80f1e1380b7e21f9c61585beb8d951d5b96b6975d3319a07",
+          "result_sha256": "20f823abf19c18530a703e7be040fdc1235c254bd88d22ea417729e56902c757"
+        },
+        "cheat": {
+          "tester": "1c594f8283c219162ff16e0326224f13e992c2806da987e184d7c58c7165f49c",
+          "nullifier": "cf5b930bec3d32b591ac20325b0a76556f2dd0bd8040f61c5a61db3739741f6a",
+          "merchant": "m01.bookerbob.testnet",
+          "request_id": 45529,
+          "txs": {
+            "account": "6wXvvosXn59P1VhXM6n5Z5C9uCoXEkC29qzapbWx1NX9",
+            "escrow_entry": "3nhGp4wtLm1zXwcGJwq2rbg1ZWLB7efPFZp6hP1o5iEY",
+            "dusdc_storage": "8ZDTrAYwjJka6AEGGncNem2PBCjHAhEC6VxK6WXuD38H",
+            "mint": "8QdjWq6wAZr58HFNLHDfX8Hw1tWvAVhJqK3rkCcKLdG",
+            "world": "6RtmZ5TEN6uA2cLickcxQncomv159ssEZEdvZo174gKu",
+            "verdict": "5ABM9gCdG4CaT2Ww9saipPLQvVjMJHXQ3gpff8SkMbrQ",
+            "request_referee": "Df38AiotQXbFTSCD6Lf1R391B1HBhHJpdT8xpLbVNfK3",
+            "settle_attempt": "4fB3HV1wG2U38GeebjcGRNt4ou4inKjfNnXfExMJUcjM"
+          },
+          "sealed_input_sha256": "ba1235c2fbdcfc9aaf0903167f45dc2c57381e51a531bb3629accd711f526640",
+          "via": "callback",
+          "refused": "F9 not in proof set",
+          "settle_refused": "no referee receipt for this quote"
+        }
+      }
+    },
+    "keys": {
+      "arbiter_key": "1617391412d7e8cae76179deb8c1d35397a904594ac8884dd59600da59040e4a",
+      "referee_key": "5863e39dcd923d485c4d01784e84ca4c3b5ffae79c893baf933919ccf547feca",
+      "seal_for": "bookerbob.testnet",
+      "seal_pq1_sha256": "681aa672106d30148920520303edea9e007f15c8357b1fddcf5388ac2d131fe2",
+      "seal_x25519": "4af85c301e224911657e773db0708f70d8954a73e1a21968de1a81338143877e"
+    },
+    "keys_signature": "dd32bed4405545b1c375f531d8436b66d44b93f200451b83b181af5bfb40ad9aadab51b241a1cdc67144b8f86ad161f1a494a4a330f0e4ca883dc3476be4470f",
+    "txs": {
+      "create_project": "GBX3r8Bumwfa3w4AfUkUkZWeAoLAwdn45GNee6evm7nG",
+      "pubkey": "4rA7TU2zGTjSnWBL1N2N8hNMSfhC2SQDdP6CpBPzLcxF",
+      "add_version_v1": "EJAJDoaDSpfagqVUwaCbXaPGxYQaqLFVppHB1c74gtvL",
+      "sealkey_failed": "8qhMH4wLTVgnecabEKgUqLA47xTE1GKSLFbMB6zLmRqW",
+      "set_outlayer": "AFfTUsJWvSb3jy2Bpb329ArkfhbKPdDzWUbwXXyjLSrf",
+      "register_referee_queued": "BbSSa4CB4NKfur9P9W2ZHeZg6RnEBoyroaneeWCDf3Jp",
+      "register_referee_executed": "429EVoXJzWJjfNLYbGQ8Y4edxxyHxNq69KKJxRg6D48e"
+    },
+    "honest": {
+      "tester": "91cd006011838f3b7de04ba5606947b04319f5d250d73aedac22b48d6ffcbc89",
+      "nullifier": "29d5917919e2ac642250348e81752c51ca94a455912c7a0073f42a3742ae94c1",
+      "merchant": "m01.bookerbob.testnet",
+      "request_id": 46123,
+      "txs": {
+        "account": "4StTzWF5DNK1s7dSgQ6VviRi3goFvDuau3PB1HooStG2",
+        "escrow_entry": "AQSepiagdPHoBJtr3AvcTLjBsBiuhGeFjr5FKcFgw3Gc",
+        "dusdc_storage": "Ddj96VyvSpRLaPWAjf6xmgydci4XozuDwgJwycxmCiQJ",
+        "mint": "4yhR2XAK97eR3c4VXfLqP153BzRBGkC5AwpechYdGT2b",
+        "world": "TyKNJG3HKVCHqz9PomSnXZVQta3PyukUPWzRJ9jE5P3",
+        "verdict": "3npFmvGxfCwKXfZLnfuZGMdUrGfkY7hdMsZpbzm191tv",
+        "request_referee": "Gsc2QdbZrWKHCXGCcRCabac3deSHizzfAfwtTRD1MbUv",
+        "escrow": "5R2WBiusRdPywCkKk2Hg4SMdHZU717PocSsUeEmNDNJm",
+        "settle": "BSk1PZt88jZQ2pfxPypo9mN38cLrPKXKjRvcS8cew79X"
+      },
+      "sealed_input_sha256": "8214996e747f539d0ef4d22a7cab506d170582aa70156177b35e3c413a042725",
+      "via": "callback",
+      "price": "36000000",
+      "receipt_hash": "499edcaa4693a2a739e2512444cbb87c5acd211776315c77fcf4f52ef4c0f0a1",
+      "result_sha256": "154c5a4f6c806ae6e54f8574f16101f9bf9c190f296aca8554739660d8db6106"
+    },
+    "cheat": {
+      "tester": "5fad897ab68ac51da30842a5826abf3231672e935698128a738753a8399d38b1",
+      "nullifier": "a985463610eeb36da8a1c90cba3e46919c78e88494c335d5108ecacd76d85084",
+      "merchant": "m01.bookerbob.testnet",
+      "request_id": 46139,
+      "txs": {
+        "account": "AwbDWDCuwbFnJ8a7kmjVts1RcR8D1JQR7fbkAPmMHT7e",
+        "escrow_entry": "WJ5Kie8YUEGgYVF6mhkb3s5n4ruewxUAozL3q19pqPx",
+        "dusdc_storage": "Cqj4PjL5SBj39J5Lq13pdLwienrJxdsQxWZ2foRGUn92",
+        "mint": "73W8FxD8AjuaqseXCJGAUCWcH2juWgLwgqFCvVwyh71",
+        "world": "DJixmDmdq6B2UxnKGqCTgDUaenzuCMfyyR3W3DAvKPvY",
+        "verdict": "EWPYAGjUJmUD6GrqE7ci6QzwRwYgwwYJNWbQMerh5QsS",
+        "request_referee": "3FbtcCH8Y9ZA7hwzCrkTS76Fy4PDioDwhavw6U2nQGJ6",
+        "settle_attempt": "C9iWCT5cYctsjCTGw4u4GigsfpEQQp7TsWh23y6XJSAU"
+      },
+      "sealed_input_sha256": "62d3feeb05985884f8cbc781476576fc7f08c07b9d6f007380895e0715a5dd95",
+      "via": "callback",
+      "refused": "F9 not in proof set",
+      "settle_refused": "no referee receipt for this quote"
+    }
+  },
+  "outlayer_dispute": {
+    "date": "2026-11-14",
+    "project_id": "bookerbob.testnet/bookerbob-referee",
+    "arbiter_key": "1617391412d7e8cae76179deb8c1d35397a904594ac8884dd59600da59040e4a",
+    "anchor": {
+      "id": 3,
+      "queued": "6Yyis8DY6oWaqq4qb8mxDmnWfepAjehLKiKEXqapzMcb",
+      "executed": "3P8hnCqRYB4eoWDhP5cSLKjzb3cWeDSV7N7UyZx8gmff"
+    },
+    "nullifier": "cdb28dcd4c156a28ce66f659b1586e00f1733ef86c78f5ee1c9438dcf4d61f39",
+    "request_id": 46342,
+    "txs": {
+      "forged_receipt": "8gBa62UUe5DMKat9g2AGcR5BMJ8XLN7AjbaqYJBME5vo",
+      "request_execution": "AjfwNan6WZ5vSgrfw8FSSnrLebzTnUba6vGYP34xKwXh",
+      "outlayer_resolve": "AEuiNjB97413UQ99vhhHaXna4Yv9iFkyPseKq61DUan4",
+      "submit_dispute_decision": "9srAcjnjE51MTeqhjCW7df4wm877EthvtJbDVssiZvXN",
+      "settle_attempt": "8A6wx7KTxMVCWrNdUvkWsRPBqdTWExrvFnbn5bpgzvsx"
+    }
+  },
+  "outlayer_jolt": {
+    "date": "2026-11-14",
+    "project_id": "bookerbob.testnet/bookerbob-jolt-verify",
+    "contract": "outlayer.testnet",
+    "wasm_url": "https://github.com/hustle1hustle/near-bookerbob/releases/download/jolt-verify-v0/bookerbob-jolt-verify-outlayer.wasm",
+    "wasm_sha256": "cad8d2e12500315b9bef983b6983489d46b958f6be2784f18af1229c839fbb65",
+    "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+    "source": {
+      "bazaar": "bookerbob.testnet",
+      "tx": "8AmCe4FNKXafMqZpeohNEK51bAtDDTm27pPDS8rSWBDD",
+      "signer": "bookerbob-demo.testnet"
+    },
+    "txs": {
+      "create_project": "CdEiShbpK6Cm1jfLSmskfxrH9yN8oUp9b9BKDBNNWwN8",
+      "pubkey": "AZkVdDGms2HtmCDxrDw1xC9tQ7T8CakfQJFGUovsRw8U",
+      "pubkey_resolve": "9FVqb3A72XnLTZem7HYUoGmDa8t6KGMw4H6srQVTNFZF",
+      "forged": "EP1BATKsqhtFMhyP1P5AdksYz7yt8uLL1jNGcQuAsFvk",
+      "forged_resolve": "G7CwEL7eEZAkL9YLbcZCfW8Yo9tdZaZMvSf4fcWJgLsz",
+      "attest_reject": "HtErk3AmcHxPbMUs9kr34r5qjEAPdntKEBtgWARn1Erg",
+      "honest": "D7yPc1vuqoqznbs2smmLiZN9pJrpLHKSTSusNGAFFvFW",
+      "attest_use": "BKL3fsBzKmtWcHX5V7bHDTLMiXMiEMi78fzJJiJLs2h8"
+    },
+    "via": {
+      "pubkey": "resolve",
+      "forged": "resolve",
+      "honest": "callback"
+    },
+    "request_ids": {
+      "pubkey": 46402,
+      "forged": 46427
+    },
+    "key": "954d224e5db702d95f267cbb3bcafe649ec6aa61f3c179a21b9100bf3eb09464",
+    "registry": {
+      "account": "smith-reg.bookerbob-demo.testnet",
+      "verifier": "outlayer-jolt-997c",
+      "request_id": "standing-graph"
+    },
+    "history": [
+      {
+        "note": "the 8-event update before the current root, verified first (same project, same key)",
+        "source": {
+          "bazaar": "bookerbob.testnet",
+          "tx": "5jgLWwxzwZEAegQkLfsfMcnifjbvKwTHCeNQpvUyeY61",
+          "signer": "bookerbob-demo.testnet"
+        },
+        "proof": "fixtures/live/outlayer/jolt/standing-coalition/",
+        "txs": {
+          "honest": "2ckdmHPoE5qakAEBELyCYttumxtUMHzbdvzBFBmVYjw3",
+          "honest_resolve": "2gkYZhZvNbGdnrXU4nGPGZvKahaSECEdpD5wZ8SJuoJb",
+          "attest_use": "DZfSmqd74t9s4VXspo2adEaoXcJe9i5z2iRKhAYtAV64"
+        },
+        "request_id": 46413,
+        "via": "resolve"
+      }
+    ]
+  },
+  "keyless": [
+    {
+      "account": "bookerbob.testnet",
+      "what": "the testnet bazaar",
+      "lock_tx": "28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ"
+    },
+    {
+      "account": "verifier.bookerbob-jolt-a.testnet",
+      "what": "the on-chain Jolt verifier",
+      "lock_tx": "EVRobx8K5h4H145c7tCUU1KmTiJx3Bke17sqmJPaMaFQ"
+    },
+    {
+      "account": "coalition-v4.bookerbob-demo.testnet",
+      "what": "coalition version 4, created with no access key",
+      "lock_tx": null
+    },
+    {
+      "account": "spike.bookerbob.testnet",
+      "what": "the DCAP quote verifier",
+      "lock_tx": "7pgUUjnb6qiAwqVF8gZdKXXGysjbtmXymbVfkoJY4Wcv"
+    },
+    {
+      "account": "market.bookerbob.testnet",
+      "what": "the DAO-owned market bazaar",
+      "lock_tx": "8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41"
+    }
+  ],
+  "outlayer_eval": {
+    "date": "2026-11-14",
+    "project_id": "bookerbob.testnet/bookerbob-evaluator",
+    "bazaar": "bookerbob.testnet",
+    "wasm_sha256": "a77f88c951a694a6fcbf91ee4e882d1a537f85abfeab6e1c3a096ccedebe65ba",
+    "context": "bookerbob:v0:evaltee-github",
+    "txs": {
+      "create_project": "FHyFCSD1xhV8ifZMYX585zaQUegdZu4pAF2zytrWPcs",
+      "pubkey": "9yDskw4NWp4cVYqPa3Rqj8M33pjWnbuzrzoGuuciwYzS",
+      "pubkey_resolve": "Gmz33c7C49PRDF8FhLQhKRPNFASxUqMpT4hkDRmwSNds",
+      "register_issuer": "4dCK9ayKvKHtSySmAiA6j1293wCDBUxRHAreAanfj3bd",
+      "fund_a": "7B9y7kaRNFFvPxusYqQjDvd9gMu1oy2pFgstr7xi8DHV",
+      "fund_b": "EF8LbYtadpSuRhxkbC91qiUvoSzMciHrJydD4N9U3k7s",
+      "accept": "Bqc8J1XsuXPYghJ1dkJsRWDVwbCazHkeLB73CPaiB3jB",
+      "execute_anchor": "EvBWgAoW1acgG7kJwR1A52gDsaT3qA7AjGBdALz3ovNf",
+      "accept_resolve": "AcpZJXHhwLPEfhStibuot2vQEpWoXSQPwsNq8tCR3z3C",
+      "submit": "EVd12BCD2VRLkKdewfqpsP2FR3gTvTSHJKD61fY2SjMG",
+      "sybil": "DLKKXVWD7yMuQoBfKpEb5BCaVYdFht414gWVAu7fqEZe",
+      "topup_a": "D554mskEvUdgBtuYfJAwd4V9JM3R8eASy2pLb26PH3gt",
+      "sybil_resolve": "5ez17Md9kXwRCLxzd9UeenxUjhdn16ncpLxHJwCyzsMU",
+      "sybil_submit": "HGm3HrprcZTjgnhXWBug2b8We73m6ARE6Xu6kC3toYTM",
+      "refuse": "7xCsPaXa3m7e1gZ9JDjWD1S6XHfVz9sJNVSQa9VTLQx",
+      "refuse_resolve": "985AmsvQbPQ9a5u7KJ5rG5jD4R8eSPfDz18ELBUxFmoj"
+    },
+    "request_ids": {
+      "pubkey": 47386,
+      "accept": 47510,
+      "sybil": 47638,
+      "refuse": 47653
+    }
   }
 }

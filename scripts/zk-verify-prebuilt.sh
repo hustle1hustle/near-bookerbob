@@ -27,7 +27,7 @@ bin="bin/bookerbob-zk-$t"
 xz -dkc "$xzf" > "$bin" && chmod +x "$bin"
 [ "$(sha "$bin")" = "$want_bin" ] || { echo "FAIL  $bin does not match zk/bin/SHA256"; exit 1; }
 n=0
-for p in standing:standing standing-testnet:standing standing-testnet-2:standing standing-testnet-3:standing price:price referee:referee cohort:cohort; do
+for p in standing:standing standing-testnet:standing standing-testnet-2:standing standing-testnet-3:standing standing-coalition:standing standing-live:standing price:price referee:referee cohort:cohort; do
   out=${p%%:*}; g=${p##*:}
   [ -d "out/$out" ] || continue
   "./$bin" verify "$g" "../fixtures/zk/$out-input.json" "out/$out" > /dev/null || { echo "FAIL  Jolt proof $out does not verify"; exit 1; }

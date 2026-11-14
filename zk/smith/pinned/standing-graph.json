@@ -1,0 +1,12 @@
+{
+  "id": "standing-graph",
+  "note": "Pinned by the registry owner, not written by the smith: the bazaar's standing guest, so an OutLayer TEE verifier's signed accept of a standing proof is recorded with attest_use like any smith program.",
+  "guest": "zk/guests/standing",
+  "jolt": "a16z/jolt 997c1543efd49eb193ca403bb7722fc4b2f8e65b",
+  "statement": "from the graph events (hire edges, released review seeds), the hash-chained root they produce and the merchant scores; output (root, scores hash). docs/jolt.md, Guests.",
+  "program_hash": "c780ceabae4decfa59703a9988ab2483313c6c1d2f15c7c0ad8fc60255a5c3a5",
+  "program_hash_of": "zk/out/standing/jolt_verifier_preprocessing.dat",
+  "source_files": ["zk/guests/standing/Cargo.toml", "zk/guests/standing/src/lib.rs", "zk/guests/standing/src/main.rs", "graph/src/lib.rs"],
+  "elf_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "elf_hash_note": "no ELF of this build is committed, so zeros: the program hash is the binding"
+}

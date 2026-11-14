@@ -1,0 +1,13 @@
+{
+  "network": "testnet",
+  "tx": "AfYzkDyhUAMgdkxxEqNbCzr4aLDHm6P2z7QPHk8eTcx8",
+  "signer": "agent-1.bookerbob-demo.testnet",
+  "receiver_id": "bookerbob-dusdc.testnet",
+  "memo": "bookerbob collusion amend-1 sha256:126ec0d6ae4fe8632794049bbc57ec9fa1806b84d3b47ef2695a40dc1ec399c0",
+  "prereg_sha256": "126ec0d6ae4fe8632794049bbc57ec9fa1806b84d3b47ef2695a40dc1ec399c0",
+  "lib_sha256": "438692809797a3e6ea1179bbd08956dfc15de70be4238f513fe9aaa6bad50e06",
+  "block_height": 277672319,
+  "block_time": "2026-11-14T14:58:04.661Z",
+  "action_args_b64": "eyJyZWNlaXZlcl9pZCI6ImFnZW50LTIuYm9va2VyYm9iLWRlbW8udGVzdG5ldCIsImFtb3VudCI6IjEiLCJtZW1vIjoiYm9va2VyYm9iIGNvbGx1c2lvbiBhbWVuZC0xIHNoYTI1NjoxMjZlYzBkNmFlNGZlODYzMjc5NDA0OWJiYzU3ZWM5ZmExODA2Yjg0ZDNiNDdlZjI2OTVhNDBkYzFlYzM5OWMwIn0=",
+  "nearblocks": "https://testnet.nearblocks.io/txns/AfYzkDyhUAMgdkxxEqNbCzr4aLDHm6P2z7QPHk8eTcx8"
+}

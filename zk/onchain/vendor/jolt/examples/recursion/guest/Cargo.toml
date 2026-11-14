@@ -1,0 +1,11 @@
+[package]
+name = "recursion-guest"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+guest = []
+
+[dependencies]
+jolt_sdk = { package = "jolt-sdk", path = "../../../jolt-sdk", features = ["guest-verifier", "thread", "random"] }
+ark-serialize.workspace = true

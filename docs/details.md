@@ -16,16 +16,16 @@ Built at NEAR HACKATHON. Tracks entered: Agent Economy, AI Swarms, Privacy & Pri
 
 | real (on NEAR testnet, or signed by a real service) | simulated | not claimed |
 |---|---|---|
-| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict (the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote is verified on chain on mainnet (docs/mainnet.md); [docs/mainnet.md](mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, two purchases (one on real data) and one Intents settlement ([docs/mainnet.md](mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from REP (REP's evaluator reads the facts); collusion measured by us (cited research only) |
+| the `bazaar` contract at `bookerbob.testnet` and every tx in [docs/testnet.md](testnet.md); NEAR AI TEE signatures checked on chain; TLSNotary presentations of GitHub and a QFEX notary receipt ([docs/real-attestations.md](real-attestations.md)); outside people bidding in the community series on their own keys; on mainnet, the same bazaar code with one sealed round and one purchase in Circle USDC with a real NEAR AI verdict (the verdict's signature by the registered NEAR AI model key is checked on chain; the model key's TDX quote is verified on chain on mainnet (docs/mainnet.md); [docs/mainnet.md](mainnet.md), `node scripts/mainnet-buy.mjs check`), and one agent-to-agent settlement on NEAR Intents ([42TLj4c7…](https://nearblocks.io/txns/42TLj4c7MKCcLUHP6HqB91LDcMqC6ZRdBzHem8BbmpVz), 0.1 wNEAR, `node scripts/intents-settle.mjs check`) | the facts behind every verdict; the buyers (our test accounts); dUSDC (a test token); `make verify` and `make swarm-try` run the contract on near-sdk's mocked chain | mainnet beyond one sealed round, two purchases (one on real data) and one Intents settlement ([docs/mainnet.md](mainnet.md)); real money beyond those dust amounts; third-party merchants; privacy from the BookerBob operator, whose evaluator reads the facts; collusion measured by us (cited research only) |
 
 **Trust assumptions today, and how each shrinks**
 
 | what you trust today | why | how it shrinks |
 |---|---|---|
-| every trust key (verdict issuer, referee, arbiter, notary) is REP's | one operator runs the demo | keys held by independent parties, rotation with retired keys published; the referee's check already runs as a Jolt guest, so code replaces trust there |
-| REP's notaries. The Fly notary (`rep-notary.fly.dev`, key `02114d7e…ab25ef`, one key REP holds, not TEE-attested) signed the GitHub presentations. REP's TEE notary (Phala, Intel TDX, live, key `0307293878…aaed32`) signs the REP Proofs browser extension's proofs and the QFEX receipt, with its TDX quote published; its key was made while the machine briefly ran Phala's dev image | they sign what a website returned | MPC-TLS, already used: the notary co-runs TLS and sees ciphertext only; the TEE notary, already live; next, several notaries per proof and a fresh TEE key from the production image (`docs/real-attestations.md`) |
+| the trust keys (verdict issuer on testnet, a referee, an arbiter, notary) are ours; the OutLayer referee (testnet, mainnet) and arbiter (testnet) keys are TEE-derived | one operator runs the demo | keys held by independent parties, rotation with retired keys published; the referee's check already runs as a Jolt guest, so code replaces trust there |
+| the operator's notaries. The Fly notary (`rep-notary.fly.dev`, key `02114d7e…ab25ef`, one key we hold, not TEE-attested) signed the GitHub presentations. Our TEE notary (Phala, Intel TDX, live, key `0307293878…aaed32`) signs the REP Proofs browser extension's proofs and the QFEX receipt, with its TDX quote published; its key was made while the machine briefly ran Phala's dev image | they sign what a website returned | MPC-TLS, already used: the notary co-runs TLS and sees ciphertext only; the TEE notary, already live; next, several notaries per proof and a fresh TEE key from the production image (`docs/real-attestations.md`) |
 | NEAR AI Cloud's TEE (Intel TDX, NVIDIA GPU) | it reads the facts sealed to it and signs the verdict | its TDX quote is checked on chain before the model key is registered (`spike.bookerbob.testnet`); the referee re-checks every claim against the proofs, so a broken TEE cannot buy a discount the proofs do not back |
-| REP's verdict evaluator reads the facts | privacy from REP does not hold today | the facts go to the model sealed (E2EE); the evaluator's step moves into a TEE or a zk proof |
+| the operator's verdict evaluator reads the facts | privacy from the operator does not hold today | the facts go to the model sealed (E2EE); the evaluator's step moves into a TEE or a zk proof |
 | testnet, a test token, synthetic facts | the hackathon scope | mainnet already ran once (one NEAR Intents settlement); real facts already ran once (the founder's GitHub proof) |
 
 Every agent is its own account (`*.bookerbob-demo.testnet`), and a buyer agent can hold a
@@ -113,7 +113,7 @@ testnet), then 6 of our 96 testnet purchases are re-read live; `NEAR_AI_KEY=<you
 model verdicts with their TEE signatures checked. Or
 **[watch one buyer agent shop](https://hustle1hustle.github.io/near-bookerbob/swarm.html)** (a replay, 1 min).
 
-Every agent and trust key in these runs is ours, the facts are synthetic (REP's evaluator reads
+Every agent and trust key in these runs is ours, the facts are synthetic (our evaluator reads
 them), dUSDC is a test token: [what it is and what it is not](swarm-run.md). Tracks:
 swarms first, privacy second. NEAR features: a testnet contract, NEAR AI Cloud E2EE and TEE
 signatures, `ed25519_verify` and `alt_bn128` on chain, function-call keys, a Sputnik DAO.
@@ -146,7 +146,7 @@ re-checks it over public RPC with no keys ([docs/swarm-run.md](swarm-run.md)).
 verdict are synthetic (two pipeline tests notarized a public GitHub profile), the money is a
 test token with no value, and every trust key is ours. What is real: the contract, its rules,
 the model's signed verdicts and every transaction linked below. It is a working market on NEAR
-testnet; on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)).
+testnet; on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)).
 
 **Tracks:** swarms first, privacy second. Also entered: open, agents, security, social.
 
@@ -174,7 +174,7 @@ hoodie round is where the proofs change the winner: m22 has the lowest list pric
 finishes 6th of 22; m01 wins at 36.00 from a list price of 48.00 (`agents/board.json`).
 
 It is a replay of rounds that ran on NEAR testnet: the facts behind every verdict are
-synthetic, dUSDC is a test token; on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)).
+synthetic, dUSDC is a test token; on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)).
 
 **Why it is different.** In the other entries we read, the buyer proves nothing about itself
 (some of them do refuse or penalize a false claim by a seller). Here the buyer carries a proven
@@ -222,8 +222,8 @@ ran as written.
 **What is synthetic.** Every fact behind every verdict, with two exceptions of one kind: a
 `make prove-me` and a `make try` pipeline test each notarized a public GitHub profile (a real
 fact about a public account, not proof that the buyer holds it; docs/prove-me.md). The phone run is parked (not in this public copy). Also synthetic: the rest of every proof set, the World ID action (a placeholder, our verifier key) and
-the money (dUSDC on testnet; on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md))). Every trust key is REP's today: the
-issuer, the referee, the one live arbiter (and the three test arbiters) and the nullifier key
+the money (dUSDC on testnet; on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md))). The operator (us) holds the eval-certificate issuer key, a referee key on each
+network, one live arbiter key (and the three test arbiters) and the nullifier key; the OutLayer project's TEE-derived keys are a referee on testnet and mainnet and the second arbiter on testnet
 (see "Who can lie" below).
 
 **A certified result over private data, settled on a shared ledger.** Your agent proves a
@@ -232,17 +232,17 @@ compete for it blind, and NEAR records that the proof was used once and pays the
 Commerce is the first use: a proven customer gets a better price and stays unknown.
 
 TEE for privacy from the chain and the merchants on the model path (4 of the 31 purchases
-in the manifest and all 102 of the two swarm runs; the other verdicts were signed by REP's
+in the manifest and all 102 of the two swarm runs; the other verdicts were signed by our
 issuer key, with no TEE), SNARK for correctness,
-chain for uniqueness and settlement. Not privacy from REP: REP's verdict issuer reads the facts it signs over, and on
-the model path REP's verdict evaluator reads them in the clear to build the request.
+chain for uniqueness and settlement. Not privacy from us: our verdict issuer reads the facts it signs over, and on
+the model path our verdict evaluator reads them in the clear to build the request.
 
 Three flows, everything else is plumbing:
 
 1. **Prove.** The design: zkTLS facts go sealed to an attested enclave (NEAR AI, E2EE v2),
    which returns a verdict: a few predicate bits, a commitment and a per-context nullifier. The
    contract checks its signature and the enclave's TCB floor. Today the facts are synthetic,
-   no notary signature is checked at settle, and REP's evaluator reads the facts before the
+   no notary signature is checked at settle, and our evaluator reads the facts before the
    enclave does (Known limits).
 2. **Compete blind.** Merchant agents, ours or one that bonded in from a separate agent
    session we ran and funded, commit sealed bids
@@ -282,7 +282,7 @@ rate-limited RPC). No outside party took part.
 - **Who pays.** The merchant: a fee taken out of the price, 1% on testnet, capped at 2% in code, paid to a DAO treasury (`contract/src/lib.rs`, `set_fee`, `sweep_fees`). So far 0.36 dUSDC on one purchase.
 - **What it costs.** About 0.010 NEAR of gas per purchase plus 0.016 NEAR of storage, measured on testnet. At an assumed NEAR price of $2.50 a 1% fee covers a basket of $2.56, or $6.62 with storage.
 - **The honest pair, simulated.** Against a price war on one public price, merchants keep 9.3% to 24.0% more profit in our model. Against fixed prices and no competition, merchant profit falls 57.9%. No merchant has agreed to pay.
-- **Without us.** A merchant joins on its own key with a bond and no owner step, anyone can bid blind in the community round from a browser, every live claim is re-derived daily over public RPC with no keys, and the history anchor has no method to change an entry. What still needs us: an owner opens each round, and every trust key is REP's. Outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
+- **Without us.** A merchant joins on its own key with a bond and no owner step, anyone can bid blind in the community round from a browser, every live claim is re-derived daily over public RPC with no keys, and the history anchor has no method to change an entry. What still needs us: an owner opens each round, and every trust key is ours. Outside accounts are bidding in the community series on their own keys; the live count and every bid are in the round record (the round page and `make verify-live`).
 
 The sources, the after-hackathon steps and what must be true before each: [docs/who-pays.md](who-pays.md).
 
@@ -293,14 +293,14 @@ to parties that do not trust us or each other:
 
 - **One spent-set shared by distrusting merchants.** A nullifier spent at m01 cannot be spent
   again at m02. Merchants who do not trust each other can only check "this nullifier is spent"
-  without trusting one operator on a shared ledger (`submit_verdict`, `settle`). Today REP runs
+  without trusting one operator on a shared ledger (`submit_verdict`, `settle`). Today we run
   all 30 listed merchant agents, and the one other bidder was a separate agent session we ran and funded, so this is the design, not
   yet a market of strangers. The set stops reuse of a nullifier, not a second one: on the VOPRF
   path the buyer picks the input, so one person can obtain two.
 - **Atomic settle gated on a receipt.** Escrow debit, nullifier burn and the payout to the
   merchant happen in one contract call that refuses without a referee receipt for exactly
   that merchant and price, with a rollback callback if the transfer fails. Nobody can pay a
-  merchant without a receipt or reuse one. REP holds the referee key, so REP can sign one, at
+  merchant without a receipt or reuse one. The operator holds the referee key, so it can sign one, at
   schedule prices only.
 - **Proof checks anyone can rerun.** Verdict signatures (`ed25519_verify`, `p256_verify`),
   Semaphore Groth16 proofs on `alt_bn128` and the k >= 5 release rule run inside the
@@ -329,14 +329,14 @@ clearing price. The step that gets there is one method, a batch clearing with on
 designed by Dan (DenisDI), built on a branch and not on testnet: [docs/clearing.md](clearing.md) has the method, and
 [docs/solvers.md](solvers.md) shows the market as an outside solver sees it and where the
 analogy breaks. And a market need not run on NEAR to keep its history here: 55 rounds of our
-market on Arc testnet are hash-chained on NEAR testnet, and `make anchor-rebuild` rebuilds that
+market on Arc testnet are hash-chained on NEAR testnet, and `make arc-anchor-rebuild` rebuilds that
 market from its own events and checks every round against NEAR
 ([docs/anchor.md](anchor.md)).
 
 ## What is live and what is offline
 
 Counts as of 2026-11-10, before the swarm run of 2026-11-11, whose 102 purchases (a pilot of 6, then 96) are counted apart in `fixtures/live/swarm/`. The contract is deployed on NEAR testnet (`bookerbob.testnet`, every
-tx hash in [docs/testnet.md](testnet.md)); on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)). On testnet, 31 purchases
+tx hash in [docs/testnet.md](testnet.md)); on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)). On testnet, 31 purchases
 settled in dUSDC (a testnet demo token with no value; production uses Circle USDC), 18 sealed
 reviews were released over 3 rounds and a standing update from a Jolt proof was accepted; `make verify-live`
 re-derives all of it over public RPC, and checks that the manifest and the swarm records together list every nullifier the contract has spent. "Live" means captured once from the real service and
@@ -393,7 +393,7 @@ strength of hashes (Grover). Stated per piece:
 | Jolt proofs (Dory over BN254 today) | **integrity does not** | a quantum attacker could forge a new proof of a false standing update; it learns no input (the inputs are public anyway). No Jolt proof is verified on chain; an update already accepted stays as the worker and the arbiter checked it |
 | Semaphore (Groth16, BN254) | **integrity does not** | membership proofs could be forged; which member wrote a rating stays hidden (the proof is zero-knowledge) |
 | signatures: ed25519 and p256 (issuers, referee, arbiters, World verifier, eval issuer), NEAR account keys, the TDX quote's ECDSA, the notary's secp256k1 | **do not hold** | all classical; a forger could sign verdicts, receipts or presentations. NEAR has no post-quantum account keys today |
-| the older nullifier (HMAC-SHA256 under REP's key), the committed standing list (sha256 Merkle) | **holds** | hash-based |
+| the older nullifier (HMAC-SHA256 under our key), the committed standing list (sha256 Merkle) | **holds** | hash-based |
 | the VOPRF nullifier (RFC 9497, ristretto255) | **hiding holds, one-per-account does not** | the blinded input is information-theoretically hidden and carries 32 random bytes, so nullifiers stay unlinkable; a discrete-log break yields the evaluator key, and its holder could mint extra nullifiers and forge DLEQ proofs |
 | zkTLS sessions and NEAR AI E2EE v2 | **do not hold** unless the server negotiates a hybrid key exchange | classical key exchange, outside this repo |
 
@@ -403,23 +403,23 @@ not done.
 
 ### Who can lie, what catches it, who holds the key
 
-Rows in bold are keys REP holds today. All of them are. `make rep-is-evil` lists each one's worst
+Rows in bold are keys we hold today. All of them are. `make rep-is-evil` lists each one's worst
 case, reads live from testnet that the key is trusted today, and names the offline check that shows the power.
 
-| who can lie | the lie | what catches it | who holds the key | if REP turns malicious |
+| who can lie | the lie | what catches it | who holds the key | if the operator turns malicious |
 |---|---|---|---|---|
-| **the verdict issuer** | predicates the facts do not prove | nothing, against a dishonest issuer: the referee checks claims only against a proof set the same side wrote; on the NEAR AI path the TDX quote and TEE signature bind the answer to the attested model, not to the truth of what it was told | **REP** (the testnet issuer seed; the NEAR AI model key is attested, its registration is REP's) | mints verdicts with any predicates for agents it controls (sybil buyers who take discounts), and with the World key binds each one as a separate human; not to a merchant with an eval gate, which takes only a model-issued verdict (`make model-buy`: one live) |
-| **the referee and the Jolt worker** | a false receipt or a false standing update | the contract accepts only a price its own schedule code produces; an arbiter re-runs the receipt check; a standing update can be challenged with a bond and a false one slashes the worker | **REP** (seeds; the OutLayer attested key is not registered yet) | signs receipts for unproven claims, or a false standing list; capped at schedule prices, and a standing update can be challenged (by REP's arbiter today) |
-| **the dispute arbiter** | uphold a false update or overturn an honest receipt | nothing on chain beyond its signature; a threshold of distinct arbiters is built (2 of 3 in tests) | **REP**: the one live arbiter key (threshold 1) and all three test keys | with the referee, a false receipt stands and a false update is upheld; nothing outside REP checks it today |
-| **a broken TEE** (the NEAR AI enclave: Intel TDX, NVIDIA GPU) | reads the facts sealed to it; signs predicates the facts do not prove; signs eval answers | what still holds: the referee re-checks every claim against the proof set, the contract pays only a price its own schedule code produces, the Jolt proofs (price, referee, standing, cohort) and the VOPRF nullifier do not depend on the TEE; what does not: the sealed facts leak, and model-issued verdicts and eval scores can be forged | Intel and NVIDIA (the attestation roots) and NEAR AI (the operator) | (not REP; REP cannot break it, and it cannot tell from chain that it was broken) |
-| **the buyer, on the model path** | facts it made up: a signed answer about a typed fact (`make forge-poc`, one live) | the contract refuses a model verdict without the verdict evaluator's signature on that request and envelope, so a buyer's own chat has no way in (contract tests) | the buyer | (not REP). Bound as well: schedule prices, one spend per nullifier |
-| **the verdict evaluator** | signs a request about any facts: the same forgery, from REP | nothing on chain: the key is an anchor behind the public delay, and that is all | REP (one key, `evaluator.seed`) | it reads the facts in the clear and builds the prompt; a worker in a TEE would move this, not built |
-| **the zkTLS notary** | a transcript it never saw | nothing at settle: no contract path reads a notary signature; `make try` and `make prove-me` check it off chain, on the buyer's own machine | **REP** (one pinned key on Fly, not TEE-attested) | signs any transcript; nothing on chain notices |
-| a merchant after payment | takes the money and ships nothing | nothing on chain: settle pays on the receipt, delivery is not checked; a refund bond covers an overturned receipt, not a missing parcel. The orders so far are test-store orders | the merchant | (not REP) |
-| **one operator** | the market looks like many parties | the labels on the board (`REP-run`); nothing else: the relayer, treasury, issuer, referee, arbiter, evaluator and all 30 listed merchants are REP | **REP** | can bid against itself and see every funded account; competition on testnet is simulated; the one bidder outside the list was a separate agent session we ran and funded |
-| a merchant agent | a pitch or a claim the buyer never proved | code computes the price, the referee refuses unproven claims, an open-category merchant posts a bond | the merchant | (not REP) |
-| **the owner and the full-access key** | change the rules or redeploy the code | anchor changes wait out a public delay: 5 minutes on the live bazaar since 2026-11-10 ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)), queued in public, executable by anyone after it, and lowering the delay waits it out too; a DAO owns a test bazaar. The delay covers trust anchors, not the code: nothing stops a redeploy by the full-access key, which would replace every rule at once | **REP** (one key on `bookerbob.testnet`) | on `bookerbob.testnet`: redeploys any code, so every rule above; on `market` after the lock: only DAO-voted, publicly delayed changes |
-| **the VOPRF evaluator** | link one person's purchases across contexts | the nullifier is a VOPRF output of a fresh input the buyer blinded; the buyer checks the proof under the bazaar's anchored `voprf_key`, so no per-buyer key | **REP** (one key, `KEYS_DIR/voprf.seed`; enclave and committee decided, not built) | cannot recompute a nullifier or tie one to the request it came from; can refuse to evaluate, evaluate twice for one person (a sybil, like the issuer key), and see who asked when (timing); purchases before the VOPRF stay linkable |
+| **the verdict issuer** | predicates the facts do not prove | nothing, against a dishonest issuer: the referee checks claims only against a proof set the same side wrote; on the NEAR AI path the TDX quote and TEE signature bind the answer to the attested model, not to the truth of what it was told | **the operator (us)**: the testnet issuer seed was removed on 2026-11-14 ([842vjgRQ…](https://testnet.nearblocks.io/txns/842vjgRQztzSre82v4kEJLmLFXJw4USUSK2AZETDKnmM)), so testnet takes NEAR AI model verdicts only; our eval-certificate key stays in the same issuer map and could still sign one; the NEAR AI model key is attested, its registration is ours | mints verdicts with any predicates for agents it controls (sybil buyers who take discounts), and with the World key binds each one as a separate human; not to a merchant with an eval gate, which takes only a model-issued verdict (`make model-buy`: one live) |
+| **the referee and the Jolt worker** | a false receipt or a false standing update | the contract accepts only a price its own schedule code produces; an arbiter re-runs the receipt check; a standing update can be challenged with a bond and a false one slashes the worker | **the operator (us)**: seed keys, still registered; beside them the OutLayer project's TEE-derived referee key on testnet and mainnet (the TDX quotes of its testnet and mainnet runs verified on chain by our DCAP verifier, OutLayer's keystore still trusted) | a seed key can sign receipts for unproven claims, or a false standing list; capped at schedule prices, a receipt can be disputed (both arbiter keys must sign), and a standing update can be challenged |
+| **the dispute arbiter** | uphold a false update or overturn an honest receipt | nothing on chain beyond its signature; a threshold of distinct arbiters is built (2 of 3 in tests) | **the BookerBob operator** holds one live arbiter key and all three test keys; since 2026-11-14 the OutLayer project's TEE-derived key is the second live arbiter (it overturned a forged receipt, `docs/keyless.md`); threshold 2, so every decision needs both | neither key decides alone; a challenged standing update stays unresolved because the OutLayer key does not sign graph resolutions |
+| **a broken TEE** (the NEAR AI enclave: Intel TDX, NVIDIA GPU) | reads the facts sealed to it; signs predicates the facts do not prove; signs eval answers | what still holds: the referee re-checks every claim against the proof set, the contract pays only a price its own schedule code produces, the Jolt proofs (price, referee, standing, cohort) and the VOPRF nullifier do not depend on the TEE; what does not: the sealed facts leak, and model-issued verdicts and eval scores can be forged | Intel and NVIDIA (the attestation roots) and NEAR AI (the operator) | (not the operator; we cannot break it, and it cannot tell from chain that it was broken) |
+| **the buyer, on the model path** | facts it made up: a signed answer about a typed fact (`make forge-poc`, one live) | the contract refuses a model verdict without the verdict evaluator's signature on that request and envelope, so a buyer's own chat has no way in (contract tests) | the buyer | (not the operator). Bound as well: schedule prices, one spend per nullifier |
+| **the verdict evaluator** | signs a request about any facts: the same forgery, from the operator | nothing on chain: the key is an anchor behind the public delay, and that is all | the operator (one key, `evaluator.seed`) | it reads the facts in the clear and builds the prompt; a worker in a TEE would move this, not built |
+| **the zkTLS notary** | a transcript it never saw | nothing at settle: no contract path reads a notary signature; `make try` and `make prove-me` check it off chain, on the buyer's own machine | **the operator** (one pinned key on Fly, not TEE-attested) | signs any transcript; nothing on chain notices |
+| a merchant after payment | takes the money and ships nothing | nothing on chain: settle pays on the receipt, delivery is not checked; a refund bond covers an overturned receipt, not a missing parcel. The orders so far are test-store orders | the merchant | (not the operator) |
+| **one operator** | the market looks like many parties | the labels on the board (`REP-run`); nothing else: the relayer, treasury, issuer, referee, arbiter, evaluator and all 30 listed merchants are ours | **the operator** | can bid against itself and see every funded account; competition on testnet is simulated; the one bidder outside the list was a separate agent session we ran and funded |
+| a merchant agent | a pitch or a claim the buyer never proved | code computes the price, the referee refuses unproven claims, an open-category merchant posts a bond | the merchant | (not the operator) |
+| **the owner and the full-access key** | change the rules or redeploy the code | anchor changes wait out a public delay: 5 minutes on the live bazaar since 2026-11-10 ([4ztY6viK…](https://testnet.nearblocks.io/txns/4ztY6viKRwRyPmhsc5tDCp2ZjCvqW1fjiZUuQX3Bx6Zt)), queued in public, executable by anyone after it, and lowering the delay waits it out too; a DAO owns a test bazaar. The delay covers trust anchors, not the code: nothing stops a redeploy by the full-access key, which would replace every rule at once | **the operator** (one key on `bookerbob.testnet`) | on `bookerbob.testnet`: redeploys any code, so every rule above; on `market` after the lock: only DAO-voted, publicly delayed changes |
+| **the VOPRF evaluator** | link one person's purchases across contexts | the nullifier is a VOPRF output of a fresh input the buyer blinded; the buyer checks the proof under the bazaar's anchored `voprf_key`, so no per-buyer key | **the operator** (one key, `KEYS_DIR/voprf.seed`; enclave and committee decided, not built) | cannot recompute a nullifier or tie one to the request it came from; can refuse to evaluate, evaluate twice for one person (a sybil, like the issuer key), and see who asked when (timing); purchases before the VOPRF stay linkable |
 
 ### Who sees plaintext, and how many share it
 
@@ -428,14 +428,14 @@ Set size: how many testnet buyers share the value, so how far it narrows a buyer
 
 | field | who sees it in plaintext | set size on testnet today |
 |---|---|---|
-| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys; the referee key is REP's today, not an attested OutLayer worker, so that reader is REP too); REP as verdict issuer, which reads the facts it signs over, and REP's verdict evaluator on the model path, which reads them in the clear; never the chain. The NEAR AI gateway sees the API key, size and time of each request, not the facts | not public |
+| the facts (proof set) | the NEAR AI enclave and the referee (sealed to their keys; the referee runs on OutLayer, live on testnet and mainnet since 2026-11-14, its key TEE-derived, its TDX quotes verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md); its project's owner is the BookerBob operator, and our seed referee keys stay registered, so a sealed input sent to them is read by us); the BookerBob operator as testnet verdict issuer until its key was removed on 2026-11-14, which read the facts it signed over, and the operator's verdict evaluator on the model path, which reads them in the clear; never the chain. The NEAR AI gateway sees the API key, size and time of each request, not the facts | not public |
 | revealed predicates | everyone, for an ordinary verdict; nobody on chain for a sealed one (the referee reads its opening) | the cohort: 32 verdicts on chain reveal `world_id_human` in the demo context (`cohort_size`, read 2026-11-11) |
 | the bits behind a price | everyone: the schedule and the amount are public, so 38.40 at m01 can only be all three bits, a sealed verdict included (`make leak`, L10) | 1 of 8 bit sets on m01; the buyers sharing the amount are the only cover |
 | settled amount | everyone | 36.00 x12, 32.40 x5, 38.40 x5, 367.20 x5, 28.00 x2, 34.20 x1, 408.00 x1 (31 paid; one more h05 pledge was refunded and paid nothing): `make leak` gates any new purchase in a set under 5 (L6); the 408 stay and the two 28 pipeline tests came before that gate and are listed in `fixtures/live/leak-before-gate.json`; the 34.20 returning-buyer run is a set of one and is not in that list |
 | merchant and checkout_ref | everyone | m01: 22 buyers, h05: 7, builders: 2, vetted: 1 (the 32 entries of `agents/live.json`: the 31 paid and the refunded h05 pledge) |
 | the agent account | everyone | 1: one account per purchase links its verdict, settle and review join (L1); since 2026-11-06 it is a one-time implicit account, its name says nothing (L8), and the treasury still funds it (L7) |
 | a rating | everyone, after release, sorted by hash; before that, the relayer that carries the reveal | the review group, at least 5 (Semaphore, k floor) |
-| the person behind the nullifier | REP: by the HMAC key for the older purchases; for a VOPRF purchase (one so far) not by the key, but it sees who asked, in which context and when, so timing can link | 1 |
+| the person behind the nullifier | the operator: by the HMAC key for the older purchases; for a VOPRF purchase (one so far) not by the key, but it sees who asked, in which context and when, so timing can link | 1 |
 
 ## In depth
 
@@ -455,15 +455,15 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 - The account nullifier is an RFC 9497 VOPRF (chosen 2026-09-24, built 2026-11-05); older purchases used an HMAC and stay recomputable ([d406b71](https://github.com/hustle1hustle/near-bookerbob/commit/d406b71)).
 - The market bazaar is owned by a 2-of-3 DAO from block one, its anchors behind a public delay
   (2026-11-05, [ad4ffd2](https://github.com/hustle1hustle/near-bookerbob/commit/ad4ffd2)); the post-quantum pack goes in ([1c9f936](https://github.com/hustle1hustle/near-bookerbob/commit/1c9f936)); OutLayer only in
-  reversible steps (nothing is registered yet, docs/outlayer.md).
+  reversible steps (the referee: live on testnet 2026-11-14, TDX quote verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md)).
 - Hotel prices are JMPR's public rates as of 2026-11-04; JMPR is not a participant and no real room is booked ([da7e6f4](https://github.com/hustle1hustle/near-bookerbob/commit/da7e6f4)).
 
 ## Known limits
 
 - **The model path trusts one evaluator with the prompt.** The contract cannot read a sealed
-  request, so it requires the signature of REP's verdict evaluator, which builds the request
+  request, so it requires the signature of our verdict evaluator, which builds the request
   from the proof set the envelope names. That closes the buyer's forgery (`make forge-poc`) and
-  moves the trust to REP: the evaluator reads the facts in the clear, checks that the proof set
+  moves the trust to us: the evaluator reads the facts in the clear, checks that the proof set
   is the one named, not a notary's signature, and no notary proof is checked at settle. Verdicts
   from before the evaluator were not countersigned.
 - **Two money bugs were live on testnet from 2026-11-05 to 2026-11-10.** Testnet tokens and
@@ -482,12 +482,12 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   the agent reasons about, not a rule the contract checks, so a winner can "sell" past its
   stock. Enforcing it needs units in the sealed bid and new contract state; not done before the
   deadline.
-- **The deploy key can still replace the code.** From Dan's review (DenisDI): while one
-  full-access key can redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
-  price code hold only until the next deploy. The anchor delay is now 5 minutes on that bazaar,
-  so a swap of a trust key is queued in public; a code swap is not. The DAO-owned copy,
-  `market.bookerbob.testnet`, has no full-access key since 2026-11-14 (its code can change only
-  through a call the contract allows); `bookerbob.testnet` keeps its key as the fix path.
+- **The deploy keys are deleted on testnet.** From Dan's review (DenisDI): while one
+  full-access key could redeploy `bookerbob.testnet`, the nullifier set, the receipt rule and the
+  price code held only until the next deploy. Since 2026-11-14 neither testnet bazaar has an
+  access key (`market.bookerbob.testnet`, then `bookerbob.testnet`, DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)); the code
+  can change only through a call the contract allows. Mainnet runs the same bazaar code; we keep
+  its key for now so the storage deposit can be reclaimed after judging.
 - **A revealed bid is pinned for its round since the 2026-11-11 redeploy, with three limits.**
   Before it, a round stored no schedule and `round_best_quote` priced each revealed merchant's
   current schedule, so a bonded `open` merchant could reveal, read its rivals, register a
@@ -535,8 +535,8 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   winner it follows can change after the reveal (the bullet on `open` bids above). After expiry `withdraw` goes to the agent's account, so an owner who
   fears the agent key should drain first. A dispute refund does not give the limit back, and a refund after the owner replaced the mandate
   comes off the new one's count.
-- The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): REP's
-  evaluator sees a blinded element only. REP still holds the one evaluator key (an enclave and a
+- The account nullifier is a VOPRF output since 2026-11-05 (`cli/src/voprf.rs`, RFC 9497): our
+  evaluator sees a blinded element only. The operator still holds the one evaluator key (an enclave and a
   committee are decided, not built), sees who asked and when, and earlier purchases used an HMAC
   it can recompute. In fixtures the nullifier is a labelled placeholder.
 - **Delivery reveals a name.** Shipping and hotel check-in need a name and an address, and the
@@ -558,7 +558,7 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   event list. The live graph has 6 events and the fixture 21. A larger graph needs a larger
   limit and so a new program hash, and no run at scale exists. The contract also receives and
   hashes the full score list on every update. What the standing code computes is a bounded,
-  damped fan-out from each seed, not a stationary PageRank (`graph/src/lib.rs`).
+  damped fan-out from each seed, bounded per seed, with no stationary distribution (`graph/src/lib.rs`).
 - **Wash reviews.** A review group admits anyone who settled with the merchant, the merchant's own
   accounts included, so a merchant can buy from itself and rate itself.
 - **Ratings and the k floor.** `submit_review` accepts a proof against any of the group's last 32
@@ -576,7 +576,7 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
   the reveal drops out silently. The trusted setup is Semaphore's V4 ceremony.
 - A pledge counts as paid when `on_group_release` runs. A group's own DAO that starves that
   callback of gas leaves the pot sent and its members unable to dispute.
-- Buy Twice (`claim_returning`) proves a past purchase, not loyalty. REP, or anyone, can buy the
+- Buy Twice (`claim_returning`) proves a past purchase, not loyalty. We, or anyone, can buy the
   bit for one purchase at price plus fee, and a membership then earns a claim every 30 days. A
   member can hand a proof to a chosen buyer. A person with two purchases holds two memberships
   and claims twice in an epoch, so the repeat count is purchases, not people. The claim tx is
@@ -594,18 +594,18 @@ nullifiers per context; the verdict path and the DAO-owned market. His calls als
 
 ## Deployments
 
-Testnet, except on mainnet only one sealed round, one purchase (0.9025 USDC) and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)). Every testnet tx hash is in [docs/testnet.md](testnet.md).
+Testnet, except on mainnet only one sealed round, three purchases (0.9025 USDC, the 0.95 USDC real-data purchase, 0.9025 USDC under the OutLayer referee's receipt), the DCAP check of the model's quote and one NEAR Intents settlement ([docs/mainnet.md](mainnet.md)). Every testnet tx hash is in [docs/testnet.md](testnet.md).
 
-- `bookerbob.testnet`: the bazaar, owned by one REP key (the "before" exhibit).
+- `bookerbob.testnet`: the bazaar, locked since 2026-11-14 (no access key, DeleteKey [28EvzuBN…](https://testnet.nearblocks.io/txns/28EvzuBNzLPPHd9kLX3jctGhC9xhcuGaykwGofSX7SaZ)).
 - `market.bookerbob.testnet`: the same bazaar owned by the Sputnik DAO `bookerbob-gov` from block
   one, anchors by 2-of-3 votes and a 5-minute public delay; its full-access key made the redeploys and was deleted on 2026-11-14 ([8YPFUgnU…](https://testnet.nearblocks.io/txns/8YPFUgnUwYZcqmVNGd9gmfsUkxGGFnBpjpcnYTjHyY41)): no key can redeploy it now, re-checked by `make verify-live` and `make no-owner`.
-- `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys.
+- `spike.bookerbob.testnet`: the on-chain TDX quote verifier both bazaars require for model keys; its full-access key was deleted on 2026-11-14 ([7pgUUjnb…](https://testnet.nearblocks.io/txns/7pgUUjnb6qiAwqVF8gZdKXXGysjbtmXymbVfkoJY4Wcv)), so its code is fixed.
 - `gate.bookerbob.testnet`: the Verdict Gate; `bookerbob-dusdc.testnet`: the demo token.
 - Done in demo mode (dUSDC): 31 purchases (21 single settles: one with the 1% fee, two with a
   sealed verdict, four with a verdict a NEAR AI model issued (two refused by an eval gate, one passing it under the v4 point-bucket rule, one countersigned by the verdict evaluator), one under an owner's mandate, one with a returning-buyer discount at 34.20, one with a VOPRF nullifier, one hotel stay at 408, one `make prove-me` pipeline test at 28, one `make try` pipeline test at 28 from a one-time implicit account; 5 in a buying group at the 10% tier; 5 through a buying group's own DAO treasury), 21 replays refused, a settle-only function-call key
   that cannot withdraw, 18 sealed reviews released over 3 rounds at k >= 5 (12 for m01, 6 for h05), the group price at k >= 5, a
   standing update with nonzero merchants, 21 orders in the Shopify test store.
-- Not on testnet yet: the OutLayer referee (the register waits on the founder).
+- The OutLayer referee: live on testnet 2026-11-14, TDX quote verified on chain by our DCAP verifier, OutLayer's keystore still trusted (docs/outlayer.md).
 
 ## License
 

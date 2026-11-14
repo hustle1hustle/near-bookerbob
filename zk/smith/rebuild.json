@@ -1,0 +1,37 @@
+{
+  "note": "Every smith guest rebuilt with an empty guest target dir at the fixed root (scripts/smith.mjs rebuild); same Jolt pin, same lock, the pinned Dory URS (zk/smith/urs).",
+  "urs": {
+    "dory_24.urs": "91708ba5f10aadc3851371ca877f6e387290e5e6e4166da021aae19f716ba91b"
+  },
+  "root": "/private/tmp/bookerbob-smith",
+  "at": "2026-11-14T17:31:32.152Z",
+  "rows": [
+    {
+      "id": "coalition-k-of-n",
+      "ok": true,
+      "program_hash": "b8345c0457aaed2eae1c0d2be41761e59758869b93e36d8f7a13151473804ad0",
+      "elf_sha256": "30f4619b4a16699b718467a8f26fa307579ad84be91ba323897ec625917552e6",
+      "seconds": 11.213
+    },
+    {
+      "id": "coalition-split",
+      "ok": true,
+      "program_hash": "dc65a0f063d316e896f6c44563ead2d9df596bdab95f978f04c13eec3b4432ae",
+      "elf_sha256": "593d7679828be6a3b883253609b2bc80b99503511ab64f5b67b7785211f67745",
+      "seconds": 9.812
+    },
+    {
+      "id": "spend-bucket",
+      "ok": true,
+      "program_hash": "136dd9a90b511d5881796bca761d590ca914ed29cc2e7e410215749f47503fb7",
+      "elf_sha256": "3e3cc8db446f64496b747f57473be79fd85dfa66fd2c1ace517ef8dcbd5cd1bc",
+      "seconds": 10.208
+    },
+    {
+      "id": "spend-bucket-zk",
+      "ok": true,
+      "program_hash": "bec48cc20de5867164669c8bd1fbd2fcbaf1c9ce041f6790d156cfb82d299383",
+      "elf_sha256": "3e3cc8db446f64496b747f57473be79fd85dfa66fd2c1ace517ef8dcbd5cd1bc"
+    }
+  ]
+}
