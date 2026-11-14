@@ -1,0 +1,19 @@
+{
+  "note": "What a verifier checks: the proof against the program hash (sha256 of verifier.bin), with the guest's input bytes rebuilt from `public` and its output bytes from (spec_hash, private_commitment, output). The private input is not here.",
+  "id": "coalition-k-of-n",
+  "spec_hash": "7d92675f839e4acd5b305440d30e2e0e258e70294c050d51bc5b2a0b837d7fc9",
+  "program_hash": "b8345c0457aaed2eae1c0d2be41761e59758869b93e36d8f7a13151473804ad0",
+  "public": {
+    "coalition": "coalition.bookerbob-demo.testnet",
+    "job": 2,
+    "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+    "k_min": 2
+  },
+  "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c02",
+  "private_commitment": "f2044584b95f76bdba641189a9fedff338730f24c8dd0899690847c9c0ddad29",
+  "output": {
+    "delivered": 2,
+    "seats": 3
+  },
+  "output_hex": "0203"
+}

@@ -1,0 +1,23 @@
+{
+  "note": "A holder's statement, proved with Jolt's zk feature over a private input that is not published anywhere (a fresh random salt and records). Verify with verifier-zk.wasm.gz against this program hash (sha256 of this verifier.bin).",
+  "id": "spend-bucket",
+  "mode": "zk",
+  "spec_hash": "7c6350d9082b6af1616754b5117467f0ab96b8592d05cec7213ea7cd73a9a58f",
+  "program_hash": "bec48cc20de5867164669c8bd1fbd2fcbaf1c9ce041f6790d156cfb82d299383",
+  "public": {
+    "records_root": "d628874627db769ce5d6bd6ac587794b8353ff193afe074f9ec1c8afe9a4a0b0",
+    "as_of_day": 20406,
+    "window_days": 90,
+    "thresholds_cents": [
+      "10000",
+      "50000",
+      "100000"
+    ]
+  },
+  "public_hex": "d628874627db769ce5d6bd6ac587794b8353ff193afe074f9ec1c8afe9a4a0b0b69f015a03904ed08603a08d06",
+  "private_commitment": "08e4b3eced9e6ad8210ce75a428127d9ba42caf557a1a0890e28ed63ea5fd3d4",
+  "output": {
+    "bucket": 3
+  },
+  "output_hex": "03"
+}

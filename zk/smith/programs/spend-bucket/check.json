@@ -1,0 +1,98 @@
+{
+  "id": "spend-bucket",
+  "rows": [
+    {
+      "label": "synthetic buyer: 612.40 USD in 90 days, bucket 2 (over 500)",
+      "by": "requester",
+      "wasm": "02",
+      "guest_panic": false,
+      "cycles": 54526,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "the same records against another root: refused",
+      "by": "requester",
+      "wasm": "refused: records root mismatch",
+      "guest_panic": true,
+      "cycles": 29641,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "bucket 0: window total 4999 sits below the first threshold 5000",
+      "by": "smith",
+      "wasm": "00",
+      "guest_panic": false,
+      "cycles": 26349,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "bucket 3: day == lower bound excluded, day == as_of_day included, threshold equal to total counts",
+      "by": "smith",
+      "wasm": "03",
+      "guest_panic": false,
+      "cycles": 42071,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "refuse: root committed over records only, salt omitted from the commitment",
+      "by": "smith",
+      "wasm": "refused: records root mismatch",
+      "guest_panic": true,
+      "cycles": 24998,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "refuse: duplicate threshold breaks strict increase",
+      "by": "smith",
+      "wasm": "refused: thresholds not strictly increasing",
+      "guest_panic": true,
+      "cycles": 24784,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "refuse: nine thresholds, one past the cap of 8",
+      "by": "smith",
+      "wasm": "refused: thresholds count out of range",
+      "guest_panic": true,
+      "cycles": 25233,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "refuse: window_days 3651 exceeds the 3650 cap",
+      "by": "smith",
+      "wasm": "refused: window_days out of range",
+      "guest_panic": true,
+      "cycles": 24757,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "refuse: one record dated one day after as_of_day",
+      "by": "smith",
+      "wasm": "refused: record day after as_of_day",
+      "guest_panic": true,
+      "cycles": 26644,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    },
+    {
+      "label": "refuse: two in-window records push the total past u64::MAX",
+      "by": "smith",
+      "wasm": "refused: total overflow",
+      "guest_panic": true,
+      "cycles": 31493,
+      "wasm_equals_guest": true,
+      "as_expected": true
+    }
+  ],
+  "all": true,
+  "adversarial_encode_errors": [],
+  "at": "2026-11-14T16:55:31.690Z"
+}

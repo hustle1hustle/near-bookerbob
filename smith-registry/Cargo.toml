@@ -1,0 +1,30 @@
+[package]
+name = "bookerbob-smith-registry"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.93"
+description = "Registry of Jolt programs the smith wrote on request: spec, source and program hashes, the TEE signature over the authorship chat, a challenge window, the requester's accept"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "=5.29.1"
+
+[dev-dependencies]
+near-sdk = { version = "=5.29.1", features = ["unit-testing"] }
+ed25519-dalek = "2.2"
+
+# Outside the root workspace, with its own lock (pruned from the root Cargo.lock, so the same
+# crate versions): the root lock is pinned by vendor/SHA256 and must not change.
+[workspace]
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+strip = true

@@ -1,0 +1,39 @@
+{
+  "note": "What a verifier checks: the proof against the program hash (sha256 of verifier.bin), with the guest's input bytes rebuilt from `public` and its output bytes from (spec_hash, private_commitment, output). The private input is not here.",
+  "id": "coalition-split",
+  "spec_hash": "bff28a1463eca2b6150c407ed7f2356a5244d6039e65a50672a26b20774a5b61",
+  "program_hash": "dc65a0f063d316e896f6c44563ead2d9df596bdab95f978f04c13eec3b4432ae",
+  "public": {
+    "coalition": "coalition.bookerbob-demo.testnet",
+    "job": 2,
+    "seats_root": "cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c",
+    "budget": "30000000",
+    "bond": "5000000",
+    "delivered": [
+      {
+        "member": "m01.bookerbob.testnet",
+        "bond_back": "5000000",
+        "share": "2651933",
+        "from_slashed": "1290322"
+      },
+      {
+        "member": "m02.bookerbob.testnet",
+        "bond_back": "5000000",
+        "share": "2486187",
+        "from_slashed": "1209677"
+      }
+    ],
+    "slashed": [
+      "h05.bookerbob.testnet"
+    ],
+    "to_buyer": "27361881"
+  },
+  "public_hex": "20636f616c6974696f6e2e626f6f6b6572626f622d64656d6f2e746573746e657402cf92f815d7e75fb60ca57fc2154b207230ac2d5e784b02774837f52118f4744c8087a70ec096b10202156d30312e626f6f6b6572626f622e746573746e6574c096b1029deea101d2e04e156d30322e626f6f6b6572626f622e746573746e6574c096b102abdf9701cdea4901156830352e626f6f6b6572626f622e746573746e6574d984860d",
+  "private_commitment": "f2044584b95f76bdba641189a9fedff338730f24c8dd0899690847c9c0ddad29",
+  "output": {
+    "deliverers": 2,
+    "slashed": 1,
+    "paid_out": "17638119"
+  },
+  "output_hex": "0201e7c5b408"
+}

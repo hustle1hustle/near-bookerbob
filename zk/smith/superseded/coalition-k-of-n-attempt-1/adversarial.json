@@ -1,0 +1,327 @@
+[
+  {
+    "label": "four seats, three delivered, k_min 3: proves counts only",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 3
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "m01.bookerbob.testnet",
+          "price": "12000000",
+          "delivered": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "leg": 1,
+          "member": "h03.bookerbob.testnet",
+          "price": "99000000",
+          "delivered": null
+        },
+        {
+          "leg": 2,
+          "member": "m04.bookerbob.testnet",
+          "price": "5000000",
+          "delivered": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+        },
+        {
+          "leg": 3,
+          "member": "h09.bookerbob.testnet",
+          "price": "250000000",
+          "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    "expect": {
+      "delivered": 3,
+      "seats": 4
+    }
+  },
+  {
+    "label": "seats_root swapped for all-zero hash: commitment mismatch",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": "0000000000000000000000000000000000000000000000000000000000000000",
+      "k_min": 0
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "m01.bookerbob.testnet",
+          "price": "12000000",
+          "delivered": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "leg": 1,
+          "member": "h03.bookerbob.testnet",
+          "price": "99000000",
+          "delivered": null
+        },
+        {
+          "leg": 2,
+          "member": "m04.bookerbob.testnet",
+          "price": "5000000",
+          "delivered": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+        },
+        {
+          "leg": 3,
+          "member": "h09.bookerbob.testnet",
+          "price": "250000000",
+          "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "k_min one above the true delivered count",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 4
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "m01.bookerbob.testnet",
+          "price": "12000000",
+          "delivered": "1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        {
+          "leg": 1,
+          "member": "h03.bookerbob.testnet",
+          "price": "99000000",
+          "delivered": null
+        },
+        {
+          "leg": 2,
+          "member": "m04.bookerbob.testnet",
+          "price": "5000000",
+          "delivered": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+        },
+        {
+          "leg": 3,
+          "member": "h09.bookerbob.testnet",
+          "price": "250000000",
+          "delivered": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "legs skip 2 (0,1,3): sequence broken",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 0
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "a.bookerbob.testnet",
+          "price": "1",
+          "delivered": null
+        },
+        {
+          "leg": 1,
+          "member": "b.bookerbob.testnet",
+          "price": "2",
+          "delivered": null
+        },
+        {
+          "leg": 3,
+          "member": "c.bookerbob.testnet",
+          "price": "3",
+          "delivered": null
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "same member holds two seats, threshold otherwise met",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 1
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "dup.bookerbob.testnet",
+          "price": "10",
+          "delivered": null
+        },
+        {
+          "leg": 1,
+          "member": "dup.bookerbob.testnet",
+          "price": "20",
+          "delivered": null
+        },
+        {
+          "leg": 2,
+          "member": "other.bookerbob.testnet",
+          "price": "30",
+          "delivered": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "delivery id in uppercase hex: not lowercase",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 1
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "x.bookerbob.testnet",
+          "price": "1",
+          "delivered": "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789"
+        },
+        {
+          "leg": 1,
+          "member": "y.bookerbob.testnet",
+          "price": "2",
+          "delivered": null
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "nine seats, one over the bound",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 0
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "s0.bookerbob.testnet",
+          "price": "1",
+          "delivered": null
+        },
+        {
+          "leg": 1,
+          "member": "s1.bookerbob.testnet",
+          "price": "2",
+          "delivered": null
+        },
+        {
+          "leg": 2,
+          "member": "s2.bookerbob.testnet",
+          "price": "3",
+          "delivered": null
+        },
+        {
+          "leg": 3,
+          "member": "s3.bookerbob.testnet",
+          "price": "4",
+          "delivered": null
+        },
+        {
+          "leg": 4,
+          "member": "s4.bookerbob.testnet",
+          "price": "5",
+          "delivered": null
+        },
+        {
+          "leg": 5,
+          "member": "s5.bookerbob.testnet",
+          "price": "6",
+          "delivered": null
+        },
+        {
+          "leg": 6,
+          "member": "s6.bookerbob.testnet",
+          "price": "7",
+          "delivered": null
+        },
+        {
+          "leg": 7,
+          "member": "s7.bookerbob.testnet",
+          "price": "8",
+          "delivered": null
+        },
+        {
+          "leg": 8,
+          "member": "s8.bookerbob.testnet",
+          "price": "9",
+          "delivered": null
+        }
+      ]
+    },
+    "expect": "refuse"
+  },
+  {
+    "label": "k_min 0 with zero delivered: allowed",
+    "public": {
+      "coalition": "coalition.bookerbob-demo.testnet",
+      "job": "7",
+      "seats_root": {
+        "commit": "bookerbob/smith/coalition-seats/v0",
+        "of": "private.seats"
+      },
+      "k_min": 0
+    },
+    "private": {
+      "seats": [
+        {
+          "leg": 0,
+          "member": "a.bookerbob.testnet",
+          "price": "1",
+          "delivered": null
+        },
+        {
+          "leg": 1,
+          "member": "b.bookerbob.testnet",
+          "price": "2",
+          "delivered": null
+        }
+      ]
+    },
+    "expect": {
+      "delivered": 0,
+      "seats": 2
+    }
+  }
+]

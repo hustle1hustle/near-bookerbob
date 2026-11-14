@@ -1,0 +1,14 @@
+{
+  "note": "Tree hashes of the build root inputs the smith does not build from this repo: the patched Jolt at b4eb62480d76 + zk/browser/jolt-wasm32.patch, and every crate cargo vendor wrote for zk/smith/Cargo.lock. scripts/smith.mjs treeHash: every file path, size and bytes (a symlink as its in-tree target), sorted; .git and target skipped.",
+  "vendor/jolt": {
+    "sha256": "6a44bd1ac65d6ee8a7dec5e924928be1c6c744c1b442949d29bed2cc725fb798",
+    "files": 2470
+  },
+  "crates": {
+    "sha256": "dc2e4253d4bc14f828e0f2abfcfd73c382f5bb4908636cd87760634893240803",
+    "files": 6886
+  },
+  ".cargo/config.toml": {
+    "sha256": "2f2afba8ffc1413a3020fe521557ee6cbcbfb91e44d5b641a1d162bae98a0d9e"
+  }
+}

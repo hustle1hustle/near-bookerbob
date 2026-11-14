@@ -1,0 +1,57 @@
+;; The sandbox for every step that compiles model-written code or runs the host that traces and
+;; proves it (scripts/smith.mjs). The model's code itself never runs as a process: the checker
+;; runs it as wasm with no imports. Deny by default. Parameters: HOME, ROOT (the build root,
+;; realpath), TMP (ROOT/tmp), XCODE_BIN (the Xcode toolchain's usr/bin: clang, ld, ar).
+;;   exec:   ~/.cargo/bin (rustup proxies, the jolt CLI), ~/.rustup/toolchains (cargo, rustc),
+;;           XCODE_BIN (clang, ld, ar, called directly: no xcrun shim), /usr/bin/time, and the
+;;           binaries the build itself makes in ROOT/target, ROOT/target-zk (build scripts of the
+;;           vendored dependencies, smith-host)
+;;   read:   the system (/usr, /System, /Library, /private/etc, /dev, Xcode), ~/.rustup,
+;;           ~/.cargo/bin, ROOT; file metadata everywhere
+;;   write:  inside ROOT/{target,target-zk,out,out-zk,tmp,home,cargo-home} (the directories
+;;           themselves cannot be renamed or removed), ROOT/Cargo.lock; never cargo-home's config
+;;           files. Not ROOT/vendor, ROOT/crates, ROOT/.cargo or the sources.
+;;   mach:   notification center, opendirectory libinfo, logd; no network
+(version 1)
+(deny default)
+(allow process-fork)
+(allow signal (target same-sandbox))
+(allow sysctl-read)
+(allow process-info* (target same-sandbox))
+(allow file-read-metadata)
+(allow file-read*
+  (literal "/")
+  (subpath "/usr") (subpath "/System") (subpath "/Library") (subpath "/private/etc") (subpath "/private/var/db/timezone")
+  (subpath "/dev") (subpath "/Applications/Xcode.app") (subpath "/private/var/select")
+  (subpath (string-append (param "HOME") "/.rustup"))
+  (subpath (string-append (param "HOME") "/.cargo/bin"))
+  (subpath (param "ROOT")))
+(allow process-exec
+  (subpath (string-append (param "HOME") "/.cargo/bin"))
+  (subpath (string-append (param "HOME") "/.rustup/toolchains"))
+  (subpath (param "XCODE_BIN"))
+  (literal "/usr/bin/time")
+  (subpath (string-append (param "ROOT") "/target"))
+  (subpath (string-append (param "ROOT") "/target-zk")))
+(allow file-write*
+  (subpath (string-append (param "ROOT") "/target")) (subpath (string-append (param "ROOT") "/target-zk"))
+  (subpath (string-append (param "ROOT") "/out")) (subpath (string-append (param "ROOT") "/out-zk"))
+  (subpath (string-append (param "ROOT") "/home")) (subpath (param "TMP"))
+  (subpath (string-append (param "ROOT") "/cargo-home"))
+  (literal (string-append (param "ROOT") "/Cargo.lock"))
+  (literal "/dev/null") (literal "/dev/tty") (literal "/dev/dtracehelper"))
+(deny file-write* (regex #"/cargo-home/config"))
+;; The writable directories themselves cannot be renamed, replaced or removed (only their
+;; contents change): a rename of cargo-home, or of a planted dir onto it, is refused.
+(deny file-write*
+  (literal (string-append (param "ROOT") "/cargo-home")) (literal (string-append (param "ROOT") "/target"))
+  (literal (string-append (param "ROOT") "/target-zk")) (literal (string-append (param "ROOT") "/out"))
+  (literal (string-append (param "ROOT") "/out-zk")) (literal (string-append (param "ROOT") "/home"))
+  (literal (param "TMP")))
+(allow file-ioctl (literal "/dev/null") (literal "/dev/tty") (literal "/dev/dtracehelper"))
+(allow ipc-posix-shm-read-data ipc-posix-shm-read-metadata (ipc-posix-name "apple.shm.notification_center"))
+(allow mach-lookup
+  (global-name "com.apple.system.notification_center")
+  (global-name "com.apple.system.opendirectoryd.libinfo")
+  (global-name "com.apple.logd")
+  (global-name "com.apple.system.logger"))

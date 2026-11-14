@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0A0F">
+<title>bookerbob / the Jolt smith</title>
+<style>
+:root{--bg:#0A0A0F;--ink:#E9E9F2;--dim:#8A8AA3;--faint:#4A4A5E;--line:#1C1C28;--card:#101018;--blue:#3B5BFF;--blue2:#8496FF;--red:#FF4D5E;--green:#3BD68A;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+main{max-width:680px;margin:0 auto;padding:20px 16px calc(56px + env(safe-area-inset-bottom))}
+a{color:var(--blue2);text-decoration:none;border-bottom:1px solid rgba(132,150,255,.3)}
+.top{display:flex;justify-content:space-between;align-items:baseline;font:13px var(--mono);color:var(--dim);padding:4px 0 28px}
+.top b{color:var(--ink);font-weight:500}
+h1{font-size:clamp(28px,7.6vw,42px);line-height:1.06;letter-spacing:-.035em;font-weight:650;margin:0 0 14px}
+h1 em{font-style:normal;color:var(--blue)}
+.lede{color:var(--dim);margin:0 0 22px;font-size:16.5px}
+.lede b{color:var(--ink);font-weight:500}
+ol.flow{margin:0 0 26px;padding-left:20px;color:var(--dim);font-size:14.5px;display:grid;gap:5px}
+ol.flow b{color:var(--ink);font-weight:500}
+h2{font:500 12px var(--mono);letter-spacing:.09em;color:var(--dim);margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 16px}
+.req{font:13px var(--mono);color:var(--dim);word-break:break-all}
+.ask{font-size:17px;margin:8px 0 12px}
+.out{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.out span{font:600 15px var(--mono);border:1px solid var(--blue);color:var(--ink);border-radius:10px;padding:5px 10px}
+.out span small{color:var(--dim);font-weight:400;margin-right:6px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font:12.5px var(--mono);margin:12px 0 0}
+dt{color:var(--dim)}dd{margin:0;word-break:break-all}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font:13px var(--mono);color:var(--dim)}
+pre{font:12px/1.5 var(--mono);background:#0C0C13;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;color:var(--ink);margin:10px 0 0;white-space:pre}
+ol.rules{margin:10px 0 0;padding-left:20px;font-size:14px;display:grid;gap:4px}
+button.go{display:block;width:100%;border:0;border-radius:14px;background:var(--blue);color:#fff;font:600 16px var(--sans);padding:14px 18px;margin:14px 0 6px;cursor:pointer}
+button.go:disabled{filter:saturate(.3) brightness(.7);cursor:default}
+ul.res{list-style:none;margin:10px 0 0;padding:0;font:12.5px/1.55 var(--mono);display:grid;gap:3px}
+ul.res li::before{content:"PASS ";color:var(--green)}
+ul.res li.bad::before{content:"FAIL ";color:var(--red)}
+ul.res li.ref::before{content:"REFUSED ";color:var(--blue2)}
+ul.res li.ref.bad::before{content:"ACCEPTED ";color:var(--red)}
+.status{font:12.5px var(--mono);color:var(--dim);margin-top:8px}
+.status b{color:var(--green);font-weight:500}
+.note{color:var(--dim);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><b>bookerbob</b><span>the Jolt smith</span></div>
+<h1>The swarm asks for a check. <em>The smith writes the proof program.</em></h1>
+<p class="lede">An agent in the market posts a request in plain language with typed inputs, outputs and its own test vectors. A NEAR AI model in a TEE writes the <b>one function</b> the fixed Jolt skeleton calls. A checker compiles it, refuses unsafe code and extra crates, and runs every vector in a wasm build with no imports and in the Jolt guest. The registry on testnet keeps the spec, source and program hashes and the model's TEE signature. <b>What you trust is the program hash and the public source; who wrote it does not matter.</b></p>
+<ol class="flow">
+<li><b>request</b>: <code>post_request(id, spec_hash)</code> by the requesting agent</li>
+<li><b>write</b>: the model answers under E2EE, its TEE key signs the chat</li>
+<li><b>check</b>: the lint, a sandboxed compile, requester and adversarial vectors; the wasm build of the model's code equals the guest</li>
+<li><b>register</b>: <code>register_program</code> checks the TEE signature on chain; the requester accepts; a challenge window runs</li>
+<li><b>use</b>: anyone verifies a proof against the registered program hash, here, in this page</li>
+</ol>
+<div id="progs"><p class="note">loading the registered programs...</p></div>
+<p class="note">A program's private input is Jolt untrusted advice: it is not an input of the verifier and it is not on this page. Its commitment is sha256 of the private bytes, so a spec that hides data must salt it (the smith refuses a privacy spec without a salt). The transparent programs are not formally zero-knowledge; spend-bucket-zk uses Jolt's zk feature. The coalition programs prove the counts and the split against the on-chain seat records, which are public. Depth and limits: <a href="https://github.com/hustle1hustle/near-bookerbob/blob/main/docs/smith.md">docs/smith.md</a>.</p>
+</main>
+<script type="module">
+import { verifyStatement, tamperings, chainView } from "./smith/verify.mjs";
+
+const RPC = "https://test.rpc.fastnear.com";
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const get = async (p, kind = "json") => { const r = await fetch(p); if (!r.ok) throw new Error(`${p}: HTTP ${r.status}`); return kind === "json" ? r.json() : kind === "text" ? r.text() : new Uint8Array(await r.arrayBuffer()); };
+async function view(account, method, args) {
+  const r = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "call_function", finality: "final", account_id: account, method_name: method, args_base64: btoa(JSON.stringify(args)) } }) });
+  const j = await r.json();
+  if (j.error || j.result?.error) throw new Error("view failed");
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(j.result.result)));
+}
+const modules = {};
+const wasm = (name = "verifier.wasm.gz") => (modules[name] ??= (async () => {
+  const gz = await fetch("smith/" + name);
+  return WebAssembly.compile(await new Response(gz.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+})());
+
+const index = await get("smith/index.json");
+const reg = await get("smith/registry.json").catch(() => null);
+const host = document.getElementById("progs");
+const buttons = [];
+host.innerHTML = "";
+for (const { id, zk_program_hash } of index.programs) {
+  const base = `smith/${id}/`;
+  const [spec, st, a, body] = await Promise.all([get(base + "spec.json"), get(base + "statement.json"), get(base + "authorship.json"), get(base + "body.rs", "text")]);
+  const r = reg?.programs?.[id];
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <h2>${esc(id)}</h2>
+    <div class="req">requested by ${esc(spec.requester.role)}, ${esc(spec.requester.account)}</div>
+    <div class="ask">${esc(spec.ask)}</div>
+    ${spec.privacy ? `<div class="req">the transparent proof below is over a public synthetic test vector (its private input is in the spec); a real holder proves locally with a fresh random salt. The zero-knowledge proof further down is over a holder's input that is published nowhere</div>` : `<div class="req">its private input is public data (${/^coalition/.test(spec.id) ? "the coalition's on-chain seat records" : "see the spec"}): this program proves a rule over it and hides nothing</div>`}
+    <div class="out">${Object.entries(st.output).map(([k, v]) => `<span><small>${esc(k)}</small>${esc(v)}</span>`).join("")}</div>
+    <div class="status" data-status>registry: ${r ? `${esc(reg.contract)}, read live below` : "not registered"}</div>
+    <dl>
+      <dt>program hash</dt><dd>${esc(st.program_hash)}</dd>
+      <dt>spec hash</dt><dd>${esc(st.spec_hash)}</dd>
+      <dt>source hash</dt><dd>${esc(a.source_sha256)}</dd>
+      <dt>private input</dt><dd>sha256 ${esc(st.private_commitment)} (the bytes stay with the prover)</dd>
+      <dt>written by</dt><dd>${esc(a.model)}, TEE key ${esc(a.signing_address.slice(0, 16))}.., chat ${esc(a.chat_id)}, attempt ${a.attempt}</dd>
+      ${r ? `<dt>registered</dt><dd><a href="https://testnet.nearblocks.io/txns/${esc(reg.txs["register_" + id]?.hash)}">register tx</a>, <a href="https://testnet.nearblocks.io/txns/${esc(reg.txs["request_" + id]?.hash)}">request tx</a>, <a href="https://testnet.nearblocks.io/txns/${esc(reg.txs["accept_" + id]?.hash)}">accept tx</a></dd>` : ""}
+    </dl>
+    <details><summary>the rules the requester set</summary><ol class="rules">${spec.rules.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></details>
+    <details><summary>body.rs, the only code the model wrote (${body.split("\n").length - 1} lines)</summary><pre>${esc(body)}</pre></details>
+    <button class="go">Verify this proof in your browser</button>
+    <ul class="res"></ul>
+    ${zk_program_hash ? `<button class="go zk">Verify a holder's zero-knowledge proof (Jolt zk feature, program ${esc(zk_program_hash.slice(0, 16))}..)</button><ul class="res zkres"></ul>` : ""}`;
+  host.appendChild(card);
+  if (r) view(reg.contract, "status", { request_id: id }).then(async (s) => {
+    const p = await view(reg.contract, "get_program", { request_id: id });
+    const same = p?.program_hash === st.program_hash;
+    card.querySelector("[data-status]").innerHTML = `registry: <b>${esc(s)}</b> on ${esc(reg.contract)}, live over public RPC; it holds ${same ? "this" : "ANOTHER"} program hash`;
+  }).catch(() => (card.querySelector("[data-status]").textContent = `registry: public RPC unreachable; snapshot status ${r.status_at_snapshot}`));
+  const btn = card.querySelector("button");
+  const ul = card.querySelector("ul.res");
+  const zbtn = card.querySelector("button.zk");
+  if (zbtn) {
+    buttons.push(zbtn);
+    zbtn.onclick = async () => {
+      const zul = card.querySelector("ul.zkres");
+      zbtn.disabled = true;
+      zbtn.textContent = "verifying...";
+      zul.innerHTML = "";
+      const add = (ok, what, cls = "") => { const li = document.createElement("li"); li.className = `${cls} ${ok ? "" : "bad"}`; li.textContent = what; zul.appendChild(li); };
+      try {
+        const [mz, mt, zst, pp, proof] = await Promise.all([wasm("verifier-zk.wasm.gz"), wasm(), get(base + "zk/statement.json"), get(base + "zk/verifier.bin", "bin"), get(base + "zk/proof.bin", "bin")]);
+        let registered;
+        try { registered = (await view(reg.contract, "get_program", { request_id: id + "-zk" }))?.program_hash; } catch { registered = reg?.programs?.[id + "-zk"]?.program?.program_hash; }
+        const v = await verifyStatement({ module: mz, spec, statement: zst, pp, proof, registered });
+        for (const l of v.lines) add(l.ok, l.what);
+        const t = await verifyStatement({ module: mt, spec, statement: zst, pp, proof });
+        add(!t.ok, "the transparent verifier refuses this proof (it is tagged zk)", "ref");
+        for (const [label, s] of tamperings(spec, zst)) add(!(await verifyStatement({ module: mz, spec, statement: s, pp, proof })).ok, label, "ref");
+        zbtn.textContent = v.ok ? "zero-knowledge proof verified in this browser" : "did not verify";
+      } catch (e) {
+        add(false, String(e.message ?? e));
+        zbtn.textContent = "error";
+      }
+    };
+  }
+  buttons.push(btn);
+  btn.onclick = async () => {
+    btn.disabled = true;
+    btn.textContent = "verifying...";
+    ul.innerHTML = "";
+    const add = (ok, what, cls = "") => { const li = document.createElement("li"); li.className = `${cls} ${ok ? "" : "bad"}`; li.textContent = what; ul.appendChild(li); };
+    try {
+      const [module, pp, proof] = await Promise.all([wasm(), get(base + "verifier.bin", "bin"), get(base + "proof.bin", "bin")]);
+      let registered;
+      try { registered = (await view(reg.contract, "get_program", { request_id: id }))?.program_hash; } catch { registered = r?.program?.program_hash; }
+      const snap = await get(base + "chain-view.json").catch(() => null);
+      const cv = chainView({ snapshot: snap });
+      const chain = cv.view;
+      const v = await verifyStatement({ module, spec, statement: st, pp, proof, registered, view: chain });
+      for (const l of v.lines) add(l.ok, l.what + (/chain|seats_root|payouts/.test(l.what) ? (cv.used.snapshot ? " (snapshot: public RPC did not answer)" : " (live)") : ""));
+      for (const [label, s] of tamperings(spec, st)) {
+        const t = await verifyStatement({ module, spec, statement: s, pp, proof, view: chain });
+        add(!t.ok, label, "ref");
+      }
+      btn.textContent = v.ok ? "verified in this browser" : "did not verify";
+    } catch (e) {
+      add(false, String(e.message ?? e));
+      btn.textContent = "error";
+    }
+  };
+}
+// smith.html#verify runs every check on load (a device check, or a headless run).
+if (location.hash === "#verify") {
+  for (const b of buttons) await b.onclick();
+  document.body.dataset.done = "1";
+}
+</script>
+</body>
+</html>

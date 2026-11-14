@@ -1,0 +1,30 @@
+# The Jolt smith: guest programs written on request by a NEAR AI model from a fixed skeleton
+# (docs/smith.md). Its own workspace on the browser pin (a16z/jolt b4eb62480d76, the same
+# patched copy zk/browser uses), so every registered program verifies with one generic wasm
+# verifier in node and in the browser. Built only at the fixed root /tmp/bookerbob-smith by
+# scripts/smith.mjs (the guest ELF carries source paths, so the root is part of the program).
+[workspace]
+members = ["host", "programs/*", "programs/*/body", "programs/*/wasm"]
+exclude = ["vendor", "verify-wasm", "lint"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+
+[profile.release]
+debug = 1
+codegen-units = 16
+
+[patch.crates-io]
+ark-bn254 = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ff = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-ec = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+ark-serialize = { git = "https://github.com/a16z/arkworks-algebra", branch = "dev/twist-shout" }
+
+[patch."https://github.com/a16z/jolt"]
+jolt-field = { path = "vendor/jolt/crates/jolt-field" }
+jolt-poly = { path = "vendor/jolt/crates/jolt-poly" }
+jolt-inlines-blake2 = { path = "vendor/jolt/jolt-inlines/blake2" }
+jolt-inlines-ntt = { path = "vendor/jolt/jolt-inlines/ntt" }
+jolt-inlines-keccak256 = { path = "vendor/jolt/jolt-inlines/keccak256" }
