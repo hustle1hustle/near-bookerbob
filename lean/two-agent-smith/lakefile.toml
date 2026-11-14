@@ -1,0 +1,5 @@
+name = "SmithLean"
+defaultTargets = ["SmithLean"]
+
+[[lean_lib]]
+name = "SmithLean"

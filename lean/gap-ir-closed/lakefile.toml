@@ -1,0 +1,13 @@
+name = "GapIR"
+defaultTargets = ["SmithLean", "GapIR"]
+
+[[lean_lib]]
+name = "SmithLean"
+roots = ["SmithLean.Commit", "SmithLean.CoalitionKofN", "SmithLean.SpendBucket"]
+
+[[lean_lib]]
+name = "GapIR"
+
+[[lean_exe]]
+name = "emit"
+root = "GapIR.Main"
